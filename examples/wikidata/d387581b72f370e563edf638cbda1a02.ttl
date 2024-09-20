@@ -1,0 +1,43 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d387581b72f370e563edf638cbda1a02> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?person ?personLabel ?mother_family_nameLabel ?father_family_nameLabel
+
+WITH {
+  SELECT ?person ?mother_family_name ?father_family_name WHERE {
+  ?person wdt:P25 [wdt:P734 ?mother_family_name] ;
+          wdt:P22 [wdt:P734 ?father_family_name] .
+  FILTER(?mother_family_name != ?father_family_name)
+}
+} AS %results1 
+
+WITH {
+  SELECT ?person ?personLabel ?mother_family_nameLabel ?father_family_name WHERE {
+  INCLUDE %results1.
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . 
+    ?person rdfs:label ?personLabel .
+    ?mother_family_name rdfs:label ?mother_family_nameLabel .
+  }
+  FILTER(CONTAINS(?personLabel, CONCAT(?mother_family_nameLabel, \"-\")))
+}
+} AS %results2 
+
+WHERE {
+  INCLUDE %results2.
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . 
+    ?father_family_name rdfs:label ?father_family_nameLabel .
+  }
+  FILTER(CONTAINS(?personLabel, CONCAT(\"-\", ?father_family_nameLabel)))
+} ORDER BY ASC(?mother_family_nameLabel) ASC(?father_family_nameLabel) ASC(?personLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

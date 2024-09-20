@@ -1,0 +1,88 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-dc66d6bddbdcbb359da42ae89f7227bf> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  ?User
+  (URI(CONCAT(\"https://en.wikipedia.org/wiki/Special:Contributions/\", ?User)) AS ?UserContributions)
+  ?DateFirstEdit ?TotalEdits ?n_enwikiEdits ?n_CommonsEdits ?n_WikidataEdits
+  (URI(CONCAT(\"https://en.wikipedia.org/wiki/Special:CentralAuth/\", ?User)) AS ?GlobalAccount)
+  ?DateLastEdit
+  (xsd:dateTime(?DateLastEdit) - xsd:dateTime(?DateFirstEdit) AS ?DaysEditing)
+WHERE
+{
+  VALUES ?User { \"MargaretRDonald\" \"Oronsay\" \"Cuyahoga44\" \"DrPlantGenomics\" }
+  SERVICE wikibase:mwapi
+  {
+    # Get edit counts from globaluserinfo API call.    
+
+    # Best supported service is Generator. We don't need or use the generator output,
+    # but can construct the API call to also include the meta=globaluserinfo info
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam mwapi:generator \"random\" . # This generator doesn't make much output, and doesn't require additional parameters
+
+    # What we really want here:
+    bd:serviceParam mwapi:meta \"globaluserinfo\" . 
+    bd:serviceParam mwapi:guiuser ?User .
+    bd:serviceParam mwapi:guiprop \"merged|editcount\" .
+
+    # XPath expressions to extract the results:
+    ?TotalEdits wikibase:apiOutput \"/api/query/globaluserinfo/@editcount\" .
+    ?n_enwikiEdits wikibase:apiOutput \"/api/query/globaluserinfo/merged/account[@wiki='enwiki']/@editcount\" .
+    ?n_CommonsEdits wikibase:apiOutput \"/api/query/globaluserinfo/merged/account[@wiki='commonswiki']/@editcount\" .
+    ?n_WikidataEdits wikibase:apiOutput \"/api/query/globaluserinfo/merged/account[@wiki='wikidatawiki']/@editcount\" .
+    bd:serviceParam wikibase:limit \"once\" .
+  }
+  SERVICE wikibase:mwapi
+  {
+    # Get dates for first edit at enwiki using the usercontribs API call.
+
+    # Best supported service is Generator. We don't need or use the generator output,
+    # but can construct the API call to also include the list=usercontribs info
+    bd:serviceParam wikibase:endpoint \"en.wikipedia.org\" .
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam mwapi:generator \"random\" . # This generator doesn't make much output, and doesn't require additional parameters
+    
+    # What we really want here:
+    bd:serviceParam mwapi:list \"usercontribs\" . 
+    bd:serviceParam mwapi:ucuser ?User .    
+    bd:serviceParam mwapi:ucdir \"newer\" . # Start with oldest edit
+    bd:serviceParam mwapi:ucprop \"timestamp\" . # Get timestamp
+    bd:serviceParam mwapi:uclimit \"1\" .
+    
+    # XPath expressions to extract the result:
+    ?DateFirstEdit wikibase:apiOutput \"/api/query/usercontribs/item/@timestamp\" .
+    bd:serviceParam wikibase:limit \"once\" .
+  }
+  SERVICE wikibase:mwapi
+  {
+    # Get dates for last at enwiki using the usercontribs API call.
+
+    # Best supported service is Generator. We don't need or use the generator output,
+    # but can construct the API call to also include the list=usercontribs info
+    bd:serviceParam wikibase:endpoint \"en.wikipedia.org\" .
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam mwapi:generator \"random\" . # This generator doesn't make much output, and doesn't require additional parameters
+    
+    # What we really want here:
+    bd:serviceParam mwapi:list \"usercontribs\" . 
+    bd:serviceParam mwapi:ucuser ?User .    
+    bd:serviceParam mwapi:ucdir \"older\" . # Start with newest edit
+    bd:serviceParam mwapi:ucprop \"timestamp\" . # Get timestamp
+    bd:serviceParam mwapi:uclimit \"1\" .
+    
+    # XPath expressions to extract the result:
+    ?DateLastEdit wikibase:apiOutput \"/api/query/usercontribs/item/@timestamp\" .
+    bd:serviceParam wikibase:limit \"once\" .
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

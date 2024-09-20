@@ -1,0 +1,68 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d95c7c4998eea5151ed05b938e188563> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Au 13 avril 1970, il y a 99 départements.
+SELECT DISTINCT ?inseeDépartement ?département ?nom ?inseeRégion ?région ?inseeCheflieu ?cheflieu WHERE {
+  BIND ( \"1970-04-13\"^^xsd:dateTime as ?dateRecherche ) 
+ 
+   ?département p:P2586 ?P2586node . # existence d'un code Insee
+    ?P2586node ps:P2586 ?inseeDépartement . # valeur du code Insee
+    OPTIONAL { ?département wdt:P571 ?dateCréation . } # date de création
+    OPTIONAL { ?département wdt:P576 ?dateDissolution . } # date de dissolution
+  
+   ?département p:P1448 ?P1448node . # existence d'un nom
+    ?P1448node ps:P1448 ?nom . # valeur du nom
+    FILTER( lang(?nom)=\"fr\" ). # nom en français
+    MINUS { ?P1448node pq:P2241 ?dépréciationNom . } # nom erroné
+    OPTIONAL { ?P1448node pq:P580 ?dateDébutNom . } # date de début du nom
+    OPTIONAL { ?P1448node pq:P582 ?dateFinNom . } # date de fin du nom 
+
+   { ?département p:P36 ?P36node . # existence d'un chef-lieu
+    ?P36node ps:P36 ?cheflieu . # valeur du chef-lieu
+    OPTIONAL { ?P36node pq:P580 ?dateDébutCheflieu . } # date de début du chef-lieu
+    OPTIONAL { ?P36node pq:P582 ?dateFinCheflieu . } # date de fin du chef-lieu 
+    ?cheflieu p:P374 ?P374node . # existence d'un code Insee du chef-lieu
+    ?P374node ps:P374 ?inseeCheflieu . # valeur du code Insee du chef-lieu
+    OPTIONAL { ?P374node pq:P580 ?dateDébutCode . } # date de début du code Insee du chef-lieu
+    OPTIONAL { ?P374node pq:P582 ?dateFinCode . } # date de fin du code Insee  du chef-lieu
+    }
+     UNION { VALUES (?inseeDépartement ?département ?inseeCheflieu ?cheflieu ) {(\"75\" wd:Q90 \"75056\" wd:Q90)} } # Paris
+
+   { { ?région wdt:P2585 ?inseeRégion. # code Insee de la région
+    ?cheflieu p:P131 ?P131nodeRégion . # région monodépartementale
+    ?P131nodeRégion ps:P131 ?région .  # valeur de la région
+      }
+    UNION { 
+    ?région wdt:P2585 ?inseeRégion. # code Insee de la région
+    ?département p:P131 ?P131nodeRégion .
+    ?P131nodeRégion ps:P131 ?région .  # valeur de la région
+      }
+    OPTIONAL { ?P131nodeRégion pq:P580 ?dateDébutRégion . } # date de début de la région
+    OPTIONAL { ?P131nodeRégion pq:P582 ?dateFinRégion . } # date de fin de la région
+
+    OPTIONAL {?région p:P31 [ps:P31 wd:Q36784; pq:P580 ?dateRégionalisation].}
+    FILTER ( !BOUND(?dateRégionalisation) || ?dateRégionalisation <= ?dateRecherche ) # régionalisation outre-mer
+   } UNION { VALUES (?inseeDépartement ?département ) {(\"971\" wd:Q17012) (\"972\" wd:Q17054) (\"973\" wd:Q3769) (\"974\" wd:Q17070)} }
+  
+    FILTER ( !BOUND(?dateCréation) || ?dateCréation <= ?dateRecherche ) # départements futurs
+    FILTER ( !BOUND(?dateDissolution) || ?dateDissolution > ?dateRecherche ) # départements passés
+    FILTER ( !BOUND(?dateDébutRégion) || ?dateDébutRégion <= ?dateRecherche ) # ancienne région
+    FILTER ( !BOUND(?dateFinRégion) || ?dateFinRégion > ?dateRecherche ) # future région 
+    FILTER ( !BOUND(?dateDébutCheflieu) || ?dateDébutCheflieu <= ?dateRecherche ) # ancien chef-lieu
+    FILTER ( !BOUND(?dateFinCheflieu) || ?dateFinCheflieu > ?dateRecherche ) # futur chef-lieu  
+    FILTER ( !BOUND(?dateDébutCode) || ?dateDébutCode <= ?dateRecherche ) # ancien code Insee
+    FILTER ( !BOUND(?dateFinCode) || ?dateFinCode > ?dateRecherche ) # futur code Insee 
+    FILTER ( !BOUND(?dateDébutNom) || ?dateDébutNom <= ?dateRecherche ) # ancien nom
+    FILTER ( !BOUND(?dateFinNom) || ?dateFinNom > ?dateRecherche ) # futur nom   
+}
+ORDER BY ?inseeDépartement""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_France/Liste_des_d%C3%A9partements>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

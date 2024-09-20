@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d1476961cf96f54d178d79a4d909450e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# coses de Barcelona sense barri ni districte, agrupades per instància
+SELECT DISTINCT  ?inst ?instLabel (COUNT(DISTINCT(?item)) AS ?nitems) WHERE {
+  ?item wdt:P31 ?inst.
+  ?item wdt:P131+ wd:Q1492.
+  ?item wdt:P625 ?coord.
+    OPTIONAL {
+    ?item wdt:P131+ ?districte.
+    ?districte wdt:P31 wd:Q790344.
+  }
+    OPTIONAL {
+    ?item wdt:P131+ ?barri.
+    ?barri wdt:P31 wd:Q75135432.
+  }
+  BIND (COALESCE (?barri, ?districte) AS ?div).
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],ca,en,es,fr,de\" . 
+  }
+  FILTER (!BOUND(?div))
+}
+GROUP BY ?inst ?instLabel
+ORDER BY DESC(?nitems) ?instLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Pere_prlpz>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-dc56189bb8b38904db6fc3ec28f6f4a7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# find patrilineal ancestors and patrilineal descendants of Kublai Khan
+#defaultView:Graph
+SELECT DISTINCT ?paternal ?paternalLabel ?birthdate ?image ?father ?fatherLabel ?edgeLabel
+WHERE {
+  # define ?paternal as Kublai Khan (Q7523)'s patrilineal ancestors (any father (P22)'s father's...),
+  {wd:Q7523 wdt:P22* ?paternal}
+  # OR patrilineal descendants (those whose any father (P22)'s father's... is Kublai Khan (Q7523))
+  UNION {?paternal wdt:P22* wd:Q7523;
+         # and gender (P21) is male (Q6581097)
+          wdt:P21 wd:Q6581097}
+  # optional: define ?paternal's father (P22) as ?father
+  OPTIONAL {?paternal wdt:P22 ?father.
+           # show father (P22) on graph edges
+           ?edge wikibase:directClaim wdt:P22;
+               a wikibase:Property}
+  # optional: show ?paternal's birthdate (P569), which only appears in table, not graph
+  OPTIONAL {?paternal wdt:P569 ?birthdate}
+  # optional: show ?paternal's image (P18), which appears directly in graph, and as link in table
+  OPTIONAL {?paternal wdt:P18 ?image}
+  # show label in simplified Chinese (zh-hans) as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"zh-hans,en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

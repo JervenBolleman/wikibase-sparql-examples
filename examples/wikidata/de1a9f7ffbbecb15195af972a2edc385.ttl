@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-de1a9f7ffbbecb15195af972a2edc385> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# MPs, and the different seats they sat for
+# counting on label takes account of the fact that some seats are split by Wikidata
+# and this is slightly counterintuitive (a reader might reasonably treat them as the same place)
+# see eg Ian Mikardo at Reading; the constituency 1885-1950 & 1955-1974 are distinct items
+# if we counted by ?constituency then he would total six, but really two are the \"same\" seat
+
+select ?mp ?mpLabel ?seatcount ?seats
+WHERE {
+       {
+        SELECT ?mp ?mpLabel (COUNT(DISTINCT ?constituencyLabel) AS ?seatcount) (GROUP_CONCAT(DISTINCT(?constituencyLabel); separator=\", \") as ?seats)
+         WHERE {
+         ?position wdt:P279 wd:Q16707842.
+         ?mp p:P39 ?positionStatement . ?positionStatement ps:P39 ?position ; pq:P768 ?constituency .
+         SERVICE wikibase:label {
+               bd:serviceParam wikibase:language \"en\" .
+               ?mp rdfs:label ?mpLabel .
+               ?constituency rdfs:label ?constituencyLabel }
+        } GROUP BY ?mp ?mpLabel 
+       }
+  filter(?seatcount >4)
+} 
+order by desc(?seatcount)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

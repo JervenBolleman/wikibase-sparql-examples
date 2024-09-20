@@ -1,0 +1,64 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d5831fc3c98df053a06172e4d648076f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# capitals and formation locations of countries in the Twenty-Six Histories
+# viewed as map, layered by ?edgeLabel (replaceable by ?bookLabel or ?genreLabel)
+#defaultView:Map{\"layer\":\"?edgeLabel\"}
+# also viewable as table, graph, and image grid
+SELECT DISTINCT ?country ?countryLabel ?countryDescription ?image ?bookLabel ?volume ?partLabel ?genreLabel ?start ?end ?place ?placeLabel ?coord ?edgeLabel
+WHERE {
+  # define ?book specifically as:
+  ### Note: Certain books can be removed from the list so that a map for one or some specific books can be generated.
+  # Records of the Grand Historian (Q272530), Book of Han (Q846905), Book of the Later Han (Q430428), Records of the Three Kingdoms (Q247318), Book of Jin (Q1154753)
+  # Book of Song (Q1143142), Book of Southern Qi (Q1192857), Book of Liang (Q1285767), Book of Chen (Q1275744), Book of Wei (Q1269357)
+  VALUES ?book {wd:Q272530 wd:Q846905 wd:Q430428 wd:Q247318 wd:Q1154753 wd:Q1143142 wd:Q1192857 wd:Q1285767 wd:Q1275744 wd:Q1269357
+                # Book of Northern Qi (Q1247505), Book of Zhou (Q1285731), Book of Sui (Q1156924), History of Southern Dynasties (Q1137686), History of Northern Dynasties (Q1188548)
+                # Old Book of Tang (Q1146980), New Book of Tang (Q386073), Old History of the Five Dynasties (Q1333316), New History of the Five Dynasties (Q919488), History of Song (Q1147260)
+                wd:Q1247505 wd:Q1285731 wd:Q1156924 wd:Q1137686 wd:Q1188548 wd:Q1146980 wd:Q386073 wd:Q1333316 wd:Q919488 wd:Q1147260
+                # History of Liao (Q1188539), History of Jin (Q637035), History of Yuan (Q1345223), History of Ming (Q28763)
+                # New History of Yuan (Q1053256), Draft History of Qing (Q1374339)
+                wd:Q1188539 wd:Q637035 wd:Q1345223 wd:Q28763 wd:Q1053256 wd:Q1374339}
+  # optional: show ?part, which is part of (P361) or published in (P1433) [ZeroOrMorePath (*)] ?book
+  OPTIONAL {?part (wdt:P361|wdt:P1433)* ?book;
+                   # ?part's main subject (P921) is ?country
+                   wdt:P921 ?country.
+            # ?country is instance of (P31) subclass of (P279) [ZeroOrMorePath (*)] historical country (Q3024240)
+            ?country wdt:P31/wdt:P279* wd:Q3024240
+            # optional: show ?part's volume (P478) as ?volume
+            OPTIONAL {?part wdt:P478 ?volume}
+            # optional: show ?part's genre (P136) as ?genre
+            OPTIONAL {?part wdt:P136 ?genre}
+            # optional: show ?country's image (P18) as ?image
+            OPTIONAL {?country wdt:P18 ?image}
+            # optional: show ?country's inception (P571) as ?start
+            OPTIONAL {?country wdt:P571 ?start}
+            # optional: show ?country's dissolution (P576) as ?end
+            OPTIONAL {?country wdt:P576 ?end}
+            # optional: show ?country's capital (P36) or location of formation (P740) as ?place
+            ### Note: One property can be removed so that a map for the other property can be generated when layered by ?bookLabel or ?genreLabel.
+            OPTIONAL {?country (wdt:P36|wdt:P740) ?place
+                      # to avoid showing any other relation
+                      # define ?relation as capital (P36) or location of formation (P740)
+                      VALUES ?relation {wdt:P36 wdt:P740}
+                      # ?relation is from ?country to ?place
+                      ?country ?relation ?place.
+                      # get ?relation's property label and allow it to appear on graph edge
+                      ?edge wikibase:directClaim ?relation;
+                            a wikibase:Property
+                      # optional: show ?place's coordinate location (P625) as ?coord
+                      OPTIONAL {?place wdt:P625 ?coord} } }
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".}
+}
+# order layer by ?edgeLabel (replaceable by ?bookLabel or ?genreLabel)
+ORDER BY ?edgeLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,24 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-dd1bd67e14f71749c4ec6cea17c7e0ed> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:ImageGrid
+SELECT DISTINCT ?museum ?museumLabel (SAMPLE(?image) AS ?image) ?sitelinks (SAMPLE(?web) AS ?web) WHERE {
+?museum wdt:P31/wdt:P279* wd:Q33506 . # museums or subtypes
+?museum wikibase:sitelinks ?sitelinks
+OPTIONAL {?museum wdt:P18 ?img}
+OPTIONAL {?museum wdt:P856 ?web}
+BIND (IF(BOUND(?img), ?img, <http://commons.wikimedia.org/wiki/Special:FilePath/No%20image%20available.svg>) AS ?image)
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+} GROUP BY ?museum ?museumLabel ?sitelinks
+ORDER BY DESC(?sitelinks)
+LIMIT 1000""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Heritage_institutions/Tools_%26_tasks>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

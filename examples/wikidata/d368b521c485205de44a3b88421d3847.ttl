@@ -1,0 +1,39 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d368b521c485205de44a3b88421d3847> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#---------------------------------------------------------------------------------------
+# Jüngsten Personen (geboren oder gestorben in Dresden)
+#---------------------------------------------------------------------------------------
+SELECT distinct ?item ?itemLabel ?itemDescription ?age ?pobLabel ?podLabel {
+#  ?item wdt:P1196 wd:Q8454 . 
+# ?item wdt:P1399 [] .
+  
+  {?item wdt:P19 wd:Q1731}
+  union
+  {?item wdt:P20 wd:Q1731}
+        
+  ?item p:P569 [ a wikibase:BestRank ;
+                 psv:P569 [ wikibase:timeValue ?birth;
+                            wikibase:timePrecision ?precision_birth ] ] .
+  ?item p:P570 [ a wikibase:BestRank ;
+                 psv:P570 [ wikibase:timeValue ?death;
+                            wikibase:timePrecision ?precision_death ] ] . 
+  FILTER (?precision_birth > 8 && ?precision_death > 8) 
+  BIND ((?death - ?birth)/365.25 AS ?age) 
+  #FILTER (?age <= 18.5)
+  
+  optional {?item wdt:P19 ?pob. }
+  optional {?item wdt:P20 ?pod. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\"}
+} ORDER BY ?age
+limit 50""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stefan_K%C3%BChn/Dresden>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

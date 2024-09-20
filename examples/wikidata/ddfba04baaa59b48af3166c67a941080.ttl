@@ -1,0 +1,49 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ddfba04baaa59b48af3166c67a941080> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?berufeLabel ?geboren ?geb_ortLabel ?geb_bundeslandLabel ?gestorben ?sterbeortLabel ?sterbe_bundeslandLabel ?sitelink
+WITH { SELECT DISTINCT ?item ?sitelink ?gestorben (GROUP_CONCAT(?berufeLabel_;separator=\"; \") as ?berufeLabel)  
+WHERE {
+    ?item wdt:P27 wd:Q183 . #Deutsche
+    hint:Prior hint:runFirst true.
+    ?item wdt:P21 wd:Q6581072 . #ist weiblich
+    #?item wdt:P21 ?geschlecht .
+    ?item wdt:P106/rdfs:label ?berufeLabel_ . filter(lang(?berufeLabel_)=\"de\")
+    ?item wdt:P570 ?gestorben .
+    FILTER(YEAR(?gestorben) < 2000).
+    ?sitelink schema:about ?item . ?sitelink schema:inLanguage \"de\"  .
+    ?item wdt:P31 wd:Q5 . #ist Mensch
+    #?item wdt:P27 ?land .
+} GROUP BY ?item ?sitelink ?gestorben
+# LIMIT 30000
+} as %i
+WITH { SELECT ?item ?berufeLabel ?geboren ?gestorben ?sitelink ?geb_ort ?sterbeort ?geb_bundesland ?sterbe_bundesland 
+WHERE {
+  INCLUDE %i
+  optional { ?item wdt:P569 ?geboren . }
+  optional { ?item wdt:P19 ?geb_ort .
+             ?geb_ort wdt:P131* ?geb_bundesland .
+             hint:Prior hint:gearing \"forward\".
+             ?geb_bundesland wdt:P31 wd:Q1221156 .
+            }
+  optional { ?item wdt:P20 ?sterbeort . 
+             ?sterbeort wdt:P131* ?sterbe_bundesland .
+             hint:Prior hint:gearing \"forward\".
+             ?sterbe_bundesland wdt:P31 wd:Q1221156 .
+            }
+  } } as %j
+WHERE
+{
+  INCLUDE %j
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

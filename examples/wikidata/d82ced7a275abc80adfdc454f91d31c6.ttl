@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d82ced7a275abc80adfdc454f91d31c6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:ImageGrid
+SELECT DISTINCT ?item ?itemLabel ?person ?personLabel (SAMPLE(?image_) AS ?image) WHERE {
+
+   ?item wdt:P5008 wd:Q117322976;    # item on focus list of the LSESuffrageInterviewsProject
+      wdt:P31 wd:Q178651 .           # item is an interview
+   ?item p:P710 ?statement .         # item has a participant statement
+   ?statement ps:P710 ?person .      # participant is ?person
+   ?statement pq:P3831 wd:Q55534929. # qualifier object has role is interviewee
+   ?item wdt:P921 ?person .         # main subject is same as participant
+
+   OPTIONAL { ?person wdt:P18 ?image_.}
+
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+} GROUP BY ?item ?itemLabel ?person ?personLabel
+ORDER BY xsd:integer(STRAFTER(str(?person), 'Q'))""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

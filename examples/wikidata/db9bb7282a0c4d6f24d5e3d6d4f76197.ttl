@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-db9bb7282a0c4d6f24d5e3d6d4f76197> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Wikidata-Items in Stuttgart mit geographischer Koordinate aber ohne Bild
+SELECT ?item ?itemLabel ?itemDescription ?coordinate # Liste der ausgegebenen Variablen
+WHERE 
+{
+  ?item wdt:P17  wd:Q183     .  # ?item liegt im Staat Deutschland
+  ?item wdt:P131 wd:Q1022    .  # ?item liegt in der Verwaltungseinheit Stuttgart 
+  ?item wdt:P625 ?coordinate .  # ?item hat die geographische Koordinate ?coordinate
+  
+  # Bedingung: Es existiert kein Bild 
+  FILTER NOT EXISTS { ?item wdt:P18 ?bild } 
+   
+  # dieser SERVICE erzeugt die Ausgabe von ?itemLabel 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MTheiler>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

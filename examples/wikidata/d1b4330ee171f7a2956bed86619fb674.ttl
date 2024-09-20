@@ -1,0 +1,58 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d1b4330ee171f7a2956bed86619fb674> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT distinct  ?surname  ?a ?b ?c ?d ?surnameLabel  ?commcat   ?person ?personLabel  ?familyLabel 
+{
+     {  ?surname   wdt:P31             ?family  .      }
+     {  ?surname   wdt:P31   wd:Q101352  .    }    #/wdt:P279*
+  
+     { ?surname   rdfs:label ?label FILTER(lang(?label) = 'en') .     }
+      filter (regex (?label , \"^.*\"  ))  
+  
+ #     minus { ?commsu schema:about ?surname ; schema:isPartOf <https://commons.wikimedia.org/> .  }  
+ #     { ?surname   wdt:P407     wd:Q9043  .  }        # lingua norway
+
+      filter not exists { ?surname   wdt:P373   ?commcat  . }
+ 
+ 
+     { ?commper schema:about ?person ; schema:isPartOf <https://commons.wikimedia.org/> .  } 
+  
+   { ?person wdt:P569 ?birth .   }      # birth date
+#g     { ?person wdt:P570 ?death .   }      # death date
+  
+   { ?person   wdt:P31    wd:Q5 .   }       # é pessoa
+
+          { ?person   wdt:P734   ?surname .    }   union   # tem famyli name   <======
+          { ?person   wdt:P1950   ?surname .    }  union   # tem second famyli name   <======
+          { ?person   wdt:P9139   ?surname .    }         # tem first famyli name   <======
+  
+
+ #  ?person   wdt:P27     wd:Q183  .      # pais ou continente         ortugal   # /wdt:P361*  
+ #  ?person   wdt:P21    wd:Q6581072 .    # mulher
+ #  ?person   wdt:P373   ?commcatper .    # comm cat
+ #  ?person   wdt:P18    ?image .         # comm cat 
+    
+  hint:Prior hint:rangeSafe true .    #???????
+  #  tell the optimizer that fields doesn’t mix dates, strings, integers or other data types, which simplifies the range comparison
+
+#g   FILTER (?death < \"1900-01-01\"^^xsd:dateTime)                                              # death     3N  65 act 
+#g   FILTER (?death > \"1900-01-01\"^^xsd:dateTime && ?death < \"1950-01-01\"^^xsd:dateTime)       #  death    4N  72 act 
+#g   FILTER (?death > \"1950-01-01\"^^xsd:dateTime && ?death < \"2024-01-01\"^^xsd:dateTime)       #  birth    0N  106 act
+  
+#g   FILTER (?birth < \"1900-01-01\"^^xsd:dateTime)                                              #  birth    7N  175 act 
+   FILTER (?birth > \"1900-01-01\"^^xsd:dateTime && ?birth < \"1950-01-01\"^^xsd:dateTime)       #  birth    0N  act
+#g   FILTER (?birth > \"1950-01-01\"^^xsd:dateTime && ?birth < \"2024-01-01\"^^xsd:dateTime)       #  birth    1N  act
+      
+  
+     SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } 
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:JotaCartas/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-da874ffb7fd912d4428de901665c6cf9> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?sitelink (group_concat(distinct ?serve;separator=\", \") as ?serves) (group_concat(distinct ?iata_c;separator=\", \") as ?iata) (group_concat(distinct ?icao_c;separator=\", \") as ?icao) ?end_date
+WHERE {
+  VALUES ?type {wd:Q1248784 wd:Q695850 wd:Q62447 }         # define a list of airport / military airbase / aerodrome 
+  ?item p:P31 ?statement.                                  # item has a P31 property
+  ?statement ps:P31 ?type.                                 # which resolves to something in the list above
+  ?statement pq:P582 ?end_date.                            # and which has an end time qualifier
+  optional {?item wdt:P238 ?iata_c .}                      # item may have a P238 (IATA) value
+  optional {?item wdt:P239 ?icao_c .}                      # item may have has a P239 (ICAO) value         
+  optional {?item wdt:P931 ?place_served .                 # item may have a value for P931  
+           ?place_served rdfs:label ?serve.                # and if so, we get the label for the value directly (so group_concat will work)
+           filter(lang(?serve)=\"en\")}                      # but we only get the english language label
+  ?sitelink schema:about ?item;                            # item has a sitelink
+            schema:isPartOf <https://en.wikipedia.org/>.   # the sitelink points to en.wikipedia
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } . #this bit gets labels for Qid values
+} group by ?item ?itemLabel ?sitelink ?end_date order by ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

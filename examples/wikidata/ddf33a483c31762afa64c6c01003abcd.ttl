@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ddf33a483c31762afa64c6c01003abcd> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?band ?bandLabel ?genre ?genreLabel ?location_of_formation ?location_of_formationLabel ?coordinates
+  (MAX(?release_date) AS ?latest_release)
+{
+  ?band wdt:P31 wd:Q215380. # ?band is a band
+  VALUES ?genre { wd:Q617240 wd:Q720959 wd:Q186170 wd:Q11366 wd:Q49451 }
+  ?band wdt:P136 ?genre. # ?band has one of genres in ?genre
+  OPTIONAL { ?band wdt:P576 ?dissolved }
+  FILTER (! BOUND(?dissolved)) # Band has no dissolve date
+  OPTIONAL {
+    ?band wdt:P740 ?location_of_formation.
+    OPTIONAL { ?location_of_formation wdt:P625 ?coordinates. }
+  }
+  OPTIONAL {
+    ?album wdt:P175 ?band.
+    ?album wdt:P577 ?release_date.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?band ?bandLabel ?genre ?genreLabel ?location_of_formation ?location_of_formationLabel ?coordinates""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

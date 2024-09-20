@@ -1,0 +1,46 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d05fd26a0e645a08817d15bcb4a574f1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel (group_concat(?orglikeLabel;SEPARATOR=\";\") as ?orgs)
+{
+SELECT ?item ?itemLabel ?orglikeLabel
+WHERE {
+  VALUES (?orglike) { (wd:Q2467461) (wd:Q4671277) (wd:Q856234) (wd:Q166118)
+(wd:Q167346) (wd:Q1143635) (wd:Q498162) (wd:Q13226383) (wd:Q180958)
+(wd:Q6498663) (wd:Q2659904) (wd:Q181916) (wd:Q16917) (wd:Q1664720) (wd:Q615150)
+(wd:Q1321960) (wd:Q28324850) (wd:Q4287745) (wd:Q494230) (wd:Q43229)
+(wd:Q23002039) (wd:Q31855) (wd:Q3918) (wd:Q1384955) }
+{
+SELECT DISTINCT ?item ?orglike
+WHERE {
+{
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+                    wikibase:api \"Generator\";
+                    mwapi:generator \"search\";
+                    mwapi:gsrsearch \"inlabel:university of California, davis\"@en;
+                    mwapi:gsrlimit \"max\".
+    ?item wikibase:apiOutputItem mwapi:title. }
+  ?item wdt:P31 ?orglike.
+} UNION {
+    SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+                    wikibase:api \"Generator\";
+                    mwapi:generator \"search\";
+                    mwapi:gsrsearch \"inlabel:UC Davis\"@en;
+                    mwapi:gsrlimit \"max\".
+    ?item wikibase:apiOutputItem mwapi:title. }
+    ?item wdt:P31 ?orglike.
+} } }
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} } group by ?item ?itemLabel order by ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_PCC_Wikidata_Pilot/UC_Davis/Example_Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

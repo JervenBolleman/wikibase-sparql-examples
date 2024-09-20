@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-df9bb29288fddf2a99f5c3b610407ee8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?language (COUNT (?label) AS ?count) 
+WITH {
+  SELECT DISTINCT ?item WHERE {
+    { ?item wdt:P699 ?DO_ID .}
+    UNION
+    { ?item wdt:P486 ?MeSH_Descriptor_ID .}
+    UNION
+    { ?item wdt:P31*/wdt:P279* wd:Q11190 }
+    UNION  {
+      ?item wdt:P31*/wdt:P279* wd:Q12136 .
+    }
+    UNION {
+      ?item wdt:P31*/wdt:P279* wd:Q796194 .
+    }
+    UNION {
+      ?item wdt:P31*/wdt:P279* wd:Q12140 .
+    }
+  }
+  LIMIT 100000
+}
+AS %items
+WHERE {
+  INCLUDE %items
+  ?item rdfs:label ?label.
+  BIND(LANG(?label) AS ?language)
+}
+GROUP BY ?language
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_COVID-19/Queries/SPARQL_Study>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

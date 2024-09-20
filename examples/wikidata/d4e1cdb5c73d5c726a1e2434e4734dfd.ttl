@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d4e1cdb5c73d5c726a1e2434e4734dfd> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+SELECT  ?employer ?employerLabel ?item ?itemLabel ?coord ?layer ?startyear ?length {
+  ?item p:P106 ?wir .
+  ?wir ps:P106 wd:Q3809586 .
+  OPTIONAL { ?wir pq:P582 ?end . ?wir pqv:P582 [ wikibase:timePrecision ?tp_end]  }
+  OPTIONAL { ?wir pq:P580 ?start . ?wir pqv:P580 [ wikibase:timePrecision ?tp_start] }
+#  BIND(CONCAT('duration:', STR(MONTH(?end-?start)), 'months') AS ?length) # <- how would one calculate the duration of ?end-?start`
+   BIND(IF(?tp_end=?tp_start,CONCAT('duration:', STR(12*(YEAR(?end)-YEAR(?start))+MONTH(?end)-MONTH(?start)), ' months'),'duration: not possible to calculate') AS ?length) # NOTE if end and start dates dont have the same precision, you may get strange results like -3 months if you just use the formula 
+  BIND(IF(!BOUND(?end),   'no end date',   CONCAT('end: ',   STR(YEAR(?end))))   AS ?layer)
+  BIND(IF(!BOUND(?start), 'no start date', CONCAT('start: ', STR(YEAR(?start)))) AS ?startyear)
+  OPTIONAL { ?wir pq:P937 ?location. ?location wdt:P625 ?coord. }
+  OPTIONAL { ?wir pq:P108 ?employer }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?end)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

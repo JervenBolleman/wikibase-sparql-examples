@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d317001e1a5adef62df4834671625d0e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?game ?gameLabel ?original_date_game ?sequel ?sequelLabel ?original_date_sequel ?interval ?series ?seriesLabel WHERE {
+  {
+    SELECT ?game ?gameLabel (MIN(?game_date) AS ?original_date_game) ?sequel ?sequelLabel (MIN(?sequel_date) AS ?original_date_sequel) ?series ?seriesLabel WHERE {
+      ?game wdt:P31/wdt:P279* wd:Q7889;
+        wdt:P577 ?game_date;
+        p:P179 ?series_statement.
+      ?series_statement pq:P156 ?sequel;
+        ps:P179 ?series.
+      ?sequel wdt:P577 ?sequel_date.
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+    }
+    GROUP BY ?game ?gameLabel ?sequel ?sequelLabel ?series ?seriesLabel
+  }
+  BIND(?original_date_sequel - ?original_date_game AS ?interval)
+  FILTER ( ?interval < 0 )
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Video_games/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

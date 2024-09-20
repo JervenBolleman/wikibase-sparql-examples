@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-dd58cb7abfb54eda819fd9f26857c7b1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select distinct ?country (group_concat(?NatureLabelFr;separator=\" ,\") as ?NatureLabelFr) ?countryLabel  ?creationDate ?dissolutionDate
+with {
+select ?country (coalesce(?countryLabelFr, ?countryLabelEn,  ?country) as ?countryLabel) ?creationDate ?dissolutionDate{
+VALUES ?what { 
+               wd:Q3624078 # sovereign states, I don’t know if it’s the right item
+               wd:Q3024240 # états vassals
+             }
+?country wdt:P31/wdt:P279* ?what . 
+MINUS { ?country (wdt:P31/wdt:P279*) wd:Q1790360. } #empires coloniaux
+MINUS { ?country (wdt:P31/wdt:P279*) wd:Q1371288. } #états vassals
+optional { ?country rdfs:label ?countryLabelFr filter(lang(?countryLabelFr)= \"fr\")} .
+optional { ?country rdfs:label ?countryLabelEn filter(lang(?countryLabelEn)= \"en\")}
+optional { ?country wdt:P571 ?creationDate }
+optional { ?country wdt:P576 ?dissolutionDate }
+} order by ?countryLabel
+} as %datas
+where {
+include %datas .
+optional{
+?country wdt:P31/rdfs:label ?NatureLabelFr filter(lang(?NatureLabelFr)= \"fr\") .
+}
+} group by ?country ?countryLabel  ?creationDate ?dissolutionDate""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/05>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

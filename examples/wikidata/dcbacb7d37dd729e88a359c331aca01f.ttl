@@ -1,0 +1,42 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-dcbacb7d37dd729e88a359c331aca01f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?member ?item ?article (GROUP_CONCAT(DISTINCT ?class; SEPARATOR = \", \") AS ?ist_ein) (GROUP_CONCAT(DISTINCT ?unit; SEPARATOR = \", \") AS ?einheit) (GROUP_CONCAT(DISTINCT ?decat; SEPARATOR = \", \") AS ?kategorie) ?bild ?coordinates WHERE {
+VALUES ?decat { \"Kategorie:Orkney\" \"Kategorie:Insel_von_Orkney\" \"Kategorie:Ort_auf_Orkney\" \"Kategorie:Archäologischer_Fundplatz_auf_Orkney\" \"Kategorie:Geographie_(Orkney)\" \"Kategorie:Bauwerk_auf_Orkney\" \"Kategorie:Listed_Building_auf_Orkney\" \"Kategorie:Scheduled_Monument_auf_Orkney\" \"Kategorie:Kulturdenkmal_(Orkney)\" \"Kategorie:Mainland_(Orkney)\" \"Kategorie:Rousay\" \"Kategorie:South_Ronaldsay\" \"Kategorie:Kategorie-A-Bauwerk_auf_Orkney\" \"Kategorie:Kategorie-B-Bauwerk_auf_Orkney\" \"Kategorie:Papa_Westray\" \"Kategorie:Person_(Orkney)\" \"Kategorie:Kirchengebäude_auf_Orkney\" \"Kategorie:Verkehrsbauwerk_auf_Orkney\" \"Kategorie:Herrenhaus_auf_Orkney\" \"Kategorie:Wohngebäude_auf_Orkney\" \"Kategorie:Politik_(Orkney)\" \"Kategorie:Politiker_(Orkney)\" \"Kategorie:Wahlkreis_(Orkney)\" \"Kategorie:Straße_auf_Orkney\" \"Kategorie:Kategorie-C-Bauwerk_auf_Orkney\" \"Kategorie:Gewässer_von_Orkney\" \"Kategorie:Turm_auf_Orkney\" \"Kategorie:Ruine_auf_Orkney\" \"Kategorie:Broch_auf_Orkney\" \"Kategorie:Megalithanlage_auf_Orkney\" \"Kategorie:Kirchenruine_auf_Orkney\" \"Kategorie:See_auf_Orkney\" \"Kategorie:Sport_(Orkney)\" \"Kategorie:Westray\" \"Kategorie:Burg_auf_Orkney\" \"Kategorie:Burgruine_auf_Orkney\" \"Kategorie:Eday\" \"Kategorie:Shapinsay\" \"Kategorie:Orkney_nach_Insel\" \"Kategorie:Halbinsel_(Orkney)\" \"Kategorie:Hoy\" \"Kategorie:North_Ronaldsay\" \"Kategorie:Sanday\" \"Kategorie:Stronsay\" \"Kategorie:Jarl_(Orkney)\" \"Kategorie:The_Heart_of_Neolithic_Orkney\" \"Kategorie:Organisation_(Orkney)\" \"Kategorie:Unternehmen_(Orkney)\" \"Kategorie:Verkehr_(Orkney)\" \"Kategorie:Bischof_von_Orkney\" \"Kategorie:Flugplatz_auf_Orkney\" }
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:endpoint \"de.wikipedia.org\";
+    wikibase:api \"Generator\";
+    mwapi:generator \"categorymembers\";
+    mwapi:gcmtitle ?decat;
+    mwapi:gcmprop \"ids%7Ctitle%7Ctype\";
+    mwapi:gcmlimit \"max\".
+    ?member wikibase:apiOutput mwapi:title.
+    ?ns wikibase:apiOutput \"@ns\".
+    ?item wikibase:apiOutputItem mwapi:item.   
+}
+  FILTER(BOUND(?item) && ?ns = \"0\")
+  ?article schema:about ?item;
+          schema:isPartOf <https://de.wikipedia.org/>;
+          schema:name ?page_title.
+  OPTIONAL { ?item wdt:P31 ?instance. }
+  OPTIONAL { ?item wdt:P131 ?verwaltungseinheit. }
+  OPTIONAL { ?item wdt:P18 ?bild. }
+  OPTIONAL { ?item wdt:P625 ?coordinates. }
+  FILTER(!(?instance IN(wd:Q18019452, wd:Q46622, wd:Q89021600, wd:Q27971968, wd:Q152450, wd:Q40231)))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+            ?instance rdfs:label ?class.
+            ?verwaltungseinheit rdfs:label ?unit.
+  }
+}
+group by ?member ?item ?article ?bild ?coordinates 
+order by ?ist_ein ?member""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:No39188/mehrQueries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

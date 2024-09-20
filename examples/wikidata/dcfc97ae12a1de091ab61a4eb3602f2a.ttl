@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-dcfc97ae12a1de091ab61a4eb3602f2a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#by CamelCaseNick
+select ?stolperstein ?name ?person
+with {
+  select distinct ?stolperstein ?name ?yr_of_birth {
+    ?stolperstein wdt:P31 wd:Q26703203; wdt:P131+ wd:Q1055; wdt:P1684 ?inscription.
+    minus { ?stolperstein wdt:P547/wdt:P31 wd:Q5. }
+    optional { ?stolperstein p:P547 ?c. ?c pq:P1932 ?statedAs. optional { ?c rdfs:label ?cLabel. filter(lang(?label) = \"de\") } }
+    optional { ?stolperstein rdfs:label ?label. filter(lang(?label) = \"de\") }
+    bind(replace(coalesce(?statedAs, ?cLabel, replace(?label, \"^Stolperstein für (?!den|die|das)\", \"\")), \"^(Dr|Prof)\\\\. ?|geb\\\\. .*$|‚.+‘ \", \"\") as ?name)
+    bind(\"(?:[^a]|a)*(?: |/)(?:Jg|Jahrg|geboren|NATO|născută?|nascut|nat|ur|geb|nar|rođena|s|lětnik|n[ée]e?|dz|fødselsår|født|născuta|née? (?:le|en))(?:\\\\.|,|\\\\:)? ?(?:\\\\d{1,2}[\\\\./](?:\\\\d{1,2}[\\\\./]| \\\\p{L}+\\\\.? ))?(\\\\d{4})(?:[^a]|a)*\" as ?regex)
+    filter(regex(?inscription, ?regex, \"i\"))
+    bind(xsd:integer(replace(?inscription, ?regex, \"$1\", \"i\")) as ?yr_of_birth)
+  }
+} as %stolpersteine
+with {
+  select distinct ?person (strlang(concat(\"\", ?n), \"de\") as ?name) (year(?date_of_birth) as ?yr_of_birth) {
+    ?person wdt:P31 wd:Q5.
+    { ?person wdt:P31|wdt:P2868 ?c. values ?c { wd:Q5883980 wd:Q2026714 wd:Q12409870 } } union { ?person wdt:P4130|wdt:P7624|wdt:P7571|wdt:P8821""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:McSearch>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

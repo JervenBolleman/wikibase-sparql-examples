@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-daa53fe36d4ed9ce085c117d61d3ebae> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT (COUNT(*) AS ?count) ?istanza_diNome
+WHERE { 
+  ?item (wdt:P131*) wd:Q1256.
+  MINUS {
+    VALUES ?denylist {
+       wd:Q3914     # school
+       wd:Q2824645  # administrative divisions of Italy
+       wd:Q26907166 # temporal entity
+    }.
+    ?item wdt:P31/wdt:P279* ?denylist. 
+  }
+  OPTIONAL {
+    ?item       wdt:P31    ?istanza_di.
+    ?istanza_di rdfs:label ?istanza_diNome
+    FILTER ( LANGMATCHES ( LANG ( ?istanza_diNome ), \"it\" ) )
+  }
+} 
+GROUP BY ?istanza ?istanza_diNome
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Italy/Queries/Monumenti_Liguria_con_identificatori.sparql>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

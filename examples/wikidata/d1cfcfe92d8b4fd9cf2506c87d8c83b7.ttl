@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d1cfcfe92d8b4fd9cf2506c87d8c83b7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?dob1 ?precision1 ?dob2 ?precision2 ?problem_type
+WHERE 
+{ ?item wdt:P27 wd:Q20.               # country of citizenship=Norway
+  ?item p:P569 ?p569stm1 .
+  ?p569stm1 ps:P569 ?dob1 .             # must have dob
+  ?p569stm1 psv:P569 [wikibase:timePrecision ?dp1] . # find out time precision
+  ?item p:P569 ?p569stm2 .
+  ?p569stm2 ps:P569 ?dob2 .
+  ?p569stm2 psv:P569 [wikibase:timePrecision ?dp2] .
+  FILTER(?dp1<?dp2 || (?dp1=?dp2 && ?dob1<?dob2))                  # more than one dob and with different precision or with same precision but different date
+  BIND(IF(?dp1<?dp2,'different time precision','different dates') AS ?problem_type)
+  BIND(IF(?dp1=11,'day',IF(?dp1=10,'month',IF(?dp1=9,'year',IF(?dp1=8,'decade',IF(?dp1=7,'century','other'))))) AS ?precision1) # convert code for time precision to English
+  BIND(IF(?dp2=11,'day',IF(?dp2=10,'month',IF(?dp2=9,'year',IF(?dp2=8,'decade',IF(?dp2=7,'century','other'))))) AS ?precision2) # convert code for time precision to English
+  BIND (year(?dob1) as ?year)          # convert dob to years
+  FILTER (?year >= 1710)              # filter for dob later than or equal to 1710
+  FILTER (?year <= 1911)              # filter for dob prior to or equal to 1911
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],no,en\". } # get labels
+} ORDER BY ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

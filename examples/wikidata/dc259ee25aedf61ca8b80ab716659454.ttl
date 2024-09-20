@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-dc259ee25aedf61ca8b80ab716659454> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:ImageGrid
+SELECT ?flower (SAMPLE(?flowerLabel) AS ?flowerLabel) ?image WITH {
+  SELECT ?flower (SAMPLE(?image) AS ?image) WHERE {
+    ?flower wdt:P2827 ?color;
+            wdt:P18 ?image.
+  }
+  GROUP BY ?flower
+  HAVING(COUNT(DISTINCT ?color) > 1)
+} AS %results WHERE {
+  INCLUDE %results.
+  OPTIONAL { ?flower wdt:P1843 ?taxonCommonName. FILTER(LANGMATCHES(LANG(?taxonCommonName), \"[AUTO_LANGUAGE]\")) }
+  OPTIONAL { ?flower wdt:P1843 ?taxonCommonNameEn. FILTER(LANGMATCHES(LANG(?taxonCommonNameEn), \"en\")) }
+  OPTIONAL { ?flower wdt:P1843 ?taxonCommonNameAny. }
+  OPTIONAL { ?flower rdfs:label ?label. FILTER(LANGMATCHES(LANG(?label), \"[AUTO_LANGUAGE]\")) }
+  OPTIONAL { ?flower rdfs:label ?labelEn. FILTER(LANGMATCHES(LANG(?labelEn), \"en\")) }
+  OPTIONAL { ?flower rdfs:label ?labelAny. }
+  BIND(COALESCE(?taxonCommonName, ?label, ?taxonCommonNameEn, ?labelEn, ?taxonCommonNameAny, ?labelAny) AS ?flowerLabel)
+}
+GROUP BY ?flower ?image
+ORDER BY MD5(CONCAT(STR(?flower), STR(NOW()))) # shuffle""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/multi-colored_flowers>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

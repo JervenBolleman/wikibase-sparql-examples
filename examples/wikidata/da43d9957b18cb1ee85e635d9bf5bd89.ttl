@@ -1,0 +1,39 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-da43d9957b18cb1ee85e635d9bf5bd89> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Prolific authors for a specific journal
+SELECT ?count ?author ?authorLabel ?viaf ?lccn ?example_work ?example_workLabel
+WITH {
+  # Count the number of works author by the author publishing in the journal
+  SELECT
+    ?author
+    (COUNT(?work) AS ?count)
+    (SAMPLE(?work) AS ?example_work)
+  WHERE {
+    ?work wdt:P50 ?author ;
+          wdt:P1433 wd:Q69499259 .
+  }
+  GROUP BY ?author
+} AS %result
+WHERE {
+  INCLUDE %result 
+          
+  # Include optional ORCID iD
+  OPTIONAL { ?author wdt:P214 ?viaf . }
+  OPTIONAL { ?author wdt:P244 ?lccn . }
+  
+  # Label the results
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,no,ru,sv,zh\" . } 
+}
+ORDER BY DESC(?count)
+LIMIT 500""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Richard_Nevell>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

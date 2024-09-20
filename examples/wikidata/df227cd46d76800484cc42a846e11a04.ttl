@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-df227cd46d76800484cc42a846e11a04> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title:Nr views of Outdoor gyms videos in Sweden per producer
+SELECT ?producerWD ?producer ?description
+(sum(?nrviews) AS ?nrViewsTotal)
+(count(?nrviews) AS ?nrVideos)  ?www WHERE {
+  ?item wdt:P6104 wd:Q107186275;
+    wdt:P17 wd:Q34.
+  {
+    ?item p:P1651 ?Pyoutubev.
+    ?Pyoutubev ps:P1651 ?youtubev.
+    OPTIONAL { ?Pyoutubev pq:P407 ?language. }
+    OPTIONAL { ?Pyoutubev pq:P5436 ?nrviews. }
+    ?Pyoutubev pq:P2397 ?channel.
+    ?producerWD wdt:P2397 ?channel.
+    OPTIONAL {
+      ?producerWD rdfs:label ?producer.
+      FILTER((LANG(?producer)) = \"en\")}
+     OPTIONAL{  ?producerWD schema:description ?description.
+      FILTER((LANG(?description)) = \"en\")
+    }
+  OPTIONAL { ?producerWD wdt:P856 ?www.}
+  OPTIONAL { ?producerWD wdt:P1581 ?www.}
+  }
+}
+GROUP BY ?channel ?producer ?www ?description ?producerWD
+ORDER BY DESC (?nrViewsTotal)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WP_OGyms/Query_examples>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,25 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d074da07105237f877ffd90303bfd01a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  ?taxon ?taxonLabel ?rankLabel
+  (GROUP_CONCAT(DISTINCT str(?commonname); separator = \"//\") as ?commonnames) 
+  ?sample ?sampleLabel
+WHERE
+{
+    { SELECT ?taxon (SAMPLE(?item) as ?sample) WHERE { ?item wdt:P31 wd:Q811534 ; wdt:P31 ?taxon } GROUP BY ?taxon }
+    ?taxon wdt:P105 ?rank .
+    OPTIONAL { ?taxon wdt:P1843 ?commonname . FILTER(lang(?commonname) = \"[AUTO_LANGUAGE]\" )  }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr,cs,pl\" }
+}
+GROUP BY ?taxon ?taxonLabel ?rankLabel ?sample ?sampleLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

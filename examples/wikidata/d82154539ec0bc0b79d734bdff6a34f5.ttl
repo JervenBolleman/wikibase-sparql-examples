@@ -1,0 +1,25 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d82154539ec0bc0b79d734bdff6a34f5> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?museum ?museumLabel
+(URI(CONCAT(\"https://twitter.com/\",?twit)) AS ?twitter)
+(URI(CONCAT(\"https://www.instagram.com/\",?insta)) AS ?instagram)
+(URI(CONCAT(\"https://www.facebook.com/\",?fb)) AS ?facebook) WHERE {
+?museum wdt:P31/wdt:P279* wd:Q33506. # museum (or subtype)
+MINUS {?museum wdt:P576 []} # Remove defunct
+OPTIONAL {?museum wdt:P2002 ?twit}
+OPTIONAL {?museum wdt:P2003 ?insta}
+OPTIONAL {?museum wdt:P2013 ?fb}
+FILTER (BOUND(?twit)|| BOUND(?insta) || BOUND(?fb))
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+} ORDER BY ?museumLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Heritage_institutions/Tools_%26_tasks>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

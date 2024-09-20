@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-dd099436ed987a94cb12adeb820ef679> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q3362362>
+
+SELECT DISTINCT
+  ?overlap
+  ?publisher ?publisherLabel
+  (CONCAT(\"#publisher/\", SUBSTR(STR(?publisher), 32)) AS ?publisherUrl)
+  ?publisherDescription
+WITH {
+  SELECT
+    (COUNT(DISTINCT ?author) + COUNT(DISTINCT ?topic) AS ?overlap)
+    ?publisher 
+  WHERE {
+    {
+      ?author ^wdt:P50 / wdt:P123 target: .
+      ?author ^wdt:P50 / wdt:P123 ?publisher .
+    }
+    UNION
+    {
+      ?topic ^wdt:P921 / wdt:P123 target: .
+      ?topic ^wdt:P921 / wdt:P123 ?publisher .
+    }
+    FILTER (target: != ?publisher)
+  }
+  GROUP BY ?publisher
+} AS %publishers
+WHERE {
+  INCLUDE %publishers
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} 
+ORDER BY DESC(?overlap)
+LIMIT 200""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:publisher>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

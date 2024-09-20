@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d16c992bf5b3c3c410941423a0d3f713> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+SELECT ?item ?itemLabel ?coords WITH {   SELECT *   WHERE {
+    VALUES ?country { wd:Q142} # change your country here, check that the bounding box only covers its mainland
+    ?country p:P1332 [ a wikibase:BestRank; psv:P1332 [ wikibase:geoLatitude ?nmp_lat ] ].
+    ?country p:P1333 [ a wikibase:BestRank; psv:P1333 [ wikibase:geoLatitude ?smp_lat ] ].
+    ?country p:P1334 [ a wikibase:BestRank; psv:P1334 [ wikibase:geoLongitude ?emp_long ] ].
+    ?country p:P1335 [ a wikibase:BestRank; psv:P1335 [ wikibase:geoLongitude ?wmp_long ] ].
+  } } AS %a  WITH {   SELECT distinct ?item ?coords
+  WHERE {
+    INCLUDE %a
+    ?item wdt:P17 ?country;
+      wdt:P31/wdt:P279* wd:Q811979#architectural thing
+            ;wdt:P625 ?coords;#its coordinates
+      p:P625 [ a wikibase:BestRank; psv:P625 ?coord_vn ] .
+    ?coord_vn wikibase:geoLatitude ?lat. hint:Prior hint:rangeSafe true.
+    ?coord_vn wikibase:geoLongitude ?long. hint:Prior hint:rangeSafe true.
+    FILTER(?lat > ?nmp_lat ||  ?lat < ?smp_lat || ?long > ?emp_long || ?long < ?wmp_long)
+  }
+  LIMIT 10000#change values here, small value if big country eg 250, bigger value if medium country, huge value if very small country
+} AS %b WHERE {   INCLUDE %a   INCLUDE %b 
+  # Try to remove things here to ensure it runs after named subquery b
+  FILTER NOT EXISTS {    ?item wdt:P17 ?country2. FILTER(?country2 != ?country )  }
+  MINUS { ?item wdt:P5816 wd:Q19860854. }  MINUS { ?item (wdt:P576|wdt:P3999) ?dispar. }#on ne veut pas les disparus
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" .} }""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Talk:Q107474670>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

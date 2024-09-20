@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d0a0593b9354bdac36ccaf2ea221d9cb> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?name ?name2 ?name3 ?constituencyLabel ?partyLabel ?genderLabel ?birth_date ?source WHERE {
+  VALUES ?item { wd:Q7532178 wd:Q45383152 }
+  ?item p:P39 ?mem .
+  ?mem ps:P39 wd:Q18607856; pq:P2937 wd:Q45380990 .
+  FILTER NOT EXISTS { ?mem pq:P582 [] }
+  
+  OPTIONAL { ?item p:P973/pq:P1810 ?name2 }
+  OPTIONAL { ?item wdt:P21 ?gender }
+  OPTIONAL { ?item wdt:P569 ?DoB . BIND(SUBSTR(STR(?DoB), 1, 10) AS ?birth_date) }
+  OPTIONAL { ?mem pq:P4100|pq:P102 ?party }
+  OPTIONAL { ?mem pq:P768 ?constituency }
+  OPTIONAL { ?mem prov:wasDerivedFrom [ pr:P854 ?source ] }
+  
+  ?item rdfs:label ?name . FILTER(LANG(?name) = 'en') .
+  BIND(COALESCE(?name2, ?name) AS ?name3) .
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

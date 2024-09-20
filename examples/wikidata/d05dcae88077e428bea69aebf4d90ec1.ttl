@@ -1,0 +1,24 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d05dcae88077e428bea69aebf4d90ec1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item
+WHERE {
+  ?item wdt:P31 wd:Q5 . # Human
+  ?item wdt:P21 wd:Q6581097 . # Male
+  ?item wdt:P106 / wdt:P279 *  wd:Q3391743 . # Visual artist
+  ?item wdt:P569 ?dob . hint:Prior hint:rangeSafe true . # Date of birth 
+  FILTER(\"1860-00-00\"^^xsd:dateTime <= ?dob && ?dob < \"1979-00-00\"^^xsd:dateTime)
+  OPTIONAL { ?item wdt:P570 ?dod . hint:Prior hint:rangeSafe true . } # Date of death
+  FILTER (! BOUND(?dod) || \"1900-00-00\"^^xsd:dateTime <= ?dod)
+  [] schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> . # Has en.wp page
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

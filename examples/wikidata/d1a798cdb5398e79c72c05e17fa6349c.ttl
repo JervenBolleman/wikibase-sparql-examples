@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d1a798cdb5398e79c72c05e17fa6349c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?person ?name ?language ?death (URI(CONCAT(\"https://www.gutenberg.org/ebooks/author/\", ?gutenberg)) AS ?gberglink) WHERE {
+  ?person wdt:P1938 ?gutenberg.
+  ?person wdt:P570 ?death. # Dead people only
+  MINUS {
+    ?enws schema:about ?person.
+    ?enws schema:isPartOf <https://en.wikisource.org/>
+  }
+  OPTIONAL {?person wdt:P1412 ?lang}.
+  FILTER (!BOUND(?lang) || ?lang = wd:Q1860) # Language: English or absent
+  BIND(IF(BOUND(?lang),\"English\",\"Not specified\") AS ?language
+)  ?person rdfs:label ?name.
+  FILTER((LANG(?name)) = \"en\")
+}
+ORDER BY ?death""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Template:SPARQL/sandbox>, <https://www.wikidata.org//wiki/Template:SPARQL/doc>,
+    <https://www.wikidata.org//wiki/Template:SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

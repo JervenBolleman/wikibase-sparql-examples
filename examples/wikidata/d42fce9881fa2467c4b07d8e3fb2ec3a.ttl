@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d42fce9881fa2467c4b07d8e3fb2ec3a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Liste des 3782 installations sportives comprenant un bassin de natation en France
+SELECT ?installation ?installationLabel
+(GROUP_CONCAT(?typedebassinLabel; separator=\", \") AS ?bassins)
+WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\".
+                          ?installation rdfs:label ?installationLabel .
+                          ?typedebassin rdfs:label ?typedebassinLabel .
+  }
+  
+  ?installation p:P912 [ps:P912 ?typedebassin; # présence d'un bassin                            
+                ].
+  ?typedebassin wdt:P279 wd:Q1501; # sous-classe de bassin de natation
+                p:P528 [pq:P972 wd:Q115755558]. # type d'équipement au Recensement des équipements sportifs
+}GROUP BY ?installation ?installationLabel
+ORDER BY ?installationLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_France/Sport>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

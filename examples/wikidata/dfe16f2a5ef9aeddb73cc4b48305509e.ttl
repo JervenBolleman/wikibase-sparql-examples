@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-dfe16f2a5ef9aeddb73cc4b48305509e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT distinct ?organisation ?organisationLabel ?location ?locationLabel ?tag
+WHERE {
+  { ?organisation wdt:P31/wdt:P279* wd:Q33506 .
+    ?organisation wdt:P131 ?location .
+    ?organisation wdt:P7959 wd:Q67479626 . 
+    bind(\"Kent (stated on item)\" as ?tag) .
+  } # option A, it's in the historic county
+  union
+  { ?organisation wdt:P31/wdt:P279* wd:Q33506 .
+    ?organisation wdt:P131 ?location . ?location wdt:P7959 wd:Q67479626 . 
+    filter not exists { ?organisation wdt:P7959 wd:Q67479626 } . # not option A
+    filter not exists { ?location wdt:P7959 ?elsewhere . filter (?elsewhere != wd:Q67479626) } # not option C
+    bind(\"Kent (deduced via location)\" as ?tag) .
+  } # option B, it's in somewhere in historic Kent but not tagged as Kent itself, and no other historic county
+  union
+  { ?organisation wdt:P31/wdt:P279* wd:Q33506 .
+    ?organisation wdt:P131 ?location . ?location wdt:P7959 wd:Q67479626 . 
+    ?location wdt:P7959 ?elsewhere . filter (?elsewhere != wd:Q67479626) .
+    filter not exists { ?organisation wdt:P7959 wd:Q67479626 } . # not option A
+    bind(\"Maybe (location is somewhere which was partly in Kent)\" as ?tag) 
+  } # option C, it's in somewhere in historic Kent and another historic county
+  
+  filter not exists { ?organisation wdt:P576 ?closed }
+  filter not exists { ?organisation wdt:P3999 ?closed }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+
+} order by ?organisationLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

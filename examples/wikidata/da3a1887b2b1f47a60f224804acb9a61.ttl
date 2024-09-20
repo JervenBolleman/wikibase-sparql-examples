@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-da3a1887b2b1f47a60f224804acb9a61> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?label ?subj (SAMPLE(?whereLabel) AS ?where) (SAMPLE(?countryLabel) as ?country) (SAMPLE(?orderLabel) AS ?order) WHERE
+{  ?subj wdt:P31/wdt:P279? ?type ;
+      rdfs:label ?label filter (lang(?label) = \"en\")
+?type wdt:P279? wd:Q44613. # instance of monastery or subtype
+OPTIONAL { ?subj wdt:P17/rdfs:label ?countryLabel filter (lang(?countryLabel) = \"en\") }
+OPTIONAL { ?subj wdt:P131/rdfs:label ?whereLabel filter (lang(?whereLabel) = \"en\") }
+OPTIONAL { ?subj wdt:P611/rdfs:label ?orderLabel filter (lang(?orderLabel) = \"en\") }
+MINUS {?subj wdt:P17 wd:Q142 } # not France
+ MINUS {?subj wdt:P17 wd:Q27 } # not Ireland
+?subj p:P625/psv:P625 ?loc. # coordinate-location statement
+  ?loc wikibase:geoLatitude ?lat .
+  ?loc wikibase:geoLongitude ?long .
+   FILTER (?lat > 50) FILTER (?lat < 63)
+   FILTER (?long > -10.5) FILTER (?long < 2.02) 
+} GROUP BY ?label ?subj
+ORDER BY ?label""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

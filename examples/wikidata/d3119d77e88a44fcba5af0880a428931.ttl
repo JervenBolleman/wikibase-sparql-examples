@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d3119d77e88a44fcba5af0880a428931> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: List of articles about Grace Hopper from all Wikipedias, ordered by descending size of the article in that language
+SELECT  ?sitelink ?title ?site ?articlesize
+WHERE
+{
+  ?sitelink schema:about wd:Q11641.
+  ?sitelink schema:isPartOf ?site.
+  ?sitelink schema:isPartOf/wikibase:wikiGroup \"wikipedia\" .
+  ?sitelink schema:name ?title.
+  BIND (STRBEFORE(STRAFTER(STR(?site), \"https://\"), \"/\") AS ?endpoint)
+  BIND (STR(?title) AS ?title_nolang)
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint ?endpoint.
+    bd:serviceParam wikibase:api \"Generator\".
+    bd:serviceParam mwapi:generator \"revisions\".
+    bd:serviceParam mwapi:titles ?title_nolang.
+    bd:serviceParam mwapi:prop \"revisions\".
+    bd:serviceParam mwapi:rvprop \"size\".
+    ?size wikibase:apiOutput \"revisions/rev[last()]/@size\".
+  }
+  BIND ( xsd:integer(?size) AS ?articlesize )
+}
+ORDER BY DESC(?articlesize)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Will_(Wiki_Ed)/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

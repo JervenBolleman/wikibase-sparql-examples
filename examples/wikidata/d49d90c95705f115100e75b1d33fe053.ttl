@@ -1,0 +1,55 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d49d90c95705f115100e75b1d33fe053> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX keywords:<http://purl.uniprot.org/keywords/> 
+PREFIX uniprotkb:<http://purl.uniprot.org/uniprot/> 
+PREFIX ec:<http://purl.uniprot.org/enzyme/> 
+PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX skos:<http://www.w3.org/2004/02/skos/core#> 
+PREFIX owl:<http://www.w3.org/2002/07/owl#> 
+PREFIX bibo:<http://purl.org/ontology/bibo/> 
+PREFIX dc:<http://purl.org/dc/terms/> 
+PREFIX xsd:<http://www.w3.org/2001/XMLSchema#> 
+PREFIX faldo:<http://biohackathon.org/resource/faldo#> 
+PREFIX up:<http://purl.uniprot.org/core/> 
+PREFIX taxon:<http://purl.uniprot.org/taxonomy/> 
+PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+
+SELECT DISTINCT ?wd_item ?physically_interacts_with ?interactswithLabel ?typeLabel ?iri ?uniprot ?text  WHERE  {
+   {SELECT * WHERE { ?iri a up:Protein ;
+		    up:organism taxon:9606 ; 
+		    up:annotation ?annotation .
+		?annotation a up:Natural_Variant_Annotation ; 
+		            rdfs:comment ?text .
+		FILTER (CONTAINS(?text, 'loss of function')) }
+   }
+   SERVICE <https://query.wikidata.org/bigdata/namespace/wdq/sparql> {
+      	VALUES ?use {wd:Q427492}
+		?wd_item	wdt:P352 ?uniprot ;
+             		p:P129 ?physically_interacts_with_node ;     
+        			wdt:P2888 ?iri ;
+        			wdt:P703 wd:Q15978631 .
+    	?phys_interacts_with_node 	ps:P129 ?physically_interacts_with ;
+                              		pq:P366 ?use .    
+    	?physically_interacts_with 	wdt:P31 ?type ;
+                               		rdfs:label ?interactswithLabel .
+        ?type rdfs:label ?typeLabel .
+    	FILTER (lang(?interactswithLabel) = \"en\")
+        FILTER (lang(?typeLabel) = \"en\")
+    }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:ProteinBoxBot/SPARQL_Examples>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

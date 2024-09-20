@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d78af461858aa0bd3289214f307b7fa3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?title ?item (GROUP_CONCAT(?causeLabel;SEPARATOR=\", \") AS ?causes)
+WHERE
+{
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam wikibase:endpoint \"fr.wikipedia.org\" .
+    bd:serviceParam mwapi:gcmtitle \"Catégorie:Mort de la grippe de 1918\" .
+    bd:serviceParam mwapi:generator \"categorymembers\" .
+    ?title wikibase:apiOutput mwapi:title  .
+    ?ns wikibase:apiOutput \"@ns\" .
+    ?item wikibase:apiOutputItem mwapi:item .
+  }
+  FILTER(?ns = \"0\")
+  OPTIONAL { ?item wdt:P509 ?cause . }
+  SERVICE wikibase:label
+  {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,en\".
+    ?cause rdfs:label ?causeLabel .
+  }
+}
+GROUP BY ?item ?title""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

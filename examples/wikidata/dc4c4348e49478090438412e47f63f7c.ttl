@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-dc4c4348e49478090438412e47f63f7c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#by CamelCaseNick
+select (replace(str(?stolperstein), str(wd:), \"\") as ?qid) ?Ade where {
+  ?stolperstein wdt:P31 wd:Q26703203;
+                rdfs:label ?de.
+  filter(lang(?de) = \"de\")
+  filter(regex(?de, \"^Stolperstein für ?(Prof\\\\.( ?Dr\\\\.)?|Dr\\\\.( ?med\\\\.( ?vet\\\\.)?| ?[ji]ur\\\\.| ?phil\\\\.)?)\"))
+  bind(replace(?de, \"^Stolperstein für ?(Prof\\\\.( ?Dr\\\\.)?|Dr\\\\.( ?med\\\\.( ?vet\\\\.)?| ?[ji]ur\\\\.| ?phil\\\\.)?) \", \"\") as ?name)
+  bind(concat(\"Stolperstein für \", ?name) as ?Ade)
+  filter not exists {
+    ?stolperstein skos:altLabel ?alias.
+    filter(?alias = strlang(?Ade, \"de\"))
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:CamelCaseNick/Stolpersteine>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

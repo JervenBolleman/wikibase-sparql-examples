@@ -1,0 +1,39 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d5e4ab452acfd38b053cbfeb67725a18> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?total ?nit ?hivern ?aire ?entra ?int
+# ?vista_nocturna ?vista_hivernal ?vista_a_ria ?imatge_entrada ?imatge_interior
+WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+    VALUES ?img {
+                      wd:Q41176
+                      wd:Q16970
+                      wd:Q23413
+                      wd:Q4989906
+                      wd:Q131681
+                     }
+ ?item wdt:P31 ?img.
+  OPTIONAL { ?item wdt:P3451 ?vista_nocturna. }
+  OPTIONAL { ?item wdt:P5252 ?vista_hivernal. }
+  OPTIONAL { ?item wdt:P8592 ?vista_a_ria. }
+  OPTIONAL { ?item wdt:P9721 ?imatge_entrada. }
+  OPTIONAL { ?item wdt:P5775 ?imatge_interior. }
+  BIND(IF(BOUND(?vista_nocturna),1,0) AS ?nit).
+  BIND(IF(BOUND(?vista_hivernal),1,0) AS ?hivern).
+  BIND(IF(BOUND(?vista_a_ria),1,0) AS ?aire).
+  BIND(IF(BOUND(?imatge_entrada),1,0) AS ?entra).
+  BIND(IF(BOUND(?imatge_interior),1,0) AS ?int).
+  BIND (STR(?nit + ?hivern + ?aire + ?entra + ?int) as ?total)
+FILTER( ?total != \"0\" )
+}
+LIMIT 10000""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Amadalvarez/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-da6d913714d1275cb587aa4218ec159c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?q ?qLabel (GROUP_CONCAT(DISTINCT ?collplusinv; separator=\" !!! \") AS ?where) (GROUP_CONCAT(DISTINCT ?lang; separator=\" \") AS ?languages) ?linkcount (SAMPLE(?image) AS ?image)
+WHERE { {SELECT ?q (COUNT(?sitelink) AS ?linkcount) WHERE { ?q (wdt:P31/wdt:P279*) wd:Q87167. OPTIONAL {?sitelink schema:about ?q} }
+   GROUP BY ?q  }
+?q p:P195 ?s. ?s ps:P195 ?collection . MINUS {?s pq:P582 []}.
+      MINUS {?s ps:P195 wd:Q1322278 }
+OPTIONAL{ ?s pq:P217 ?inventory}
+OPTIONAL{ ?q wdt:P18 ?image }
+BIND( IF(BOUND(?inventory), CONCAT(STR(?collection),\" \",?inventory), STR(?collection)) AS ?collplusinv).
+ SERVICE wikibase:label {
+   bd:serviceParam wikibase:language \"en,fr,it,de,es,ru,bg,ca,cs,nl,zh,ja\".
+   ?q rdfs:label ?qLabel.
+ }
+OPTIONAL{ ?q wdt:P407 ?lang }
+# other props: part of, exemplar
+}
+GROUP BY ?q ?qLabel ?linkcount
+ORDER BY DESC(?linkcount)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/collections>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

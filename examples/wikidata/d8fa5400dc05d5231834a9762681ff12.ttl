@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d8fa5400dc05d5231834a9762681ff12> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?given ?givenLabel ?malecount ?femalecount ?ratio_absolute ?ratio_normalised
+
+WITH {
+  select ?given (count(?given) as ?malecount) where
+{
+  ?item wdt:P735 ?given.
+  ?item wdt:P27 wd:Q30.
+  ?item wdt:P21 wd:Q6581097.
+} group by ?given  } as %m
+
+WITH {
+  select ?given (count(?given) as ?femalecount) where
+{
+  ?item wdt:P735 ?given.
+  ?item wdt:P27 wd:Q30.
+  ?item wdt:P21 wd:Q6581072.
+} group by ?given  } as %f
+
+WITH {
+  select ?givenLabel (sum(?malecount) as ?malecount) (sum(?femalecount) as ?femalecount) where
+{ include %m
+  include %f  
+  ?given rdfs:label ?givenLabel . filter(lang(?givenLabel)=\"en\")  
+ } group by ?givenLabel having(?malecount+?femalecount>49)} as %i
+
+where
+{
+  include %i
+  bind(?femalecount*100/?malecount as ?ratio_absolute)  
+  bind(?femalecount*485/?malecount as ?ratio_normalised)  
+} order by desc(?ratio_absolute)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

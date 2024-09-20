@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-dbb0ba41c5be94bb0cf90bc02c8de5ad> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#People born after year 1920 with no death date and with article in Greek Wikipedia
+SELECT ?person ?personLabel ?date
+WHERE
+{
+	?person wdt:P31 wd:Q5 .
+	?person wdt:P569 ?birth .
+	OPTIONAL {?person wdt:P570 ?death }
+	FILTER (?birth > \"1920-01-01T00:00:00Z\"^^xsd:dateTime)
+	FILTER (!bound(?death))
+    FILTER EXISTS {
+    ?article schema:about ?person .
+    ?article schema:inLanguage \"el\" .
+    ?article schema:isPartOf <https://el.wikipedia.org/>
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"el\" }
+}
+LIMIT 1000""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

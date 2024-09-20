@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d40367dd86177895b11f979976fb30fd> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT 
+  (?company AS ?companyID)
+  ?companyLabel
+  ?locationLabel
+  (?city AS ?cityID)
+  ?cityLabel
+  ?stateLabel
+WHERE 
+{
+  VALUES ?company {wd:Q312 wd:Q3884 wd:Q2283 wd:Q380 wd:Q95}
+  
+  ?company wdt:P159 ?city . # company hq location
+  
+  OPTIONAL { ?city wdt:P276 ?location . } # the HQ name is stored in hqlocation.location
+  
+  ?city wdt:P131+ ?state . # located in territorial entity
+  ?state wdt:P31 wd:Q35657 . # territorial entity is instance of 'state'
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?company ?companyLabel ?locationLabel ?city ?cityLabel ?stateLabel ?ceo
+ORDER BY ASC(?companyLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

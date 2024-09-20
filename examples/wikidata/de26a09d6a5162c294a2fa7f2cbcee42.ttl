@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-de26a09d6a5162c294a2fa7f2cbcee42> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?itemLabel ?sitelink {
+  hint:Query hint:optimizer \"None\".
+  VALUES ?searchTerm { \"water\" } SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"EntitySearch\".
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\".
+    bd:serviceParam wikibase:limit 10 .
+    bd:serviceParam mwapi:search ?searchTerm.
+    bd:serviceParam mwapi:language \"en\".
+    ?item wikibase:apiOutputItem mwapi:item. ?num wikibase:apiOrdinal true.
+  }
+  ?item (wdt:P279|wdt:P31) ?type.
+  FILTER NOT EXISTS { ?article schema:about ?item;
+                               schema:isPartOf <https://en.wikipedia.org/>. }
+  FILTER NOT EXISTS { ?article2 schema:about ?item; 
+                                schema:isPartOf <https://commons.wikimedia.org/>. }
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY ?searchTerm ?num""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

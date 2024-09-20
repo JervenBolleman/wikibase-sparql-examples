@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d026954d07cad6eace9905fad67c5df6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# find lineal ancestors of Moses
+#defaultView:Graph
+SELECT ?ancestor ?ancestorLabel ?birthdate ?image ?parent ?parentLabel ?edgeLabel
+WHERE {
+  # define ?ancestor as Moses (Q9077)'s any father (P22) or mother (P25)'s father or mother's...
+  wd:Q9077 (wdt:P22|wdt:P25)* ?ancestor
+  # optional: define ?ancestor's father (P22) or mother (P25) as ?parent
+  OPTIONAL {?ancestor (wdt:P22|wdt:P25) ?parent
+           # To avoid showing any other relation than P22 (father) and P25 (mother),
+           # define ?relation as P22 or P25
+           VALUES ?relation {wdt:P22 wdt:P25}
+           # and ?relation is from ?ancestor to ?parent,
+           ?ancestor ?relation ?parent.
+           # then show ?relation on graph edges
+           ?edge wikibase:directClaim ?relation;
+               a wikibase:Property}
+  # optional: show ?ancestor's birthdate (P569), which only appears in table, not graph
+  OPTIONAL {?ancestor wdt:P569 ?birthdate}
+  # optional: show ?ancestor's image (P18), which appears directly in graph, and as link in table
+  OPTIONAL {?ancestor wdt:P18 ?image}
+  # show label in simplified Chinese (zh-hans) as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"zh-hans,en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d7710299ac881742f8220d12f5ac1743> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?itemLabel ?year ?number ?where
+WHERE {  
+?item wdt:P238 ?IATA .
+?item p:P3872 ?statement.
+?statement pq:P585 ?time.
+bind (YEAR(?time) AS ?year) 
+?statement ps:P3872 ?number. 
+optional { ?statement pq:P518 ?applies .}
+filter(bound(?applies)=false || ?applies = wd:Q2165236 ) 
+bind(if(bound(?applies)=false,\"no applies\",\"everywhere\") as ?where )  
+filter(?year>=2017)
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+MINUS { ?statement wikibase:rank wikibase:DeprecatedRank }
+} 
+order by ?item desc (?year)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,42 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-da79188994a8b5253c1d6514acead98d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?titleEu (\"+Category:BASQUE CATEGORY HERE\" AS ?command) WHERE {
+  hint:Query hint:optimizer \"None\".
+  SERVICE <https://query.wikidata.org/bigdata/namespace/categories/sparql> {
+    SERVICE mediawiki:categoryTree {
+      bd:serviceParam mediawiki:start <https://en.wikipedia.org/wiki/Category:ENGLISH_CATEGORY_URL_HERE>;
+                      mediawiki:direction \"Reverse\";
+                      mediawiki:depth 5 . # change this if needed
+    }
+  }
+  ?out schema:name ?categoryEn.
+  SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:api \"Generator\";
+                     wikibase:endpoint \"en.wikipedia.org\";
+                     mwapi:generator \"categorymembers\";
+                     mwapi:gcmtitle ?categoryEn;
+                     mwapi:gcmnamespace 0;
+                     mwapi:gcmprop \"title\";
+                     mwapi:gcmlimit \"max\".
+     ?titleEn_ wikibase:apiOutput mwapi:title.
+  }
+  BIND(STRLANG(?titleEn_, \"en\") AS ?titleEn)
+  ?articleEn schema:name ?titleEn;
+             schema:isPartOf <https://en.wikipedia.org/>;
+             schema:about ?item.
+  ?articleEu schema:about ?item;
+             schema:isPartOf <https://eu.wikipedia.org/>;
+             schema:name ?titleEu.
+}
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Theklan>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

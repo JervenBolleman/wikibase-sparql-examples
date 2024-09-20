@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d66a00e7d688cedf495e14008fce7566> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map{\"hide\":[\"?coords\", \"?line\",\"?rgb\"]}
+SELECT distinct ?station ?stationLabel ?subwayLine ?coords ?line ?line_number ?layer ?rgb
+  with {
+    select ?search {
+       VALUES ?search { wd:Q21036419 #wd:Q2516262         
+       }
+    }
+  } as %values
+  {
+    include %values .
+#rail system search
+ 
+OPTIONAL { ?search wdt:P527|wdt:P121 ?lignes. }#what are the lines of that network?
+  bind(coalesce(?lignes,?search) as ?lignes).#we add the self-item, in case of small lines without network
+#  ?lignes wdt:P559 ?termini.#What are the termini of the lines of that light rail
+  ?station wdt:P31/wdt:P279* wd:Q548662;  #Any type of service station
+   wdt:P5817 wd:Q55654238;#That are running
+   wdt:P16|wdt:P81|wdt:P1192 ?search;#That are part of the searched network
+   wdt:P625 ?coords;
+   wdt:P81|wdt:P1192 ?subwayLine;
+   wdt:P197 ?pred.
+  ?pred wdt:P625 ?coords_pred;wdt:P5817 wd:Q55654238;#Neighbours that are running
+   wdt:P81|wdt:P1192 ?subwayLine_pred.
+  ?station p:P197 _:b1.
+  _:b1 ps:P197 ?pred ;
+    pq:P5051 ?towards;
+    pq:P81""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:GodeNehler/Public_Transport_Mecklenburg-Vorpommern>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

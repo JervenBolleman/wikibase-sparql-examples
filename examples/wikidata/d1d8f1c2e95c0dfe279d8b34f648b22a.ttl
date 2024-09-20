@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d1d8f1c2e95c0dfe279d8b34f648b22a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?p_property ?p_propertyLabel ?statementLink ?simplevalue ?simplevalueLabel 
+WHERE
+{
+  wd:Q1065 ?property ?statementLink . 
+  ?statementLink ?simplevalueLink ?simplevalue .
+  wd:Q1065 ?propdirect ?simplevalue.
+  wd:Q1065 rdfs:label ?item.
+  
+  
+  #find property label (thanks to tagishsimon)
+  ?p_property wikibase:claim ?property .
+  
+  #find only properties & values with the right namespace
+  FILTER(STRSTARTS(STR(?propdirect), STR(wdt:)))
+  FILTER(STRSTARTS(STR(?property), STR(p:))) 
+  FILTER(STRSTARTS(STR(?simplevalueLink),  STR(ps:)))
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } # Helps get the label in your language, if not, then en language
+
+  #only get English language item names
+  FILTER(LANGMATCHES(LANG(?item), \"en\"))
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

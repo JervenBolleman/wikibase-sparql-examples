@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d2989aa6fa2c909c5a2b8f18f57ace54> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Works of public art in Boston neighborhoods
+#defaultView:Map{\"markercluster\":\"true\"}
+SELECT distinct ?work ?workLabel ?coords ?address
+(SAMPLE(?image) AS ?image) 
+(group_concat(distinct (year(?date)); separator=\" or \") as ?year)
+(group_concat(distinct ?materialLabel; separator=\"; \") as ?materials)
+(group_concat(distinct ?categoryLabel; separator=\"; \") as ?categories)
+(group_concat(distinct ?creatorLabel; separator=\"; \") as ?creators)
+
+where {
+  hint:Query hint:optimizer \"None\".
+  ?work wdt:P5008 wd:Q108040915;
+        wdt:P136 wd:Q557141;
+        wdt:P625 ?coords;
+        wdt:P31 ?category.
+  optional{?work wdt:P571 ?date.}
+  optional{?work wdt:P18 ?image.}
+  optional{?work wdt:P170 ?creator.}
+  optional{?work wdt:P6375 ?address.}
+  optional{?work wdt:P186 ?material.}
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+                         ?work rdfs:label ?workLabel.
+                          ?category rdfs:label ?categoryLabel.
+                          ?creator rdfs:label ?creatorLabel.
+                          ?material rdfs:label ?materialLabel
+                         }
+ } group by ?work ?workLabel ?coords ?address""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Neighborhood_Public_Art_in_Boston/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

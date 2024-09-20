@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d44baada11756539be1c0a1c122e1243> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?river ?riverLabel ?lengthInKilometres WHERE {
+  ?river wdt:P17 wd:Q142;
+         # /wdt:P279* wd:Q355304; # too expensive – instead:
+         wdt:P31 wd:Q4022; # after all, the question was “rivers” not “watercourses” ;)
+         wdt:P403 wd:Q4918; # change P403 to P403+ to include tributaries (rivers that *eventually* end in the Mediterranean)
+         p:P2043 [
+           a wikibase:BestRank;
+           psn:P2043 [ # normalized quantities, in case anyone is specifying river lengths in THE BIRTHPLACE OF THE SI as miles or somesuch nonsense ;)
+             wikibase:quantityAmount ?lengthInMetres;
+             wikibase:quantityUnit wd:Q11573
+           ]
+         ].
+  BIND(?lengthInMetres / 1000 AS ?lengthInKilometres)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\". }
+}
+ORDER BY DESC(?lengthInKilometres)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Wikimedia_Hackathon_2021_Data_Challenge/02._Create_a_list_of_all_the_rivers_in_France_that_end_in_the_Mediterranean_and_rank_them_in_descending_order_of_length_(high_to_low).>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

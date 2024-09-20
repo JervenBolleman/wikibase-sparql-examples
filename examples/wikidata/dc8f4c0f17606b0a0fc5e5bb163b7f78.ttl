@@ -1,0 +1,50 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-dc8f4c0f17606b0a0fc5e5bb163b7f78> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?article_pl ?title_pl ?article_en ?title_en
+WHERE
+{
+  {
+    SERVICE wikibase:mwapi
+    {
+      bd:serviceParam wikibase:endpoint \"pl.wikipedia.org\".
+      bd:serviceParam wikibase:api \"Generator\".
+      bd:serviceParam mwapi:generator \"categorymembers\".
+      bd:serviceParam mwapi:gcmtitle \"Kategoria:Absolwenci Szkoły Głównej Gospodarstwa Wiejskiego\".
+      bd:serviceParam mwapi:gcmnamespace \"0\".
+      bd:serviceParam mwapi:gcmlimit \"max\".
+      ?item wikibase:apiOutputItem mwapi:item.
+      ?title_pl wikibase:apiOutput mwapi:title.
+    }
+    FILTER BOUND(?item) # This filter is very important. If some category members don't have items, without it
+                        # the following triplets will try to get all wikipedia articles which inevitably will cause timeout
+    ?article_pl schema:about ?item.
+    ?article_pl schema:isPartOf <https://pl.wikipedia.org/>.
+    ?article_en schema:about ?item.
+    ?article_en schema:isPartOf <https://en.wikipedia.org/>.
+    ?article_en schema:name ?title_en.
+  }
+  MINUS
+  {
+    SERVICE wikibase:mwapi
+    {
+      bd:serviceParam wikibase:endpoint \"en.wikipedia.org\".
+      bd:serviceParam wikibase:api \"Generator\".
+      bd:serviceParam mwapi:generator \"categorymembers\".
+      bd:serviceParam mwapi:gcmtitle \"Category:Warsaw University of Life Sciences alumni\".
+      bd:serviceParam mwapi:gcmnamespace \"0\".
+      bd:serviceParam mwapi:gcmlimit \"max\".
+      ?item wikibase:apiOutputItem mwapi:item.
+    }
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/05>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

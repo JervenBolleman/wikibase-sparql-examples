@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-dc3c8dd7f7fda320d80ed831744cd78a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?IMO_number ?event ?eventLabel ?eventdate ?monthitemLabel WHERE {
+  ?item wdt:P8047 wd:Q20.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"nb\". }
+  OPTIONAL { ?item p:P793 ?stat .
+             ?stat ps:P793 ?event. 
+             OPTIONAL {?stat pqv:P585 [
+                wikibase:timePrecision ?precision ;
+                wikibase:timeValue ?date_ ].
+                BIND(IF(strlen(str(month(?date_)))=2,str(month(?date_)),concat(\"0\",str(month(?date_)))) as ?month) 
+                BIND(IF(strlen(str(day(?date_)))=2,str(day(?date_)),concat(\"0\",str(day(?date_)))) as ?day) 
+                BIND(IF(?precision=9,year(?date_),
+                       IF(?precision=10,concat(str(year(?date_)),\":\",?month),
+                         IF(?precision=11,concat(str(year(?date_)),\":\",?month,\":\",?day),\"\"))) as ?date) 
+       
+                BIND(month(?date_) as ?monthdate)
+                ?monthitem p:P279 ?statm . 
+                ?statm ps:P279 wd:Q18602249.
+                ?statm pq:P1545 ?monthdate2.
+                FILTER(str(?monthdate2)=str(?monthdate))             
+             }
+             ?event rdfs:label ?eventLabel . filter(lang(?eventLabel)=\"nb\")
+             BIND(CONCAT(?eventLabel,\" \",str(?date)) as ?eventdate) 
+            
+            FILTER(?event IN (wd:Q906512, wd:Q1786766, wd:Q336332))
+           }
+  OPTIONAL { ?item wdt:P458 ?IMO_number. }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/fr>, <https://www.wikidata.org//wiki/Wikidata:Request_a_query/en>,
+    <https://www.wikidata.org//wiki/Wikidata:Request_a_query/es>, <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

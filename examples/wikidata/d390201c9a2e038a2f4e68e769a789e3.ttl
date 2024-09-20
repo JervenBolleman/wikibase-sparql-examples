@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d390201c9a2e038a2f4e68e769a789e3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  ?item
+  ?itemLabel
+  ?wdLabel ?ps
+  (GROUP_CONCAT(DISTINCT ?classLabel; SEPARATOR = \", \") AS ?classLabels)
+  ?km
+  ?code
+  ?image
+  ?cat
+WHERE
+{
+  ?wds ?ps wd:Q819045.
+
+  VALUES ?ps { ps:P81 ps:P177 ps:P2505 }.
+  ?wd wikibase:statementProperty ?ps.
+  
+  BIND( IRI(STRBEFORE(REPLACE(STR(?wds), \"/entity/statement/\", \"/entity/\"), \"-\")) AS ?item ).
+
+  OPTIONAL { ?wds pq:P6710 ?km . }
+  OPTIONAL { ?item wdt:P31 ?class. }
+  OPTIONAL { ?item wdt:P18 ?image. }
+  OPTIONAL { ?item wdt:P373 ?cat. }
+  OPTIONAL { ?item wdt:P8671 ?code. }
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+}
+GROUP BY ?item ?itemLabel ?wdLabel ?ps ?km ?code ?image ?cat 
+ORDER BY ?km ?wdLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Hofoen/QA>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

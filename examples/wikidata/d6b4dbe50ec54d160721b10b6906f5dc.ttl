@@ -1,0 +1,47 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d6b4dbe50ec54d160721b10b6906f5dc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map{\"hide\":[\"?coords\", \"?line\",\"?rgb\"]}
+SELECT ?station ?stationLabel ?coords ?line ?layer ?rgb  WHERE {
+  ?station wdt:P31 wd:Q2175765;
+    wdt:P361 wd:Q1753254;
+    wdt:P625 ?coords;
+    wdt:P81 ?subwayLine;
+    wdt:P197 ?pred .  
+  MINUS { ?station (wdt:P576|wdt:P582|wdt:P3999) ?dispar. }
+  MINUS { ?station wdt:P5817 ?interdit.
+    VALUES ?interdit {
+      wd:Q811683
+      wd:Q63065035
+      wd:Q12377751
+      wd:Q55653430
+      wd:Q30108381
+      wd:Q55570340
+      wd:Q11639308
+    }
+  }
+  ?pred wdt:P625 ?cds .
+  BIND(IF((xsd:double(?depth / 10 )) = (xsd:integer(?depth / 10 )), ?cds, \"\") AS ?coords)
+  ?pred (p:P625/psv:P625/wikibase:geoLatitude) ?lat1;
+    (p:P625/psv:P625/wikibase:geoLongitude) ?lon1 .
+  ?station (p:P625/psv:P625/wikibase:geoLatitude) ?lat2;
+    (p:P625/psv:P625/wikibase:geoLongitude) ?lon2.
+  BIND(CONCAT(\"LINESTRING(\", STR(?lon1), \" \", STR(?lat1), \",\", STR(?lon2), \" \", STR(?lat2), \")\") AS ?str)
+  BIND(STRDT(?str, geo:wktLiteral) AS ?line)
+  ?subwayLine wdt:P465 ?rgb .
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?subwayLine rdfs:label ?layer.
+    ?station rdfs:label ?stationLabel . 
+  } }   
+GROUP BY ?station ?stationLabel ?coords ?line ?layer ?rgb""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Bouzinac/Trains>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

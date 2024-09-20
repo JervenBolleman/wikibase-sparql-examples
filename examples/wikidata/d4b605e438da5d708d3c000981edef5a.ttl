@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d4b605e438da5d708d3c000981edef5a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Get known variants reported in CIViC database (Q27612411) of genes reported in a Wikipathways pathway: Bladder cancer (Q30230812)
+SELECT DISTINCT ?pathway ?pathwayLabel ?pwpart ?pwpartLabel ?variant ?variantLabel ?disease?diseaseLabel WHERE {
+
+   VALUES ?predictor {p:P3354 p:P3355 p:P3356 p:P3357 p:P3358 p:P3359}
+   VALUES ?predictorQualifier {pq:P2175}
+   VALUES ?wpID {\"WP2828\"}
+  
+   ?pathway wdt:P2410 ?wpID ; # Pathways has a Wikipathways identifier
+          wdt:P527 ?pwpart . # which contains pathways parts
+  
+   ?disease wdt:P279+ wd:Q504775 .  # The disease is a subclass of urinary bladder cancer 
+                                    # based on annotations in the Disease ontology
+   ?variant wdt:P3329 ?civicID ; # a variant known in CIViC 
+             ?predictor ?node ; # has a predicting relation with diseases
+                                   # labeled as being a subclass of urinary bladder cancer
+             wdt:P3433 ?pwpart .  # variant is biological variant of
+   
+   {?node ?predictorStatement ?drug_label ;
+              ?predictorQualifier ?disease .}
+   UNION 
+   {
+      ?node ?predictorStatement ?disease  .
+   }
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_OBO/Disease_Ontology>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .
