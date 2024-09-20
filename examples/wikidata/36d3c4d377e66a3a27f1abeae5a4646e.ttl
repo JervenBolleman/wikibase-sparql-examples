@@ -21,21 +21,21 @@ PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT
   (CONCAT(
-  \"{{Artwork\"
+  \"{ {Artwork\"
   ,\"\\n|artist=\", IF(BOUND(?artistList), ?artistList, \"\")
   ,\"\\n|title=\"
-    , IF(BOUND(?titleDe),(CONCAT(\"{{de|\", ?titleDe, \"}}\")), \"\")
-    , IF(BOUND(?titleEn),(CONCAT(\"{{en|\", ?titleEn, \"}}\")), \"\")
-    , IF(BOUND(?titleEs),(CONCAT(\"{{es|\", ?titleEs, \"}}\")), \"\")
-    , IF(BOUND(?titleFr),(CONCAT(\"{{fr|\", ?titleFr, \"}}\")), \"\")
+    , IF(BOUND(?titleDe),(CONCAT(\"{ {de|\", ?titleDe, \"} }\")), \"\")
+    , IF(BOUND(?titleEn),(CONCAT(\"{ {en|\", ?titleEn, \"} }\")), \"\")
+    , IF(BOUND(?titleEs),(CONCAT(\"{ {es|\", ?titleEs, \"} }\")), \"\")
+    , IF(BOUND(?titleFr),(CONCAT(\"{ {fr|\", ?titleFr, \"} }\")), \"\")
   ,\"\\n|date=\", IF(BOUND(?inceptionStr), ?inceptionStr, \"\")
   ,\"\\n|medium=\", ?materialList
-  ,\"\\n}}\"
+  ,\"\\n} }\"
   ) as ?outputStr)
   ?templateArtwork
 #  ?inceptionStr
 WHERE
-{{
+{ {
   SELECT
   ?item
   ?titleDe
@@ -57,7 +57,7 @@ WHERE
     # artist=
     OPTIONAL { ?item wdt:P170 ?artist . ?artist rdfs:label ?artistLabel . FILTER(lang(?artistLabel)=\"en\") } .
     OPTIONAL { ?artist wdt:P1472 ?creatorPage } .
-    BIND(IF(BOUND(?creatorPage),(CONCAT(\"{{Creator:\", STR(?creatorPage), \"}}\")), ?artistLabel) as ?artistI)
+    BIND(IF(BOUND(?creatorPage),(CONCAT(\"{ {Creator:\", STR(?creatorPage), \"} }\")), ?artistLabel) as ?artistI)
 
     # date=
     # TODO: precision &gt; 9, &lt;6 not yet implemented
@@ -66,7 +66,7 @@ WHERE
                ?inceptionStatement psv:P571/wikibase:timePrecision ?inceptionPrecision .
                OPTIONAL { ?inceptionStatement pq:P1480 ?sourcingCircumstance . }
                BIND(CONCAT(
-                 \"{{Complex date\"
+                 \"{ {Complex date\"
                  , \" |date1=\", CONCAT(STR(YEAR(?inception))
                  , \" |precision1=\",
                    IF(?inceptionPrecision = 9, \"year\",
@@ -75,7 +75,7 @@ WHERE
                          IF(?inceptionPrecision = 6, \"millennium\",
                            \"PRECISION &lt;6 IS NOT YET IMPLEMENTED!\"))))
                  , IF(BOUND(?sourcingCircumstance) && ?sourcingCircumstance = wd:Q5727902, \" |adj1=ca\", \"\")
-                 , \"}}\"
+                 , \"} }\"
                  )) as ?inceptionStr)
              } .
 
@@ -91,7 +91,7 @@ WHERE
     # institution=
     OPTIONAL { ?item wdt:P195 ?institution . ?institution rdfs:label ?institutionLabel . FILTER(lang(?institutionLabel)=\"en\") } .
     OPTIONAL { ?institution wdt:P1612 ?institutionPage } .
-####    BIND(IF(BOUND(?institutionPage),(CONCAT(\"{{Institution:\", STR(?institutionPage), \"}}\")), ?institutionLabel) as ?institutionI)
+####    BIND(IF(BOUND(?institutionPage),(CONCAT(\"{ {Institution:\", STR(?institutionPage), \"} }\")), ?institutionLabel) as ?institutionI)
   }
   GROUP BY
   ?item
