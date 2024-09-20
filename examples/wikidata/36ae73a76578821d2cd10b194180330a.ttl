@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-36ae73a76578821d2cd10b194180330a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?Org ?OrgLabel ?StockExchange ?StockExchangeLabel ?Ceo ?CeoLabel ?Subsidiary ?SubsidiaryLabel ?SubsidiaryCEO ?SubsidiaryCEOLabel ?Ticker
+WHERE {
+  ?Org p:P414 ?SE . # look for an entity with a \"stock exchange\" statement
+  ?SE ps:P414 ?StockExchange . # of which we get the value
+  ?SE pq:P249 ?Ticker . # and the \"ticker symbol\" qualifier
+  # Add new fields
+  ?Org wdt:P169 ?Ceo .        # Entity has Ceo
+  ?Org wdt:P355 ?Subsidiary . # Entity has Subsidiary
+  OPTIONAL { 
+    ?Subsidiary wdt:P169 ?SubsidiaryCEO .
+  }
+  FILTER(?Ticker=\"FB\") . #and we restrict the value of that qualifier to \"FB\"
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+  }""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Alphos>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

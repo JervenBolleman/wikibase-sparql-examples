@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-39c0f35dffa102f1e676db487a67ceb2> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Query to list districts of Russia, by federal subject (here, 'region', and whether they have pictures or not
+PREFIX schema: <http://schema.org/>	# remember to add this
+SELECT DISTINCT ?region ?regionLabel ?dist ?distLabel ?wplink ?pic # ?coord 
+WHERE {
+      ?dist wdt:P31 wd:Q2198484	.	      # district - is a - Russian district
+      ?region wdt:P131 wd:Q159 .        # region - is in administrative district of - Russia
+      ?dist wdt:P131 ?region .           # district - is located in the administrative territory of - a region
+      BIND (wd:Q2753 AS ?region) .       # Limits results to Ryazan Oblast (Q2753)
+      # OPTIONAL {?dist wdt:P625 ?coord }   # district - has geographic coordinates of - ?coord (if added column for items that exist)
+      OPTIONAL {?dist wdt:P18 ?pic } .        # add a column for pics (p18) if there is one in WD   (toggle w/next line) 
+      #MINUS {?dist wdt:P18 ?pic} .           # use this instead of previous line to see items with NO PIC
+      OPTIONAL {
+         ?wplink schema:about ?dist .   # WP link - is about - ?dist
+         ?wplink schema:inLanguage \"en\" .
+         ?wplink schema:isPartOf <https://en.wikipedia.org/> .
+      }
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY ASC(?regionLabel) ?distLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Every-leaf-that-trembles/sandbox>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-33cbc4d506b293d1efc90a97de6de866> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT distinct ?item  ?itemLabel ?creatorLabel ?dod ?pmaDuration {
+	?item p:P6216 ?copyrightStatement .
+	?copyrightStatement psv:P570 ?copyright
+	VALUES ?copyright { wd:Q19652 wd:Q15687061 }  # P6216 main value = public domain
+  
+	?item wdt:P50|wdt:P170|wdt:P655|wdt:P84|wdt:P110|wdt:P287|wdt:P98 ?creator .
+	?creator wdt:P570 ?dod 
+	FILTER(YEAR(?dod) > 2019 - ?pmaDuration)            # exclude if date of death < 1919
+
+	?copyrightStatement pq:P459 ?detmet # determination method 70, 80 or 100 pma
+	VALUES ?detmet { wd:Q29870196 wd:Q29940641 wd:Q29940705 }  
+	?detmet wdt:P2047 ?pmaDuration
+          
+	MINUS {?copyrightStatement pq:P518 []} .
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+} 
+Order by ?creatorLabel
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jarekt/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

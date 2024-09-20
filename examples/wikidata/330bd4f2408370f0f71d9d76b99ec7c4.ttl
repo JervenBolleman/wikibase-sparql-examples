@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-330bd4f2408370f0f71d9d76b99ec7c4> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Equivalent queries and performance gotchas.
+select * where {
+  # Query 1: 8475 rows (756 ms)
+  #{ ?item wdt:P921 wd:Q202864 . } UNION { ?item wdt:P921 wd:Q8071861 . }
+  
+  # Query 2: 8475 rows (796 ms)
+  #values ?o { wd:Q202864 wd:Q8071861 } 
+  #?item wdt:P921 ?o .
+
+  # Query 3: 8475 rows (41529 ms)
+  # why slow? theory: bad selectivity in first and only BGP making the query IO bound.
+  # somehow the optimizer doesn't rewrite and consider only one part of the BGP known and not two.
+  # results in initial cardinality of 29.5M instead of 16824.
+  hint:Query hint:optimizer \"Runtime\" .
+  ?item wdt:P921 ?o . filter (?o in (wd:Q202864, wd:Q8071861))
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-33a5736fae1862d088ce5dc768f1390b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?number ?property ?propertyLabel ?count ?maxcount  WITH {
+  SELECT ?number WHERE {                 # get numbers from 1k to 10k
+  ?nn wdt:P31 wd:Q21199.
+  ?nn wdt:P1181 ?number .
+  FILTER (?number >= 1000 && ?number <= 10000)
+} } AS %i
+WITH { SELECT ?item ?number WHERE {     # get items having that many statements
+  INCLUDE %i
+  BIND(xsd:integer(?number) as ?b)
+  ?item wikibase:statements ?b.
+  FILTER NOT EXISTS {?item wdt:P31 wd:Q13442814 .}
+ } } as %j
+WITH { SELECT ?item ?number ?property (COUNT(?predicate) as ?count) WHERE {  # get & count claims for the items
+  INCLUDE %j
+  ?item ?predicate [].
+  ?property wikibase:claim ?predicate . 
+} GROUP BY ?item ?number ?property ORDER BY DESC(?count) } as %k
+WITH { SELECT  ?item (MAX(?count) AS ?maxcount) {
+  INCLUDE %k
+} GROUP BY ?item } AS %max
+
+WHERE {                              # right now, get labels and an aggregation which does nothing
+  INCLUDE %k
+  INCLUDE %max
+  FILTER (?count = ?maxcount) 
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}  order by desc(?number)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

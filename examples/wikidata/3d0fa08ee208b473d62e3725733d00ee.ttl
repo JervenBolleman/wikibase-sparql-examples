@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3d0fa08ee208b473d62e3725733d00ee> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """::::SELECT DISTINCT ?ship ?shipLabel ?shipClass ?shipClassLabel ?type ?typeLabel
+::::WHERE
+::::{
+::::  # Instance of some ship class
+::::  ?ship wdt:P31 ?shipClass .
+::::  ?shipClass wdt:P31/wdt:P279* wd:Q559026 .
+::::  ?shipClass wdt:P279 ?type.
+::::  MINUS {?type wdt:P31 wd:Q559026}
+::::  # Not an instance of a ship type that is not a ship class
+::::  FILTER NOT EXISTS { 
+::::    ?ship wdt:P31 ?shipType .
+::::    ?shipType wdt:P31/wdt:P279* wd:Q2235308 .
+::::    FILTER NOT EXISTS { ?shipType wdt:P31/wdt:P279* wd:Q559026 . }
+::::  }
+::::  SERVICE wikibase:label { 
+::::    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr,es,it,de,pl\".
+::::  }
+::::}
+::::LIMIT 500
+::::""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_Ships>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3a460720330fe6176460450b8b826aa9> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel WHERE {
+  ?link schema:about wd:Q87734646; schema:isPartOf <https://en.wikipedia.org/>; schema:name ?title . #point to the wiki you are searching, remove line if no QID
+  SERVICE wikibase:mwapi {
+	 bd:serviceParam wikibase:api \"Generator\" .
+     bd:serviceParam wikibase:endpoint \"en.wikipedia.org\" . #point to the wiki you are searching
+     bd:serviceParam mwapi:gcmtitle ?title . #replace here if no QID
+     bd:serviceParam mwapi:generator \"categorymembers\" .
+     bd:serviceParam mwapi:gcmprop \"ids|title|type\" .
+     bd:serviceParam mwapi:gcmlimit \"max\" .
+    ?item wikibase:apiOutputItem mwapi:item .
+    ?ns wikibase:apiOutput \"@ns\" .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  MINUS { ?item wdt:P31 wd:Q3241045 .} #filtering out disease outbreak items
+  MINUS { ?item wdt:P31/wdt:P279* wd:Q1048835 .} #filtering out countries and other political territorial entities
+  FILTER (?ns = \"0\"). #showing only articles
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_COVID-19/Focus_list>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

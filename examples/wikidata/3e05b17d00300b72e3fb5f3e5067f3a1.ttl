@@ -1,0 +1,55 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3e05b17d00300b72e3fb5f3e5067f3a1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Credit: User:Mahir256
+#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
+SELECT DISTINCT ?coordinates ?line ?sa ?saLabel ?connectLabel ?image ?code ?rgb
+
+WITH {
+  SELECT ?sa (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) (sample(?lat1) as ?lat1) (sample(?lon1) as ?lon1) (sample(?code) as ?code) WHERE {
+    {?sa wdt:P31 wd:Q1248784} UNION {?sa wdt:P31 wd:Q644371}
+    ?sa wdt:P17 wd:Q668 .
+    ?sa wdt:P625 ?coordinates  .
+    ?sa p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 .
+    ?sa p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
+    OPTIONAL { ?sa wdt:P18 ?image }.
+    OPTIONAL { ?sa wdt:P5696 ?code }.
+  } GROUP BY ?sa
+} AS %sas
+
+WITH {
+  SELECT ?da (sample(?lat2) as ?lat2) (sample(?lon2) as ?lon2) WHERE {
+    {?da wdt:P31 wd:Q1248784} UNION {?da wdt:P31 wd:Q644371}
+    ?sa wdt:P521 ?da.
+    ?da p:P625 / psv:P625 / wikibase:geoLatitude ?lat2 .
+    ?da p:P625 / psv:P625 / wikibase:geoLongitude ?lon2 .
+  } GROUP BY ?da
+} AS %das
+
+WITH {
+  SELECT ?line ?connect (\"9B0058\" as ?rgb) WHERE {
+    INCLUDE %sas .
+    INCLUDE %das .
+    ?sa p:P521 ?dastmt .
+    ?dastmt ps:P521 ?da .
+    ?dastmt pq:P137 ?connect .
+#    FILTER(STR(?sa) < STR(?da)) .
+    BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
+    BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
+  }
+} AS %lines 
+ 
+WHERE {
+  { INCLUDE %sas }  UNION { INCLUDE %lines  } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_India/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

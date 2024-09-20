@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-39232462c7fb20f5cc8efbda56a74c59> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map{\"hide\": [\"?city_coords_\", \"?sister_city_coords_\", \"?line\"]}
+SELECT ?city ?cityLabel ?sister_city ?sister_cityLabel ?sister_city_countryLabel ?city_coords_ ?sister_city_coords_ ?distance ?line
+WITH {
+  SELECT ?city ?sister_city (SAMPLE(?city_coords) AS ?city_coords_) (SAMPLE(?sister_city_coords) AS ?sister_city_coords_) ?sister_city_country WHERE {
+    ?city wdt:P31/wdt:P279* wd:Q515;
+          wdt:P190 ?sister_city;
+          wdt:P17 wd:Q183.
+    OPTIONAL { ?city wdt:P625 ?city_coords. }
+    OPTIONAL { ?sister_city wdt:P625 ?sister_city_coords. }
+    OPTIONAL { ?sister_city wdt:P17 ?sister_city_country. }
+  }
+  GROUP BY ?city ?sister_city ?sister_city_country
+} AS %results
+WHERE {
+  INCLUDE %results.
+  BIND(geof:distance(?city_coords_, ?sister_city_coords_) AS ?distance)
+  BIND(STRDT(CONCAT(\"LINESTRING(\", STRBEFORE(STRAFTER(STR(?city_coords_), \"Point(\"), \")\"), \", \", STRBEFORE(STRAFTER(STR(?sister_city_coords_), \"Point(\"), \")\"), \")\"), geo:wktLiteral) AS ?line)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\". }
+}
+ORDER BY ?distance""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Looniverse/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3b714a24d3bd63468642976b353df644> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?date_preferred_rank ?date_newer ?method_newerLabel ?source_URL
+WHERE 
+{
+  ?item wdt:P31 wd:Q747074 .
+
+  # Find a P1082 statement with preferred rank
+  ?item p:P1082 ?stat_preferred_rank .
+  ?stat_preferred_rank wikibase:rank wikibase:PreferredRank .
+  ?stat_preferred_rank pq:P585 ?date_preferred_rank .
+
+  # Find a P1082 statement with normal rank, P459 qualificator, source with P854, and a newer date
+  ?item p:P1082 ?stat_newer .
+  ?stat_newer wikibase:rank wikibase:NormalRank .
+  ?stat_newer pq:P585 ?date_newer .
+  FILTER (?date_newer > ?date_preferred_rank)
+  ?stat_newer pq:P459 ?method_newer .
+  ?stat_newer prov:wasDerivedFrom ?source_newer .
+  ?source_newer pr:P854 ?source_URL .
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,it\" . }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

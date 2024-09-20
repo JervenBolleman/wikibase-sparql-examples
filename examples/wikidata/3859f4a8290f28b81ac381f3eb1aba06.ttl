@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3859f4a8290f28b81ac381f3eb1aba06> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?shelfmark ?groupLabel ?commonsCategory  WHERE {
+  ?item wdt:P3702 ?group .
+
+  OPTIONAL {?item wdt:P217 ?shelfmark}  .  # Shelfmark
+  
+   OPTIONAL {
+      ?commonsCategoryFromItem schema:about ?item;
+                               schema:isPartOf <https://commons.wikimedia.org/>.
+      FILTER(STRSTARTS(STR(?commonsCategoryFromItem), \"https://commons.wikimedia.org/wiki/Category:\"))
+    }
+   OPTIONAL {
+      ?item wdt:P910 ?catItem .
+      ?commonsCategoryFromCatItem schema:about ?catItem;
+                                  schema:isPartOf <https://commons.wikimedia.org/>.
+      FILTER(STRSTARTS(STR(?commonsCategoryFromCatItem), \"https://commons.wikimedia.org/wiki/Category:\"))
+   }
+   BIND(COALESCE(?commonsCategoryFromItem, ?commonsCategoryFromCatItem) AS ?commonsCategory)
+  
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:British_Library>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

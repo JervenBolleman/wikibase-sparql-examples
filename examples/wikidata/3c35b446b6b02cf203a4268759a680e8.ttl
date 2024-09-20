@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3c35b446b6b02cf203a4268759a680e8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  ?autor
+  ?autorLabel
+  (COUNT(*) AS ?count)
+WITH {
+  SELECT DISTINCT ?autor {
+    {?autor wdt:P27 wd:Q419}
+    UNION
+    {?autor wdt:P19/wdt:P131* wd:Q419}
+    UNION
+    {?autor wdt:P1532 wd:Q419}
+  }
+} AS %0
+WITH {
+  SELECT DISTINCT ?autor ?obra {
+    INCLUDE %0.
+    ?obra wdt:P50 ?autor.
+
+    [] schema:about ?obra;
+       schema:isPartOf <https://es.wikipedia.org/>.
+  }
+} AS %1
+{
+  INCLUDE %1.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+GROUP BY ?autor ?autorLabel
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/de>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

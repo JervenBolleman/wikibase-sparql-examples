@@ -1,0 +1,47 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3f36e457eddc6c311b042f6009e6ec9e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Tempo di arrivo sulla ISS
+
+SELECT ?item ?itemLabel ?launchdate ?dockdate ?flyingtime
+WHERE
+{
+  ?item wdt:P31 wd:Q752783 .        #istanza di Volo Spaziale
+  
+  # Select the vehicles docked to the ISS
+  ?item  p:P793 [                  #riferimento alla dichiarazione \"evento chiave\"
+           ps:P793 wd:Q557450 ;    #seleziona l'evento del docking
+           pq:P276 wd:Q25271       #luogo = ISS
+          ].
+
+  # Launch date  
+  OPTIONAL {
+  ?item p:P793 [                  #riferimento alla dichiarazione \"evento chiave\"
+           ps:P793 wd:Q797476;    #seleziona l'evento del \"lancio del razzo vettore\"
+           pq:P585 ?launchdate    #estrae il qualificatore con la \"data\" dell'evento di lancio
+          ].
+  }
+    
+  # Docking date
+  OPTIONAL {
+  ?item  p:P793 [                  #riferimento alla dichiarazione \"evento chiave\"
+           ps:P793 wd:Q557450 ;    #seleziona l'evento del docking
+           pq:P580 ?dockdate       #data di inizio del docking, i.e. dell'arrivo sulla ISS
+          ].
+  }
+  
+  BIND(?dockdate-?launchdate AS ?flyingtime)
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ORDER BY ?launchdate""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:FabC>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

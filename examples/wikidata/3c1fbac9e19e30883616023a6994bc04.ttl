@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3c1fbac9e19e30883616023a6994bc04> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?item_label ?last_name_label (lang(?last_name_label) AS ?lang) ?last_name ?last_nameLabel
+WITH {
+  SELECT ?item ?item_label ?last_name_label WHERE {
+    ?item wdt:P5008 wd:Q51682734 .
+    ?item rdfs:label ?item_label . FILTER(lang(?item_label) = 'en') .
+    bind( replace( ?item_label, \".* \", \"\" ) as ?last_name_label )
+  } LIMIT 30
+} AS %targets
+WHERE {
+  INCLUDE %targets .
+  OPTIONAL {
+    ?last_name wdt:P31 wd:Q101352 .
+    ?last_name rdfs:label ?last_name_label .
+  }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} 
+ORDER BY ?last_name_label""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

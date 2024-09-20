@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-37de585cb48007a595f3099b1445d5e9> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#terrains de baseball au Québec regroupant ensemble toutes les images d'un élément, séparées chacune par une virgule
+SELECT DISTINCT ?lieu ?lieuLabel ?villeLabel ?coordonnées (GROUP_CONCAT(?image; SEPARATOR=\", \") AS ?images) WHERE {
+  VALUES ?type { wd:Q595452 wd:Q483110 } # Soit un stade spécifique de baseball (Q595452) soit un stade général (Q483110)
+  
+  ?lieu wdt:P31 ?type;         # Instance de l'un des types spécifiés
+        wdt:P17 wd:Q16;        # Situé au Canada
+        wdt:P131 ?ville;       # Situé dans la ville
+        wdt:P18 ?image.        # A une image
+
+  ?ville wdt:P131* wd:Q176;    # La ville est située dans le Québec
+  
+  OPTIONAL { ?lieu wdt:P625 ?coordonnées. }  # Coordonnées géographiques (optionnel)
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?lieu ?lieuLabel ?villeLabel ?coordonnées""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Simon_Villeneuve/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

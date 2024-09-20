@@ -1,0 +1,53 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-345c83ca25e9911efb8f9da051ee42da> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel (GROUP_CONCAT(DISTINCT ?instance_ofLabel; separator=\"; \") AS ?event_types) ?time ?start ?end ?time_precision ?sort_key
+WITH
+{
+  SELECT ?item
+  WHERE
+  {
+    SERVICE wikibase:mwapi
+    {
+      bd:serviceParam wikibase:api \"Generator\" .
+      bd:serviceParam wikibase:endpoint \"en.wikipedia.org\" .
+      bd:serviceParam mwapi:titles \"Timeline of Japanese history\" .
+      bd:serviceParam mwapi:generator \"links\" .
+      bd:serviceParam mwapi:gpllimit \"max\" .
+      bd:serviceParam mwapi:gplnamespace \"0\" .
+      ?item wikibase:apiOutputItem mwapi:item .
+    }
+    FILTER BOUND(?item)
+  }
+} AS %items  
+WHERE
+{
+  INCLUDE %items
+  OPTIONAL { ?item wdt:P31 ?instance_of }
+  ?item wdt:P31 / wdt:P279* wd:Q1190554 . hint:Prior hint:gearing \"forward\". # Must be events
+  OPTIONAL { ?item p:P585 / psv:P585 [wikibase:timeValue ?time ; wikibase:timePrecision ?time_prec] }
+  OPTIONAL { ?item p:P580 / psv:P580 [wikibase:timeValue ?start ; wikibase:timePrecision ?start_prec] }
+  OPTIONAL { ?item p:P582 / psv:P582 [wikibase:timeValue ?end ; wikibase:timePrecision ?end_prec] }
+  BIND (COALESCE(?time, ?start, ?end) AS ?sort_key)
+  FILTER BOUND(?sort_key) # Must have a time
+  BIND (COALESCE(?time_prec, ?start_prec, ?end_prec) AS ?prec)
+  BIND (IF(?prec = 11, \"day\", IF(?prec = 10, \"month\", IF(?prec = 9, \"year\", \"other\"))) AS ?time_precision)
+  SERVICE wikibase:label
+  {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,ja\" .
+    ?item rdfs:label ?itemLabel .
+    ?instance_of rdfs:label ?instance_ofLabel .
+  }
+}
+GROUP BY ?item ?itemLabel ?time ?start ?end ?time_precision ?sort_key
+ORDER BY ?sort_key ?end""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

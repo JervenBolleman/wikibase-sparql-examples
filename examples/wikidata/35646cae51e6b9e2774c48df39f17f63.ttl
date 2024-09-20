@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-35646cae51e6b9e2774c48df39f17f63> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Mix of P159, P115 & P276 used in sport event
+SELECT ?value ?ct ?sampleitem ?sampleitemLabel
+WHERE
+{
+  {
+    SELECT ?value (count(*) as ?ct) (SAMPLE(?item) as ?sampleitem)
+    WHERE
+    {
+  ?item (wdt:P31/(wdt:P279*)) wd:Q16510064.    # àmbit sobre el que es vol explorar
+  optional { ?item wdt:P159 ?p159.}            # propietats a analitzar si hi són
+  optional { ?item wdt:P115 ?p115.}
+  optional { ?item wdt:P276 ?p276.}
+  BIND(IF(BOUND(?p159),\"P159\",\"\") AS ?seu).    # genera text per cada propietat existent
+  BIND(IF(BOUND(?p115),\"P115\",\"\") AS ?sta).
+  BIND(IF(BOUND(?p276),\"P276\",\"\") AS ?loc).
+  bind(CONCAT(?seu, \"-\", ?sta, \"-\", ?loc) as ?value).  #crear un codi amb els textos concatenats
+    }
+    GROUP BY ?value
+    ORDER BY DESC(?ct)
+    LIMIT 10  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ORDER BY DESC(?ct) ASC(?value)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Amadalvarez/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

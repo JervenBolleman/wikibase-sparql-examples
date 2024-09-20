@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3186dbd44efefcc8c3cd061bbc396e52> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT 
+  ?works
+  ?composer ?composerLabel
+  (CONCAT(\"#composer/\", SUBSTR(STR(?composer), 32)) AS ?composerUrl)
+  ?composerDescription
+WITH {
+  SELECT 
+    (COUNT(?work) AS ?works)
+    ?composer
+  WHERE {
+    ?work wdt:P86 ?composer
+  }
+  GROUP BY ?composer
+  ORDER BY DESC(?works)
+  LIMIT 1000
+} AS %composers
+WHERE {
+  INCLUDE %composers
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?works)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:composer-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,39 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-338a475f6fd1a539cff93a91658edfa6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?given
+WHERE {
+  {
+  SELECT ?item ?given
+    WHERE {
+      ?item wdt:P21 wd:Q6581072 . # is female
+      ?item wdt:P735 ?given .
+      ?given wdt:P31 wd:Q12308941 . # has male given name'
+      FILTER NOT EXISTS { ?given wdt:P31 wd:Q11879590 . }
+  
+      FILTER (?given NOT IN (
+        wd:Q6410090, # Kimi - needs a new item for female given name
+        wd:Q533503, # Edy - usually a hypocorism, may need female given name
+        wd:Q416744, # Willy
+        wd:Q263116, # Micha - needs a new item for female given name
+        wd:Q256463 # Pascal - needs a new item for female given name
+      ))
+      
+      # filter out The Peerage entries, too many wrong entries
+      FILTER NOT EXISTS { ?item wdt:P4638 ?thepeerageid . }
+  }
+  LIMIT 200
+  }
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MarioGom>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

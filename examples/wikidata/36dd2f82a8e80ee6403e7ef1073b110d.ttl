@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-36dd2f82a8e80ee6403e7ef1073b110d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?human ?humanLabel ?nom_de_familleLabel ?prenomLabel ?prenoms_num ?prenomsLabel ?nom_de_naissance ?pseudo ?date_de_naissance ?lieu_de_naissanceLabel ?date_de_mort ?lieu_de_mortLabel WHERE {
+  ?human wdt:P31 wd:Q5.
+  MINUS { ?human wdt:P9058 _:b8. }
+  ?human wdt:P27 wd:Q142;
+    (p:P570/psv:P570) _:b9.
+  _:b9 wikibase:timePrecision ?precision;
+    wikibase:timeValue ?date_de_mort.
+  BIND(CONCAT(STR(YEAR(?date_de_mort)), \"-\", STR(MONTH(?date_de_mort))) AS ?yearmonth)
+  FILTER(?date_de_mort >= \"2010-01-01T00:00:00\"^^xsd:dateTime)
+  FILTER(?date_de_mort < \"2010-02-28T00:00:00\"^^xsd:dateTime)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  OPTIONAL { ?human wdt:P734 ?nom_de_famille. }
+  OPTIONAL { ?human wdt:P735 ?prenom. }
+  OPTIONAL { ?human p:P735 [pq:P1545 ?prenoms_num;
+                            ps:P735 ?prenoms;
+                           ]. }
+  OPTIONAL { ?human wdt:P569 ?date_de_naissance. }
+  OPTIONAL { ?human wdt:P19 ?lieu_de_naissance. }
+  OPTIONAL { ?human wdt:P20 ?lieu_de_mort. }
+  OPTIONAL { ?human wdt:P1477 ?nom_de_naissance. }
+  OPTIONAL { ?human wdt:P742 ?pseudo. }
+}
+LIMIT 10000""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Sovxx>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

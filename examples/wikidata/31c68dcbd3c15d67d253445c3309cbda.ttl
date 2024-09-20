@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-31c68dcbd3c15d67d253445c3309cbda> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#added before 2016-10
+SELECT ?object ?objectLabel (MAX(?area) AS ?area)
+WHERE
+{
+  ?object p:P2046/psv:P2046 [
+    wikibase:quantityAmount ?baseArea;
+    wikibase:quantityUnit [
+      p:P2370/psv:P2370 [
+        wikibase:quantityAmount ?unitArea;
+        wikibase:quantityUnit wd:Q25343
+      ]
+    ]
+  ].
+  BIND(?baseArea * ?unitArea AS ?area).
+  MINUS { ?object wdt:P31 wd:Q1371562. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"ru\". }
+}
+GROUP BY ?object ?objectLabel
+ORDER BY DESC(?area)
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

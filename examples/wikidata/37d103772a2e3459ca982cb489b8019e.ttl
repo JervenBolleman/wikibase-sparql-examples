@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-37d103772a2e3459ca982cb489b8019e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#-------------------------------------------------------------------------------
+# Personen ohne deutsche Beschreibung, aber mit deutschem Artikel
+#-------------------------------------------------------------------------------
+#defaultView:Table
+SELECT ?item ?itemLabel ?article WHERE {
+  hint:Query hint:optimizer \"None\" .               # Enable top-to-bottom execution
+  SERVICE bd:slice {
+    ?item wdt:P31 wd:Q5 . # is human    
+    bd:serviceParam bd:slice.offset 0 .      # Offset einstellen
+    bd:serviceParam bd:slice.limit 50000 .   # X Datensätze abrufen
+  }      
+  ?article schema:about ?item.                 
+  ?article schema:isPartOf <https://de.wikipedia.org/>.   # has article in de.wikipedia.org
+  filter not exists {?item schema:description ?desc . filter(lang(?desc)=\"de\") } # Beschreibung auf Deutsch ist leer 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de\" }     # Beschreibung in anderen Sprachen anzeigen
+
+}
+order by ?itemLabel
+Limit 20""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stefan_K%C3%BChn/Persondata>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

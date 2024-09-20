@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-31ec6c8baa4fda62d7f1637e345154d9> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:LineChart
+# Scholarly articles as a function of gender
+SELECT ?age (COUNT(?gender) as ?count) (SAMPLE(?genderLabel) AS ?genderLabel ) WHERE {
+  ?article wdt:P31 wd:Q13442814 .
+  ?article wdt:P577 ?date .
+  ?article wdt:P50 ?author .
+  ?author wdt:P569 ?dob .
+  ?author wdt:P21 ?gender .
+  ?gender rdfs:label ?genderLabel .
+  FILTER((LANG(?genderLabel)) = \"en\")
+  bind( 1000+year(?date)-year(?dob) as ?age_num )
+  bind( SUBSTR(str(?age_num),1,4) as ?age )
+  FILTER(year(?date)>=2000)
+  FILTER(BOUND(?age_num))
+  FILTER(?age_num<=1100)
+  FILTER(?age_num>=1000)
+}
+GROUP BY ?genderLabel ?age""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

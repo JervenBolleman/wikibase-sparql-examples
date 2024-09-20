@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-35a0384d2cdf3815bed88c59f970bfc7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?nameLabel ?itemLabel ?itemDescription  ?datebirth ?precDoB ?datedeath ?precDoD
+WHERE
+{
+    ?item wdt:P119 wd:Q1457377 .
+    OPTIONAL {?item wdt:P734 ?name }
+    OPTIONAL {?item p:P569 [ps:P569 ?birthdate; psv:P569 [wikibase:timePrecision ?precDoB] ] .
+      BIND(IF(?precDoB=11,concat(str(year(?birthdate)),\" \",if(strlen(str(month(?birthdate)))=1,concat(\"0\",str(month(?birthdate))),str(month(?birthdate))),\" \",if(strlen(str(day(?birthdate)))=1,concat(\"0\",str(day(?birthdate))),str(day(?birthdate)))),
+             if(?precDoB=10,concat(str(year(?birthdate)),\" \",if(strlen(str(month(?birthdate)))=1,concat(\"0\",str(month(?birthdate))),str(month(?birthdate)))),
+               if(?precDoB=9,year(?birthdate),\"\"))) as ?datebirth)             
+             } 
+    OPTIONAL {?item wdt:P19 ?birthplace }
+    OPTIONAL {?item wdt:P570 ?deathdate }
+    OPTIONAL {?item p:P570 [ps:P570 ?deathdate; psv:P570 [wikibase:timePrecision ?precDoD] ] .
+      BIND(IF(?precDoD=11,concat(str(year(?deathdate)),\" \",if(strlen(str(month(?deathdate)))=1,concat(\"0\",str(month(?deathdate))),str(month(?deathdate))),\" \",if(strlen(str(day(?deathdate)))=1,concat(\"0\",str(day(?deathdate))),str(day(?deathdate)))),
+             if(?precDoD=10,concat(str(year(?deathdate)),\" \",if(strlen(str(month(?deathdate)))=1,concat(\"0\",str(month(?deathdate))),str(month(?deathdate)))),
+               if(?precDoD=9,year(?deathdate),\"\"))) as ?datedeath)
+             } 
+    OPTIONAL {?item wdt:P20 ?deathplace }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ORDER BY ?precDoD ?nameLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

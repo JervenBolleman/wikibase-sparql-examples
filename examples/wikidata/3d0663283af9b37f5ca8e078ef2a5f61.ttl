@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3d0663283af9b37f5ca8e078ef2a5f61> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?country ?poi ?min_inception ?max_dissolved WITH {
+  SELECT ?item ?country (MIN(?inception) as ?min_inception) (MAX(?dissolved) as ?max_dissolved) WHERE
+  {
+ 
+  ?item wdt:P31/wdt:P279* wd:Q178561. # battle
+  ?item wdt:P17 ?country.
+  ?country wdt:P571 ?inception.
+  ?country wdt:P576 ?dissolved.
+  } GROUP BY ?item ?country } as %i
+WHERE
+{
+  INCLUDE %i
+  ?item wdt:P585 ?poi.
+  FILTER (?poi > ?max_dissolved || ?poi < ?min_inception)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". } 
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

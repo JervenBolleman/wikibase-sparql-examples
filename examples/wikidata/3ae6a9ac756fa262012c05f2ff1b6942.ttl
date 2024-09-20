@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3ae6a9ac756fa262012c05f2ff1b6942> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Topics of works within scope of WikiProject Invasion Biology
+SELECT ?count ?topic ?topicLabel ?example_work ?example_workLabel
+WITH {
+  SELECT DISTINCT ?topic (SAMPLE(?work) AS ?example_work) (COUNT(?work) AS ?count) WHERE {
+    # Find works for the specific queried topic
+    ?work wdt:P6104 wd:Q56241615 .
+
+    # Find co-occuring topics
+    ?work wdt:P921 ?topic .
+
+  }
+  GROUP BY ?topic
+} AS %result
+WHERE {
+  # Label the results
+  INCLUDE %result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" . } 
+}
+ORDER BY DESC(?count)
+LIMIT 200""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

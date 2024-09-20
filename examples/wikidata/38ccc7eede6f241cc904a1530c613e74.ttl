@@ -1,0 +1,53 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-38ccc7eede6f241cc904a1530c613e74> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  ?property
+  ?propertyLabel
+  ?propertyDescription 
+  (GROUP_CONCAT(DISTINCT ?classLabel;SEPARATOR=' // ') AS ?classes)
+  (GROUP_CONCAT(DISTINCT ?domainLabel;SEPARATOR=' // ') AS ?domain)
+  (GROUP_CONCAT(DISTINCT ?codomainLabel;SEPARATOR=' // ') AS ?codomain)
+  (GROUP_CONCAT(DISTINCT STR(?equivalentProp);SEPARATOR=' // ') AS ?equivalentProps)
+  (SUBSTR(STR(?type),27) AS ?type)
+WHERE
+{
+  ?property wdt:P31/wdt:P279* wd:Q27525351;
+            wdt:P31/wdt:P279* ?class;
+            wikibase:propertyType ?type. # https://www.wikidata.org/wiki/Help:Data_type#Technical_details
+  ?class wdt:P279* wd:Q27525351.
+  OPTIONAL {
+    ?property p:P2302 [
+      ps:P2302 wd:Q21503250;
+      pq:P2308 ?domain
+    ].
+  }
+  OPTIONAL {
+    ?property p:P2302 [
+      ps:P2302 wd:Q21510865;
+      pq:P2308 ?codomain
+    ].
+  }
+  OPTIONAL {
+    ?property wdt:P1628 ?equivalentProp.
+  }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en,fr\".
+    ?property rdfs:label ?propertyLabel.
+    ?property schema:description ?propertyDescription.
+    ?class rdfs:label ?classLabel.
+    ?domain rdfs:label ?domainLabel.
+    ?codomain rdfs:label ?codomainLabel.
+  } 
+}
+GROUP BY ?property ?propertyLabel ?propertyDescription ?type""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Danysan1/Polifonia-Wikidata_matching>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

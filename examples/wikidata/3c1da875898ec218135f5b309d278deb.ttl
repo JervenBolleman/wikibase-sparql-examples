@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3c1da875898ec218135f5b309d278deb> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title:wordcloud articles without statements MyLang Wikipedia (switch to \"Table\" view to list, at left border of screen)
+#defaultView:BubbleChart
+SELECT
+  ?word
+  (COUNT(*) as ?count) 
+  (URI(CONCAT(\"https://www.wikidata.org/w/index.php?search=inlabel%3A\",?word,\"%40[AUTO_LANGUAGE]+-haswbstatement%3A%2A&profile=advanced&fulltext=1&ns=1\")) as ?search)
+WITH
+{
+  SELECT ?item (CONCAT(?n, \" 1 1 1 1 1 1 1 1 \") as ?string) 
+  {
+    ?item wikibase:statements 0 .
+    [] schema:about ?item ; schema:name ?n ; schema:isPartOf <https://[AUTO_LANGUAGE].wikipedia.org/>
+  }
+  LIMIT 20000
+} as %aa
+WITH
+{
+  SELECT (str(?nv-1) as ?ord) { [] wdt:P5176 ?i ; wdt:P1181 ?nv . FILTER( ?nv < 8) } 
+} as %i  
+WHERE
+{
+  INCLUDE %i
+  INCLUDE %aa
+  BIND(  CONCAT(\"^([^ ]+ ){\",?ord,\"}([^ ]+) .+$\") as ?re)         
+  BIND(  REPLACE(?string, ?re, \"$2\") as ?word)
+  # FILTER( ?word != \"1\" && )
+  FILTER( strlen(?word) > 4)           
+} 
+GROUP BY ?word
+ORDER BY DESC(?count) 
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:Database_reports/without_claims_by_site/frwiki>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-392b5f9851d46dfbde989b34973a81f8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?itemLabel ?itemDescription ?iso
+{  
+    ?item wdt:P220 ?iso . # looking for language that has a ISO 639-3 code
+    MINUS { ?item wdt:P1394 ?glottolog .} # with missing Glottolog ID
+    MINUS { ?item rdf:type wdno:P1394 .} # without those with a « no value » Glottolog ID
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+    FILTER(NOT EXISTS {
+        ?item schema:description ?itemDescription .
+        FILTER(LANG(?itemDescription) = \"[AUTO_LANGUAGE],en\") # with missing \"your language\" description
+    })
+}
+ORDER BY ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service/queries>,
+    <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_Languages>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

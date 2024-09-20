@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-39dd548e58656313d05f6aa624274648> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title:Authority control properties for authority files, sorted by year of creation (approximate on the basis of milestones)
+SELECT ?property ?propertyLabel ?number (YEAR(?date) as ?year) WITH {
+  SELECT ?property ?number (MIN(?milestone_) as ?milestone)
+WHERE {
+  ?property wdt:P31/wdt:P279* wd:Q96776953.
+  BIND(xsd:integer(strafter(str(?property),\"P\")) as ?number)
+  wd:Q73616850 wdt:P1114 ?milestone_ .   
+  FILTER(?milestone_ > ?number)
+  } group by ?property ?number   } as %i
+WHERE
+{
+  INCLUDE %i
+  wd:Q73616850 p:P1114 ?stat . 
+  ?stat ps:P1114 ?milestone .   
+  ?stat pq:P585 ?date
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/Queries>, <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/sandbox>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

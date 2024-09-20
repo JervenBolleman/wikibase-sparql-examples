@@ -1,0 +1,58 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-33e36fc1a07185af203495efc41a97d8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Locations depicted in Welsh Landscape Collection, on map
+#defaultView:Map{\"hide\":[\"?geo\", \"?rgb\", \"?layer\"],\"markercluster\": true}
+SELECT DISTINCT ?geo ?subj ?depicts 
+(SAMPLE(?sLabel) AS ?subjLabel) 
+(SAMPLE(?dLabel) AS ?depictsLabel)
+(SAMPLE(?pic) AS ?pic) 
+(SAMPLE(?layer) AS ?layer) 
+(SAMPLE(?rgb) AS ?rgb)  
+WHERE {
+  
+  ?subj wdt:P361 wd:Q21542493 ;
+        wdt:P180 ?depicts .
+        OPTIONAL{ ?subj wdt:P18 ?pic . }
+  
+  ?depicts wdt:P3896 ?geo ;
+           wdt:P31 ?is .  
+           VALUES ?is { wd:Q23413 wd:Q160742 wd:Q2977 wd:Q39715 wd:Q16970 wd:Q19844914 wd:Q1802963 wd:Q16884952 }
+  
+  BIND(
+    IF(?is = wd:Q23413, \"castle\",
+    IF(?is = wd:Q160742, \"abbey\",
+    IF(?is = wd:Q2977, \"cathedral\",
+    IF(?is = wd:Q39715, \"lighthouse\",
+    IF(?is = wd:Q16970, \"church\",  
+    IF(?is = wd:Q19844914, \"college\",
+    IF(?is = wd:Q1802963, \"country house\",
+    IF(?is = wd:Q16884952, \"country house\",
+           \"\")))))))) AS ?layer).
+  
+  BIND(
+    IF(?is = wd:Q23413, \"FF0000\",
+    IF(?is = wd:Q160742, \"0080FF\",
+    IF(?is = wd:Q2977, \"00FF00\",
+    IF(?is = wd:Q39715, \"FF00FF\",
+    IF(?is = wd:Q16970, \"FFFF00\",  
+    IF(?is = wd:Q19844914, \"808080\",
+    IF(?is = wd:Q1802963, \"80ffff\",
+    IF(?is = wd:Q16884952, \"80ffff\",
+           \"\")))))))) AS ?rgb).
+    
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". 
+         ?subj rdfs:label ?sLabel .                
+         ?depicts rdfs:label ?dLabel .   }
+}
+GROUP BY ?geo ?subj ?depicts""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

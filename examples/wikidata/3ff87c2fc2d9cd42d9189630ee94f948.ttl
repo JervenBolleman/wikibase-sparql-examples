@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3ff87c2fc2d9cd42d9189630ee94f948> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?code ?item1 ?nature1Label ?item1Label ?date1 ?item2  ?item2Label WHERE {
+  ?item1 wdt:P31/wdt:P279* wd:Q1248784. 
+#  ?item1 wdt:P238 ?code .        #oddly, we don't need this - see a couple of rows below
+  ?item1 wdt:P31 ?nature1.        #What kind of airport, aérodrome is it?
+  ?item1 p:P238 ?statement1.        #we replace the ?item1 wdt:P238 ?code . bit by getting the P238 property statement
+  ?statement1 ps:P238 ?code.          #get the IATA code assicated with the property statement
+  minus { ?statement1 pq:P582 ?date1.} #minus any row where there is an end date for the property statement (and hence which is associated with the code value)
+  ?item2 wdt:P238 ?code .         #Second with code IATA
+  FILTER ( ?item1 != ?item2 )     #Only différents elements
+  minus {?item1 wdt:P31/wdt:P279* wd:Q695850.}      # exclude military airports
+  minus {?item1 wdt:P31/wdt:P279* wd:Q1311670.}     # exclude railways stations
+  minus {?item1 wdt:P31/wdt:P279* wd:Q7373622.}     # exclude Royal Air Force
+  minus {?item2 wdt:P31/wdt:P279* wd:Q695850.}      # exclude military airports
+  minus {?item2 wdt:P31/wdt:P279* wd:Q1311670.}     # exclude railways stations
+  minus {?item2 wdt:P31/wdt:P279* wd:Q7373622.}     # exclude Royal Air Force
+  minus {?item1 wdt:P576 ?date}                     # exclude destructed airports
+  minus {?item2 wdt:P576 ?date}                     # exclude destructed airports
+  SERVICE wikibase:label { bd:serviceParam wikibase:language  \"fr,en\". } #récupérer le libellé en français si possible sinon en anglais
+  }
+ORDER BY ?code #trier les résultats selon le code AITA""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

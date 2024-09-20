@@ -1,0 +1,53 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3d4cd451bf32e51f60e60a7754e48c0f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Objekte in einem Bundsland (mit Unterabfrage)
+#defaultView:Map,Table
+
+select ?object ?objectLabel ?objectDescription ?coord ?image
+where {
+  ?object wdt:P131/wdt:P279* ?item.      
+  ?object (wdt:P31/wdt:P279*) wd:Q33506 .  # ist ein Museum (oder Unterklasse)
+  #?object (wdt:P31/wdt:P279*) wd:Q55488 .   # ist ein Bahnhof (oder Unterklasse) 
+  #OPTIONAL { ?object wdt:P18 ?image . }     
+  OPTIONAL { ?object wdt:P625 ?coord. }  
+
+# hier kommt die Unterabfrage mit den Kreisen und Städten des Bundeslandes
+{  
+SELECT distinct ?item 
+#?itemLabel ?itemDescription ?kreisschluessel 
+       (SAMPLE(?coordinate) AS ?coord)              # nur eine Koordinate soll genutzt werden
+WHERE {
+  { ?item wdt:P31/wdt:P279* wd:Q106658.             # alle Landkreise (294 von 294)
+    MINUS { ?item wdt:P576 _:b1. }                  # ohne Auflösungsdatum
+  }
+  union
+  {  ?item p:P31 ?statement .
+     ?statement ps:P31/wdt:P279* wd:Q22865 .        # alle Kreisfreie Städte in Deutschland  (107 von 107)
+     MINUS { ?statement pq:P582 [] }                # ohne Auflösungsdatum
+  }
+  
+  #OPTIONAL { ?item wdt:P440 ?kreisschluessel}       # Kreise mit Kreisschlüssel (399 von 401)
+  MINUS { ?item wdt:P576 _:b2. }                    # ohne Auflösungsdatum   
+  #OPTIONAL { ?item wdt:P625 ?coordinate. }          # Koordinate für Kartenansicht
+  
+  
+  ?item wdt:P131 wd:Q1205.                           # liegt in Thüringen
+  #?item wdt:P131 wd:Q1202.                           # liegt in Sachsen
+
+  
+}
+GROUP BY ?item #?itemLabel ?itemDescription ?coord ?kreisschluessel
+}
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en,[AUTO_LANGUAGE]\" }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stefan_K%C3%BChn/Abfragen>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

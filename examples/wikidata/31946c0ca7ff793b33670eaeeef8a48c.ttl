@@ -1,0 +1,46 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-31946c0ca7ff793b33670eaeeef8a48c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?subj ?subjLabel ?dob ?dod ?place ?placeLabel ?layer ?coord
+WITH {
+  SELECT DISTINCT ?place ?coord WHERE {
+    ?place wdt:P131* wd:Q11943 .
+    ?place wdt:P625 ?coord .
+  }
+} as %place # re-use results
+WHERE {
+  {
+    INCLUDE %place
+    ?subj wdt:P19 ?place .
+    bind(\"birth place\" as ?layer)
+    OPTIONAL { ?subj wdt:P569 ?dob. filter(!wikibase:isSomeValue(?dob)) }
+  } UNION {
+    INCLUDE %place
+    ?subj wdt:P20 ?place.
+    bind(\"death place\" as ?layer)
+    OPTIONAL { ?subj wdt:P570 ?dod. filter(!wikibase:isSomeValue(?dod))  }
+  } UNION {
+    INCLUDE %place
+    ?subj wdt:P551 ?place.
+    bind(\"residence\" as ?layer)
+  } UNION {
+    INCLUDE %place
+    ?subj wdt:P1321 ?place.
+    bind(\"place of origin\" as ?layer)
+  } UNION {
+    INCLUDE %place
+    ?subj wdt:P937 ?place.
+    bind(\"work location\" as ?layer)
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

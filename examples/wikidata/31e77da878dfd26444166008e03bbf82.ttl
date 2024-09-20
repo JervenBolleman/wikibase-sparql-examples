@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-31e77da878dfd26444166008e03bbf82> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?depth ?item ?itemLabel ?dob2 ?dod2
+WHERE
+{
+  BIND( wd:Q57224 as ?s ) 
+  ?s wdt:P569 ?dob ; wdt:P570 ?dod .
+  SERVICE gas:service {
+    gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.SSSP\" ;
+                gas:in wd:Q57224 ;
+                gas:traversalDirection \"Forward\" ;
+                gas:out ?item ;
+                gas:out1 ?depth ;
+                gas:maxIterations 100 ;
+                gas:linkType wdt:P40 .
+  }
+  OPTIONAL { ?item wdt:P569 ?dob2 }
+  OPTIONAL { ?item wdt:P570 ?dod2 }
+  FILTER ( !BOUND(?dod2) || ?dod2 < ?dob )
+  FILTER ( !BOUND(?dob2) || ?dob2 < ?dod )    
+  FILTER ( !BOUND(?dod2) || ?dod2 < ?dob )    
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_Genealogy/numbers/descendants>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

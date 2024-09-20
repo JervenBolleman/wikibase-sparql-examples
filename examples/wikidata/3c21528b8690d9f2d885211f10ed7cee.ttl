@@ -1,0 +1,43 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3c21528b8690d9f2d885211f10ed7cee> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Japanese numeral lexemes 0-9
+
+SELECT ?lexeme ?value ?lemma ?kana ?hanLabel ?patternLabel  WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?lexeme dct:language wd:Q5287.
+  OPTIONAL {
+    ?lexeme wikibase:lemma ?kana.
+    filter (lang(?kana) = \"ja-hira\" || lang(?kana) = \"ja-kana\")
+  }
+  OPTIONAL {
+    ?lexeme wikibase:lemma ?lemma.
+    filter (lang(?lemma) = \"ja\")
+  }
+  ?lexeme ontolex:sense ?sense.
+  ?lexeme ontolex:lexicalForm ?form.
+  OPTIONAL {
+    ?lexeme wdt:P5425 ?han.
+  }
+  
+  OPTIONAL {
+    ?form wdt:P5244 ?pattern.
+  }
+  
+  
+  ?sense wdt:P5137 ?concept.
+  ?concept wdt:P31 wd:Q28920052.
+  ?concept wdt:P1181 ?value.
+  filter(?value < 10)
+}
+LIMIT 40""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Shisma>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

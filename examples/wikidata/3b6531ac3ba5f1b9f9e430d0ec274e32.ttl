@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3b6531ac3ba5f1b9f9e430d0ec274e32> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?ist_eineLabel ?objekt ?objektLabel ?cityLabel ?personLabel ?artLabel ?geschlechtLabel ?personDescription ?religionLabel 
+       (group_concat(DISTINCT ?berufL;separator=\", \") as ?berufe) 
+WHERE
+{
+ # ?street wdt:P31 wd:Q79007 .
+ ?objekt wdt:P31 ?ist_eine .
+  ?objekt wdt:P131 wd:Q570057 . #Verwaltungseinheit Karben
+  ?objekt wdt:P131 ?city .
+  ?objekt wdt:P138 ?person .
+  ?person wdt:P31 ?art .
+  FILTER ( ?art not in ( wd:Q16521, wd:Q55983715, wd:Q754660, wd:Q978 ) ) . #nicht Taxon, Lebewesen Trivaler Name, Falconinae, Mem
+  optional { ?person wdt:P21 ?geschlecht .}
+  optional { ?person wdt:P140 ?religion .}
+  optional { ?person wdt:P106 ?beruf .
+    optional { ?beruf rdfs:label ?berufL . FILTER((LANG(?berufL)) = \"de\") . } 
+           }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" }
+}
+GROUP BY ?ist_eineLabel ?objekt ?objektLabel ?cityLabel ?personLabel ?artLabel ?geschlechtLabel ?personDescription ?religionLabel 
+ORDER BY ?city ?objektLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3d8e48be157aa7c968b1ccc2197ee556> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title:Mappa dei luoghi di nascita più frequenti per le singole persone aventi almeno un IRIS
+#defaultView:Map
+SELECT DISTINCT ?l ?lLabel ?coord ?number ?layer
+WITH
+{
+  SELECT DISTINCT ?l ?lLabel ?coord (COUNT(DISTINCT ?item) AS ?number)
+  WHERE 
+  {
+  ?iris wikibase:directClaim ?irisst ; wdt:P9073 [ wdt:P408 wd:Q107492957 ] .
+  ?item ?irisst ?irisid .
+  ?item wdt:P19 ?l . ?l wdt:P625 ?coord .
+  }
+  GROUP BY ?l ?lLabel ?coord ?number
+} AS %what
+WHERE
+{
+  INCLUDE %what
+  BIND( IF(?number < 3, \"1-2\", IF(?number < 6, \"3-5\", IF(?number < 16, \"6-15\",\"16+\"))) AS ?layer) 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"it\". }
+}
+GROUP BY ?l ?lLabel ?coord ?number ?layer
+ORDER BY DESC(?number)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Gruppo_Wikidata_per_Musei,_Archivi_e_Biblioteche/IRIS>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

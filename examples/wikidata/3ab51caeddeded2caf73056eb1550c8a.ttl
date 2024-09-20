@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3ab51caeddeded2caf73056eb1550c8a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#List of properties linking an item to a book series, ordered by frequency of use
+SELECT ?property ?propertyLabel ?count WITH {
+  SELECT ?property ?value (COUNT(DISTINCT ?item) AS ?count) WHERE {
+    ?bookseries wdt:P31/wdt:P279* wd:Q277759.
+    ?item ?wdt ?bookseries.
+    ?property a wikibase:Property;
+              wikibase:directClaim ?wdt.
+    FILTER(?property != wd:P31)
+  }
+  GROUP BY ?property ?value
+  ORDER BY DESC(?count)
+  LIMIT 10
+} AS %results WHERE {
+  INCLUDE %results.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en-US,en,en\". }
+}
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_Books/2018>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,52 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3980b593bbfad20a6cc1e222eec2f10d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?wiki ?wikiLabel ?endpoint ?articles ?users ?activeusers WITH {
+  # Wikimedia content project subclasses (Wikipedia, Wikisorces, Wiktionary, etc language edition)
+  SELECT ?wikitype WHERE { ?wikitype wdt:P279 wd:Q33120876 . }
+} AS %wiki_types
+WHERE
+{
+  INCLUDE %wiki_types
+  ?wiki wdt:P31 ?wikitype.
+  ?wiki wdt:P856 ?website.
+  
+  # This triple will remove wikis that don't exist anymore and thus avoid MWAPI errors (\"404 Not Found\") 
+  ?website wikibase:wikiGroup ?wikigroup.
+
+  FILTER (?wikigroup = \"wiktionary\") # Limit to wiktionaries to avoid timeout
+
+  BIND (STRBEFORE(STRAFTER(STR(?website), \"https://\"), \"/\") AS ?endpoint)
+  OPTIONAL
+  {
+    SERVICE wikibase:mwapi
+    {
+      bd:serviceParam wikibase:endpoint ?endpoint .
+      bd:serviceParam wikibase:limitContinuations \"0\".
+
+      # None of the 4 available API services give site statistics, but it is necessary to select one.
+      # Here we do a page list limited to 1 page without retrieving the result.
+      bd:serviceParam wikibase:api \"Generator\" .
+      bd:serviceParam mwapi:generator \"allpages\" .
+      bd:serviceParam mwapi:gaplimit \"1\" .
+
+      # Also add site statistics to the API call:
+      bd:serviceParam mwapi:meta \"siteinfo\" .
+      bd:serviceParam mwapi:siprop \"statistics\" .
+      ?articles wikibase:apiOutput \"//api/query/statistics/@articles\" .
+      ?users wikibase:apiOutput \"//api/query/statistics/@users\" .
+      ?activeusers wikibase:apiOutput \"//api/query/statistics/@activeusers\" .
+    }
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

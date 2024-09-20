@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3fa5df366bc19164e9efa14577e33d76> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?a  ?aLabel ?aDescription ?ordinal ?d ?party ?partyLabel ?d1 ?party1 (?party = ?party1 as ?same)
+{
+  {
+  SELECT ?a  ?aLabel ?aDescription ?ordinal ?d ?party ?partyLabel (MAX(?d1) as ?d1) 
+  WHERE 
+  {
+    ?a wdt:P31 wd:Q47566 .
+    ?a wdt:P585 ?d . 
+    ?a wdt:P991 / wdt:P102 ?party .
+    { SELECT ?prevd ?d1 { ?prevd wdt:P31 wd:Q47566 ; wdt:P585 ?d1 .  }   
+    }
+    FILTER(?d1 < ?d) 
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  }
+  GROUP BY ?a  ?aLabel ?aDescription ?ordinal ?d ?party ?partyLabel 
+  }
+  ?previous wdt:P31 wd:Q47566; wdt:P585 ?d1 ; wdt:P991 / wdt:P102 ?party1 .  
+}
+ORDER BY DESC(?d)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-33ed3a2e2eba7681ba3355cae2cb5b73> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q9035>
+
+SELECT
+  ?works
+  (CONCAT(\"#language/\", SUBSTR(STR(target:), 32), \"/publisher/\", SUBSTR(STR(?publisher), 32)) AS ?worksUrl) 
+ 
+  ?publisher ?publisherLabel
+  (CONCAT(\"#publisher/\", SUBSTR(STR(?publisher), 32)) AS ?publisherUrl) 
+  ?publisherDescription
+WITH {
+  SELECT
+    (COUNT(?work) AS ?works)
+    ?publisher
+  WHERE {
+    ?work wdt:P123 ?publisher ;
+          wdt:P407 target: .
+  }
+  GROUP BY ?publisher
+} AS %publishers
+WHERE {
+  INCLUDE %publishers
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} 
+ORDER BY DESC(?works)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:language-publisher-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

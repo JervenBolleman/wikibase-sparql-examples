@@ -1,0 +1,43 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-33a8ab4f830927857f11d7c78009b67e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:ImageGrid
+
+SELECT ?file ?image ?stype ?stypeLabel ?collec ?collecLabel ?role ?roleLabel ?de ?deLabel
+with {
+  select ?stype ?stypeLabel ?collec ?collecLabel ?role ?de ?roleLabel ?deLabel {
+   service <https://query.wikidata.org/sparql> {
+     select ?stype ?stypeLabel ?collec ?collecLabel ?role ?de ?roleLabel ?deLabel { 
+       ?stype wdt:P31/wdt:P279* wd:Q51255340 
+       SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+       optional {
+         ?stype wdt:P195 ?collec .
+       }
+       ?stype p:P2868 [ps:P2868 ?role ; pq:P642 ?de] .
+       #remove the # below to specify one or more collections
+       #values ?collec {
+       # wd:Q122945 # example with the Yale Peabody Museum of Natural History 
+       #}
+       #?de wdt:P171* wd:Q15711568 . # choose a taxon whose types are sought, including the types of its sub-taxa 
+     }
+   }
+  }
+} as %types
+WHERE {
+  ?file wdt:P180 ?stype ; schema:contentUrl ?url .
+  
+  bind(iri(concat(\"http://commons.wikimedia.org/wiki/Special:FilePath/\", replace(substr(str(?url),53),\"_\",\"%20\"))) AS ?image) .
+  
+  #?file wdt:P180  wd:Q105607273  .
+  include %types
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Christian_Ferrer>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

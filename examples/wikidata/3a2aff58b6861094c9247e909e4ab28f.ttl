@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3a2aff58b6861094c9247e909e4ab28f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Stars up to 18 light years away sorted by the nearest
+SELECT ?star ?starLabel ?distance ?unit ?unitLabel ?lightyears
+WHERE
+{
+  {
+    SELECT ?star ?distance ?unit ?lightyears
+    WHERE
+    {
+	  ?star wdt:P31 wd:Q523.
+	  ?star p:P2583/psv:P2583 ?d.
+      ?d wikibase:quantityUnit ?unit.
+      ?d wikibase:quantityAmount ?distance.
+      BIND(
+        COALESCE(
+          IF(?unit = wd:Q531, ?distance, 1/0), # lightyear
+          IF(?unit = wd:Q12129, ?distance*3.2616, 1/0), # paresc
+          IF(?unit = wd:Q11929860, ?distance*3261.6, 1/0), # kiloparsec
+          IF(?unit = wd:Q3773454, ?distance*3261600, 1/0), # megaparsec
+          -1
+      ) AS ?lightyears)
+      FILTER( ?lightyears < 19)
+    }
+    LIMIT 100
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ORDER BY ?lightyears
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

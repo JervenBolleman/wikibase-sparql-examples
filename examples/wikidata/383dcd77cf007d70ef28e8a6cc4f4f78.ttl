@@ -1,0 +1,48 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-383dcd77cf007d70ef28e8a6cc4f4f78> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:LineChart
+SELECT ?date ?age ?layer WHERE {
+  {
+    ?usPresident wdt:P31 wd:Q5;
+                 p:P39 [
+                   ps:P39 wd:Q11696;
+                   pq:P580 ?usPresidentStart
+                 ];
+                 wdt:P569 ?usPresidentDob.
+    BIND(xsd:integer((?usPresidentStart - ?usPresidentDob) / 365.2425) AS ?usPresidentAge)
+    BIND(?usPresidentStart AS ?date)
+    BIND(?usPresidentAge AS ?age)
+    BIND(\"US president\"@en AS ?layer)
+  } UNION {
+    ?ukPrimeMinister wdt:P31 wd:Q5;
+                     p:P39 [
+                       ps:P39 wd:Q14211;
+                       pq:P580 ?ukPrimeMinisterStart
+                     ];
+                     wdt:P569 ?ukPrimeMinisterDob.
+    BIND(xsd:integer((?ukPrimeMinisterStart - ?ukPrimeMinisterDob) / 365.2425) AS ?ukPrimeMinisterAge)
+    BIND(?ukPrimeMinisterStart AS ?date)
+    BIND(?ukPrimeMinisterAge AS ?age)
+    BIND(\"UK Prime Minister\"@en AS ?layer)
+  } UNION {
+    wd:Q21 p:P4442 [
+      ps:P4442 ?englandMeanAge;
+      pq:P585 ?englandMeanAgeTime
+    ].
+    BIND(?englandMeanAgeTime AS ?date)
+    BIND(?englandMeanAge AS ?age)
+    BIND(\"England\"@en AS ?layer)
+  }
+  # FILTER(?date >= \"1989\"^^xsd:dateTime)
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/age_of_US_and_UK_head_of_government_against_population_age>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

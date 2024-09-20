@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-38c878a6b441f98e14dcd926675db0ad> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT DISTINCT ?item ?itemLabel ?inventoryNumber ?itemDescription ?collectionGuide (group_concat(DISTINCT ?subLabel; separator = \"; \") AS ?subjects)
+WHERE {
+  ?item wdt:P31 ?cType ;
+        wdt:P5008 wd:Q100202113 .
+  OPTIONAL { ?item wdt:P921 ?sub .
+             ?sub rdfs:label ?subLabel . 
+             FILTER (LANG(?sublabel) = \"en\" ) 
+             }
+  OPTIONAL { ?item wdt:P217 ?inNumber . }
+  OPTIONAL { ?item wdt:P8091 ?ark . }
+  BIND (?cType AS ?collectionType)
+  BIND (?inNumber AS ?inventoryNumber)
+  BIND (CONCAT(\"http://n2t.net/\",?ark) AS ?collectionGuide)
+
+ #=================== FILTERS BELOW =============================
+ #===DELETE ONE OF THE HASHES BELOW TO FILTER COLLECTIONS BY TYPE. ONLY USE ONE FILTER AT A TIME===
+
+ #FILTER (CONTAINS(?inventoryNumber,\"OH-\")) #DISPLAY UNLV ORAL HISTORIES ONLY
+ #FILTER (CONTAINS(?inventoryNumber,\"PH-\")) #DISPLAY UNLV PHOTO COLLECTIONS ONLY
+ #FILTER (CONTAINS(?inventoryNumber,\"MS-\")) #DISPLAY UNLV MANUSCRIPT COLLECTIONS ONLY
+ #FILTER NOT EXISTS {?item wdt:P217 ?inNumber } #DISPLAY WIKIDATA ITEMS RELATED TO UNLV ARCHIVAL COLLECTIONS 
+ #FILTER(?cType NOT IN(wd:Q34184051, wd:Q42939539, wd:Q558929, wd:Q2668072, wd:Q22698, wd:Q4164871, wd:Q618779, wd:Q17279032, wd:Q27032363, wd:Q9388534 ) ) #DISPLAY THINGS INCLUDING PEOPLE AND ORGS
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}GROUP BY ?item ?itemLabel ?inventoryNumber ?itemDescription ?collectionGuide ?subjects
+ORDER by ASC (?itemLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_PCC_Wikidata_Pilot/UNLV>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

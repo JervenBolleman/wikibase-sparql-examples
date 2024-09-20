@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-306bb27c5d7a534d37a431c624bb693b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?property ?propertyLabel ?count WITH {
+  SELECT ?property (COUNT(?statement) AS ?count) WHERE {
+    ?volcano wdt:P31/wdt:P279* wd:Q8072;
+             ?p ?statement. # only counting main statement properties, not properties used in qualifiers and references
+    ?property wikibase:claim ?p.
+  }
+  GROUP BY ?property
+  ORDER BY ASC(?count)
+  LIMIT 100
+} AS %results WHERE {
+  INCLUDE %results.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ASC(?count) LCASE(?propertyLabel) # adding the label to the sort key makes the “transition” from one “group” of properties to the next more obvious (e.g. jumping from Z/1 to A/2)
+# note that we didn’t order by label in the subquery, and applied the limit there,
+# so there are probably some properties that have the same number of uses as the last returned ones but “didn’t make it”,
+# and their labels will be arbitrary, not just at the end of the alphabet
+LIMIT 100 # sometimes the label service is weird and the query times out if the limit from the inner query isn’t copied to the outer one, so copy it just in case""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Wikimedia_Hackathon_2021_Data_Challenge/16._Make_a_list_of_the_100_least_common_properties_used_on_volcanoes_(items_that_represents_volcanoes).>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

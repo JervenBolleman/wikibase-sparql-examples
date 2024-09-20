@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3aff0a8a7b70673f9602fa3a480180f8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?itemLabel ?item ?pronounDisplay ?pronoun
+WHERE
+{
+    ?item wdt:P31 wd:Q5 .
+
+    ?item wdt:P6553 ?pronoun .
+
+    # L484 => she
+    FILTER ( ?pronoun != wd:L484 ) .
+
+    # L485 => he
+    FILTER ( ?pronoun != wd:L485 ) .
+
+    ?pronoun wikibase:lemma ?label .
+
+    # get the language of the lexem
+    BIND( LANG(?label) AS ?language )
+
+    # create a string to display
+    BIND(CONCAT(STR(?label), \" [\", STR(?language), \"]\") AS ?pronounDisplay)
+
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+
+ORDER BY ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Misc/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

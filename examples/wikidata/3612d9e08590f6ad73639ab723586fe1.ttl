@@ -1,0 +1,58 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3612d9e08590f6ad73639ab723586fe1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?title_en ?sitelink_en ?item
+WITH
+{
+  SELECT ?title_en
+  WHERE
+  {
+    SERVICE wikibase:mwapi
+    {
+      bd:serviceParam wikibase:api \"Search\" .
+      bd:serviceParam wikibase:endpoint \"en.wikipedia.org\" .
+      bd:serviceParam mwapi:srnamespace \"0\" .
+      bd:serviceParam mwapi:srsearch 'deepcat:Felids' .
+      ?title wikibase:apiOutput mwapi:title .
+    }
+    BIND (STRLANG(?title, \"en\") AS ?title_en)
+  }
+} AS %get_titles_en
+WITH
+{
+  SELECT ?title_en ?sitelink_en
+  WHERE
+  {
+    INCLUDE %get_titles_en
+    ?sitelink_en schema:name ?title_en.
+  }
+} AS %get_sitelinks_en
+WITH
+{
+  SELECT ?title_en ?sitelink_en ?item
+  WHERE
+  {
+    INCLUDE %get_sitelinks_en
+    ?sitelink_en schema:isPartOf <https://en.wikipedia.org/>.
+    ?sitelink_en schema:about ?item.
+  }
+} AS %get_items_en
+WHERE
+{
+  INCLUDE %get_items_en
+  MINUS
+  {
+    [] schema:about ?item;
+       schema:isPartOf <https://uk.wikipedia.org/>.
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

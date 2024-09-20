@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-30dd044920a3d3cd740942e52154e0d6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q9035>
+
+SELECT
+  (SAMPLE(?forms_) AS ?forms)
+  ?lexeme
+  (GROUP_CONCAT(?lemma; separator=\", \") AS ?lexemeLabel)
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?lexeme), 32)) AS ?lexemeUrl)
+
+  (\"Ordia ↗\" AS ?ordia)
+  (CONCAT(\"https://ordia.toolforge.org/\", SUBSTR(STR(?lexeme), 32)) AS ?ordiaUrl)
+WITH {   
+  SELECT 
+    (COUNT(*) AS ?forms_)
+    ?lexeme 
+  WHERE {
+    ?lexeme dct:language target: ;
+            ontolex:lexicalForm [] .  
+  }
+  GROUP BY ?lexeme
+  ORDER BY DESC(?forms_)
+  LIMIT 500
+} AS %lexemes
+WHERE {
+  INCLUDE %lexemes
+  ?lexeme wikibase:lemma ?lemma ;
+}
+GROUP BY ?lexeme
+ORDER BY DESC(?forms)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:language>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,51 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-31acbb3d79fbe87bc15c27ef84d9e874> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map{\"hide\":\"?coords\",\"layer\":\"?year\"}
+SELECT 
+  ?item ?itemLabel ?itemDescription ?commonsuri ?typologyLabel
+  ?coords
+  (SAMPLE(?img) as ?image) 
+  (MIN(YEAR(?date)) as ?year)
+  (GROUP_CONCAT(DISTINCT ?architectLabel;separator=\", \") AS ?architects) 
+WHERE 
+{
+  ?item wdt:P166 wd:Q1795794;
+        p:P166 [ps:P166 ?award; pq:P585 ?date];
+        wdt:P31 ?typology.
+
+        
+  #let's try to get the Commons Link:
+  OPTIONAL {?comm schema:about ?item ; schema:isPartOf <https://commons.wikimedia.org/> .} # ?comm = other websites Commons link
+  BIND(replace(wikibase:decodeUri(SUBSTR(STR(?comm), 45)),\"_\",\" \") AS ?comm_decode) # decode it
+  OPTIONAL {?item wdt:P373 ?p373 .} # or get the Commonscat property 
+  BIND(COALESCE(?comm_decode, ?p373) as ?cat) . # ?cat = first fit
+  BIND(IRI(CONCAT(\"https://commons.wikimedia.org/wiki/\",?cat)) as ?commonsuri). # how to make this clickable link a bit cleaner? Just “more images\"
+ 
+  OPTIONAL{
+    ?item wdt:P625 ?coords.
+  }
+  OPTIONAL{
+    ?item wdt:P18 ?img.
+  }
+  OPTIONAL {
+    ?item wdt:P84 ?architect. # will be grouped
+  }
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de\" .
+                         ?item rdfs:label ?itemLabel .
+                        ?architect rdfs:label ?architectLabel .
+                        ?typology rdfs:label ?typologyLabel.
+                        }
+} 
+GROUP BY ?item ?itemLabel ?itemDescription ?coords ?commonsuri ?typologyLabel
+LIMIT 300""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

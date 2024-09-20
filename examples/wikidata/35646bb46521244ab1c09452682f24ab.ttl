@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-35646bb46521244ab1c09452682f24ab> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT 
+?city
+?cityLabel
+(concat('% ', ?percent) as ?ehuneko)
+(?city as ?id) 
+(SAMPLE(?fill) as ?fill) 
+(concat('[[:eu:', ?cityLabel, ']]') as ?title)
+WHERE {
+  ?item wdt:P361 wd:Q30594119.
+  ?item wdt:P1831 ?total_voters .
+  ?item wdt:P1868 ?active_voters.
+  ?item wdt:P1001 ?city.
+  BIND (100*?active_voters/?total_voters AS ?percent) .
+  BIND(
+    if(?percent>= 90, '#610604', 
+    if(?percent>= 80, '#994910', 
+    if(?percent>= 70, '#D0B01F', 
+    if(?percent>= 60, '#CBF13F', 
+    if(?percent>= 50, '#ABF97A', 
+    if(?percent>= 40, '#B1FFB3', '#a6a6a6')))))
+  ) as ?fill).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'eu'. }
+} GROUP BY ?city ?cityLabel ?percent""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

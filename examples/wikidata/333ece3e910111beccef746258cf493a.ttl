@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-333ece3e910111beccef746258cf493a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# find items that are instances of severe weather
+# without dates which could come either from a point in time or a start time property
+# but which contain 4-digit number (presumed to be a year) in the item's label in any language
+
+SELECT DISTINCT ?item ?itemLabel ?date WHERE {
+  #not sure why adding this initial pattern changes number of results
+  ?item wdt:P31 ?type.
+  ?type (wdt:P31?/wdt:P279*) wd:Q741507.
+  ?item rdfs:label ?humanLabel.
+        
+  FILTER NOT EXISTS {
+    {?item wdt:P585 ?date}
+    UNION
+    {?item wdt:P580 ?date}
+    }
+  FILTER REGEX(?humanLabel,\"[0-9]{4}\").
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\",\"en\". }
+
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

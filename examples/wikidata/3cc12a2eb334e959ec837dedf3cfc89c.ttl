@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3cc12a2eb334e959ec837dedf3cfc89c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+#Fimmakers
+SELECT DISTINCT ?filmmaker ?filmmakerLabel ?lugar ?coord ?birthdate ?year (CONCAT(\"[[\", ?TabakaleraURL, \"|This is a link]]\") AS ?TabakaleraURL)
+ 
+WHERE
+{
+       ?filmmaker wdt:P31 wd:Q5 .
+       ?filmmaker wdt:P106 wd:Q2526255 . #zinemagilea
+    ?filmmaker wdt:P19 ?lugar. 
+  ?filmmaker wdt:P1344 wd:Q9081343.
+  ?lugar wdt:P625 ?coord.
+  
+  ?filmmaker  wdt:P10069  ?tabakalera.
+  OPTIONAL{?filmmaker wdt:P569 ?birthdate .} # P569 : Date de naissance
+   BIND(year(?birthdate) as ?year)
+  FILTER(?year > 1800)
+  wd:P10069 wdt:P1630 ?formatterurl .
+ BIND(IRI(REPLACE(?tabakalera, '^(.+)$', ?formatterurl)) AS ?TabakaleraURL).
+ 
+ 
+
+       SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+ 
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

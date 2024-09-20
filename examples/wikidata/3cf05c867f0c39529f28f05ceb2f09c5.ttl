@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3cf05c867f0c39529f28f05ceb2f09c5> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?politik ?politikLabel ?politikDescription (COUNT(distinct ?sitelink) AS ?sitelinks) WHERE {
+    ?politik wdt:P106 wd:Q82955 .
+    ?politik wdt:P27 wd:Q222 .
+    ?politik wdt:P569 ?birth .
+    OPTIONAL { ?sitelink schema:about ?politik FILTER REGEX(STR(?sitelink), \".wikipedia.org/wiki/\") } .
+    FILTER (?birth < \"1920-01-01T00:00:00Z\"^^xsd:dateTime) .
+    FILTER (?birth > \"1850-01-01T00:00:00Z\"^^xsd:dateTime) .
+    FILTER NOT EXISTS { [] schema:about ?politik; schema:isPartOf <https://hu.wikipedia.org/> } .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"hu,en\" }
+}
+GROUP BY ?politik ?politikLabel ?politikDescription
+HAVING (?sitelinks > 4)
+ORDER BY DESC (?sitelinks)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Pasztilla>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3e045913d6299968555a305b42766931> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?name ?language_tag ?rank ?start ?end
+WITH
+{
+  # Select items with more than 3 official names, i.e. it has changed at least 3 times.
+  SELECT ?item
+  WHERE
+  {
+    ?item p:P1448 []. # Officiel name
+  }
+  GROUP BY ?item
+  HAVING (COUNT(?item) > 3)
+} AS %multiple_names
+WHERE
+{
+  INCLUDE %multiple_names
+  ?item wdt:P31 / wdt:P279 wd:Q486972. # ?item is a settelement
+  ?item p:P1448 ?name_statement.
+  ?name_statement wikibase:rank ?rank.
+  ?name_statement ps:P1448 ?name.
+  BIND (LANG(?name) AS ?language_tag).
+  OPTIONAL { ?name_statement pq:P580 ?start. }
+  OPTIONAL { ?name_statement pq:P582 ?end. }
+}
+ORDER By ?item ?start""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

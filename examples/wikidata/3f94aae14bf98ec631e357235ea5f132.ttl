@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3f94aae14bf98ec631e357235ea5f132> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?start ?t1 ?end ?t2 ?startprecision ?endprecision ?precision ?duration ?tp ?conv ?converted 
+{
+    {  SELECT *
+       WHERE
+       {
+          #  VALUES ?item { wd:Q2139412 wd:Q585291 wd:Q840250 wd:Q815122 }
+           ?item wdt:P31 wd:Q188055 .
+           ?item p:P580/psv:P580 [ wikibase:timeValue ?start ; wikibase:timePrecision ?startprecision ] .
+           ?item p:P582/psv:P582 [ wikibase:timeValue ?end ; wikibase:timePrecision ?endprecision ]
+       }
+       LIMIT 200
+    }
+    #determine lowest precision
+    BIND( IF( ?startprecision > ?endprecision , ?endprecision , ?startprecision ) as ?precision) 
+    #change dates to lowest precision (here: only year precision)
+    BIND( IF( ?startprecision < 10, xsd:dateTime( CONCAT( str(YEAR(?start)),\"-01-01T00:00:00Z\")), ?start)  as ?t1) 
+    BIND( IF( ?endprecision < 10, xsd:dateTime( CONCAT( str(YEAR(?end)),\"-12-31T00:00:00Z\")), ?end)  as ?t2) 
+    #calc duration on adjusted dates (in days)
+    BIND( ?t2 - ?t1 as ?duration)                  
+    #get unit corresponding to precision and conversion factor from days
+    ?tp wdt:P2803 ?pr . FILTER( str(?pr) = str(?precision) )
+    OPTIONAL { ?tp p:P2442 / psv:P2442 [ wikibase:quantityAmount ?conv ; wikibase:quantityUnit wd:Q573 ] .
+             ?tp rdfs:label ?unit . FILTER(lang(?unit) = \"en\") 
+             } 
+    # convert from days to unit corresponding to precision, add \"ca.\" and unit label
+    BIND( CONCAT( \"ca. \", str(ROUND(FLOOR((1 / ?conv * ?duration) +1))), \" \", ?unit ) as ?converted) 
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

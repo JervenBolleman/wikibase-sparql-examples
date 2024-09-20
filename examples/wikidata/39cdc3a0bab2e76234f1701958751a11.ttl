@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-39cdc3a0bab2e76234f1701958751a11> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Things connected to art works of the Khalili Collections
+SELECT DISTINCT (?nameplusdesc AS ?label) (GROUP_CONCAT(STR(?link)) AS ?links) WHERE {
+  VALUES ?prop {wdt:P180 wdt:P50 wdt:P88 wdt:P1774 wdt:P31}
+  # depicted creator commissioned_by workshop_of instance_of
+  ?work wdt:P195 ?coll. ?coll wdt:P361 wd:Q63160499. ?work wdt:P973 ?link; ?prop ?depicted.
+  FILTER (CONTAINS(STR(?link), \"khalilicollections\"))  
+ FILTER (?depicted NOT IN (wd:Q79496108, wd:Q153988, wd:Q22669850, wd:Q87167, wd:Q48498,
+                          wd:Q49848, wd:Q639460, wd:Q987767, wd:Q1922981, wd:Q2142903,
+                          wd:Q18593264, wd:Q29382731, wd:Q368972, wd:Q3305213,
+                          wd:Q17379525, wd:Q22075301, wd:Q191851))
+# enamel bowl calligraphic_work manuscript illuminated_manuscript document casket container glassware
+# jewellery item_of_collection metal_artwork lacquerware painting pottery_ware textile_artwork vase
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+                            ?depicted rdfs:label ?name. ?depicted schema:description ?desc}
+  BIND(IF(BOUND(?desc), CONCAT(?name, \", \", ?desc), ?name) AS ?nameplusdesc)
+} GROUP BY ?nameplusdesc 
+ORDER BY UCASE(?label)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/khalili>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

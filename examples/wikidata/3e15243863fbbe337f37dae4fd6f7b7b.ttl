@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3e15243863fbbe337f37dae4fd6f7b7b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select ?catQ ?title ?count where {
+  {
+    select ?title (count(distinct ?file_title) as ?count) where {
+      service wikibase:mwapi {
+         bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+         bd:serviceParam wikibase:api \"Generator\" .
+         bd:serviceParam mwapi:generator \"links\" .
+         bd:serviceParam mwapi:titles \"Commons:British_Library/MC_maps_batch_01_(GB_counties)\" .
+         bd:serviceParam mwapi:gplnamespace 6 .
+         bd:serviceParam mwapi:prop \"categories\" .
+         ?title wikibase:apiOutput \"categories/cl/@title\"  .
+         ?file_title wikibase:apiOutput \"@title\"  .
+      }
+    } group by ?title
+  }
+  hint:Prior hint:runFirst \"true\".
+  OPTIONAL {
+    ?catLink schema:name ?title .
+    ?catLink schema:isPartOf <https://commons.wikimedia.org/> .
+    ?catLink schema:about ?catQ .
+  }
+}
+order by desc(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-351e04a6bc6408d5b41bf02d69a69073> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?time 
+WHERE
+{
+  {
+    SELECT ?item ?time
+    WHERE
+    {
+      ?item p:P585 / psv:P585 ?fullvalue.
+      ?fullvalue wikibase:timePrecision 11 . # Precision is date
+      ?fullvalue wikibase:timeValue ?time. hint:Prior hint:rangeSafe true.
+      MINUS    { ?item (wdt:P31/wdt:P279*) wd:Q6888. } # exclude transit astronomiques
+    }
+    ORDER BY DESC(?time)
+    LIMIT 10000
+  }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"fr\" . 
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Dipsacus_fullonum>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

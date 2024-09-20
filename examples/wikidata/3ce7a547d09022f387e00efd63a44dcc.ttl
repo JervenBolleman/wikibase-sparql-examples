@@ -1,0 +1,61 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3ce7a547d09022f387e00efd63a44dcc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?work 
+(GROUP_CONCAT(DISTINCT ?title;SEPARATOR=\" | \") AS ?titles) 
+?workLabel 
+?workDescription 
+(GROUP_CONCAT(DISTINCT ?classLabel;SEPARATOR=\" | \") AS ?classes) 
+(GROUP_CONCAT(DISTINCT ?genreLabel;SEPARATOR=\" | \") AS ?genres)
+(GROUP_CONCAT(DISTINCT ?languageLabel;SEPARATOR=\" | \") AS ?languagesOfWork) 
+?pubDate
+WHERE {
+  VALUES ?author {
+#    wd:Q39829 #Stephen King
+    wd:Q36322 # Jane Austen
+  }
+  ?work wdt:P31 ?class ;
+       wdt:P50 ?author .
+  FILTER NOT EXISTS {
+    VALUES ?exceptionClass {
+      wd:Q13406463
+      wd:Q3331189
+      wd:Q1279564
+      wd:Q17489659
+    }
+    ?work wdt:P31/wdt:P279* ?exceptionClass .
+    hint:Prior hint:gearing \"forward\" .
+  }
+  
+  FILTER NOT EXISTS {
+    ?work wdt:P407/wdt:P279* wd:Q1860 .
+  }
+  
+  OPTIONAL {
+    ?work wdt:P577 ?pubDate .
+    BIND(YEAR(?pubDate) AS ?pubYear)
+  }
+  OPTIONAL {?work wdt:P1476 ?title}
+  OPTIONAL {?work wdt:P407 ?language}
+  OPTIONAL {?work wdt:P136 ?genre}
+  SERVICE wikibase:label { 
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?work rdfs:label ?workLabel .
+    ?work schema:description ?workDescription .
+    ?class rdfs:label ?classLabel .
+    ?language rdfs:label ?languageLabel .
+    ?genre rdfs:label ?genreLabel .
+  }
+}
+GROUP BY ?work ?workLabel ?workDescription ?pubDate
+ORDER BY ?pubYear""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Realworldobject/WEMI_correspondence>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

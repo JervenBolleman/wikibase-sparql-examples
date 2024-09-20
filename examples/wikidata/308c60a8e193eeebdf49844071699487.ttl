@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-308c60a8e193eeebdf49844071699487> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#list of item with a femal gender using P485 with as qualifier P217 (inventory number) and with a Wikipedia-ca page and in the same time a Wikipedia-fr page.
+SELECT DISTINCT ?item ?itemLabel ?itemDescription (GROUP_CONCAT(DISTINCT(?noLabel); separator=\", \") as ?nosLabel)
+WHERE {
+  ?item wdt:P21 wd:Q6581072.
+?item p:P485 ?statement. 
+?statement ps:P485 ?archives. #option avoir déposé ses archives dans une institution
+?statement pq:P217 ?no.
+   ?article1 schema:about ?item;
+   schema:isPartOf <https://ca.wikipedia.org/>.
+   ?article2 schema:about ?item;
+            schema:isPartOf <https://fr.wikipedia.org/>.
+  SERVICE wikibase:label 
+          {
+  bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,it,de,nl,en\".
+  ?item rdfs:label ?itemLabel;
+        schema:description ?itemDescription.
+  ?no rdfs:label ?noLabel.
+          }
+      }
+GROUP BY ?item ?itemLabel ?itemDescription ?nosLabel
+ORDER BY ?itemDescription ?itemLabel
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/11>,
+    <https://www.wikidata.org//wiki/Wikidata:Events/LkPast-WD/Exemples>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

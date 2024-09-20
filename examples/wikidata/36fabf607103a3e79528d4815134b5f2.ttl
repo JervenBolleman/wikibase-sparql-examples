@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-36fabf607103a3e79528d4815134b5f2> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# List of all files in Category:Flora Batava - KB copy, and its subcategories
+SELECT ?category ?categoryName ?file ?title
+WHERE
+{
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+    bd:serviceParam mwapi:gcmtitle \"Category:Flora Batava - KB copy\" .
+    bd:serviceParam mwapi:generator \"categorymembers\" .
+    bd:serviceParam mwapi:gcmlimit \"max\" .
+    ?categoryName wikibase:apiOutput mwapi:title .
+    ?pageid wikibase:apiOutput \"@pageid\" .
+    ?ns wikibase:apiOutput \"@ns\".
+  }
+  FILTER (?ns = \"14\") # (sub)categories only
+  BIND (URI(CONCAT('https://commons.wikimedia.org/entity/M', ?pageid)) AS ?category)
+ 
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+    bd:serviceParam mwapi:gcmtitle ?categoryName.
+    bd:serviceParam mwapi:generator \"categorymembers\" .
+    bd:serviceParam mwapi:gcmtype \"file\" .
+    bd:serviceParam mwapi:gcmlimit \"max\" .
+    ?title wikibase:apiOutput mwapi:title .
+    ?pageid2 wikibase:apiOutput \"@pageid\" .
+  }
+  BIND (URI(CONCAT('https://commons.wikimedia.org/entity/M', ?pageid2)) AS ?file)
+} ORDER BY ?category ?title""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Collection_highlights_National_Library_of_the_Netherlands/Flora_Batava/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

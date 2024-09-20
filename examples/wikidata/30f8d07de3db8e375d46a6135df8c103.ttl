@@ -1,0 +1,47 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-30f8d07de3db8e375d46a6135df8c103> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Carte des métros de Chine/China subways v2
+#defaultView:Map{\"hide\":[\"?coords\", \"?searchlines\", \"?termini\",\"?rgb\", \"?line_draw\"]}
+SELECT distinct ?stationLabel ?linesLabel ?searchlines ?lignes ?line_draw ?termini ?station ?coords ?pred ?rgb WHERE {
+?searchlines wdt:P17 wd:Q148;wdt:P31/wdt:P279* wd:Q728937; wdt:P559 ?termini#quels sont les terminus de ce métro, what are the ends of these lines
+  ; wdt:P465 ?rgb   .
+ VALUES ?stations_type { 
+               wd:Q928830 #station de métro
+               wd:Q2175765 # tramway
+             }
+  ?station wdt:P31/wdt:P279* ?stations_type;  
+    wdt:P81 ?searchlines;
+    wdt:P625 ?coords  ;wdt:P5817 wd:Q55654238;
+    wdt:P197 ?pred.
+   ?pred wdt:P625 ?coords_pred;
+    wdt:P81 ?subwayLine_pred.
+  ?station p:P197 _:b1.
+  _:b1 ps:P197 ?pred ;
+    pq:P5051 ?towards;
+    pq:P81 ?line_pq.
+  FILTER(?subwayLine_pred = ?searchlines)#on ne prend les LINES que si la correspondance est sur la même ligne
+  FILTER(?towards = ?termini) 
+  FILTER(?station != ?termini)
+  ?pred (p:P625/psv:P625/wikibase:geoLatitude) ?lat1   ;
+    (p:P625/psv:P625/wikibase:geoLongitude) ?lon1  .
+  ?station (p:P625/psv:P625/wikibase:geoLatitude) ?lat2 ;
+    (p:P625/psv:P625/wikibase:geoLongitude) ?lon2.
+  BIND(CONCAT(\"LINESTRING(\", STR(?lon1), \" \", STR(?lat1),  \",\", STR(?lon2), \" \", STR(?lat2), \")\") AS ?str)
+  BIND(STRDT(?str, geo:wktLiteral) AS ?line_draw  )
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"fr,en,zh\".
+    ?searchlines rdfs:label ?layer .
+    ?searchlines rdfs:label ?linesLabel.
+    ?station rdfs:label ?stationLabel.
+  }  }""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Bouzinac/Trains>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

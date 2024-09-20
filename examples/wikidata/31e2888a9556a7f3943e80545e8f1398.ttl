@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-31e2888a9556a7f3943e80545e8f1398> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT (count(DISTINCT ?categoryItem ) as ?total) WHERE {
+    # ?article and ?category share the same P373 (\"Commons Category\")
+    ?articleItem  wdt:P373 ?commonsCategory .
+    ?categoryItem wdt:P373 ?commonsCategory .
+  
+    # P301 and P910 are set properly
+    ?articleItem  wdt:P910 ?categoryItem .
+    ?categoryItem wdt:P301 ?articleItem  .
+  
+    # sitelink to Commons points to the same category as property P373
+    ?commonsSitelink schema:about ?categoryItem .
+    FILTER(STRSTARTS(STR(?commonsSitelink), \"https://commons.wikimedia.org/wiki/Category\"))
+    FILTER(STRENDS(STR(?commonsSitelink), ?commonsCategory))
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2016/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

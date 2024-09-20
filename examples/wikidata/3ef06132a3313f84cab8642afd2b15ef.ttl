@@ -1,0 +1,86 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3ef06132a3313f84cab8642afd2b15ef> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+SELECT ?item ?itemLabel ?area ?geoshape ?layer ?rgb (CONCAT(\"neighbours: \", GROUP_CONCAT(DISTINCT(?neighbour_label); separator=', ')) AS ?neighbours) 
+
+WITH {
+  SELECT ?item ?itemLabel ?area WHERE {
+    ?item p:P463 ?UN_stmt . 
+    ?UN_stmt ps:P463 wd:Q1065 .
+    ?UN_stmt a wikibase:BestRank .
+    MINUS {?UN_stmt pq:P582 []} .
+    MINUS {?item wdt:P576 []} .
+    ?item wdt:P2046 ?area .
+    ?item rdfs:label ?itemLabel FILTER(lang(?itemLabel) = 'en') .
+  }
+} AS %countries
+  
+WHERE {
+  INCLUDE %countries .
+  OPTIONAL {
+    FILTER NOT EXISTS {
+      ?item wdt:P527?/wdt:P47/wdt:P17? ?neighbour0 .
+      FILTER(?item != ?neighbour0) .
+    }
+    BIND(\"n/a\" AS ?layer) .
+    BIND(\"777777\" AS ?rgb) .
+  }
+  OPTIONAL {
+    ?item wdt:P47 [] .
+    FILTER NOT EXISTS {
+      ?item wdt:P527?/wdt:P47/wdt:P17? ?neighbour1 .
+      ?item wdt:P2046 ?area1 .
+      { 
+        SELECT (?item AS ?neighbour1) (?area AS ?neighbour1_area) WHERE {
+          INCLUDE %countries .
+        }
+      }
+      FILTER (?area1 > ?neighbour1_area) .
+    }
+    BIND(\"smaller\" AS ?layer) .
+    BIND(\"CC3333\" AS ?rgb) .
+  }
+  OPTIONAL {
+    FILTER NOT EXISTS {
+      ?item wdt:P527?/wdt:P47/wdt:P17? ?neighbour2 .
+      ?item wdt:P2046 ?area2 .
+      { 
+        SELECT (?item AS ?neighbour2) (?area AS ?neighbour2_area) WHERE {
+          INCLUDE %countries .
+        }
+      }
+      FILTER (?area2 < ?neighbour2_area) .
+    }
+    BIND(\"larger\" AS ?layer) .
+    BIND(\"88AAFF\" AS ?rgb) .
+
+  }
+  OPTIONAL {?item wdt:P3896 ?geoshape} .
+  OPTIONAL {?item wdt:P527/wdt:P3896 ?geoshape} .
+  OPTIONAL {?item ^wdt:P361/wdt:P3896 ?geoshape} .
+  OPTIONAL {
+    BIND(\"neither\" AS ?layer) .
+    BIND(\"DDDDDD\" AS ?rgb) .
+
+  }
+  OPTIONAL {
+    ?item wdt:P527?/wdt:P47/wdt:P17? ?neighbour .
+    {
+      SELECT (?item AS ?neighbour) (?itemLabel AS ?neighbour_label )WHERE {
+          INCLUDE %countries .
+      }
+    }
+  }
+} GROUP BY ?item ?itemLabel ?area ?geoshape ?layer ?rgb
+ORDER BY ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jheald/queries/larger_smaller_countries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

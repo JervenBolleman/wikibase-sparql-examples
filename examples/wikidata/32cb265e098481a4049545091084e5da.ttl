@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-32cb265e098481a4049545091084e5da> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?personLabel ?stadtLabel ?bild ?coordinate  ?layer  # Liste der ausgegebenen Variablen
+WHERE 
+{
+  ?item wdt:P31 wd:Q3914 .       # ?item ist eine Schule
+  ?item wdt:P17 wd:Q183  .       # ?item liegt im Staat Deutschland
+  ?item wdt:P131 ?stadt  .       # ?item liegt in der Verwaltungseinheit ?stadt 
+  OPTIONAL { ?item wdt:P18  ?bild  } .   # ?item hat das Bild ?bild oder ist leer 
+  ?item wdt:P625 ?coordinate  .  # ?item hat die geographischen Koordinaten 
+  ?item wdt:P138 ?person      .  # ist benannt nach ?person
+  ?person wdt:P31 wd:Q5       .  # ?person ist ein Mensch
+  ?person wdt:P21 ?geschlecht .  # ?person hat das Geschlecht
+
+  # Durch Abfrage der Variablen ?geschlecht werden unterschiedliche farbige Markierungen auf der Landkarte erzeugt
+  # Dies geschieht mit Hilfe der Variablen ?layer 
+  BIND(IF ((?geschlecht = wd:Q6581072), \"Frau\", \"Mann\" )
+     AS ?layer )
+  
+  # dieser SERVICE erzeugt die Ausgabe von ?itemLabel (also dem namen der Schule),
+  # von ?personLabel (dem Namen der Person) und ?stadtLabel (Name der Verwaltungseinheit)        
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MTheiler>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

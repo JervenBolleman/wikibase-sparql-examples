@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-390171554c49d5e7ccc4f8057bc928bc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Åer (Flüsse) in Dänemark
+SELECT ?itemLabel ?page_title ?article ?länge ?item WHERE {
+  ?item wdt:P31 wd:Q3529419;
+    wdt:P17 wd:Q35.
+  OPTIONAL { ?item p:P2043/psn:P2043/wikibase:quantityAmount ?length. }
+  BIND(IF(BOUND(?length), ?length/1000, \"n/a\" ) AS ?länge)
+  OPTIONAL {
+    ?dawiki schema:about ?item;
+      schema:isPartOf <https://da.wikipedia.org/>;
+      schema:name ?da_title.
+  }
+  OPTIONAL {
+    ?dewiki schema:about ?item;
+      schema:isPartOf <https://de.wikipedia.org/>;
+      schema:name ?de_title.
+  }
+  BIND(IF(BOUND(?dewiki), ?dewiki, ?dawiki) AS ?article)
+  BIND(IF(BOUND(?de_title), ?de_title, ?da_title) AS ?page_title)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],da,en\". }
+}
+ORDER BY (?länge)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:No39188>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

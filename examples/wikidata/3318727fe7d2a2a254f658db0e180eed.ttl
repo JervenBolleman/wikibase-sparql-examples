@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3318727fe7d2a2a254f658db0e180eed> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?count ?image 
+
+WITH {
+   SELECT ?item ?image WHERE {
+       ?item wdt:P18 ?image .
+   }  LIMIT 1000000
+} AS %images
+   
+WHERE {
+    {
+       SELECT ?item (COUNT(?image) AS ?count) WHERE {
+           INCLUDE %images
+       } GROUP BY ?item
+      HAVING (?count > 1)
+    }
+    INCLUDE %images .
+    FILTER (CONTAINS(LCASE(str(?image)), \"interior\")) .
+    MINUS {?item wdt:P5775 [] }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Project_chat/Archive/2019/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

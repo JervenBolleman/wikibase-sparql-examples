@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3682cc9b7b16960b8dda7937b45a9309> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#ICD9 handling. This prototype does a case analysis with three cases. Output in two columns adapted to QuickStatement input.
+SELECT DISTINCT ?item ?itemLabel ?ms1 ?ms2
+WHERE {
+ ?item wdt:P31 wd:Q12136 .
+  ?item wdt:P493 ?icd  .
+  OPTIONAL { ?item wdt:P1995 ?dummy0 }
+  FILTER(!bound(?dummy0))
+  
+  BIND(xsd:integer(CONCAT(\"1\",SUBSTR(?icd,1,3))) AS ?icd1)
+  #One-line processing of ICD-9 code into integer. Currently fails in a few alphanumeric cases.
+  BIND((IF (1000 < ?icd1 && ?icd1 <1140, \"Q788926\",1/0)) AS ?spec1)
+  #Dividing by zero, deliberate introduction of error in the \"else\" part of IF. This causes a desired fallback in COALESCE.
+  BIND((IF (1139 < ?icd1 && ?icd1 <1240, \"Q162555\",1/0)) AS ?spec2)
+  BIND((IF (1279 < ?icd1 && ?icd1 <1290, \"Q103824\",1/0)) AS ?spec3)
+  
+  BIND(COALESCE(?spec1,?spec2,?spec3,2) AS ?ms2)
+  VALUES ?ms1 { \"P1995\" }
+  VALUES ?ms2 { \"Q788926\" \"Q162555\" \"Q103824\" }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+      }""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiFactMine/Core_SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

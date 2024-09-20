@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3075405ebdfc324dfdbc502c94e05236> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?itemLabel ?sitelink ?article
+WHERE {
+  hint:Query hint:optimizer \"None\".
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"en.wikipedia.org\";
+                    mwapi:srsearch \"water pollution\".
+   ?name wikibase:apiOutput mwapi:title.     
+  }
+  
+  BIND (URI(CONCAT('https://en.wikipedia.org/wiki/', ?name)) AS ?article)
+
+  # have an en wiki article
+  ?article schema:about ?item ;
+  schema:isPartOf <https://en.wikipedia.org/> ;
+  schema:name ?sitelink .         
+  
+  #lack a sitelink to somewhere else
+  filter not exists {?article2 schema:about ?item ;
+                     schema:isPartOf <https://de.wikipedia.org/> .}
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

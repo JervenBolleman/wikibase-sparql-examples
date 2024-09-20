@@ -1,0 +1,66 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-373f919de859dcdb2e5d625c16553eb1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Tous les éléments distincts sourcés avec le CQT.
+SELECT (COUNT(DISTINCT ?item) AS ?total)
+  (COUNT(?item_is_human) AS ?is_human) (?is_human / ?total * 100.0 AS ?pct_human)
+  (COUNT(DISTINCT ?item_has_naissance) AS ?has_naissance) (?has_naissance / ?total * 100.0 AS ?pct_naissance)
+  (COUNT(DISTINCT ?item_has_mort) AS ?has_mort) (?has_mort / ?total * 100.0 AS ?pct_mort)
+  (COUNT(DISTINCT ?item_is_organizaion) AS ?is_organizaion) (?is_organizaion / ?total * 100.0 AS ?pct_organizaion)
+  (COUNT(DISTINCT ?item_has_pays) AS ?has_pays) (?has_pays / ?total * 100.0 AS ?pct_pays)
+WITH
+{
+  SELECT DISTINCT ?item
+  WHERE
+  {
+    # Find statements with Q100443909 as reference
+    ?autre_statement pr:P248 wd:Q100443909 .
+    ?statement prov:wasDerivedFrom ?autre_statement .
+
+    # Get the statements' property and subject
+    ?property a wikibase:Property ;
+       wikibase:claim ?ppp .
+    ?item ?ppp ?statement .
+  }
+}
+AS %get_items_having_statements_with_a_specific_source
+WHERE
+{
+  INCLUDE %get_items_having_statements_with_a_specific_source
+  OPTIONAL
+  {
+    ?item wdt:P31 wd:Q5 .
+    BIND (true AS ?item_is_human)
+  }
+  OPTIONAL
+  {
+    ?item wdt:P569 ?naissance .
+    BIND (?item AS ?item_has_naissance)
+  }
+  OPTIONAL
+  {
+    ?item wdt:P570 ?mort .
+    BIND (?item AS ?item_has_mort)
+  }
+  OPTIONAL
+  {
+    ?item wdt:P31 / wdt:P279* wd:Q43229 .
+    hint:Prior hint:gearing \"forward\" .
+    BIND (?item AS ?item_is_organizaion)
+  }
+  OPTIONAL
+  {
+    ?item (wdt:P17 | wdt:P27) ?pays .
+    BIND (?item AS ?item_has_pays)
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

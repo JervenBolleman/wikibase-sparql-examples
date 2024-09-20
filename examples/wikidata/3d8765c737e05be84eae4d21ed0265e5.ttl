@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3d8765c737e05be84eae4d21ed0265e5> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT 
+  ?reports
+  (CONCAT(\"#topic/\", SUBSTR(STR(?topic), 32), \"/eiareport\") AS ?reportsUrl)
+
+  ?topic ?topicLabel
+  (CONCAT(\"#topic/\", SUBSTR(STR(?topic), 32)) AS ?topicUrl)
+  ?topicDescription
+
+  (\"Scholia ↗\" AS ?scholia)
+  (CONCAT(\"https://scholia.toolforge.org/topic/\", SUBSTR(STR(?topic), 32)) AS ?scholiaUrl) 
+WITH {
+  SELECT
+    (COUNT(DISTINCT ?report) AS ?reports)
+    ?topic
+  WHERE {
+    ?report wdt:P31 wd:Q64548048 ;
+            wdt:P921 / wdt:P31? ?topic .
+  }
+  GROUP BY ?topic
+} AS %topics
+WHERE {
+  INCLUDE %topics
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} 
+ORDER BY DESC(?reports)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:eiareport-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

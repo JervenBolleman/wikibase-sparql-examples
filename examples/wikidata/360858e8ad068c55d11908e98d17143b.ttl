@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-360858e8ad068c55d11908e98d17143b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?uninteresting WHERE {
+  # natural number
+  ?item p:P31 ?statement.
+  ?statement ps:P31 wd:Q21199.
+  # not said to be the same as another (e. g. 0.999…)
+  MINUS { ?item wdt:P460 ?duplicate. }
+  # with a numeric value
+  ?item wdt:P1181 ?value.
+  # that’s not unknown (e. g. Graham’s number)
+  FILTER(!wikibase:isSomeValue(?value))
+  # its successor
+  BIND(?value + 1 AS ?uninteresting)
+  # is neither linked in the P31 statement
+  MINUS { ?statement pq:P156 ?successor. }
+  # nor otherwise existing
+  MINUS { ?otherItem wdt:P1181 ?uninteresting. }
+}
+ORDER BY ASC(?value)
+LIMIT 1""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/first_uninteresting_number>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,63 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-32249438fa5ef09a7cb5c00b554c7ac8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX psv: <http://www.wikidata.org/prop/statement/value/> SELECT ?item ?itemLabel (GROUP_CONCAT(DISTINCT ?counLabel; SEPARATOR=\", \") AS ?countries) (GROUP_CONCAT(DISTINCT ?hqLabel; SEPARATOR=\", \") AS ?hqs) ?revenue ?revenue_USD ?unitLabel ?date  
+WHERE {
+  ?item wdt:P31 wd:Q4830453.
+  ?item p:P2139 ?statement.
+   OPTIONAL { ?item wdt:P159 ?hq. }
+  OPTIONAL { ?item wdt:P17 ?coun. }
+  ?statement wikibase:rank ?rank.
+  OPTIONAL {
+    ?item p:P2139 ?statement1.
+    ?statement1 wikibase:rank wikibase:PreferredRank.
+    FILTER(?rank != wikibase:PreferredRank)
+    FILTER(?statement1 != ?statement)
+  }
+  OPTIONAL { ?statement pq:P585 ?date. }
+  {
+    ?statement psv:P2139 _:b9.
+    _:b9 wikibase:quantityAmount ?revenue.
+    _:b9 wikibase:quantityUnit wd:Q4917.
+    BIND(wd:Q4917 AS ?unit)
+    BIND(?revenue AS ?revenue_USD)
+  }
+  UNION
+  {
+    ?statement psv:P2139 _:b10.
+    _:b10 wikibase:quantityAmount ?revenue.
+    _:b10 wikibase:quantityUnit ?unit.
+    ?unit p:P2284 ?unit_statement.
+    ?unit_statement wikibase:rank ?unit_rank.
+    ?unit_statement psv:P2284 _:b11.
+    _:b11 wikibase:quantityUnit wd:Q4917.
+    _:b11 wikibase:quantityAmount ?usd.
+    OPTIONAL {
+      ?unit p:P2284 ?unit_statement1.
+      ?unit_statement1 (psv:P2284/wikibase:quantityUnit) wd:Q4917.
+      ?unit_statement1 wikibase:rank wikibase:PreferredRank.
+      FILTER(?unit_rank != wikibase:PreferredRank)
+      FILTER(?unit_statement1 != ?unit_statement)
+    }
+    BIND(?revenue * ?usd AS ?revenue_USD)
+    FILTER(?unit != wd:Q4917)
+    FILTER(?unit_rank != wikibase:DeprecatedRank)
+    FILTER(!BOUND(?unit_statement1))
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+  FILTER(?rank != wikibase:DeprecatedRank)
+  FILTER(!BOUND(?statement1))
+}
+GROUP BY ?item ?itemLabel ?revenue ?revenue_USD ?unitLabel ?date
+ORDER BY DESC(?revenue_USD)
+LIMIT 10""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .
