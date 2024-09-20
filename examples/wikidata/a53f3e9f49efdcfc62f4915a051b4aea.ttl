@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-a53f3e9f49efdcfc62f4915a051b4aea> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q128933830>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:exhibition>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q128933830>
 
 SELECT 
   ?score
@@ -44,9 +52,85 @@ WHERE {
   INCLUDE %exhibitions
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en,cz,da,de,fr,nb,nn,sv\". }
 }
+ORDER BY DESC(?score)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q128933830>
+
+SELECT 
+  ?score
+
+  ?exhibition ?exhibitionLabel 
+  (CONCAT(\"#exhibition/\", SUBSTR(STR(?exhibition), 32)) AS ?exhibitionUrl)
+  ?exhibitionDescription
+
+  ?example_artwork ?example_artworkLabel
+  (CONCAT(\"#artwork/\", SUBSTR(STR(?example_artwork), 32)) AS ?example_artworkUrl)
+
+WHERE {
+  {
+  SELECT
+    (SUM(?score_) AS ?score)
+    ?exhibition
+    (SAMPLE(?artwork) AS ?example_artwork)
+  WHERE {
+    {
+      BIND(2 AS ?score_)
+      ?artwork wdt:P608 target: , ?exhibition .
+    }
+    UNION
+    {
+      BIND(1 AS ?score_)
+      ?artwork wdt:P608 target: ;
+               wdt:P170 ?artist .
+      ?artist ^wdt:P170 / wdt:P608 ?exhibition .
+    }
+    FILTER (?exhibition != target:)
+  }
+  GROUP BY ?exhibition
+  ORDER BY DESC(?score)
+  LIMIT 500
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en,cz,da,de,fr,nb,nn,sv\". }
+}
 ORDER BY DESC(?score)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:exhibition>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q128933830>
+
+SELECT 
+  ?score
+
+  ?exhibition ?exhibitionLabel 
+  (CONCAT(\"#exhibition/\", SUBSTR(STR(?exhibition), 32)) AS ?exhibitionUrl)
+  ?exhibitionDescription
+
+  ?example_artwork ?example_artworkLabel
+  (CONCAT(\"#artwork/\", SUBSTR(STR(?example_artwork), 32)) AS ?example_artworkUrl)
+WITH {
+  SELECT
+    (SUM(?score_) AS ?score)
+    ?exhibition
+    (SAMPLE(?artwork) AS ?example_artwork)
+  WHERE {
+    {
+      BIND(2 AS ?score_)
+      ?artwork wdt:P608 target: , ?exhibition .
+    }
+    UNION
+    {
+      BIND(1 AS ?score_)
+      ?artwork wdt:P608 target: ;
+               wdt:P170 ?artist .
+      ?artist ^wdt:P170 / wdt:P608 ?exhibition .
+    }
+    FILTER (?exhibition != target:)
+  }
+  GROUP BY ?exhibition
+  ORDER BY DESC(?score)
+  LIMIT 500
+} AS %exhibitions
+WHERE {
+  INCLUDE %exhibitions
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en,cz,da,de,fr,nb,nn,sv\". }
+}
+ORDER BY DESC(?score)""" .

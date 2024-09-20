@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-a9c57d6bfe93b66d645b9b2787cf5c7d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q128933830>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:exhibition>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q128933830>
 
 SELECT 
   ?artworks
@@ -31,9 +39,59 @@ WHERE {
   INCLUDE %collections
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en,cz,da,de,es,fr,jp,nb,nl,nn,sv,zh\". }
 }
+ORDER BY DESC(?artworks)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q128933830>
+
+SELECT 
+  ?artworks
+
+  ?collection ?collectionLabel 
+  (CONCAT(\"#collection/\", SUBSTR(STR(?collection), 32)) AS ?collectionUrl)
+
+  ?example_artwork ?example_artworkLabel
+  (CONCAT(\"#artwork/\", SUBSTR(STR(?example_artwork), 32)) AS ?example_artworkUrl)
+
+WHERE {
+  {
+  SELECT
+    (COUNT(?artwork) AS ?artworks)
+    ?collection
+    (SAMPLE(?artwork) AS ?example_artwork)
+  WHERE {
+    ?artwork wdt:P608 target: ;
+             wdt:P195 ?collection .
+  }
+  GROUP BY ?collection
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en,cz,da,de,es,fr,jp,nb,nl,nn,sv,zh\". }
+}
 ORDER BY DESC(?artworks)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:exhibition>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q128933830>
+
+SELECT 
+  ?artworks
+
+  ?collection ?collectionLabel 
+  (CONCAT(\"#collection/\", SUBSTR(STR(?collection), 32)) AS ?collectionUrl)
+
+  ?example_artwork ?example_artworkLabel
+  (CONCAT(\"#artwork/\", SUBSTR(STR(?example_artwork), 32)) AS ?example_artworkUrl)
+WITH {
+  SELECT
+    (COUNT(?artwork) AS ?artworks)
+    ?collection
+    (SAMPLE(?artwork) AS ?example_artwork)
+  WHERE {
+    ?artwork wdt:P608 target: ;
+             wdt:P195 ?collection .
+  }
+  GROUP BY ?collection
+} AS %collections
+WHERE {
+  INCLUDE %collections
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en,cz,da,de,es,fr,jp,nb,nl,nn,sv,zh\". }
+}
+ORDER BY DESC(?artworks)""" .

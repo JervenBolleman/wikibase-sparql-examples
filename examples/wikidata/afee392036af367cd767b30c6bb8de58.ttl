@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-afee392036af367cd767b30c6bb8de58> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q18507561>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:work>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q18507561>
 
 SELECT
   ?count
@@ -29,9 +37,55 @@ WHERE {
   INCLUDE %result
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 } 
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q18507561>
+
+SELECT
+  ?count
+
+  ?work ?workLabel
+  (CONCAT(\"#work/\", SUBSTR(STR(?work), 32)) AS ?workUrl)
+  ?workDescription
+
+WHERE {
+  {
+  SELECT
+    (COUNT(?work) AS ?count)
+    ?work
+  WHERE {
+    FILTER (target: != ?work)
+    target: (^wdt:P2860| wdt:P2860) / (^wdt:P2860 | wdt:P2860)? ?work .
+  }
+  GROUP BY ?work
+  LIMIT 500
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} 
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:work>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q18507561>
+
+SELECT
+  ?count
+
+  ?work ?workLabel
+  (CONCAT(\"#work/\", SUBSTR(STR(?work), 32)) AS ?workUrl)
+  ?workDescription
+WITH {
+  SELECT
+    (COUNT(?work) AS ?count)
+    ?work
+  WHERE {
+    FILTER (target: != ?work)
+    target: (^wdt:P2860| wdt:P2860) / (^wdt:P2860 | wdt:P2860)? ?work .
+  }
+  GROUP BY ?work
+  LIMIT 500
+} AS %result
+WHERE {
+  INCLUDE %result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} 
+ORDER BY DESC(?count)""" .

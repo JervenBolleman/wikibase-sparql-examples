@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-abf472ed5872dd1f3dec11ce1bb3ccf3> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?taxon ?taxonLabel ?sitelinks
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?taxon ?taxonLabel ?sitelinks
 WITH
 {
   SELECT ?taxon ?sitelinks
@@ -40,8 +50,37 @@ WHERE
   INCLUDE %subquery3
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/09>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?taxon ?taxonLabel ?sitelinks
+WITH
+{
+  SELECT ?taxon ?sitelinks
+  WHERE
+  {
+    ?taxon wdt:P105 wd:Q7432 . # taxon rank is species
+    ?taxon wikibase:sitelinks ?sitelinks . hint:Prior hint:rangeSafe true .
+    FILTER (?sitelinks >= 22)
+  }
+} AS %subquery1
+WITH
+{
+  SELECT ?taxon ?sitelinks
+  WHERE
+  {
+    INCLUDE %subquery1
+    FILTER NOT EXISTS { [] schema:about ?taxon ; schema:isPartOf <https://en.wikipedia.org/> . }
+  }
+} AS %subquery2    
+WITH
+{
+  SELECT ?taxon ?sitelinks
+  WHERE
+  {
+    INCLUDE %subquery2
+    ?taxon wdt:P171 + wd:Q25314 . # is angiosperm
+  }
+} AS %subquery3
+WHERE
+{
+  INCLUDE %subquery3
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}""" .

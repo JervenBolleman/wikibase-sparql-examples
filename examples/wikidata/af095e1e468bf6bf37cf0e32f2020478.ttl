@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-af095e1e468bf6bf37cf0e32f2020478> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
 DISTINCT
   (REPLACE(STR(?author), \".*Q\", \"-Q\") AS ?qid)
   (\"P6104\" AS ?property)
@@ -25,9 +34,48 @@ WITH {
 WHERE {
   INCLUDE %result
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTOLANG],en\" . }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
+DISTINCT
+  (REPLACE(STR(?author), \".*Q\", \"-Q\") AS ?qid)
+  (\"P6104\" AS ?property)
+  (\"Q56241615\" AS ?ReplaceWithYourTargetID)
+
+
+WHERE {
+  {
+  SELECT DISTINCT ?author
+  WHERE {
+    ?author wdt:P6104 wd:Q56241615 ;
+            wdt:P31 wd:Q5 .
+    FILTER NOT EXISTS {    ?work wdt:P50 ?author ; wdt:P6104 wd:Q56241615 .}
+  }
+  GROUP BY ?author
+  LIMIT 100
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTOLANG],en\" . }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT
+DISTINCT
+  (REPLACE(STR(?author), \".*Q\", \"-Q\") AS ?qid)
+  (\"P6104\" AS ?property)
+  (\"Q56241615\" AS ?ReplaceWithYourTargetID)
+
+WITH {
+  SELECT DISTINCT ?author
+  WHERE {
+    ?author wdt:P6104 wd:Q56241615 ;
+            wdt:P31 wd:Q5 .
+    FILTER NOT EXISTS {    ?work wdt:P50 ?author ; wdt:P6104 wd:Q56241615 .}
+  }
+  GROUP BY ?author
+  LIMIT 100
+} AS %result
+WHERE {
+  INCLUDE %result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTOLANG],en\" . }
+}""" .

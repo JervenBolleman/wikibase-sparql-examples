@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-a873d3e61caae44cd1280c9d290d2f6f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?property ?propertyLabel ?count ?propertyType
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?property ?propertyLabel ?count ?propertyType
 WITH
 {
   SELECT DISTINCT ?country
@@ -31,8 +40,28 @@ WITH
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
 }
 ORDER BY ?propertyType DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/09>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?property ?propertyLabel ?count ?propertyType
+WITH
+{
+  SELECT DISTINCT ?country
+  {
+    ?country wdt:P31 / wdt:P279 * wd:Q6256 . # ?country is a country or a subclass of it
+  }
+} AS %countries
+WITH
+{
+  SELECT ?property (COUNT(DISTINCT ?country) AS ?count)
+  {
+    INCLUDE %countries
+    ?country ?truthy_claim [] .
+    ?property wikibase:directClaim ?truthy_claim
+  }
+  GROUP BY ?property
+} AS %count
+{
+  INCLUDE %count
+  OPTIONAL { ?property wikibase:propertyType wikibase:ExternalId.
+             BIND(\"External-ID\" as ?propertyType) }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ORDER BY ?propertyType DESC(?count)""" .

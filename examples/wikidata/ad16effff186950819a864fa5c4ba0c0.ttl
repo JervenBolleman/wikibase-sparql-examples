@@ -6,7 +6,19 @@
 
 <https://www.wikidata.org/#query-ad16effff186950819a864fa5c4ba0c0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?animal ?animalLabel ?count
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/animals_most_frequently_depicted_in_artworks>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?animal ?animalLabel ?count
 WITH {
   SELECT DISTINCT ?animal ?statement WHERE {
     ?work wdt:P31/wdt:P279* wd:Q838948;
@@ -31,8 +43,28 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/animals_most_frequently_depicted_in_artworks>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?animal ?animalLabel ?count
+WITH {
+  SELECT DISTINCT ?animal ?statement WHERE {
+    ?work wdt:P31/wdt:P279* wd:Q838948;
+          p:P180 ?statement.
+    ?statement ps:P180 ?depicted.
+    MINUS { ?statement wikibase:rank wikibase:DeprecatedRank. }
+    ?depicted wdt:P31? ?animal.
+    ?animal wdt:P279+ wd:Q729.
+    MINUS { ?animal wdt:P279* wd:Q15978631. }
+  }
+} AS %statements
+WITH {
+  SELECT ?animal (SUM(COALESCE(?quantity, 1)) AS ?count) WHERE {
+    INCLUDE %statements.
+    OPTIONAL { ?statement pq:P1114 ?quantity. }
+  }
+  GROUP BY ?animal
+  HAVING(?count >= 10)
+} AS %counts
+WHERE {
+  INCLUDE %counts.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?count)""" .

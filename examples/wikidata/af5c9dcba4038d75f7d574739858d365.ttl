@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-af5c9dcba4038d75f7d574739858d365> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?sitelink_de ?sitelink_en ?ATP_Kennung ?sites with {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?sitelink_de ?sitelink_en ?ATP_Kennung ?sites with {
 SELECT ?item ?ATP_Kennung (GROUP_CONCAT(?sitey;SEPARATOR=' ') AS ?sites) where {
   OPTIONAL { ?item wdt:P536 ?ATP_Kennung. }
   ?site schema:about ?item .   
@@ -22,8 +31,19 @@ SELECT ?item ?ATP_Kennung (GROUP_CONCAT(?sitey;SEPARATOR=' ') AS ?sites) where {
                      schema:isPartOf <https://de.wikipedia.org/> .}
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en,[AUTO_LANGUAGE]\". }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/01>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?sitelink_de ?sitelink_en ?ATP_Kennung ?sites with {
+SELECT ?item ?ATP_Kennung (GROUP_CONCAT(?sitey;SEPARATOR=' ') AS ?sites) where {
+  OPTIONAL { ?item wdt:P536 ?ATP_Kennung. }
+  ?site schema:about ?item .   
+  BIND(STRAFTER(STRBEFORE(STR(?site),'.org'),'//') AS ?sitex)
+  BIND(STRBEFORE(?sitex,'.') AS ?sitey)
+} GROUP BY ?item ?ATP_Kennung } as %i where
+{ include %i
+  optional {?sitelink_en ^schema:name ?article_en .
+            ?article_en schema:about ?item ;
+                     schema:isPartOf <https://en.wikipedia.org/> .}
+  optional {?sitelink_de ^schema:name ?article_de .
+            ?article_de schema:about ?item ;
+                     schema:isPartOf <https://de.wikipedia.org/> .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en,[AUTO_LANGUAGE]\". }
+}""" .

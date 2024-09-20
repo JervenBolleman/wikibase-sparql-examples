@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-a8334ea549abc1e2c4ee4208dca2aa3b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# Most common values for \"depicts\" (P180)
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Most common values for \"depicts\" (P180)
 SELECT ?sum ?class ?class_label ?instance ?instance_label ?sample
 
 WITH { 
@@ -33,9 +41,63 @@ WHERE {
       OPTIONAL {?class rdfs:label ?class_label FILTER (lang(?class_label) = 'en') } .
     }
 } 
+ORDER BY DESC(?sum)""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Most common values for \"depicts\" (P180)
+SELECT ?sum ?class ?class_label ?instance ?instance_label ?sample
+
+
+ 
+WHERE {
+    { 
+  SELECT (COUNT(DISTINCT(?file)) AS ?count) ?value (SAMPLE(?file) AS ?example) WHERE {
+     service bd:sample {
+       ?file wdt:P180 ?value . 
+        bd:serviceParam bd:sample.limit 10 .
+        bd:serviceParam bd:sample.sampleType \"RANDOM\" .
+     }  
+  } GROUP BY ?value
+  ORDER BY DESC(?count)
+  LIMIT 2000           
+} .
+    service <https://query.wikidata.org/sparql> {
+      {
+         SELECT (SUM(?count) AS ?sum) ?class (SAMPLE(?value) AS ?instance) (SAMPLE(?example) AS ?sample) WHERE {
+            ?value wdt:P31 ?class
+         } GROUP BY ?class 
+      }
+      OPTIONAL {?instance rdfs:label ?instance_label FILTER (lang(?instance_label) = 'en') } .
+      OPTIONAL {?class rdfs:label ?class_label FILTER (lang(?class_label) = 'en') } .
+    }
+} 
 ORDER BY DESC(?sum)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/04>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """# Most common values for \"depicts\" (P180)
+SELECT ?sum ?class ?class_label ?instance ?instance_label ?sample
+
+WITH { 
+  SELECT (COUNT(DISTINCT(?file)) AS ?count) ?value (SAMPLE(?file) AS ?example) WHERE {
+     service bd:sample {
+       ?file wdt:P180 ?value . 
+        bd:serviceParam bd:sample.limit 10 .
+        bd:serviceParam bd:sample.sampleType \"RANDOM\" .
+     }  
+  } GROUP BY ?value
+  ORDER BY DESC(?count)
+  LIMIT 2000           
+} AS %values
+ 
+WHERE {
+    INCLUDE %values .
+    service <https://query.wikidata.org/sparql> {
+      {
+         SELECT (SUM(?count) AS ?sum) ?class (SAMPLE(?value) AS ?instance) (SAMPLE(?example) AS ?sample) WHERE {
+            ?value wdt:P31 ?class
+         } GROUP BY ?class 
+      }
+      OPTIONAL {?instance rdfs:label ?instance_label FILTER (lang(?instance_label) = 'en') } .
+      OPTIONAL {?class rdfs:label ?class_label FILTER (lang(?class_label) = 'en') } .
+    }
+} 
+ORDER BY DESC(?sum)""" .

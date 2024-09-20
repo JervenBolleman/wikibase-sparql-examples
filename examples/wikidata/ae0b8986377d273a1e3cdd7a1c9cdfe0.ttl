@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-ae0b8986377d273a1e3cdd7a1c9cdfe0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q18618629>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:author>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q18618629>
 
 SELECT
   ?score
@@ -68,9 +76,133 @@ WHERE {
   FILTER (target: != ?researcher)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?score)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q18618629>
+
+SELECT
+  ?score
+  ?roles
+
+  ?researcher ?researcherLabel
+  (CONCAT(\"#author/\", SUBSTR(STR(?researcher), 32)) AS ?researcherUrl)
+  ?researcherDescription
+
+WHERE {
+  {
+  SELECT 
+    (SUM(?score_) AS ?score)
+    (GROUP_CONCAT(DISTINCT ?role; separator=\", \") AS ?roles)
+    ?researcher 
+  WHERE {
+    { 
+      BIND(\"supervisor\" AS ?role)
+      BIND(15 AS ?score_)
+      target: wdt:P184 ?researcher .
+    }
+    UNION
+    { 
+      BIND(\"student\" AS ?role)
+      BIND(10 AS ?score_)
+      target: wdt:P185 ?researcher .
+    }
+    UNION
+    { 
+      BIND(\"co-author\" AS ?role)
+      BIND(5 AS ?score_)
+      [] wdt:P50 target:, ?researcher
+    }
+    UNION
+    {
+      BIND(\"cited author\" AS ?role)
+      BIND(2 AS ?score_)
+      [] wdt:P50 target: ;
+         wdt:P2860 / wdt:P50 ?researcher .
+    }
+    UNION
+    {
+      BIND(\"citing author\" AS ?role)
+      BIND(1 AS ?score_)
+      [] wdt:P50 target: ;
+         ^wdt:P2860 / wdt:P50 ?researcher .
+    }
+    UNION
+    {
+      BIND(\"coeditor\" AS ?role)
+      BIND(5 AS ?score_)
+      [] wdt:P98 target: , ?researcher .
+    }
+  }
+  GROUP BY ?researcher 
+  ORDER BY DESC(?score)
+  LIMIT 200
+}
+  FILTER (target: != ?researcher)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?score)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:author>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q18618629>
+
+SELECT
+  ?score
+  ?roles
+
+  ?researcher ?researcherLabel
+  (CONCAT(\"#author/\", SUBSTR(STR(?researcher), 32)) AS ?researcherUrl)
+  ?researcherDescription
+WITH {
+  SELECT 
+    (SUM(?score_) AS ?score)
+    (GROUP_CONCAT(DISTINCT ?role; separator=\", \") AS ?roles)
+    ?researcher 
+  WHERE {
+    { 
+      BIND(\"supervisor\" AS ?role)
+      BIND(15 AS ?score_)
+      target: wdt:P184 ?researcher .
+    }
+    UNION
+    { 
+      BIND(\"student\" AS ?role)
+      BIND(10 AS ?score_)
+      target: wdt:P185 ?researcher .
+    }
+    UNION
+    { 
+      BIND(\"co-author\" AS ?role)
+      BIND(5 AS ?score_)
+      [] wdt:P50 target:, ?researcher
+    }
+    UNION
+    {
+      BIND(\"cited author\" AS ?role)
+      BIND(2 AS ?score_)
+      [] wdt:P50 target: ;
+         wdt:P2860 / wdt:P50 ?researcher .
+    }
+    UNION
+    {
+      BIND(\"citing author\" AS ?role)
+      BIND(1 AS ?score_)
+      [] wdt:P50 target: ;
+         ^wdt:P2860 / wdt:P50 ?researcher .
+    }
+    UNION
+    {
+      BIND(\"coeditor\" AS ?role)
+      BIND(5 AS ?score_)
+      [] wdt:P98 target: , ?researcher .
+    }
+  }
+  GROUP BY ?researcher 
+  ORDER BY DESC(?score)
+  LIMIT 200
+} AS %result
+WHERE {
+  INCLUDE %result
+  FILTER (target: != ?researcher)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?score)""" .

@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-afbaa3477416d5c5f156e16b18c8744b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?p (COUNT(*) AS ?count) WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT ?p (COUNT(*) AS ?count) WITH {
   SELECT ?p WHERE {
     ?property wikibase:propertyType wikibase:ExternalId;
               wikibase:claim ?p.
@@ -17,9 +25,31 @@
   INCLUDE %properties.
   [] ?p [].
 }
+GROUP BY ?p""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT ?p (COUNT(*) AS ?count)  WHERE {
+  {
+  SELECT ?p WHERE {
+    ?property wikibase:propertyType wikibase:ExternalId;
+              wikibase:claim ?p.
+    BIND(xsd:integer(SUBSTR(STR(?property), STRLEN(STR(wd:))+2)) AS ?pNumber).
+    #FILTER(0000 <= ?pNumber && ?pNumber < 4000).
+  }
+}.
+  [] ?p [].
+}
 GROUP BY ?p""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/03>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?p (COUNT(*) AS ?count) WITH {
+  SELECT ?p WHERE {
+    ?property wikibase:propertyType wikibase:ExternalId;
+              wikibase:claim ?p.
+    BIND(xsd:integer(SUBSTR(STR(?property), STRLEN(STR(wd:))+2)) AS ?pNumber).
+    #FILTER(0000 <= ?pNumber && ?pNumber < 4000).
+  }
+} AS %properties WHERE {
+  INCLUDE %properties.
+  [] ?p [].
+}
+GROUP BY ?p""" .

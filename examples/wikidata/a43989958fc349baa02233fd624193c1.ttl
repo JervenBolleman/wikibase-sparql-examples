@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-a43989958fc349baa02233fd624193c1> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
   ?human ?humanLabel
   ?orcid
   ?article
@@ -33,8 +43,30 @@ WHERE {
   INCLUDE %result
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }        
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/07>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT 
+  ?human ?humanLabel
+  ?orcid
+  ?article
+WITH {
+  SELECT 
+    ?human ?orcid ?article  
+  WHERE { 
+    ?human wdt:P31 wd:Q5 ;
+           wdt:P496 ?orcid ;
+           ^schema:about ?article .
+    ?article schema:inLanguage \"en\" .
+  }
+  LIMIT 100  # Change if more humans should be returned
+} AS %humans
+WITH {
+  SELECT 
+    ?human ?orcid ?article  
+  WHERE {
+    INCLUDE %humans
+    FILTER EXISTS { ?human wdt:P106 / wdt:P279* wd:Q1650915 }
+  }
+} AS %result
+WHERE {
+  INCLUDE %result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }        
+}""" .

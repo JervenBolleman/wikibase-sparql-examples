@@ -6,7 +6,13 @@
 
 <https://www.wikidata.org/#query-a13410c456de475f607a37832211fc45> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#title: DOIs of works that are citing or cited by a given work
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Daniel_Mietchen>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+#title: DOIs of works that are citing or cited by a given work
 PREFIX target: <http://www.wikidata.org/entity/Q27340070>
 
 SELECT DISTINCT (ENCODE_FOR_URI(?doi_) AS ?doi)
@@ -22,9 +28,39 @@ WITH {
 WHERE {
   INCLUDE %result
   ?cite_work wdt:P356 ?doi_ .
+}""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+#title: DOIs of works that are citing or cited by a given work
+PREFIX target: <http://www.wikidata.org/entity/Q27340070>
+
+SELECT DISTINCT (ENCODE_FOR_URI(?doi_) AS ?doi)
+
+WHERE {
+  {
+  SELECT  ?cite_work 
+  WHERE {
+    {?cite_work wdt:P2860 target: .}
+    UNION
+    {?cite_work ^wdt:P2860 target: .}
+  }
+  GROUP BY ?cite_work
+}
+  ?cite_work wdt:P356 ?doi_ .
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Daniel_Mietchen>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#title: DOIs of works that are citing or cited by a given work
+PREFIX target: <http://www.wikidata.org/entity/Q27340070>
+
+SELECT DISTINCT (ENCODE_FOR_URI(?doi_) AS ?doi)
+WITH {
+  SELECT  ?cite_work 
+  WHERE {
+    {?cite_work wdt:P2860 target: .}
+    UNION
+    {?cite_work ^wdt:P2860 target: .}
+  }
+  GROUP BY ?cite_work
+} AS %result
+WHERE {
+  INCLUDE %result
+  ?cite_work wdt:P356 ?doi_ .
+}""" .

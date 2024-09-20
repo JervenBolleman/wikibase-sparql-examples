@@ -6,7 +6,19 @@
 
 <https://www.wikidata.org/#query-aad4fca9397bc1f28fe033023678dd8b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?property ?propertyLabel ?statement
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Organizations/Public_Sector_Organizations>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?property ?propertyLabel ?statement
 WITH {
   SELECT DISTINCT ?item WHERE {
     ?item wdt:P31/wdt:P279* wd:Q327333;
@@ -63,8 +75,60 @@ WHERE {
 }
 
 ORDER BY ?item""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Organizations/Public_Sector_Organizations>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?property ?propertyLabel ?statement
+WITH {
+  SELECT DISTINCT ?item WHERE {
+    ?item wdt:P31/wdt:P279* wd:Q327333;
+          wdt:P17 wd:Q39.
+  }
+} AS %items
+WITH {
+  SELECT ?item ?itemLabel WHERE {
+    INCLUDE %items.
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,fr,it,en\". }
+  }
+} AS %itemLabels
+WITH {
+  SELECT ?item ?property ?statement WHERE {
+    INCLUDE %items.
+    ?property wikibase:claim ?p.
+    ?item ?p ?statement.
+    MINUS {
+      # TODO check what counts as good reference
+      ?statement prov:wasDerivedFrom [
+        pr:P248|pr:P854 ?goodReference
+      ].
+    }
+    # TODO expand list of properties that don’t need good references:
+    FILTER(?p NOT IN (p:P373,  #commons category
+                      p:P856,  #official website
+                      p:P18,   #image
+                      p:P227,   #identifier with weblink
+                      p:P214,   #identifier with weblink
+                      p:P269,   #identifier with weblink
+                      p:P2427,  #identifier with weblink
+                      p:P213,   #identifier with weblink
+                      p:P4678,  #identifier with weblink
+                      p:P3153,  #identifier with weblink
+                      p:P902    #identifier with weblink
+                      ))  
+  }
+} AS %statements
+WITH {
+  SELECT DISTINCT ?property WHERE {
+    INCLUDE %statements.
+  }
+} AS %properties
+WITH {
+  SELECT ?property ?propertyLabel WHERE {
+    INCLUDE %properties.
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,fr,it,en\". }
+  }
+} AS %propertyLabels
+WHERE {
+  INCLUDE %statements.
+  INCLUDE %itemLabels.
+  INCLUDE %propertyLabels.
+}
+
+ORDER BY ?item""" .

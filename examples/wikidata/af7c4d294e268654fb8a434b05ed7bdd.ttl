@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-af7c4d294e268654fb8a434b05ed7bdd> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?item ?itemLabel (COALESCE(SAMPLE (DISTINCT ?type1), SAMPLE (DISTINCT ?type2)) AS ?type)
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel (COALESCE(SAMPLE (DISTINCT ?type1), SAMPLE (DISTINCT ?type2)) AS ?type)
 WITH {
   SELECT ?instances ?classes (IF(BOUND(?range1),?range1,\"100\") AS ?range) WHERE {
     #### THIS BIT IN INCLUDED FILE, MANY EXAMPLES ####
@@ -33,9 +42,64 @@ WHERE {
     bd:serviceParam wikibase:radius ?range .
     bd:serviceParam wikibase:distance ?dist.
   } 
+} GROUP BY ?item ?itemLabel""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel (COALESCE(SAMPLE (DISTINCT ?type1), SAMPLE (DISTINCT ?type2)) AS ?type)
+
+WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en-GB,en,fr,de,es,pt,pl,nl,cs\". }
+  {wd:Q1180981 wdt:P625 ?loc1} UNION {wd:Q1180981 wdt:P276 ?loc. ?loc wdt:P625 ?loc1}
+  ?item wdt:P17 wd:Q145.
+  {{
+  SELECT ?instances ?classes (IF(BOUND(?range1),?range1,\"100\") AS ?range) WHERE {
+    #### THIS BIT IN INCLUDED FILE, MANY EXAMPLES ####
+    VALUES ?instances {
+      wd:Q2772772 # military museum
+    }
+    VALUES ?classes {
+      wd:Q1785071  # fort
+      wd:Q91122    # bunker
+    }
+    VALUES ?range1 {\"30\"}
+    #### END ####
+} }}
+        {?item wdt:P31/wdt:P279* ?classes. BIND(?classes as ?type2)}
+  UNION {?item wdt:P31 ?instances. BIND(?instances AS ?type1)}
+  SERVICE wikibase:around {
+    ?item wdt:P625 ?loc2 .
+    bd:serviceParam wikibase:center ?loc1 .
+    bd:serviceParam wikibase:radius ?range .
+    bd:serviceParam wikibase:distance ?dist.
+  } 
 } GROUP BY ?item ?itemLabel""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/06>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?itemLabel (COALESCE(SAMPLE (DISTINCT ?type1), SAMPLE (DISTINCT ?type2)) AS ?type)
+WITH {
+  SELECT ?instances ?classes (IF(BOUND(?range1),?range1,\"100\") AS ?range) WHERE {
+    #### THIS BIT IN INCLUDED FILE, MANY EXAMPLES ####
+    VALUES ?instances {
+      wd:Q2772772 # military museum
+    }
+    VALUES ?classes {
+      wd:Q1785071  # fort
+      wd:Q91122    # bunker
+    }
+    VALUES ?range1 {\"30\"}
+    #### END ####
+} } AS %i
+WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en-GB,en,fr,de,es,pt,pl,nl,cs\". }
+  {wd:Q1180981 wdt:P625 ?loc1} UNION {wd:Q1180981 wdt:P276 ?loc. ?loc wdt:P625 ?loc1}
+  ?item wdt:P17 wd:Q145.
+  {INCLUDE %i}
+        {?item wdt:P31/wdt:P279* ?classes. BIND(?classes as ?type2)}
+  UNION {?item wdt:P31 ?instances. BIND(?instances AS ?type1)}
+  SERVICE wikibase:around {
+    ?item wdt:P625 ?loc2 .
+    bd:serviceParam wikibase:center ?loc1 .
+    bd:serviceParam wikibase:radius ?range .
+    bd:serviceParam wikibase:distance ?dist.
+  } 
+} GROUP BY ?item ?itemLabel""" .

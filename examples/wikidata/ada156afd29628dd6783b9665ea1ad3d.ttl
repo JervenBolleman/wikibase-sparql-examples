@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-ada156afd29628dd6783b9665ea1ad3d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q6053150>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:scientificeventseries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q6053150>
 
 SELECT
   ?colocated_events
@@ -28,9 +36,53 @@ WHERE {
   INCLUDE %colocated_event_series  
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 } 
+ORDER BY DESC(?colocated_events)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q6053150>
+
+SELECT
+  ?colocated_events
+  ?colocated_event_series ?colocated_event_seriesLabel
+  (CONCAT(\"#scientificeventseries/\", SUBSTR(STR(?colocated_event_series), 32)) AS ?colocated_event_seriesUrl)
+  ?colocated_event_seriesDescription
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(?colocated_event) AS ?colocated_events)
+    ?colocated_event_series
+  WHERE {
+    ?event wdt:P179 target: ;
+           wdt:P11633| ^wdt:P11633 ?colocated_event .
+    ?colocated_event wdt:P179 ?colocated_event_series .
+  }
+  GROUP BY ?colocated_event_series
+}  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} 
 ORDER BY DESC(?colocated_events)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:scientificeventseries>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q6053150>
+
+SELECT
+  ?colocated_events
+  ?colocated_event_series ?colocated_event_seriesLabel
+  (CONCAT(\"#scientificeventseries/\", SUBSTR(STR(?colocated_event_series), 32)) AS ?colocated_event_seriesUrl)
+  ?colocated_event_seriesDescription
+WITH {
+  SELECT 
+    (COUNT(?colocated_event) AS ?colocated_events)
+    ?colocated_event_series
+  WHERE {
+    ?event wdt:P179 target: ;
+           wdt:P11633| ^wdt:P11633 ?colocated_event .
+    ?colocated_event wdt:P179 ?colocated_event_series .
+  }
+  GROUP BY ?colocated_event_series
+} AS %colocated_event_series
+WHERE {
+  INCLUDE %colocated_event_series  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} 
+ORDER BY DESC(?colocated_events)""" .

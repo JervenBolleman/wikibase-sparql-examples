@@ -6,7 +6,21 @@
 
 <https://www.wikidata.org/#query-a46dab5f8c65d3097a0e807d25d1fb35> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:Map{\"hide\":\"?rgb\"}
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Herzi_Pinki/Sparql>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map{\"hide\":\"?rgb\"}
 SELECT ?item ?itemLabel ?itemDescription (GROUP_CONCAT(DISTINCT ?isALabel; SEPARATOR=', ') AS ?isALabels) (GROUP_CONCAT(DISTINCT ?partLabel; SEPARATOR=', ') AS ?partLabels) (GROUP_CONCAT(DISTINCT ?whereLabel; SEPARATOR=', ') AS ?whereLabels) (SAMPLE(?image) AS ?image) ?coord ?rgb ?layer WITH {
   SELECT DISTINCT ?item WHERE {
  ?item wdt:P17 wd:Q40 .
@@ -56,9 +70,115 @@ SELECT ?item ?itemLabel ?itemDescription (GROUP_CONCAT(DISTINCT ?isALabel; SEPAR
   BIND(IF(EXISTS { ?item p:P18 [] }, '0000ff', 'ff0000') AS ?rgb) .
   BIND(IF(EXISTS { ?item p:P18 [] }, 'With image', 'Without image') AS ?layer) .
   SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE,de,en]' }
+} GROUP BY ?item ?itemLabel ?itemDescription ?isALabels ?partLabels ?whereLabels ?coord ?rgb ?layer""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map{\"hide\":\"?rgb\"}
+SELECT ?item ?itemLabel ?itemDescription (GROUP_CONCAT(DISTINCT ?isALabel; SEPARATOR=', ') AS ?isALabels) (GROUP_CONCAT(DISTINCT ?partLabel; SEPARATOR=', ') AS ?partLabels) (GROUP_CONCAT(DISTINCT ?whereLabel; SEPARATOR=', ') AS ?whereLabels) (SAMPLE(?image) AS ?image) ?coord ?rgb ?layer  WHERE {
+  {
+  SELECT DISTINCT ?item WHERE {
+ ?item wdt:P17 wd:Q40 .
+ ?item wdt:P1435 wd:Q1188447.
+ ?item wdt:P31 ?isA.
+ ?item wdt:P625 [] .
+ ?item rdfs:label ?itemLabel .
+   FILTER (LANG(?itemLabel) = \"de\"). 
+   FILTER regex(?itemLabel, \".*kirche.*(fried|kirch)hof.*\", \"i\").
+  MINUS {?item wdt:P31 wd:Q261543 }.
+  Minus {?item wdt:P31 wd:Q406957 }.
+  #MINUS {?item wdt:P31 wd:Q1497375 }.
+  #Minus {?item wdt:P31 wd:Q105644486 }.
+  }
+} .
+  ?item p:P625 ?coordStatement .
+  ?coordStatement ps:P625 ?coord .
+  #MINUS { ?coordStatement prov:wasDerivedFrom/pr:P143 wd:Q169514 } # imported from Wikimedia project: Swedish Wikipedia 
+  #MINUS { ?coordStatement prov:wasDerivedFrom/pr:P143 wd:Q837615 } # imported from Wikimedia project: Cebuano Wikipedia 
+  #MINUS { ?coordStatement prov:wasDerivedFrom/pr:P248 wd:Q1194038 } # stated in: GEOnet Names Server
+  OPTIONAL {
+    ?item wdt:P131 ?where .
+    OPTIONAL {
+      ?where rdfs:label ?whereLiteral .
+      FILTER(LANG(?whereLiteral) = 'de') .
+    }
+  }
+  BIND(IF(BOUND(?where), IF(BOUND(?whereLiteral), ?whereLiteral, STRAFTER(STR(?where), 'entity/')), 'no P131') AS ?whereLabel) .
+  OPTIONAL {
+    ?item wdt:P31 ?isA .
+    OPTIONAL {
+      ?isA rdfs:label ?isALiteral .
+      FILTER(LANG(?isALiteral) = 'de') .
+    }
+  }
+  BIND(IF(BOUND(?isA), IF(BOUND(?isALiteral), ?isALiteral, STRAFTER(STR(?isA), 'entity/')), 'no P31') AS ?isALabel) .
+  OPTIONAL {
+    ?item wdt:P527 ?part .
+    OPTIONAL {
+      ?part rdfs:label ?partLiteral .
+      FILTER(LANG(?partLiteral) = 'de') .
+    }
+  }
+  BIND(IF(BOUND(?part), IF(BOUND(?partLiteral), ?partLiteral, STRAFTER(STR(?part), 'entity/')), 'no parts') AS ?partLabel) .
+  OPTIONAL { ?item wdt:P18 ?image }
+  BIND(IF(EXISTS { ?item p:P18 [] }, '0000ff', 'ff0000') AS ?rgb) .
+  BIND(IF(EXISTS { ?item p:P18 [] }, 'With image', 'Without image') AS ?layer) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE,de,en]' }
 } GROUP BY ?item ?itemLabel ?itemDescription ?isALabels ?partLabels ?whereLabels ?coord ?rgb ?layer""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Herzi_Pinki/Sparql>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#defaultView:Map{\"hide\":\"?rgb\"}
+SELECT ?item ?itemLabel ?itemDescription (GROUP_CONCAT(DISTINCT ?isALabel; SEPARATOR=', ') AS ?isALabels) (GROUP_CONCAT(DISTINCT ?partLabel; SEPARATOR=', ') AS ?partLabels) (GROUP_CONCAT(DISTINCT ?whereLabel; SEPARATOR=', ') AS ?whereLabels) (SAMPLE(?image) AS ?image) ?coord ?rgb ?layer WITH {
+  SELECT DISTINCT ?item WHERE {
+ ?item wdt:P17 wd:Q40 .
+ ?item wdt:P1435 wd:Q1188447.
+ ?item wdt:P31 ?isA.
+ ?item wdt:P625 [] .
+ ?item rdfs:label ?itemLabel .
+   FILTER (LANG(?itemLabel) = \"de\"). 
+   FILTER regex(?itemLabel, \".*kirche.*(fried|kirch)hof.*\", \"i\").
+  MINUS {?item wdt:P31 wd:Q261543 }.
+  Minus {?item wdt:P31 wd:Q406957 }.
+  #MINUS {?item wdt:P31 wd:Q1497375 }.
+  #Minus {?item wdt:P31 wd:Q105644486 }.
+  }
+} AS %subquery1 WHERE {
+  INCLUDE %subquery1 .
+  ?item p:P625 ?coordStatement .
+  ?coordStatement ps:P625 ?coord .
+  #MINUS { ?coordStatement prov:wasDerivedFrom/pr:P143 wd:Q169514 } # imported from Wikimedia project: Swedish Wikipedia 
+  #MINUS { ?coordStatement prov:wasDerivedFrom/pr:P143 wd:Q837615 } # imported from Wikimedia project: Cebuano Wikipedia 
+  #MINUS { ?coordStatement prov:wasDerivedFrom/pr:P248 wd:Q1194038 } # stated in: GEOnet Names Server
+  OPTIONAL {
+    ?item wdt:P131 ?where .
+    OPTIONAL {
+      ?where rdfs:label ?whereLiteral .
+      FILTER(LANG(?whereLiteral) = 'de') .
+    }
+  }
+  BIND(IF(BOUND(?where), IF(BOUND(?whereLiteral), ?whereLiteral, STRAFTER(STR(?where), 'entity/')), 'no P131') AS ?whereLabel) .
+  OPTIONAL {
+    ?item wdt:P31 ?isA .
+    OPTIONAL {
+      ?isA rdfs:label ?isALiteral .
+      FILTER(LANG(?isALiteral) = 'de') .
+    }
+  }
+  BIND(IF(BOUND(?isA), IF(BOUND(?isALiteral), ?isALiteral, STRAFTER(STR(?isA), 'entity/')), 'no P31') AS ?isALabel) .
+  OPTIONAL {
+    ?item wdt:P527 ?part .
+    OPTIONAL {
+      ?part rdfs:label ?partLiteral .
+      FILTER(LANG(?partLiteral) = 'de') .
+    }
+  }
+  BIND(IF(BOUND(?part), IF(BOUND(?partLiteral), ?partLiteral, STRAFTER(STR(?part), 'entity/')), 'no parts') AS ?partLabel) .
+  OPTIONAL { ?item wdt:P18 ?image }
+  BIND(IF(EXISTS { ?item p:P18 [] }, '0000ff', 'ff0000') AS ?rgb) .
+  BIND(IF(EXISTS { ?item p:P18 [] }, 'With image', 'Without image') AS ?layer) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE,de,en]' }
+} GROUP BY ?item ?itemLabel ?itemDescription ?isALabels ?partLabels ?whereLabels ?coord ?rgb ?layer""" .

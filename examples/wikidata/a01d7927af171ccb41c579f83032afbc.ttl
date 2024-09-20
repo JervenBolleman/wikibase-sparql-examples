@@ -6,7 +6,19 @@
 
 <https://www.wikidata.org/#query-a01d7927af171ccb41c579f83032afbc> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """select ?item ?itemLabel ?num (count(?sitelink) as ?sitelinks) with {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/02>,
+    <https://www.wikidata.org//wiki/User_talk:Jura1/6/3/7/1aruJ:klat_resU>, <https://www.wikidata.org//wiki/User:Doc_Taxon/query1>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+select ?item ?itemLabel ?num (count(?sitelink) as ?sitelinks) with {
   select distinct ?item where {
     values ?item_class {wd:Q34 wd:Q183}
     ?item wdt:P27 ?item_class; wdt:P21 wd:Q6581072; wdt:P31 wd:Q5.
@@ -19,9 +31,16 @@
 } 
 group by ?item ?itemLabel ?num
 order by desc(?sitelinks) asc(?num)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/02>,
-    <https://www.wikidata.org//wiki/User_talk:Jura1/6/3/7/1aruJ:klat_resU>, <https://www.wikidata.org//wiki/User:Doc_Taxon/query1>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """select ?item ?itemLabel ?num (count(?sitelink) as ?sitelinks) with {
+  select distinct ?item where {
+    values ?item_class {wd:Q34 wd:Q183}
+    ?item wdt:P27 ?item_class; wdt:P21 wd:Q6581072; wdt:P31 wd:Q5.
+  }
+} as %subquery where {
+  include %subquery.
+  bind(xsd:integer(substr(str(?item), 33)) as ?num).
+  optional {?sitelink schema:about ?item; schema:isPartOf [wikibase:wikiGroup 'wikipedia']}
+  service wikibase:label {bd:serviceParam wikibase:language \"de,[AUTO_LANGUAGE]\".}
+} 
+group by ?item ?itemLabel ?num
+order by desc(?sitelinks) asc(?num)""" .

@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-a4adb59b855dd33f9f431d4967fe16fb> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?badge ?badgeLabel ?sitelink ?wikiGroup ?item WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/misc/sitelink_badges>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?badge ?badgeLabel ?sitelink ?wikiGroup ?item WITH {
   SELECT ?sitelink ?item ?badge WHERE {
     VALUES ?badge { wd:Q28064618 wd:Q20748094 wd:Q20748093 wd:Q20748092 wd:Q20748091 }
     ?sitelink wikibase:badge ?badge; schema:about ?item .
@@ -16,9 +25,30 @@
   ?sitelink schema:isPartOf/wikibase:wikiGroup ?wikiGroup .
   FILTER(?wikiGroup != 'wikisource') .
   SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?badge ?badgeLabel ?sitelink ?wikiGroup ?item  WHERE{
+  {
+  SELECT ?sitelink ?item ?badge WHERE {
+    VALUES ?badge { wd:Q28064618 wd:Q20748094 wd:Q20748093 wd:Q20748092 wd:Q20748091 }
+    ?sitelink wikibase:badge ?badge; schema:about ?item .
+  }
+} .
+  ?sitelink schema:isPartOf/wikibase:wikiGroup ?wikiGroup .
+  FILTER(?wikiGroup != 'wikisource') .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/misc/sitelink_badges>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?badge ?badgeLabel ?sitelink ?wikiGroup ?item WITH {
+  SELECT ?sitelink ?item ?badge WHERE {
+    VALUES ?badge { wd:Q28064618 wd:Q20748094 wd:Q20748093 wd:Q20748092 wd:Q20748091 }
+    ?sitelink wikibase:badge ?badge; schema:about ?item .
+  }
+} AS %subquery WHERE{
+  INCLUDE %subquery .
+  ?sitelink schema:isPartOf/wikibase:wikiGroup ?wikiGroup .
+  FILTER(?wikiGroup != 'wikisource') .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}""" .

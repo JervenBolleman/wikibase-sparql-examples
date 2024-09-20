@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-a76d2258e2cc600760de23f4a509841a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:archaeologist-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
   ?archaeologists
   (CONCAT(\"#country/\", SUBSTR(STR(?country), 32), \"/archaeologist\") AS ?archaeologistsUrl)
 
@@ -30,9 +39,58 @@ WHERE {
   INCLUDE %archaeologists
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?archaeologists)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
+  ?archaeologists
+  (CONCAT(\"#country/\", SUBSTR(STR(?country), 32), \"/archaeologist\") AS ?archaeologistsUrl)
+
+  ?country ?countryLabel
+  (CONCAT(\"#country/\", SUBSTR(STR(?country), 32)) AS ?countryUrl)
+
+  ?example_archaeologist ?example_archaeologistLabel
+
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(?archaeologist) AS ?archaeologists)
+    ?country
+    (SAMPLE(?archaeologist) AS ?example_archaeologist)
+  WHERE {
+    ?archaeologist wdt:P106 wd:Q3621491 ;
+                   wdt:P27 ?country .
+  }
+  GROUP BY ?country
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?archaeologists)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:archaeologist-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT 
+  ?archaeologists
+  (CONCAT(\"#country/\", SUBSTR(STR(?country), 32), \"/archaeologist\") AS ?archaeologistsUrl)
+
+  ?country ?countryLabel
+  (CONCAT(\"#country/\", SUBSTR(STR(?country), 32)) AS ?countryUrl)
+
+  ?example_archaeologist ?example_archaeologistLabel
+
+WITH {
+  SELECT 
+    (COUNT(?archaeologist) AS ?archaeologists)
+    ?country
+    (SAMPLE(?archaeologist) AS ?example_archaeologist)
+  WHERE {
+    ?archaeologist wdt:P106 wd:Q3621491 ;
+                   wdt:P27 ?country .
+  }
+  GROUP BY ?country
+} AS %archaeologists
+WHERE {
+  INCLUDE %archaeologists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?archaeologists)""" .

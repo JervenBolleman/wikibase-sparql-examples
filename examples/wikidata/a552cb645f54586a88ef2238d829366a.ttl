@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-a552cb645f54586a88ef2238d829366a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?commonscat ?commonspage
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Property_talk:P373>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+SELECT ?item ?commonscat ?commonspage
 WITH {
    SELECT ?item ?commonscat WHERE {
        ?item wdt:P373 ?commonscat .
@@ -32,9 +40,61 @@ WHERE {
         FILTER (?item3 != ?item) .
         FILTER (!(bound(?item2) && ?item3 = ?item2))
     }
+}""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+SELECT ?item ?commonscat ?commonspage
+ 
+WHERE {
+    hint:Query hint:optimizer \"None\".
+    {
+   SELECT ?item ?commonscat WHERE {
+       ?item wdt:P373 ?commonscat .
+  } LIMIT 10000  OFFSET 20000
+} .
+    BIND(STRLANG(CONCAT(\"Category:\", ?commonscat),\"en\") AS ?c1) .
+    OPTIONAL {
+         ?commonspage schema:name ?c1 .
+         ?commonspage schema:isPartOf <https://commons.wikimedia.org/> .
+         ?commonspage schema:about [] .
+    }
+    FILTER (!bound(?commonspage)) 
+    FILTER NOT EXISTS {?item wdt:P31 wd:Q4167836}
+    OPTIONAL {
+        ?item2 wdt:P373 ?commonscat .
+        ?item2 wdt:P31 wd:Q4167836
+    }
+    FILTER NOT EXISTS {
+        ?item3 wdt:P373 ?commonscat .
+        FILTER (?item3 != ?item) .
+        FILTER (!(bound(?item2) && ?item3 = ?item2))
+    }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Property_talk:P373>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?commonscat ?commonspage
+WITH {
+   SELECT ?item ?commonscat WHERE {
+       ?item wdt:P373 ?commonscat .
+  } LIMIT 10000  OFFSET 20000
+} AS %cats 
+WHERE {
+    hint:Query hint:optimizer \"None\".
+    INCLUDE %cats .
+    BIND(STRLANG(CONCAT(\"Category:\", ?commonscat),\"en\") AS ?c1) .
+    OPTIONAL {
+         ?commonspage schema:name ?c1 .
+         ?commonspage schema:isPartOf <https://commons.wikimedia.org/> .
+         ?commonspage schema:about [] .
+    }
+    FILTER (!bound(?commonspage)) 
+    FILTER NOT EXISTS {?item wdt:P31 wd:Q4167836}
+    OPTIONAL {
+        ?item2 wdt:P373 ?commonscat .
+        ?item2 wdt:P31 wd:Q4167836
+    }
+    FILTER NOT EXISTS {
+        ?item3 wdt:P373 ?commonscat .
+        FILTER (?item3 != ?item) .
+        FILTER (!(bound(?item2) && ?item3 = ?item2))
+    }
+}""" .

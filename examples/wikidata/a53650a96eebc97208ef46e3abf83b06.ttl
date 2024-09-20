@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-a53650a96eebc97208ef46e3abf83b06> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:Table
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Table
 SELECT ?count ?short_name ?venue ?venueLabel ?topic ?topicLabel
 WITH {
   SELECT (count(?work) as ?count) ?venue (SAMPLE(?short_name_) AS ?short_name) WHERE {
@@ -21,9 +30,40 @@ WHERE {
   OPTIONAL  { ?venue wdt:P921 ?topic }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" . } 
 }
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Table
+SELECT ?count ?short_name ?venue ?venueLabel ?topic ?topicLabel
+
+WHERE {
+  {
+  SELECT (count(?work) as ?count) ?venue (SAMPLE(?short_name_) AS ?short_name) WHERE {
+    ?work wdt:P6104 wd:Q56241615 .
+    ?work wdt:P1433/wdt:P179* ?venue .
+    OPTIONAL { ?venue wdt:P1813 ?short_name_ . }
+  }
+  GROUP BY ?venue
+}
+  OPTIONAL  { ?venue wdt:P921 ?topic }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" . } 
+}
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#defaultView:Table
+SELECT ?count ?short_name ?venue ?venueLabel ?topic ?topicLabel
+WITH {
+  SELECT (count(?work) as ?count) ?venue (SAMPLE(?short_name_) AS ?short_name) WHERE {
+    ?work wdt:P6104 wd:Q56241615 .
+    ?work wdt:P1433/wdt:P179* ?venue .
+    OPTIONAL { ?venue wdt:P1813 ?short_name_ . }
+  }
+  GROUP BY ?venue
+} AS %result
+WHERE {
+  INCLUDE %result
+  OPTIONAL  { ?venue wdt:P921 ?topic }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" . } 
+}
+ORDER BY DESC(?count)""" .
