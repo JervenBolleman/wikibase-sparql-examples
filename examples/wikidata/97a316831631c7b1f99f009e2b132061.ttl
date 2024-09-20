@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-97a316831631c7b1f99f009e2b132061> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
   ?count
   ?use ?useLabel 
   ?useDescription
@@ -26,9 +35,50 @@ WHERE {
   INCLUDE %result
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
+  ?count
+  ?use ?useLabel 
+  ?useDescription
+  ?example_work ?example_workLabel
+
+WHERE {
+  {
+  SELECT
+    (COUNT(?work) AS ?count)
+    ?use
+    (SAMPLE(?work) AS ?example_work)
+  {
+    ?work wdt:P6104 wd:Q56241615 ;
+          wdt:P4510 ?use .
+  }
+  GROUP BY ?use
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT
+  ?count
+  ?use ?useLabel 
+  ?useDescription
+  ?example_work ?example_workLabel
+WITH {
+  SELECT
+    (COUNT(?work) AS ?count)
+    ?use
+    (SAMPLE(?work) AS ?example_work)
+  {
+    ?work wdt:P6104 wd:Q56241615 ;
+          wdt:P4510 ?use .
+  }
+  GROUP BY ?use
+} AS %result
+WHERE {
+  INCLUDE %result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?count)""" .

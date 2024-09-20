@@ -6,7 +6,28 @@
 
 <https://www.wikidata.org/#query-9ab973659a58c5f3d7611e36534bc5e6> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/pl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/cs>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
 ?item
 ?NAME
 (GROUP_CONCAT( DISTINCT ?ALTERNATIVNAMEN_; separator=\";\")    as ?ALTERNATIVNAMEN)
@@ -30,18 +51,61 @@ WITH { SELECT ?item ?article { ?article schema:about ?item ; schema:isPartOf <ht
                           ?pob rdfs:label ?GEBURTSORT_ .
                           ?pod rdfs:label ?STERBEORT_  }
 }
+GROUP BY ?item ?NAME ?article""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
+?item
+?NAME
+(GROUP_CONCAT( DISTINCT ?ALTERNATIVNAMEN_; separator=\";\")    as ?ALTERNATIVNAMEN)
+(SAMPLE ( ?KURZBESCHREIBUNG_)                                as ?KURZBESCHREIBUNG)
+(GROUP_CONCAT( DISTINCT ?GEBURTSDATUM_; separator=\";\")       as ?GEBURTSDATUM)
+(GROUP_CONCAT( DISTINCT ?GEBURTSORT_; separator=\";\")         as ?GEBURTSORT)
+(GROUP_CONCAT( DISTINCT ?STERBEDATUM_; separator=\";\")        as ?STERBEDATUM)
+(GROUP_CONCAT( DISTINCT ?STERBEORT_; separator=\";\")          as ?STERBEORT)
+?article
+
+{
+  { SELECT ?item ?article { ?article schema:about ?item ; schema:isPartOf <https://de.wikipedia.org/> . ?item wdt:P31 wd:Q5 . } LIMIT 200 } .
+  OPTIONAL { ?item skos:altLabel ?ALTERNATIVNAMEN_ . FILTER(lang(?ALTERNATIVNAMEN_)=\"de\")  }.
+  OPTIONAL { ?item schema:description ?KURZBESCHREIBUNG_ . FILTER(lang(?KURZBESCHREIBUNG_)=\"de\") } . 
+  OPTIONAL { ?item wdt:P569 ?GEBURTSDATUM_ }	.
+  OPTIONAL { ?item wdt:P19 ?pob } .
+  OPTIONAL { ?item wdt:P570 ?STERBEDATUM_ } .
+  OPTIONAL { ?item wdt:P20 ?pod } .
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"de\" .
+                          ?item rdfs:label ?NAME .
+                          ?pob rdfs:label ?GEBURTSORT_ .
+                          ?pod rdfs:label ?STERBEORT_  }
+}
 GROUP BY ?item ?NAME ?article""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/nl>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/pl>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/ja>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/cs>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/uk>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/fr>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/sv>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/es>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/en>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT
+?item
+?NAME
+(GROUP_CONCAT( DISTINCT ?ALTERNATIVNAMEN_; separator=\";\")    as ?ALTERNATIVNAMEN)
+(SAMPLE ( ?KURZBESCHREIBUNG_)                                as ?KURZBESCHREIBUNG)
+(GROUP_CONCAT( DISTINCT ?GEBURTSDATUM_; separator=\";\")       as ?GEBURTSDATUM)
+(GROUP_CONCAT( DISTINCT ?GEBURTSORT_; separator=\";\")         as ?GEBURTSORT)
+(GROUP_CONCAT( DISTINCT ?STERBEDATUM_; separator=\";\")        as ?STERBEDATUM)
+(GROUP_CONCAT( DISTINCT ?STERBEORT_; separator=\";\")          as ?STERBEORT)
+?article
+WITH { SELECT ?item ?article { ?article schema:about ?item ; schema:isPartOf <https://de.wikipedia.org/> . ?item wdt:P31 wd:Q5 . } LIMIT 200 } AS %SUBQUERY
+{
+  INCLUDE %SUBQUERY .
+  OPTIONAL { ?item skos:altLabel ?ALTERNATIVNAMEN_ . FILTER(lang(?ALTERNATIVNAMEN_)=\"de\")  }.
+  OPTIONAL { ?item schema:description ?KURZBESCHREIBUNG_ . FILTER(lang(?KURZBESCHREIBUNG_)=\"de\") } . 
+  OPTIONAL { ?item wdt:P569 ?GEBURTSDATUM_ }	.
+  OPTIONAL { ?item wdt:P19 ?pob } .
+  OPTIONAL { ?item wdt:P570 ?STERBEDATUM_ } .
+  OPTIONAL { ?item wdt:P20 ?pod } .
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"de\" .
+                          ?item rdfs:label ?NAME .
+                          ?pob rdfs:label ?GEBURTSORT_ .
+                          ?pod rdfs:label ?STERBEORT_  }
+}
+GROUP BY ?item ?NAME ?article""" .

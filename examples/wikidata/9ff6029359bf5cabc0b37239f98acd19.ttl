@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-9ff6029359bf5cabc0b37239f98acd19> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """select ?item 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+select ?item 
 with {
   select * {
   values ?candidate {
@@ -30,8 +38,27 @@ with {
      }
    }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/12>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """select ?item 
+with {
+  select * {
+  values ?candidate {
+    # put your items on this list
+     wd:Q14084 # redirect to Q68
+     wd:Q73661 # nonredirect item
+  } 
+  }
+} as %cands
+{
+   {
+     select (?candidate as ?item) {
+       include %cands .
+       ?candidate wikibase:sitelinks [] .
+     }
+   } union {
+     select ?item {
+       include %cands .
+       ?candidate owl:sameAs ?item .
+       ?item wikibase:sitelinks [] .
+     }
+   }
+}""" .

@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-98c638e58a35bdb25cc33ea355093c38> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q22723716>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:company>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q22723716>
 
 SELECT 
   ?subjects
@@ -33,9 +42,64 @@ WHERE {
   ?company wdt:P31 ?company_type .
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }
 }
+ORDER BY DESC(?subjects)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q22723716>
+
+SELECT 
+  ?subjects
+
+  ?company ?companyLabel
+  (CONCAT(\"#company/\", SUBSTR(STR(?company), 32)) AS ?companyUrl)
+
+  ?example_subject ?example_subjectLabel
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(?subject) AS ?subjects)
+    ?company
+    (SAMPLE(?subject) AS ?example_subject)
+  WHERE {
+    ?subject ?property target: , ?company .
+    ?property_item wikibase:directClaim ?property .
+    FILTER (?company != target:)
+  }
+  GROUP BY ?company
+}
+  VALUES ?company_type { wd:Q43229 wd:Q157031 wd:Q4830453 }
+  ?company wdt:P31 ?company_type .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }
+}
 ORDER BY DESC(?subjects)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:company>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q22723716>
+
+SELECT 
+  ?subjects
+
+  ?company ?companyLabel
+  (CONCAT(\"#company/\", SUBSTR(STR(?company), 32)) AS ?companyUrl)
+
+  ?example_subject ?example_subjectLabel
+WITH {
+  SELECT 
+    (COUNT(?subject) AS ?subjects)
+    ?company
+    (SAMPLE(?subject) AS ?example_subject)
+  WHERE {
+    ?subject ?property target: , ?company .
+    ?property_item wikibase:directClaim ?property .
+    FILTER (?company != target:)
+  }
+  GROUP BY ?company
+} AS %others
+WHERE {
+  INCLUDE %others
+  VALUES ?company_type { wd:Q43229 wd:Q157031 wd:Q4830453 }
+  ?company wdt:P31 ?company_type .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }
+}
+ORDER BY DESC(?subjects)""" .

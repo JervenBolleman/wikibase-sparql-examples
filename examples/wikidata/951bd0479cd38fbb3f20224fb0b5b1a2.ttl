@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-951bd0479cd38fbb3f20224fb0b5b1a2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?author ?authorQID ?dob ?dod ?field ?description with 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?item ?author ?authorQID ?dob ?dod ?field ?description with 
 { 
   select (sample(?it) as ?item) ?author ?description (sample(?aut3) as ?authorQID) (group_concat(distinct ?fiel;separator=\", \") as ?field) ?dob ?dod
 WHERE 
@@ -35,8 +44,32 @@ where
           UNION
 {  include %j }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/02>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?author ?authorQID ?dob ?dod ?field ?description with 
+{ 
+  select (sample(?it) as ?item) ?author ?description (sample(?aut3) as ?authorQID) (group_concat(distinct ?fiel;separator=\", \") as ?field) ?dob ?dod
+WHERE 
+{
+  ?it wdt:P1433 wd:Q35387261. # article was published in costume
+  ?it wdt:P50 ?aut . # here's an author
+  bind(strafter(str(?aut),\"http://www.wikidata.org/entity/\") as ?aut2)
+  BIND (CONCAT (\"[http://www.wikidata.org/entity/\", ?aut2, \" \", ?aut2,\"]\") as ?aut3) .
+  optional {?aut wdt:P569 ?dob .}
+  optional {?aut wdt:P570 ?dod .}
+  optional {?aut wdt:P101 ?fi . ?fi rdfs:label ?fiel . filter(lang(?fiel)=\"en\")} 
+  optional {?aut rdfs:label ?author .  filter(lang(?author)=\"en\")} 
+  optional {?aut schema:description ?description .  filter(lang(?description)=\"en\")} 
+} group by ?author ?dob ?dod ?description
+} as %i with 
+{ 
+  select (sample(?it) as ?item) ?author ?authorQID ?field ?dob ?dod ?description WHERE 
+  {
+    ?it wdt:P1433 wd:Q35387261. # article was published in costume
+    ?it wdt:P2093 ?author . # here's an author (without a Wikidata object)
+  } group by ?author ?authorQID ?field ?dob ?dod ?description
+} as %j
+where
+{
+{  include %i}
+          UNION
+{  include %j }
+}""" .

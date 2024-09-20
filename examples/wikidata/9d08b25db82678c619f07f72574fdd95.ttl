@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-9d08b25db82678c619f07f72574fdd95> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:actor-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
   ?awards
   ?actor
   ?actorLabel
@@ -28,9 +37,54 @@ WHERE {
   INCLUDE %actors
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?awards)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
+  ?awards
+  ?actor
+  ?actorLabel
+  (CONCAT(\"#actor/\", SUBSTR(STR(?actor), 32)) AS ?actorUrl)
+  ?actorDescription
+
+WHERE {
+  {
+  SELECT
+    (COUNT(*) AS ?awards)
+    ?actor
+  WHERE {
+    ?actor wdt:P166 [] .
+    FILTER EXISTS { ?actor wdt:P106 wd:Q33999 }
+  }
+  GROUP BY ?actor
+  ORDER BY DESC(?awards)
+  LIMIT 200
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?awards)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:actor-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT 
+  ?awards
+  ?actor
+  ?actorLabel
+  (CONCAT(\"#actor/\", SUBSTR(STR(?actor), 32)) AS ?actorUrl)
+  ?actorDescription
+WITH {
+  SELECT
+    (COUNT(*) AS ?awards)
+    ?actor
+  WHERE {
+    ?actor wdt:P166 [] .
+    FILTER EXISTS { ?actor wdt:P106 wd:Q33999 }
+  }
+  GROUP BY ?actor
+  ORDER BY DESC(?awards)
+  LIMIT 200
+} AS %actors
+WHERE {
+  INCLUDE %actors
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?awards)""" .

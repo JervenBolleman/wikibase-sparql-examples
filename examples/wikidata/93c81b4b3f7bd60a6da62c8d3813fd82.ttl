@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-93c81b4b3f7bd60a6da62c8d3813fd82> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?letter ?count (?count / ?total * 100 AS ?pct)
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?letter ?count (?count / ?total * 100 AS ?pct)
 WITH
 {
   SELECT ?letter (COUNT(*) AS ?count)
@@ -37,9 +47,87 @@ WHERE
   INCLUDE %letters
   INCLUDE %total
 }
+ORDER BY DESC(?count)""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?letter ?count (?count / ?total * 100 AS ?pct)
+
+WITH
+{
+  SELECT (SUM(?count) AS ?total)
+  WHERE
+  {
+    {
+  SELECT ?letter (COUNT(*) AS ?count)
+  WHERE
+  {
+    ?item wdt:P31 wd:Q5 . # Humans
+    ?item wdt:P27 wd:Q38 . # Italians
+   # ?item wdt:P21 wd:Q6581097 . # male
+    ?item wdt:P21 wd:Q6581072 . # female
+    ?item p:P735 ?name_statement . # Given name
+    ?name_statement ps:P735 / wdt:P1705 ?name . # Native label for name
+    OPTIONAL { ?name_statement pq:P1545 ?ordinal . }
+    FILTER (! BOUND(?ordinal) || ?ordinal = \"1\") # Use the only name (no ordinal value) or name #1
+    BIND (SUBSTR(STR(?name), STRLEN(?name)) AS ?letter)
+  }
+  GROUP BY ?letter
+}
+  }
+} AS %total
+WHERE
+{
+  {
+  SELECT ?letter (COUNT(*) AS ?count)
+  WHERE
+  {
+    ?item wdt:P31 wd:Q5 . # Humans
+    ?item wdt:P27 wd:Q38 . # Italians
+   # ?item wdt:P21 wd:Q6581097 . # male
+    ?item wdt:P21 wd:Q6581072 . # female
+    ?item p:P735 ?name_statement . # Given name
+    ?name_statement ps:P735 / wdt:P1705 ?name . # Native label for name
+    OPTIONAL { ?name_statement pq:P1545 ?ordinal . }
+    FILTER (! BOUND(?ordinal) || ?ordinal = \"1\") # Use the only name (no ordinal value) or name #1
+    BIND (SUBSTR(STR(?name), STRLEN(?name)) AS ?letter)
+  }
+  GROUP BY ?letter
+}
+  INCLUDE %total
+}
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/09>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?letter ?count (?count / ?total * 100 AS ?pct)
+WITH
+{
+  SELECT ?letter (COUNT(*) AS ?count)
+  WHERE
+  {
+    ?item wdt:P31 wd:Q5 . # Humans
+    ?item wdt:P27 wd:Q38 . # Italians
+   # ?item wdt:P21 wd:Q6581097 . # male
+    ?item wdt:P21 wd:Q6581072 . # female
+    ?item p:P735 ?name_statement . # Given name
+    ?name_statement ps:P735 / wdt:P1705 ?name . # Native label for name
+    OPTIONAL { ?name_statement pq:P1545 ?ordinal . }
+    FILTER (! BOUND(?ordinal) || ?ordinal = \"1\") # Use the only name (no ordinal value) or name #1
+    BIND (SUBSTR(STR(?name), STRLEN(?name)) AS ?letter)
+  }
+  GROUP BY ?letter
+} AS %letters
+WITH
+{
+  SELECT (SUM(?count) AS ?total)
+  WHERE
+  {
+    INCLUDE %letters
+  }
+} AS %total
+WHERE
+{
+  INCLUDE %letters
+  INCLUDE %total
+}
+ORDER BY DESC(?count)""" .

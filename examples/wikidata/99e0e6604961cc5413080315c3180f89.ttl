@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-99e0e6604961cc5413080315c3180f89> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?item ?itemLabel ?rgb ?link ?linkLabel 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?rgb ?link ?linkLabel 
 WITH {
   SELECT DISTINCT ?item ?itemLabel ?link ?toggle
   WHERE {
@@ -29,9 +39,57 @@ WHERE {
   # The idea is to highlight DBs linked from Wikidata, but that does not seem to work
   BIND(IF(BOUND(?property),\"FFA500\",\"\") AS ?rgb)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+}""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?rgb ?link ?linkLabel 
+
+WHERE {
+  {
+  SELECT DISTINCT ?item ?itemLabel ?link ?toggle
+  WHERE {
+    VALUES ?toggle {
+      \"true\"^^xsd:boolean
+      \"false\"^^xsd:boolean
+    }
+    ?item1 wdt:P31/wdt:P279* wd:Q55341040;
+      wdt:P10568 ?item2.
+
+    BIND(IF(?toggle, ?item1, ?item2) AS ?item)
+    BIND(IF(?toggle, \"\", ?item1) AS ?link)
+  }
+}
+  OPTIONAL {
+    ?item wdt:P1687 ?property.
+  }
+  # The idea is to highlight DBs linked from Wikidata, but that does not seem to work
+  BIND(IF(BOUND(?property),\"FFA500\",\"\") AS ?rgb)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/11>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?itemLabel ?rgb ?link ?linkLabel 
+WITH {
+  SELECT DISTINCT ?item ?itemLabel ?link ?toggle
+  WHERE {
+    VALUES ?toggle {
+      \"true\"^^xsd:boolean
+      \"false\"^^xsd:boolean
+    }
+    ?item1 wdt:P31/wdt:P279* wd:Q55341040;
+      wdt:P10568 ?item2.
+
+    BIND(IF(?toggle, ?item1, ?item2) AS ?item)
+    BIND(IF(?toggle, \"\", ?item1) AS ?link)
+  }
+} AS %items
+WHERE {
+  INCLUDE %items
+  OPTIONAL {
+    ?item wdt:P1687 ?property.
+  }
+  # The idea is to highlight DBs linked from Wikidata, but that does not seem to work
+  BIND(IF(BOUND(?property),\"FFA500\",\"\") AS ?rgb)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+}""" .

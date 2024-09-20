@@ -6,7 +6,19 @@
 
 <https://www.wikidata.org/#query-92987a2db834c0732968be31a9b2f271> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?paper ?paperLabel ?count
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?paper ?paperLabel ?count
 WITH {
   SELECT ?paper WHERE {  
      ?paper wdt:P31 wd:Q13442814.
@@ -24,8 +36,21 @@ WHERE {
    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }                  
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/03>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?paper ?paperLabel ?count
+WITH {
+  SELECT ?paper WHERE {  
+     ?paper wdt:P31 wd:Q13442814.
+     ?paper p:P2093/pq:P1545 \"1000\" .
+  }
+} AS %papers 
+WITH {
+  SELECT ?paper (MAX(xsd:integer(?val)) AS ?count) WHERE {
+     INCLUDE %papers .
+     ?paper p:P2093/pq:P1545 ?val .
+  } GROUP BY ?paper 
+} AS %author_count
+WHERE {
+   INCLUDE %author_count .
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}                  
+ORDER BY DESC(?count)""" .

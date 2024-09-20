@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-91f1fcb72b254c03350adcd9acf28936> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# items with most MusicBrainz IDs
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/items_with_most_MusicBrainz_IDs>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# items with most MusicBrainz IDs
 SELECT ?item ?itemLabel ?itemDescription ?propertyLabel ?count ?hasSingleValueConstraint WITH {
   SELECT ?item ?property (COUNT(?musicBrainzIdStatement) AS ?count) WHERE {
     ?property a wikibase:Property;
@@ -22,9 +31,42 @@ SELECT ?item ?itemLabel ?itemDescription ?propertyLabel ?count ?hasSingleValueCo
   BIND(EXISTS { ?property wdt:P2302 wd:Q19474404. } AS ?hasSingleValueConstraint)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# items with most MusicBrainz IDs
+SELECT ?item ?itemLabel ?itemDescription ?propertyLabel ?count ?hasSingleValueConstraint  WHERE {
+  {
+  SELECT ?item ?property (COUNT(?musicBrainzIdStatement) AS ?count) WHERE {
+    ?property a wikibase:Property;
+              wdt:P2378 wd:Q14005;
+              wikibase:claim ?p.
+    ?item ?p ?musicBrainzIdStatement.
+  }
+  GROUP BY ?item ?property
+  ORDER BY DESC(?count)
+  LIMIT 100
+}.
+  BIND(EXISTS { ?property wdt:P2302 wd:Q19474404. } AS ?hasSingleValueConstraint)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/items_with_most_MusicBrainz_IDs>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """# items with most MusicBrainz IDs
+SELECT ?item ?itemLabel ?itemDescription ?propertyLabel ?count ?hasSingleValueConstraint WITH {
+  SELECT ?item ?property (COUNT(?musicBrainzIdStatement) AS ?count) WHERE {
+    ?property a wikibase:Property;
+              wdt:P2378 wd:Q14005;
+              wikibase:claim ?p.
+    ?item ?p ?musicBrainzIdStatement.
+  }
+  GROUP BY ?item ?property
+  ORDER BY DESC(?count)
+  LIMIT 100
+} AS %results WHERE {
+  INCLUDE %results.
+  BIND(EXISTS { ?property wdt:P2302 wd:Q19474404. } AS ?hasSingleValueConstraint)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?count)""" .

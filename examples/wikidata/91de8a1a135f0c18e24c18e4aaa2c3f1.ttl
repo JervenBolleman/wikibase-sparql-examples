@@ -6,7 +6,21 @@
 
 <https://www.wikidata.org/#query-91de8a1a135f0c18e24c18e4aaa2c3f1> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# population of New York City, including sources
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Project_chat/Archive/2018/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# population of New York City, including sources
 #defaultView:LineChart
 SELECT ?time ?population (\" \" AS ?dummy) ?sources WITH {
   SELECT ?time ?population ?source WHERE {
@@ -37,9 +51,89 @@ SELECT ?time ?population (\" \" AS ?dummy) ?sources WITH {
        REPLACE(?sources_, \"(.*); (.*)\", \"$1; and $2\"), # the first .* is greedy, so this replaces the last ;
        REPLACE(?sources_, \"(.*); (.*)\", \"$1 and $2\"))
     AS ?sources)
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# population of New York City, including sources
+#defaultView:LineChart
+SELECT ?time ?population (\" \" AS ?dummy) ?sources  WITH {
+  SELECT (GROUP_CONCAT(DISTINCT ?sourceLabel; separator = \"; \") AS ?sources_) WHERE {
+    {
+  SELECT ?time ?population ?source WHERE {
+    wd:Q60 p:P1082 [
+      ps:P1082 ?population;
+      pq:P585 ?time;
+      prov:wasDerivedFrom ?reference
+    ].
+    OPTIONAL { ?reference pr:P248 ?statedIn. }
+    OPTIONAL { ?reference pr:P854 ?referenceUrl. }
+    BIND(COALESCE(?statedIn, ?referenceUrl) AS ?source)
+    FILTER(BOUND(?source)) # we don’t want references which have neither “stated in” nor “reference URL”
+  }
+}.
+    SERVICE wikibase:label {
+      bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+      ?source rdfs:label ?sourceLabel.
+    }
+  }
+} AS %sources WHERE {
+  {
+  SELECT ?time ?population ?source WHERE {
+    wd:Q60 p:P1082 [
+      ps:P1082 ?population;
+      pq:P585 ?time;
+      prov:wasDerivedFrom ?reference
+    ].
+    OPTIONAL { ?reference pr:P248 ?statedIn. }
+    OPTIONAL { ?reference pr:P854 ?referenceUrl. }
+    BIND(COALESCE(?statedIn, ?referenceUrl) AS ?source)
+    FILTER(BOUND(?source)) # we don’t want references which have neither “stated in” nor “reference URL”
+  }
+}.
+  INCLUDE %sources.
+  # change “source; source; source” to “source; source; and source”, and “source; source” to “source and source”
+  BIND(
+    IF(REGEX(?sources_, \"; .*;\"),
+       REPLACE(?sources_, \"(.*); (.*)\", \"$1; and $2\"), # the first .* is greedy, so this replaces the last ;
+       REPLACE(?sources_, \"(.*); (.*)\", \"$1 and $2\"))
+    AS ?sources)
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Project_chat/Archive/2018/02>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """# population of New York City, including sources
+#defaultView:LineChart
+SELECT ?time ?population (\" \" AS ?dummy) ?sources WITH {
+  SELECT ?time ?population ?source WHERE {
+    wd:Q60 p:P1082 [
+      ps:P1082 ?population;
+      pq:P585 ?time;
+      prov:wasDerivedFrom ?reference
+    ].
+    OPTIONAL { ?reference pr:P248 ?statedIn. }
+    OPTIONAL { ?reference pr:P854 ?referenceUrl. }
+    BIND(COALESCE(?statedIn, ?referenceUrl) AS ?source)
+    FILTER(BOUND(?source)) # we don’t want references which have neither “stated in” nor “reference URL”
+  }
+} AS %results WITH {
+  SELECT (GROUP_CONCAT(DISTINCT ?sourceLabel; separator = \"; \") AS ?sources_) WHERE {
+    INCLUDE %results.
+    SERVICE wikibase:label {
+      bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+      ?source rdfs:label ?sourceLabel.
+    }
+  }
+} AS %sources WHERE {
+  INCLUDE %results.
+  INCLUDE %sources.
+  # change “source; source; source” to “source; source; and source”, and “source; source” to “source and source”
+  BIND(
+    IF(REGEX(?sources_, \"; .*;\"),
+       REPLACE(?sources_, \"(.*); (.*)\", \"$1; and $2\"), # the first .* is greedy, so this replaces the last ;
+       REPLACE(?sources_, \"(.*); (.*)\", \"$1 and $2\"))
+    AS ?sources)
+}""" .

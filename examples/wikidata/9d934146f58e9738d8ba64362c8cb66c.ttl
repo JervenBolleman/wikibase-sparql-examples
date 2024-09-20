@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-9d934146f58e9738d8ba64362c8cb66c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:actor-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
   ?works
   ?cast_member
   ?cast_memberLabel
@@ -27,9 +35,51 @@ WHERE {
   INCLUDE %cast_members
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?works)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
+  ?works
+  ?cast_member
+  ?cast_memberLabel
+  (CONCAT(\"#actor/\", SUBSTR(STR(?cast_member), 32)) AS ?cast_memberUrl)
+  ?cast_memberDescription
+
+WHERE {
+  {
+  SELECT
+    (COUNT(*) AS ?works)
+    ?cast_member
+  WHERE {
+    [] wdt:P161 ?cast_member .
+  }
+  GROUP BY ?cast_member
+  ORDER BY DESC(?works)
+  LIMIT 100
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?works)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:actor-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT 
+  ?works
+  ?cast_member
+  ?cast_memberLabel
+  (CONCAT(\"#actor/\", SUBSTR(STR(?cast_member), 32)) AS ?cast_memberUrl)
+  ?cast_memberDescription
+WITH {
+  SELECT
+    (COUNT(*) AS ?works)
+    ?cast_member
+  WHERE {
+    [] wdt:P161 ?cast_member .
+  }
+  GROUP BY ?cast_member
+  ORDER BY DESC(?works)
+  LIMIT 100
+} AS %cast_members
+WHERE {
+  INCLUDE %cast_members
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?works)""" .
