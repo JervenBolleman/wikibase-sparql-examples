@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-4b0084222993eef3e613347e6a1a4276> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q9027>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:language-podcast-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q9027>
 
 SELECT
   ?episodes
@@ -30,9 +39,58 @@ WHERE {
   INCLUDE %podcasts
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?episodes)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q9027>
+
+SELECT
+  ?episodes
+
+  ?podcast ?podcastLabel
+  (CONCAT(\"#podcast/\", SUBSTR(STR(?podcast), 32)) AS ?podcastUrl)
+  ?podcastDescription
+
+
+WHERE {
+  {
+  SELECT 
+    (MAX(?episodes_) AS ?episodes)
+    ?podcast
+  WHERE {
+    ?podcast wdt:P31 / wdt:P279* wd:Q24634210 ;
+             wdt:P364| wdt:P407 target:
+    OPTIONAL { ?podcast wdt:P1113 ?episodes_ }
+  }
+  GROUP BY ?podcast
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?episodes)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:language-podcast-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q9027>
+
+SELECT
+  ?episodes
+
+  ?podcast ?podcastLabel
+  (CONCAT(\"#podcast/\", SUBSTR(STR(?podcast), 32)) AS ?podcastUrl)
+  ?podcastDescription
+
+WITH {
+  SELECT 
+    (MAX(?episodes_) AS ?episodes)
+    ?podcast
+  WHERE {
+    ?podcast wdt:P31 / wdt:P279* wd:Q24634210 ;
+             wdt:P364| wdt:P407 target:
+    OPTIONAL { ?podcast wdt:P1113 ?episodes_ }
+  }
+  GROUP BY ?podcast
+} AS %podcasts
+WHERE {
+  INCLUDE %podcasts
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?episodes)""" .

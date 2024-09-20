@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-4062c41a5068e5c0950843f9be575fc2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?person ?personLabel  ?propertyLabel ?film ?filmLabel ?date WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?person ?personLabel  ?propertyLabel ?film ?filmLabel ?date WITH {
   SELECT ?person ?property ?film  (MIN(?date_) as ?date) WHERE { 
   
   { {?item wdt:P179 wd:Q23733.
@@ -29,8 +38,26 @@ WHERE
   ?film wdt:P31/wdt:P279* wd:Q2431196 . hint:Prior hint:gearing \"forward\" . # check that the film is an audiovisual work
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/03>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?person ?personLabel  ?propertyLabel ?film ?filmLabel ?date WITH {
+  SELECT ?person ?property ?film  (MIN(?date_) as ?date) WHERE { 
+  
+  { {?item wdt:P179 wd:Q23733.
+  ?item ?ppredicate ?person .}
+  UNION
+  {wd:Q23733 ?ppredicate ?person .}
+  ?person wdt:P31 wd:Q5 .
+  ?pproperty wikibase:directClaim ?ppredicate .
+  } hint:Prior hint:runFirst true.  # get the people
+  
+  ?film ?predicate ?person .       # get items that mention the person
+  ?property wikibase:directClaim ?predicate .
+ 
+  OPTIONAL {?film wdt:P577 ?date_ . } # get the publication date
+                                      # which we aggregate above to get the minimum date
+ } GROUP BY ?person ?property ?film  } as %i
+WHERE
+{
+  INCLUDE %i
+  ?film wdt:P31/wdt:P279* wd:Q2431196 . hint:Prior hint:gearing \"forward\" . # check that the film is an audiovisual work
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+}""" .

@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-464d17c0db0819d968139e27bdbccb90> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target: <http://www.wikidata.org/prop/direct/P407>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/prop/direct/P407>
 
 SELECT ?count ?Language ?LanguageLabel 
 WITH {
@@ -22,9 +31,42 @@ WHERE {
   INCLUDE %result
   SERVICE wikibase:label { bd:serviceParam wikibase:language  \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" . }
 }
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/prop/direct/P407>
+
+SELECT ?count ?Language ?LanguageLabel 
+
+WHERE {
+  {
+  SELECT (COUNT(?s) AS ?count) ?Language WHERE {
+    ?s target: ?Language .
+    ?s wdt:P6104 wd:Q56241615 .
+  }
+  GROUP BY ?Language
+  ORDER BY DESC(?count)
+  LIMIT 100
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language  \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" . }
+}
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/prop/direct/P407>
+
+SELECT ?count ?Language ?LanguageLabel 
+WITH {
+  SELECT (COUNT(?s) AS ?count) ?Language WHERE {
+    ?s target: ?Language .
+    ?s wdt:P6104 wd:Q56241615 .
+  }
+  GROUP BY ?Language
+  ORDER BY DESC(?count)
+  LIMIT 100
+} AS %result
+WHERE {
+  INCLUDE %result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language  \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" . }
+}
+ORDER BY DESC(?count)""" .

@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-4562660c38b5127f4a0c599b17612558> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#Display villages within the specific radius from a specific place
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Juandev/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#Display villages within the specific radius from a specific place
 SELECT ?place ?placeLabel ?plwp ?location WITH {
   SELECT ?place (SAMPLE(?location) AS ?location) {
   wd:Q6895050 wdt:P625 ?polvillLoc .
@@ -22,9 +32,43 @@ SELECT ?place ?placeLabel ?plwp ?location WITH {
   include %i
   OPTIONAL { ?plwp schema:about ?place; schema:isPartOf <https://pl.wikipedia.org/> . }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],pl,cs,de\". }
+ }""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#Display villages within the specific radius from a specific place
+SELECT ?place ?placeLabel ?plwp ?location  WHERE {
+  {
+  SELECT ?place (SAMPLE(?location) AS ?location) {
+  wd:Q6895050 wdt:P625 ?polvillLoc .
+  SERVICE wikibase:around {
+    ?place wdt:P625 ?location.
+    bd:serviceParam wikibase:center ?polvillLoc;
+      wikibase:radius \"55\".
+  }
+  ?place wdt:P31 wd:Q55488 .
+ }
+ GROUP BY ?place
+ }
+  OPTIONAL { ?plwp schema:about ?place; schema:isPartOf <https://pl.wikipedia.org/> . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],pl,cs,de\". }
  }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Juandev/Queries>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#Display villages within the specific radius from a specific place
+SELECT ?place ?placeLabel ?plwp ?location WITH {
+  SELECT ?place (SAMPLE(?location) AS ?location) {
+  wd:Q6895050 wdt:P625 ?polvillLoc .
+  SERVICE wikibase:around {
+    ?place wdt:P625 ?location.
+    bd:serviceParam wikibase:center ?polvillLoc;
+      wikibase:radius \"55\".
+  }
+  ?place wdt:P31 wd:Q55488 .
+ }
+ GROUP BY ?place
+ } AS %i WHERE {
+  include %i
+  OPTIONAL { ?plwp schema:about ?place; schema:isPartOf <https://pl.wikipedia.org/> . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],pl,cs,de\". }
+ }""" .

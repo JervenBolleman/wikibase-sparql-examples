@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-404cc5a689951906f5d3818bd9ea167e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#shows files that depict athletics competitors
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+#shows files that depict athletics competitors
 #defaultView:ImageGrid
 SELECT ?file ?image
 WITH
@@ -27,9 +36,51 @@ WHERE
   ?file schema:contentUrl ?url .
   ?file wdt:P6731 wd:Q63348040 .
   BIND(IRI(CONCAT(\"http://commons.wikimedia.org/wiki/Special:FilePath/\", wikibase:decodeUri(SUBSTR(STR(?url),53)))) AS ?image)
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+#shows files that depict athletics competitors
+#defaultView:ImageGrid
+SELECT ?file ?image
+
+WHERE
+{
+  {
+  SELECT ?item
+  WHERE
+  {
+    SERVICE <https://query.wikidata.org/sparql>
+    {
+      ?item wdt:P106 wd:Q11513337 .
+    }
+  }
+}
+  ?file wdt:P180 ?item .
+  ?file schema:contentUrl ?url .
+  ?file wdt:P6731 wd:Q63348040 .
+  BIND(IRI(CONCAT(\"http://commons.wikimedia.org/wiki/Special:FilePath/\", wikibase:decodeUri(SUBSTR(STR(?url),53)))) AS ?image)
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/10>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#shows files that depict athletics competitors
+#defaultView:ImageGrid
+SELECT ?file ?image
+WITH
+{
+  SELECT ?item
+  WHERE
+  {
+    SERVICE <https://query.wikidata.org/sparql>
+    {
+      ?item wdt:P106 wd:Q11513337 .
+    }
+  }
+} AS %get_items
+WHERE
+{
+  INCLUDE %get_items
+  ?file wdt:P180 ?item .
+  ?file schema:contentUrl ?url .
+  ?file wdt:P6731 wd:Q63348040 .
+  BIND(IRI(CONCAT(\"http://commons.wikimedia.org/wiki/Special:FilePath/\", wikibase:decodeUri(SUBSTR(STR(?url),53)))) AS ?image)
+}""" .

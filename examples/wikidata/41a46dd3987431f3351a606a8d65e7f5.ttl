@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-41a46dd3987431f3351a606a8d65e7f5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX ag: <http://data.ordnancesurvey.co.uk/ontology/admingeo/>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX ag: <http://data.ordnancesurvey.co.uk/ontology/admingeo/>
 PREFIX sr: <http://data.ordnancesurvey.co.uk/ontology/spatialrelations/>
 SELECT ?item ?itemLabel ?adjacentItem ?adjacentItemLabel
 WITH
@@ -29,9 +38,55 @@ WHERE
   BIND(SUBSTR(STR(?adjacent),37,16) AS ?adjacentTOID)
   ?adjacentItem wdt:P3120 ?adjacentTOID.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX ag: <http://data.ordnancesurvey.co.uk/ontology/admingeo/>
+PREFIX sr: <http://data.ordnancesurvey.co.uk/ontology/spatialrelations/>
+SELECT ?item ?itemLabel ?adjacentItem ?adjacentItemLabel
+
+WHERE
+{
+  {
+  SELECT ?item ?adjacent
+  WHERE
+  {
+    ?item wdt:P31 wd:Q27971968.
+    ?item wdt:P3120 ?TOID.
+    BIND(SUBSTR(?TOID,12,5) AS ?unitID)
+    SERVICE <http://data.ordnancesurvey.co.uk/datasets/os-linked-data/apis/sparql>
+    {
+      [] ag:hasUnitID ?unitID; sr:touches ?adjacent.
+    }
+  }
+}
+  BIND(SUBSTR(STR(?adjacent),37,16) AS ?adjacentTOID)
+  ?adjacentItem wdt:P3120 ?adjacentTOID.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/02>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX ag: <http://data.ordnancesurvey.co.uk/ontology/admingeo/>
+PREFIX sr: <http://data.ordnancesurvey.co.uk/ontology/spatialrelations/>
+SELECT ?item ?itemLabel ?adjacentItem ?adjacentItemLabel
+WITH
+{
+  SELECT ?item ?adjacent
+  WHERE
+  {
+    ?item wdt:P31 wd:Q27971968.
+    ?item wdt:P3120 ?TOID.
+    BIND(SUBSTR(?TOID,12,5) AS ?unitID)
+    SERVICE <http://data.ordnancesurvey.co.uk/datasets/os-linked-data/apis/sparql>
+    {
+      [] ag:hasUnitID ?unitID; sr:touches ?adjacent.
+    }
+  }
+} AS %federated_subquery
+WHERE
+{
+  INCLUDE %federated_subquery
+  BIND(SUBSTR(STR(?adjacent),37,16) AS ?adjacentTOID)
+  ?adjacentItem wdt:P3120 ?adjacentTOID.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}""" .

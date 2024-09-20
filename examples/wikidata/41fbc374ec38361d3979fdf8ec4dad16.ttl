@@ -6,7 +6,20 @@
 
 <https://www.wikidata.org/#query-41fbc374ec38361d3979fdf8ec4dad16> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# ?item1 is the imported one
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Bargioni>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX p: <http://www.wikidata.org/prop/>
+# ?item1 is the imported one
 # ?item2 is human and sitelink to ruwiki
 # ?item1 and ?item2 are born the same date
 SELECT DISTINCT ?item1 ?label_en ?birthyear ?deathyear ?item2 ?label_ru
@@ -40,9 +53,81 @@ WHERE
   ?item2 rdfs:label ?label_ru.
   FILTER (LANG(?label_ru) = \"ru\")
 }
+ORDER BY ?label_en ?label_ru""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX p: <http://www.wikidata.org/prop/>
+# ?item1 is the imported one
+# ?item2 is human and sitelink to ruwiki
+# ?item1 and ?item2 are born the same date
+SELECT DISTINCT ?item1 ?label_en ?birthyear ?deathyear ?item2 ?label_ru
+
+WHERE
+{
+  {
+  SELECT ?item1 ?FAST_ID ?label_en
+  WHERE
+  {
+    #VALUES ?item1 { wd:??? } .
+    ?item1 p:P214 [ps:P214 ?viaf ; prov:wasDerivedFrom [pr:P248 wd:Q3294867] ] .
+    ?item1 rdfs:label ?label_en .
+    FILTER(LANG(?label_en) = \"en\")
+    FILTER(CONTAINS(?label_en,\"vich\"))
+  }
+  #LIMIT 20
+}
+  ?item1 wdt:P569 ?birth.
+  ?item2 wdt:P569 ?birth.
+  BIND(str(YEAR(?birth)) AS ?birthyear)
+  ?item1 wdt:P570 ?death.
+  ?item2 wdt:P570 ?death.
+  BIND(str(YEAR(?death)) AS ?deathyear)
+  FILTER (?item1 != ?item2)
+  ?item2 wdt:P31 wd:Q5.
+  ?ruwiki_sitelink schema:about ?item2 .
+  ?ruwiki_sitelink schema:isPartOf <https://ru.wikipedia.org/>.
+  { ?item2 wdt:P27 wd:Q159. } UNION { ?item2 wdt:P27 wd:Q15180 . } UNION { ?item2 wdt:P27 wd:Q34266 . }
+  ?item2 rdfs:label ?label_ru.
+  FILTER (LANG(?label_ru) = \"ru\")
+}
 ORDER BY ?label_en ?label_ru""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Bargioni>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """# ?item1 is the imported one
+# ?item2 is human and sitelink to ruwiki
+# ?item1 and ?item2 are born the same date
+SELECT DISTINCT ?item1 ?label_en ?birthyear ?deathyear ?item2 ?label_ru
+WITH
+{
+  SELECT ?item1 ?FAST_ID ?label_en
+  WHERE
+  {
+    #VALUES ?item1 { wd:??? } .
+    ?item1 p:P214 [ps:P214 ?viaf ; prov:wasDerivedFrom [pr:P248 wd:Q3294867] ] .
+    ?item1 rdfs:label ?label_en .
+    FILTER(LANG(?label_en) = \"en\")
+    FILTER(CONTAINS(?label_en,\"vich\"))
+  }
+  #LIMIT 20
+} AS %get_humans_with_FAST_ID
+WHERE
+{
+  INCLUDE %get_humans_with_FAST_ID
+  ?item1 wdt:P569 ?birth.
+  ?item2 wdt:P569 ?birth.
+  BIND(str(YEAR(?birth)) AS ?birthyear)
+  ?item1 wdt:P570 ?death.
+  ?item2 wdt:P570 ?death.
+  BIND(str(YEAR(?death)) AS ?deathyear)
+  FILTER (?item1 != ?item2)
+  ?item2 wdt:P31 wd:Q5.
+  ?ruwiki_sitelink schema:about ?item2 .
+  ?ruwiki_sitelink schema:isPartOf <https://ru.wikipedia.org/>.
+  { ?item2 wdt:P27 wd:Q159. } UNION { ?item2 wdt:P27 wd:Q15180 . } UNION { ?item2 wdt:P27 wd:Q34266 . }
+  ?item2 rdfs:label ?label_ru.
+  FILTER (LANG(?label_ru) = \"ru\")
+}
+ORDER BY ?label_en ?label_ru""" .

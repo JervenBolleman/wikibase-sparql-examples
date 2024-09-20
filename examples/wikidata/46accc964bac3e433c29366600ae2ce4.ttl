@@ -35,4 +35,36 @@ WHERE {
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/10>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+CONSTRUCT {
+  ?place a skos:Concept; 
+  		   skos:prefLabel ?placeLabel;
+           skos:exactMatch ?osgeo;
+           skos:exactMatch ?tgn;
+           skos:exactMatch ?geonames ;
+           skos:exactMatch ?pleiades ;
+           dct:coverage ?coord .
+}
+WHERE {
+  ?place wdt:P1667 \"7015539\" .
+  OPTIONAL {?place wdt:P3120 ?osgeoid .
+  	BIND (uri(concat(\"http://data.ordnancesurvey.co.uk/id/\", ?osgeoid)) as ?osgeo)
+  }
+  OPTIONAL {?place wdt:P1667 ?tgnid .
+  	BIND (uri(concat(\"http://vocab.getty.edu/tgn/\", ?tgnid)) as ?tgn)}
+  OPTIONAL {?place wdt:P1584 ?pleiadesid .
+  	BIND (uri(concat(\"https://pleiades.stoa.org/places/\", ?pleiadesid)) as ?pleiades)}
+  OPTIONAL {?place p:P625/ps:P625 ?coord}
+  SERVICE wikibase:label {
+	bd:serviceParam wikibase:language \"en\"
+  }
+  OPTIONAL {?place wdt:P1566 ?geonamesid .
+  	BIND (uri(concat(\"http://sws.geonames.org/\", ?geonamesid, \"/\")) as ?geonames)}
+}""" .

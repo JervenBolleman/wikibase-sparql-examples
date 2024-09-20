@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-475423379908033effffae3f71504ca3> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# List of all properties newer than the number in line 13,
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:Status_updates/Next/Archive_1>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+# List of all properties newer than the number in line 13,
 # split up between external identifiers and all other properties.
 # For the weekly summary, adjust the number in line 13 to the highest number mentioned in the last weekly summary,
 # run the query and paste the results into the summary.
@@ -40,8 +49,37 @@ SELECT ?identifierProperties ?otherProperties WITH {
   INCLUDE %identifierProperties.
   INCLUDE %otherProperties.
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:Status_updates/Next/Archive_1>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """# List of all properties newer than the number in line 13,
+# split up between external identifiers and all other properties.
+# For the weekly summary, adjust the number in line 13 to the highest number mentioned in the last weekly summary,
+# run the query and paste the results into the summary.
+# (Note: results should hopefully be ordered, but this is not guaranteed.
+# In particular, it’s possible that the order flips from ascending to descending
+# if something about the way the query is optimized changes.)
+SELECT ?identifierProperties ?otherProperties WITH {
+  SELECT ?property ?propertyId ?label WHERE {
+    ?property a wikibase:Property.
+    BIND(SUBSTR(STR(?property), STRLEN(STR(wd:)) + 1) AS ?propertyId)
+    BIND(xsd:integer(SUBSTR(?propertyId, 2)) AS ?propertyNumber)
+    FILTER(?propertyNumber > 4721)
+    OPTIONAL {
+      ?property rdfs:label ?labelEn.
+      FILTER(LANG(?labelEn) = \"en\")
+    }
+    BIND(COALESCE(?labelEn, \"no label\"@en) AS ?label)
+  }
+  ORDER BY DESC(?propertyNumber)
+} AS %results WITH {
+  SELECT (GROUP_CONCAT(CONCAT(\"[[:d:Property:\", ?propertyId, \"|\", ?label, \"]]\"); separator = \", \") AS ?identifierProperties) WHERE {
+    INCLUDE %results.
+    ?property wikibase:propertyType wikibase:ExternalId.
+  }
+} AS %identifierProperties WITH {
+  SELECT (GROUP_CONCAT(CONCAT(\"[[:d:Property:\", ?propertyId, \"|\", ?label, \"]]\"); separator = \", \") AS ?otherProperties) WHERE {
+    INCLUDE %results.
+    MINUS { ?property wikibase:propertyType wikibase:ExternalId. }
+  }
+} AS %otherProperties WHERE {
+  INCLUDE %identifierProperties.
+  INCLUDE %otherProperties.
+}""" .

@@ -6,7 +6,13 @@
 
 <https://www.wikidata.org/#query-46dfb1d3b4a942e29391912900e8c940> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?institution (MIN(?total) AS ?_) (COUNT(*) AS ?row_number)
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+SELECT ?institution (MIN(?total) AS ?_) (COUNT(*) AS ?row_number)
  WITH {
   SELECT ?institution  (COUNT(?item) AS ?total) {
     ?item wdt:P485 ?institution .
@@ -18,8 +24,15 @@
    {SELECT (?institution AS ?institution_) (?total AS ?total_) { INCLUDE %query } }
     FILTER (?total < ?total_  || ?total = ?total_  && str(?institution) <= str(?institution_) )
 } GROUP BY ?institution ORDER BY ?row_number""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/03>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?institution (MIN(?total) AS ?_) (COUNT(*) AS ?row_number)
+ WITH {
+  SELECT ?institution  (COUNT(?item) AS ?total) {
+    ?item wdt:P485 ?institution .
+    OPTIONAL {?institution wdt:P17 ?pays .}
+  }
+  GROUP BY ?institution HAVING (?total > 20) 
+} AS %query {
+   {SELECT * { INCLUDE %query } }
+   {SELECT (?institution AS ?institution_) (?total AS ?total_) { INCLUDE %query } }
+    FILTER (?total < ?total_  || ?total = ?total_  && str(?institution) <= str(?institution_) )
+} GROUP BY ?institution ORDER BY ?row_number""" .

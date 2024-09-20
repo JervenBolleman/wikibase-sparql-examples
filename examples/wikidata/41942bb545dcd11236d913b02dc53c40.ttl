@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-41942bb545dcd11236d913b02dc53c40> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:exhibition-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
   ?exhibitions
   (CONCAT(\"#country/\", SUBSTR(STR(?country), 32), \"/exhibition\") AS ?exhibitionsUrl)
 
@@ -30,9 +39,58 @@ WHERE {
   INCLUDE %countries
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en,cz,da,de,es,fi,fr,nb,nn,sv,zh\". }
 }
+ORDER BY DESC(?exhibitions)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
+  ?exhibitions
+  (CONCAT(\"#country/\", SUBSTR(STR(?country), 32), \"/exhibition\") AS ?exhibitionsUrl)
+
+  ?country ?countryLabel
+  (CONCAT(\"#country/\", SUBSTR(STR(?country), 32)) AS ?countryUrl)
+
+  ?example_exhibition ?example_exhibitionLabel
+  (CONCAT(\"#exhibition/\", SUBSTR(STR(?example_exhibition), 32)) AS ?example_exhibitionUrl)
+
+WHERE {
+  {
+  SELECT
+    (COUNT(?exhibition) AS ?exhibitions)
+    ?country
+    (SAMPLE(?exhibition) AS ?example_exhibition)
+  WHERE {
+    ?exhibition wdt:P31 / wdt:P279* wd:Q464980 ;
+                wdt:P17 ?country .
+  }
+  GROUP BY ?country
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en,cz,da,de,es,fi,fr,nb,nn,sv,zh\". }
+}
 ORDER BY DESC(?exhibitions)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:exhibition-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT 
+  ?exhibitions
+  (CONCAT(\"#country/\", SUBSTR(STR(?country), 32), \"/exhibition\") AS ?exhibitionsUrl)
+
+  ?country ?countryLabel
+  (CONCAT(\"#country/\", SUBSTR(STR(?country), 32)) AS ?countryUrl)
+
+  ?example_exhibition ?example_exhibitionLabel
+  (CONCAT(\"#exhibition/\", SUBSTR(STR(?example_exhibition), 32)) AS ?example_exhibitionUrl)
+WITH {
+  SELECT
+    (COUNT(?exhibition) AS ?exhibitions)
+    ?country
+    (SAMPLE(?exhibition) AS ?example_exhibition)
+  WHERE {
+    ?exhibition wdt:P31 / wdt:P279* wd:Q464980 ;
+                wdt:P17 ?country .
+  }
+  GROUP BY ?country
+} AS %countries
+WHERE {
+  INCLUDE %countries
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en,cz,da,de,es,fi,fr,nb,nn,sv,zh\". }
+}
+ORDER BY DESC(?exhibitions)""" .

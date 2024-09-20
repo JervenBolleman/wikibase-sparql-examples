@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-4bc8d5afb6f31d59e51c77a05dd8ffb8> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/1/17>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
   ?property
   ?propertyLabel
   ?node
@@ -52,8 +60,49 @@ WITH {
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\"}.
 }
 ORDER BY DESC(?max)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/1/17>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT
+  ?property
+  ?propertyLabel
+  ?node
+  ?max
+WITH {
+  SELECT ?property ?node ?qualifier ?rank {
+    ?property
+      a wikibase:Property;
+      p:P2302 ?node.
+    ?node
+      ?qualifier [];
+      wikibase:rank ?rank.
+     [] wikibase:qualifier ?qualifier.
+  }
+} AS %0
+WITH {
+  SELECT ?property ?node ?qualifier {
+    INCLUDE %0.
+    VALUES ?rank {
+      wikibase:PreferredRank
+      wikibase:NormalRank
+    }
+  }
+} AS %1
+WITH {
+  SELECT ?property ?node (COUNT(*) AS ?count) {
+    INCLUDE %1.
+  }
+  GROUP BY ?property ?node
+} AS %2
+WITH {
+  SELECT
+    ?property
+    ?node
+    (MAX(?count) AS ?max)
+  {
+    INCLUDE %2.
+  }
+  GROUP BY ?property ?node
+} AS %3
+{
+  INCLUDE %3.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\"}.
+}
+ORDER BY DESC(?max)""" .

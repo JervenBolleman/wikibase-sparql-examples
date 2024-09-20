@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-48e829fbf624adb429e8a3538a3c152e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?language (COUNT (?page) AS ?count) 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_COVID-19/Queries/SPARQL_Study>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+SELECT ?language (COUNT (?page) AS ?count) 
 WITH {
   SELECT DISTINCT ?item WHERE {
     { ?item wdt:P699 ?DO_ID .}
@@ -33,9 +42,63 @@ WHERE {
   ?page schema:inLanguage ?language
 }
 GROUP BY ?language
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+SELECT ?language (COUNT (?page) AS ?count) 
+
+WHERE {
+  {
+  SELECT DISTINCT ?item WHERE {
+    { ?item wdt:P699 ?DO_ID .}
+    UNION
+    { ?item wdt:P31*/wdt:P279* wd:Q11190 }
+    UNION  {
+      ?item wdt:P31*/wdt:P279* wd:Q12136 .
+    }
+    UNION {
+      ?item wdt:P31*/wdt:P279* wd:Q796194 .
+    }
+    UNION {
+      ?item wdt:P31*/wdt:P279* wd:Q12140 .
+    }
+  }
+  LIMIT 100000
+}
+  ?wikipedia wikibase:wikiGroup \"wikipedia\".
+  ?page  	schema:about ?item ;
+			schema:isPartOf ?wikipedia .
+  ?page schema:inLanguage ?language
+}
+GROUP BY ?language
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_COVID-19/Queries/SPARQL_Study>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?language (COUNT (?page) AS ?count) 
+WITH {
+  SELECT DISTINCT ?item WHERE {
+    { ?item wdt:P699 ?DO_ID .}
+    UNION
+    { ?item wdt:P31*/wdt:P279* wd:Q11190 }
+    UNION  {
+      ?item wdt:P31*/wdt:P279* wd:Q12136 .
+    }
+    UNION {
+      ?item wdt:P31*/wdt:P279* wd:Q796194 .
+    }
+    UNION {
+      ?item wdt:P31*/wdt:P279* wd:Q12140 .
+    }
+  }
+  LIMIT 100000
+}
+AS %items
+WHERE {
+  INCLUDE %items
+  ?wikipedia wikibase:wikiGroup \"wikipedia\".
+  ?page  	schema:about ?item ;
+			schema:isPartOf ?wikipedia .
+  ?page schema:inLanguage ?language
+}
+GROUP BY ?language
+ORDER BY DESC(?count)""" .

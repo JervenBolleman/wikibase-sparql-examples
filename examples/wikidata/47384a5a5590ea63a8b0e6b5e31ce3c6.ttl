@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-47384a5a5590ea63a8b0e6b5e31ce3c6> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?item ?itemLabel
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel
 WITH
 {
   SELECT ?item
@@ -23,9 +32,43 @@ WHERE
   MINUS {
     ?item wdt:P1766 []  # exclude if there is an image
   }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel
+
+WHERE
+{
+  {
+  SELECT ?item
+  WHERE
+  {
+    ?item wdt:P131* wd:Q90.
+  }
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?item wdt:P31/wdt:P279* wd:Q83620.
+  MINUS {
+    ?item wdt:P1766 []  # exclude if there is an image
+  }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/09>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?itemLabel
+WITH
+{
+  SELECT ?item
+  WHERE
+  {
+    ?item wdt:P131* wd:Q90.
+  }
+} AS %in_Paris
+WHERE
+{
+  INCLUDE %in_Paris
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?item wdt:P31/wdt:P279* wd:Q83620.
+  MINUS {
+    ?item wdt:P1766 []  # exclude if there is an image
+  }
+}""" .
