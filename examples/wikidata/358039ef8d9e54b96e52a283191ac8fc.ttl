@@ -6,7 +6,14 @@
 
 <https://www.wikidata.org/#query-358039ef8d9e54b96e52a283191ac8fc> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX wd: <http://www.wikidata.org/entity/>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Fnielsen:Synia:index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX wbt: <https://wikifcd.wikibase.cloud/prop/direct/>
 PREFIX wb: <https://wikifcd.wikibase.cloud/entity/>
 PREFIX p: <https://wikifcd.wikibase.cloud/prop/>
@@ -30,9 +37,56 @@ WHERE {
   INCLUDE %classes  
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?instances)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wbt: <https://wikifcd.wikibase.cloud/prop/direct/>
+PREFIX wb: <https://wikifcd.wikibase.cloud/entity/>
+PREFIX p: <https://wikifcd.wikibase.cloud/prop/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+
+SELECT
+  ?instances
+  ?class ?classLabel
+  ?instance_example ?instance_exampleLabel
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(?instance) AS ?instances)
+    ?class 
+    (SAMPLE(?instance) AS ?instance_example)
+  WHERE {
+    ?instance wbt:P1 ?class . 
+  }
+  GROUP BY ?class
+}  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?instances)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Fnielsen:Synia:index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wbt: <https://wikifcd.wikibase.cloud/prop/direct/>
+PREFIX wb: <https://wikifcd.wikibase.cloud/entity/>
+PREFIX p: <https://wikifcd.wikibase.cloud/prop/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+
+SELECT
+  ?instances
+  ?class ?classLabel
+  ?instance_example ?instance_exampleLabel
+WITH {
+  SELECT 
+    (COUNT(?instance) AS ?instances)
+    ?class 
+    (SAMPLE(?instance) AS ?instance_example)
+  WHERE {
+    ?instance wbt:P1 ?class . 
+  }
+  GROUP BY ?class
+} AS %classes
+WHERE {
+  INCLUDE %classes  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?instances)""" .

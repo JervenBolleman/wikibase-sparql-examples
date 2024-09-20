@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-3505516398e4eb7ec4cbae5ea2723f83> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """select ?inst ?instLabel ?instDescription ?count ?search
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+select ?inst ?instLabel ?instDescription ?count ?search
 with {
   select ?inst (count(*) as ?count)
   where { [] wdt:P31 ?inst . }
@@ -21,8 +30,18 @@ where {
   service wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
 }
 order by desc(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/02>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """select ?inst ?instLabel ?instDescription ?count ?search
+with {
+  select ?inst (count(*) as ?count)
+  where { [] wdt:P31 ?inst . }
+  group by ?inst
+  order by desc(?count)
+  limit 1000
+} as %i
+where {
+  include %i
+  # filter (?inst not in (wd:Q8054)) # unlist protein (WHY?!?)
+  bind(uri(concat(\"https://www.wikidata.org/w/index.php?title=Special%3ASearch&ns0=1&search=haswbstatement%3AP31%3D\", strafter(str(?inst), \"http://www.wikidata.org/entity/\"))) as ?search)
+  service wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
+order by desc(?count)""" .

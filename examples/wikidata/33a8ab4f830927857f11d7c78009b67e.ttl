@@ -6,7 +6,20 @@
 
 <https://www.wikidata.org/#query-33a8ab4f830927857f11d7c78009b67e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:ImageGrid
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Christian_Ferrer>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:ImageGrid
 
 SELECT ?file ?image ?stype ?stypeLabel ?collec ?collecLabel ?role ?roleLabel ?de ?deLabel
 with {
@@ -36,8 +49,33 @@ WHERE {
   #?file wdt:P180  wd:Q105607273  .
   include %types
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Christian_Ferrer>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#defaultView:ImageGrid
+
+SELECT ?file ?image ?stype ?stypeLabel ?collec ?collecLabel ?role ?roleLabel ?de ?deLabel
+with {
+  select ?stype ?stypeLabel ?collec ?collecLabel ?role ?de ?roleLabel ?deLabel {
+   service <https://query.wikidata.org/sparql> {
+     select ?stype ?stypeLabel ?collec ?collecLabel ?role ?de ?roleLabel ?deLabel { 
+       ?stype wdt:P31/wdt:P279* wd:Q51255340 
+       SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+       optional {
+         ?stype wdt:P195 ?collec .
+       }
+       ?stype p:P2868 [ps:P2868 ?role ; pq:P642 ?de] .
+       #remove the # below to specify one or more collections
+       #values ?collec {
+       # wd:Q122945 # example with the Yale Peabody Museum of Natural History 
+       #}
+       #?de wdt:P171* wd:Q15711568 . # choose a taxon whose types are sought, including the types of its sub-taxa 
+     }
+   }
+  }
+} as %types
+WHERE {
+  ?file wdt:P180 ?stype ; schema:contentUrl ?url .
+  
+  bind(iri(concat(\"http://commons.wikimedia.org/wiki/Special:FilePath/\", replace(substr(str(?url),53),\"_\",\"%20\"))) AS ?image) .
+  
+  #?file wdt:P180  wd:Q105607273  .
+  include %types
+}""" .

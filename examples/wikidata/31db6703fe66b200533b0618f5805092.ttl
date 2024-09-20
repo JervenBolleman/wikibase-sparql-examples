@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-31db6703fe66b200533b0618f5805092> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel (COUNT(?dob) AS ?cnt) WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/03>,
+    <https://www.wikidata.org//wiki/User:Jean-Fr%C3%A9d%C3%A9ric/Wikidata_and_the_truth>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel (COUNT(?dob) AS ?cnt) WITH {
   SELECT ?item WHERE {
     ?item wdt:P569 ?dob .
   } GROUP BY ?item HAVING(COUNT(?dob) > 1)
@@ -15,10 +25,28 @@
   ?item wdt:P31 wd:Q5 .
   ?item wdt:P569 ?dob .
   SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+} GROUP BY ?item ?itemLabel ORDER BY DESC(?cnt)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel (COUNT(?dob) AS ?cnt)  WHERE {
+  {
+  SELECT ?item WHERE {
+    ?item wdt:P569 ?dob .
+  } GROUP BY ?item HAVING(COUNT(?dob) > 1)
+} .
+  ?item wdt:P31 wd:Q5 .
+  ?item wdt:P569 ?dob .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
 } GROUP BY ?item ?itemLabel ORDER BY DESC(?cnt)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/03>,
-    <https://www.wikidata.org//wiki/User:Jean-Fr%C3%A9d%C3%A9ric/Wikidata_and_the_truth>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel (COUNT(?dob) AS ?cnt) WITH {
+  SELECT ?item WHERE {
+    ?item wdt:P569 ?dob .
+  } GROUP BY ?item HAVING(COUNT(?dob) > 1)
+} AS %subquery WHERE {
+  INCLUDE %subquery .
+  ?item wdt:P31 wd:Q5 .
+  ?item wdt:P569 ?dob .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+} GROUP BY ?item ?itemLabel ORDER BY DESC(?cnt)""" .

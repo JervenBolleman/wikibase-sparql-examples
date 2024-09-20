@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-37f26bf258037fae626811f3a2766069> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#title: 与维基物种（Wikispecies）页面作者有关的项
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/zh>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#title: 与维基物种（Wikispecies）页面作者有关的项
 SELECT ?author ?authorLabel ?count
 WITH {
   SELECT ?author (COUNT(?paper) AS ?count)
@@ -24,9 +34,47 @@ WHERE {
   INCLUDE %i
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\" . }
 }
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#title: 与维基物种（Wikispecies）页面作者有关的项
+SELECT ?author ?authorLabel ?count
+
+WHERE {
+  {
+  SELECT ?author (COUNT(?paper) AS ?count)
+  WHERE {
+    ?article schema:about ?author ;
+      schema:isPartOf <https://species.wikimedia.org/> .
+    ?author wdt:P31 wd:Q5.
+    ?paper wdt:P50 ?author.
+  }
+  GROUP BY ?author
+  ORDER BY DESC(?count)
+  LIMIT 200
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\" . }
+}
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/zh>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#title: 与维基物种（Wikispecies）页面作者有关的项
+SELECT ?author ?authorLabel ?count
+WITH {
+  SELECT ?author (COUNT(?paper) AS ?count)
+  WHERE {
+    ?article schema:about ?author ;
+      schema:isPartOf <https://species.wikimedia.org/> .
+    ?author wdt:P31 wd:Q5.
+    ?paper wdt:P50 ?author.
+  }
+  GROUP BY ?author
+  ORDER BY DESC(?count)
+  LIMIT 200
+} AS %i
+WHERE {
+  INCLUDE %i
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\" . }
+}
+ORDER BY DESC(?count)""" .

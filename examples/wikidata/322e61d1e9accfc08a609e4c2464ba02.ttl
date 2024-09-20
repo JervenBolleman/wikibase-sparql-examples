@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-322e61d1e9accfc08a609e4c2464ba02> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?template ?templateLabel ?count WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Project_chat/Archive/2023/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?template ?templateLabel ?count WITH {
   SELECT ?template ?count WHERE {
     ?template wikibase:sitelinks ?count. hint:Prior hint:rangeSafe true.
     FILTER(?count >= 250)
@@ -18,9 +27,34 @@
   ?template wdt:P31/wdt:P279* wd:Q11266439.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?template ?templateLabel ?count  WHERE {
+  {
+  SELECT ?template ?count WHERE {
+    ?template wikibase:sitelinks ?count. hint:Prior hint:rangeSafe true.
+    FILTER(?count >= 250)
+  }
+  ORDER BY DESC(?count)
+  LIMIT 100
+}.
+  ?template wdt:P31/wdt:P279* wd:Q11266439.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Project_chat/Archive/2023/06>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?template ?templateLabel ?count WITH {
+  SELECT ?template ?count WHERE {
+    ?template wikibase:sitelinks ?count. hint:Prior hint:rangeSafe true.
+    FILTER(?count >= 250)
+  }
+  ORDER BY DESC(?count)
+  LIMIT 100
+} AS %results WHERE {
+  INCLUDE %results.
+  ?template wdt:P31/wdt:P279* wd:Q11266439.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?count)""" .

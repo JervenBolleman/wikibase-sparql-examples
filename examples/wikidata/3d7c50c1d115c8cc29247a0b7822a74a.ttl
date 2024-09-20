@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-3d7c50c1d115c8cc29247a0b7822a74a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT (COUNT(DISTINCT ?image) AS ?images) (COUNT(DISTINCT ?file) AS ?files)
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Dipsacus_fullonum>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+SELECT (COUNT(DISTINCT ?image) AS ?images) (COUNT(DISTINCT ?file) AS ?files)
 WITH
 {
   SELECT ?item ?image ?filename ?contentUrl
@@ -27,9 +36,51 @@ WHERE
 {
   INCLUDE %get_items
   OPTIONAL { ?file schema:contentUrl ?contentUrl . }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+SELECT (COUNT(DISTINCT ?image) AS ?images) (COUNT(DISTINCT ?file) AS ?files)
+
+WHERE
+{
+  {
+  SELECT ?item ?image ?filename ?contentUrl
+  WHERE
+  {
+    SERVICE <https://query.wikidata.org/sparql>
+    {
+      ?item wdt:P31 wd:Q5153359 .
+      ?item wdt:P18 ?image .
+    }
+    BIND (REPLACE(wikibase:decodeUri(SUBSTR(STR(?image), 52)), \" \", \"_\") AS ?filename)
+    BIND (REPLACE(SUBSTR(STR(?image), 52), \"%20\", \"_\") AS ?filenameUnencoded)
+    BIND (MD5(?filename) AS ?MD5)
+    BIND (URI(CONCAT(\"https://upload.wikimedia.org/wikipedia/commons/\", SUBSTR(?MD5, 1, 1), \"/\", SUBSTR(?MD5, 1, 2), \"/\", ?filenameUnencoded)) As ?contentUrl)
+  }
+}
+  OPTIONAL { ?file schema:contentUrl ?contentUrl . }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Dipsacus_fullonum>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT (COUNT(DISTINCT ?image) AS ?images) (COUNT(DISTINCT ?file) AS ?files)
+WITH
+{
+  SELECT ?item ?image ?filename ?contentUrl
+  WHERE
+  {
+    SERVICE <https://query.wikidata.org/sparql>
+    {
+      ?item wdt:P31 wd:Q5153359 .
+      ?item wdt:P18 ?image .
+    }
+    BIND (REPLACE(wikibase:decodeUri(SUBSTR(STR(?image), 52)), \" \", \"_\") AS ?filename)
+    BIND (REPLACE(SUBSTR(STR(?image), 52), \"%20\", \"_\") AS ?filenameUnencoded)
+    BIND (MD5(?filename) AS ?MD5)
+    BIND (URI(CONCAT(\"https://upload.wikimedia.org/wikipedia/commons/\", SUBSTR(?MD5, 1, 1), \"/\", SUBSTR(?MD5, 1, 2), \"/\", ?filenameUnencoded)) As ?contentUrl)
+  }
+} AS %get_items
+WHERE
+{
+  INCLUDE %get_items
+  OPTIONAL { ?file schema:contentUrl ?contentUrl . }
+}""" .

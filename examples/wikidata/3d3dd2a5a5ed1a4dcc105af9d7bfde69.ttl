@@ -6,7 +6,14 @@
 
 <https://www.wikidata.org/#query-3d3dd2a5a5ed1a4dcc105af9d7bfde69> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX      foaf:  <http://xmlns.com/foaf/0.1/>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX      foaf:  <http://xmlns.com/foaf/0.1/>
 PREFIX      dbpprop:  <http://dbpedia.org/property/>
 SELECT ?NobelId ?item ?LaureateNobelUri ?NobelBirth ?NobelGender ?NobelDeath ?WDBirth ?WDGender ?WDDeath ?birthmismatch ?deathmismatch
 with
@@ -33,8 +40,30 @@ with
   FILTER(?birthmismatch|| ?deathmismatch)
 }
  order by desc(xsd:integer(?NobelId))""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/10>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX      foaf:  <http://xmlns.com/foaf/0.1/>
+PREFIX      dbpprop:  <http://dbpedia.org/property/>
+SELECT ?NobelId ?item ?LaureateNobelUri ?NobelBirth ?NobelGender ?NobelDeath ?WDBirth ?WDGender ?WDDeath ?birthmismatch ?deathmismatch
+with
+{SELECT ?NobelId ?item ?LaureateNobelUri ?NobelBirth ?NobelGender ?NobelDeath ?WDBirth ?WDGender ?WDDeath{
+  SERVICE <http://data.nobelprize.org/sparql>  {
+      SELECT distinct ?NobelId ?LaureateNobelUri ?NobelBirth ?NobelDeath ?NobelGender WHERE {        
+      ?LaureateNobelUri <http://data.nobelprize.org/terms/laureateAward> ?NobelAwardid.
+      BIND(REPLACE(str(?LaureateNobelUri),\"http://data.nobelprize.org/resource/laureate/\",\"\") AS ?NobelId)
+      OPTIONAL{ ?LaureateNobelUri foaf:birthday ?NobelBirth}
+      OPTIONAL{ ?LaureateNobelUri foaf:gender ?NobelGender}
+      OPTIONAL{ ?LaureateNobelUri dbpprop:dateOfDeath ?NobelDeath}
+      }
+   }
+  } 
+ } as %i where
+{
+  include %i
+  ?item wdt:P2888 ?LaureateNobelUri . 
+  OPTIONAL{ ?item wdt:P569 ?WDBirth.}
+  OPTIONAL{ ?item wdt:P21 ?WDGender.}
+  OPTIONAL{ ?item wdt:P570 ?WDDeath.}
+  BIND(!(xsd:date(?WDBirth)=xsd:date(?NobelBirth)) AS ?birthmismatch)
+  BIND(!(xsd:date(?WDDeath)=xsd:date(?NobelDeath)) AS ?deathmismatch)
+  FILTER(?birthmismatch|| ?deathmismatch)
+}
+ order by desc(xsd:integer(?NobelId))""" .

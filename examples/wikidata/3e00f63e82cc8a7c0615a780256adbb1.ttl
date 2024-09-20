@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-3e00f63e82cc8a7c0615a780256adbb1> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q11964713>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:descriptor>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q11964713>
 
 SELECT 
   ?items
@@ -32,9 +40,61 @@ WHERE {
   INCLUDE %descriptors
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?items)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q11964713>
+
+SELECT 
+  ?items
+  ?descriptor ?descriptorLabel
+  (CONCAT(\"#descriptor/\", SUBSTR(STR(?descriptor), 32)) AS ?descriptorUrl)
+  ?descriptorDescription
+
+  ?example_item ?example_itemLabel
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(?item) AS ?items)
+    ?descriptor 
+    (SAMPLE(?item) AS ?example_item)
+  WHERE {
+    ?item wdt:P1343 target:, ?descriptor .
+    FILTER (target: != ?descriptor)
+  }
+  GROUP BY ?descriptor
+  ORDER BY DESC(?items)
+  LIMIT 2000
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?items)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:descriptor>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q11964713>
+
+SELECT 
+  ?items
+  ?descriptor ?descriptorLabel
+  (CONCAT(\"#descriptor/\", SUBSTR(STR(?descriptor), 32)) AS ?descriptorUrl)
+  ?descriptorDescription
+
+  ?example_item ?example_itemLabel
+WITH {
+  SELECT 
+    (COUNT(?item) AS ?items)
+    ?descriptor 
+    (SAMPLE(?item) AS ?example_item)
+  WHERE {
+    ?item wdt:P1343 target:, ?descriptor .
+    FILTER (target: != ?descriptor)
+  }
+  GROUP BY ?descriptor
+  ORDER BY DESC(?items)
+  LIMIT 2000
+} AS %descriptors
+WHERE {
+  INCLUDE %descriptors
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?items)""" .

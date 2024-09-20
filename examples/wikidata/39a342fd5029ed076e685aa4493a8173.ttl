@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-39a342fd5029ed076e685aa4493a8173> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT distinct ?item ?itemLabel ?countryLabel ?iata ?icao 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT distinct ?item ?itemLabel ?countryLabel ?iata ?icao 
 
 with {select ?item 
 WHERE {
@@ -41,8 +51,38 @@ where {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\". }
 }
 ORDER BY ?countryLabel ?itemLabel""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/10>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT distinct ?item ?itemLabel ?countryLabel ?iata ?icao 
+
+with {select ?item 
+WHERE {
+  ?item wdt:P31 wd:Q1248784.
+  OPTIONAL { ?item wdt:P238 ?iata. }
+  OPTIONAL { ?item wdt:P239 ?icao. }
+  filter(bound(?iata)|| bound(?icao))
+  } } as %i
+
+with {select ?item 
+where {
+  ?item wdt:P31 wd:Q695850.
+  minus {?item wdt:P31 wd:Q1248784.}
+  OPTIONAL { ?item wdt:P238 ?iata. }
+  OPTIONAL { ?item wdt:P239 ?icao. }
+  filter not exists {?iata ^wdt:P238 ?item2. ?item2 wdt:P31 wd:Q1248784}
+  filter not exists {?icao ^wdt:P239 ?item2. ?item2 wdt:P31 wd:Q1248784}
+  filter(bound(?iata) || bound(?icao))
+  } } as %j
+
+where {
+  {include %i .} union {  include %j .}
+  OPTIONAL { ?item wdt:P238 ?iata. }
+  OPTIONAL { ?item wdt:P239 ?icao. }
+  OPTIONAL { ?item wdt:P17 ?country. }
+  MINUS    { ?item wdt:P576 [].}                    # remove items with P576 (dissolved, abolished or demolished) as a main property
+  MINUS    { ?item (wdt:P31/wdt:P279*) wd:Q782667. } # exclude motorways where plane can land
+  MINUS    { ?item wdt:P31/wdt:P279* wd:Q44665966.} # exclude  airports being build
+  MINUS    { ?item wdt:P31/wdt:P279* wd:Q2265915.}  # exclude vol à voile
+  MINUS    {?item wdt:P582 [].}                    # remove items with P582 (end date) as a main property
+  MINUS    { ?item a wdno:P17.}                    #exclude airports that aren't physically based in a country
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\". }
+}
+ORDER BY ?countryLabel ?itemLabel""" .

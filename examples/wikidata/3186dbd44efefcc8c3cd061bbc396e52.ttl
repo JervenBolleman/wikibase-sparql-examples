@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-3186dbd44efefcc8c3cd061bbc396e52> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:composer-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
   ?works
   ?composer ?composerLabel
   (CONCAT(\"#composer/\", SUBSTR(STR(?composer), 32)) AS ?composerUrl)
@@ -26,9 +34,49 @@ WHERE {
   INCLUDE %composers
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?works)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
+  ?works
+  ?composer ?composerLabel
+  (CONCAT(\"#composer/\", SUBSTR(STR(?composer), 32)) AS ?composerUrl)
+  ?composerDescription
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(?work) AS ?works)
+    ?composer
+  WHERE {
+    ?work wdt:P86 ?composer
+  }
+  GROUP BY ?composer
+  ORDER BY DESC(?works)
+  LIMIT 1000
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?works)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:composer-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT 
+  ?works
+  ?composer ?composerLabel
+  (CONCAT(\"#composer/\", SUBSTR(STR(?composer), 32)) AS ?composerUrl)
+  ?composerDescription
+WITH {
+  SELECT 
+    (COUNT(?work) AS ?works)
+    ?composer
+  WHERE {
+    ?work wdt:P86 ?composer
+  }
+  GROUP BY ?composer
+  ORDER BY DESC(?works)
+  LIMIT 1000
+} AS %composers
+WHERE {
+  INCLUDE %composers
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?works)""" .

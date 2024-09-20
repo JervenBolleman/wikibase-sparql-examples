@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-355c09d5dab371a36352ab588c15341c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?position ?positionLabel ?count WITH { 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Project_chat/Archive/2020/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?position ?positionLabel ?count WITH { 
   SELECT DISTINCT ?position (count(?item) as ?count)
   WHERE 
   {
@@ -16,9 +24,29 @@ WHERE
 {
   INCLUDE %i
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?position ?positionLabel ?count 
+WHERE
+{
+  { 
+  SELECT DISTINCT ?position (count(?item) as ?count)
+  WHERE 
+  {
+    ?item wdt:P39 ?position.
+  } GROUP BY ?position }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Project_chat/Archive/2020/12>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?position ?positionLabel ?count WITH { 
+  SELECT DISTINCT ?position (count(?item) as ?count)
+  WHERE 
+  {
+    ?item wdt:P39 ?position.
+  } GROUP BY ?position } AS %i
+WHERE
+{
+  INCLUDE %i
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

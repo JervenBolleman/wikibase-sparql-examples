@@ -6,7 +6,19 @@
 
 <https://www.wikidata.org/#query-30fff833e5626b5415d696b1befb153b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/de>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
   ?item
   ?itemLabel
   (COUNT(*) AS ?count)
@@ -25,12 +37,48 @@ WITH {
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"es\"}.
 }
 GROUP BY ?item ?itemLabel
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
+  ?item
+  ?itemLabel
+  (COUNT(*) AS ?count)
+
+{
+  {
+  SELECT DISTINCT ?item ?literaryWork {
+    ?item
+      wdt:P31 wd:Q5;
+      wdt:P27 wd:Q419.
+    ?literaryWork
+      wdt:P31 wd:Q7725634;
+      wdt:P50 ?item.
+  }
+}.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"es\"}.
+}
+GROUP BY ?item ?itemLabel
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/de>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/es>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT
+  ?item
+  ?itemLabel
+  (COUNT(*) AS ?count)
+WITH {
+  SELECT DISTINCT ?item ?literaryWork {
+    ?item
+      wdt:P31 wd:Q5;
+      wdt:P27 wd:Q419.
+    ?literaryWork
+      wdt:P31 wd:Q7725634;
+      wdt:P50 ?item.
+  }
+} AS %0
+{
+  INCLUDE %0.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"es\"}.
+}
+GROUP BY ?item ?itemLabel
+ORDER BY DESC(?count)""" .

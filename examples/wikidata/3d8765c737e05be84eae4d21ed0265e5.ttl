@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-3d8765c737e05be84eae4d21ed0265e5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:eiareport-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
   ?reports
   (CONCAT(\"#topic/\", SUBSTR(STR(?topic), 32), \"/eiareport\") AS ?reportsUrl)
 
@@ -30,9 +39,58 @@ WHERE {
   INCLUDE %topics
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 } 
+ORDER BY DESC(?reports)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
+  ?reports
+  (CONCAT(\"#topic/\", SUBSTR(STR(?topic), 32), \"/eiareport\") AS ?reportsUrl)
+
+  ?topic ?topicLabel
+  (CONCAT(\"#topic/\", SUBSTR(STR(?topic), 32)) AS ?topicUrl)
+  ?topicDescription
+
+  (\"Scholia ↗\" AS ?scholia)
+  (CONCAT(\"https://scholia.toolforge.org/topic/\", SUBSTR(STR(?topic), 32)) AS ?scholiaUrl) 
+
+WHERE {
+  {
+  SELECT
+    (COUNT(DISTINCT ?report) AS ?reports)
+    ?topic
+  WHERE {
+    ?report wdt:P31 wd:Q64548048 ;
+            wdt:P921 / wdt:P31? ?topic .
+  }
+  GROUP BY ?topic
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} 
 ORDER BY DESC(?reports)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:eiareport-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT 
+  ?reports
+  (CONCAT(\"#topic/\", SUBSTR(STR(?topic), 32), \"/eiareport\") AS ?reportsUrl)
+
+  ?topic ?topicLabel
+  (CONCAT(\"#topic/\", SUBSTR(STR(?topic), 32)) AS ?topicUrl)
+  ?topicDescription
+
+  (\"Scholia ↗\" AS ?scholia)
+  (CONCAT(\"https://scholia.toolforge.org/topic/\", SUBSTR(STR(?topic), 32)) AS ?scholiaUrl) 
+WITH {
+  SELECT
+    (COUNT(DISTINCT ?report) AS ?reports)
+    ?topic
+  WHERE {
+    ?report wdt:P31 wd:Q64548048 ;
+            wdt:P921 / wdt:P31? ?topic .
+  }
+  GROUP BY ?topic
+} AS %topics
+WHERE {
+  INCLUDE %topics
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} 
+ORDER BY DESC(?reports)""" .
