@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b26853cff662ecaa3b30ec4a5dbd53f0> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?person ?personLabel ?positionLabel ?countryLabel
+WHERE {
+        { ?person wdt:P39 [ wdt:P279* wd:Q16707842 ] }  # person was a UK MP
+  UNION { ?person wdt:P39 [ wdt:P279* wd:Q18015642 ] }  # or a British MP (to 1801)
+  UNION { ?person wdt:P39 [ wdt:P279* wd:Q18018860 ] }  # or an English MP (to 1707)
+  ?person wdt:P39 ?position .          # who held some position
+  ?position wdt:P279* wd:Q486839 .       # which is a subclass of member of parliament
+  ?position wdt:P17 ?country .           # and which applies to a country which is
+  FILTER ( ?country != wd:Q145 )           # not UK & NI
+  FILTER ( ?country != wd:Q174193 )        # not UK & Ireland
+  FILTER ( ?country != wd:Q161885 )        # not GB
+  FILTER ( ?country != wd:Q215530 )        # not Kingdom of Ireland
+  FILTER ( ?country != wd:Q844250 )        # not Lordship of Ireland
+  FILTER ( ?country != wd:Q179876 )        # not Kingdom of England
+  FILTER ( ?country != wd:Q230791 )        # not Kingdom of Scotland
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

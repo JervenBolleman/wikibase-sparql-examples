@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-bbb7586526a4b2ee7074821405d6b083> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map{\"markercluster\": { } }
+PREFIX geof: <http://www.opengis.net/def/geosparql/function/>
+
+#Places within 10km of Seifhennersdorf
+SELECT ?place ?placeLabel ?location ?instanceLabel WHERE {
+  wd:Q165195 wdt:P625 ?loc.
+  SERVICE wikibase:around {
+    ?place wdt:P625 ?location.
+    bd:serviceParam wikibase:center ?loc.
+    bd:serviceParam wikibase:radius \"1\".
+  }
+  ?place wdt:P31 wd:Q1362233.     #  <<<< --- Here's the addition
+  OPTIONAL { ?place wdt:P31 ?instance. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+  BIND(geof:distance(?loc, ?location) AS ?dist)
+}
+ORDER BY ?dist""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

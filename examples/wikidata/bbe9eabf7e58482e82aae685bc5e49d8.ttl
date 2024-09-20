@@ -1,0 +1,51 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-bbe9eabf7e58482e82aae685bc5e49d8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+      (GROUP_CONCAT(DISTINCT ?dateYear ; separator = \", \") AS ?dateYears)
+      (GROUP_CONCAT(DISTINCT ?gameENLabel ; separator = \", \") AS ?gameENLabels)
+      (GROUP_CONCAT(DISTINCT ?gameGenreLabel ; separator = \", \") AS ?gameGenreLabels)
+      (GROUP_CONCAT(DISTINCT ?genreLabel ; separator = \", \") AS ?genreLabels)
+WHERE {
+  VALUES ?genres { wd:Q744038 wd:Q1529437 wd:Q1422746 wd:Q1143132 } .
+  ?game wdt:P136 ?genres .
+  ?game wdt:P31 wd:Q7889 .
+  ?game rdfs:label ?gameENLabel .
+  FILTER( LANG( ?gameENLabel ) = \"en\" ) .
+
+  OPTIONAL {
+    ?game wdt:P577 ?date .
+    BIND( YEAR( ?date ) AS ?dateYear ) .
+  } .
+
+  OPTIONAL {
+    ?game wdt:P136 ?gameGenre .
+    ?gameGenre wdt:P31 wd:Q659563 .
+    FILTER( ?gameGenre != wd:Q744038 ) .
+    ?gameGenre rdfs:label ?gameGenreString .
+    FILTER( LANG( ?gameGenreString ) = \"en\" ) .
+    BIND( STR( ?gameGenreString ) AS ?gameGenreLabel ) .
+  } .
+
+  OPTIONAL {
+    ?game wdt:P136 ?genre .
+    MINUS { ?genre wdt:P31 wd:Q659563 } .
+    ?genre rdfs:label ?genreString .
+    FILTER( LANG( ?genreString ) = \"en\" ) .
+    BIND( STR( ?genreString ) AS ?genreLabel ) .
+  } .
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+}
+GROUP BY ?game
+ORDER BY ?dateYears ?gameENLabels""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

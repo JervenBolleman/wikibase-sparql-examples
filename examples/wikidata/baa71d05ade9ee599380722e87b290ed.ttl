@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-baa71d05ade9ee599380722e87b290ed> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Overview of Category and Gallery pages of plant species on Wikimedia Commons
+SELECT DISTINCT 
+?plate ?plateLabel
+?plantDecpicted
+?scientificNameInFB ?scientificNameModern ?dutchTrivialNameModern
+?plantDecpictedWikipediaNL
+?plantDecpictedCommonsCat ?plantDecpictedCommonsCatBotIll ?plantDecpictedCommonsGal
+WHERE {
+  wd:Q117860156 wdt:P527 ?volume.
+  ?volume wdt:P527 ?plate.
+  OPTIONAL{?plate wdt:P18 ?plateImage.}
+  ?plate wdt:P1476 ?scientificNameInFB. FILTER(lang(?scientificNameInFB)='la')
+    
+  ?plate wdt:P180 ?plantDecpicted.
+  ?plantDecpicted rdfs:label ?scientificNameModern . FILTER(lang(?scientificNameModern)='la')
+  ?plantDecpicted rdfs:label?dutchTrivialNameModern . FILTER(lang(?dutchTrivialNameModern)='nl')
+
+  OPTIONAL{?plantDecpictedWikipediaNL schema:about ?plantDecpicted; 
+           schema:isPartOf <https://nl.wikipedia.org/>.}
+  OPTIONAL{?plantDecpicted wdt:P373 ?plantDCCat.
+            BIND(REPLACE(?plantDCCat, \" \", \"_\", \"i\") AS ?plantDCCat2)  
+            BIND(URI(CONCAT('https://commons.wikimedia.org/wiki/Category:', ?plantDCCat2)) AS ?plantDecpictedCommonsCat). 
+            BIND(URI(CONCAT(STR(?plantDecpictedCommonsCat),'_-_botanical_illustrations')) AS ?plantDecpictedCommonsCatBotIll). 
+           }
+  OPTIONAL{?plantDecpicted wdt:P935 ?plantDCGal.
+          BIND(REPLACE(?plantDCGal, \" \", \"_\", \"i\") AS ?plantDCGal2)  
+          BIND(URI(CONCAT('https://commons.wikimedia.org/wiki/', ?plantDCGal2)) AS ?plantDecpictedCommonsGal). 
+          }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],nl\". } 
+}
+ORDER BY ?plateLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Collection_highlights_National_Library_of_the_Netherlands/Flora_Batava/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

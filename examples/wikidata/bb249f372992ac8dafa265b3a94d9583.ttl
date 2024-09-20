@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-bb249f372992ac8dafa265b3a94d9583> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?parlLabel ?parl_start ?item ?itemLabel ?dob 
+  WITH {
+    SELECT ?item ?parl ?dob WHERE {
+        ?item wdt:P39 ?parl .
+        ?parl wdt:P279 wd:Q16707842 .
+        ?item wdt:P569 ?dob .
+    }
+  } AS %sub_query_results
+
+WHERE {
+  {
+    SELECT ?parl (MAX(?dob) AS ?dob) WHERE {
+      INCLUDE %sub_query_results .
+    } GROUP BY ?parl
+  }
+  INCLUDE %sub_query_results .
+  ?parl wdt:P571 ?parl_start .
+      
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} ORDER BY ?parl_start""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

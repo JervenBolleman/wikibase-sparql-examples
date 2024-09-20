@@ -1,0 +1,48 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-bf61a19d06f8272ce2603738b5cd844b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# ?item1 is the imported one
+# ?item2 is human and sitelink to ruwiki
+# ?item1 and ?item2 are born the same date
+SELECT ?item1 ?label_en ?birthyear ?deathyear ?item2 ?label_ru
+WITH
+{
+  SELECT ?item1 ?FAST_ID ?label_en
+  WHERE
+  {
+    #VALUES ?item1 { wd:??? } .
+    ?item1 p:P214 [ps:P214 ?viaf ; prov:wasDerivedFrom [pr:P248 wd:Q3294867] ] .
+    ?item1 rdfs:label ?label_en .
+    FILTER(LANG(?label_en) = \"en\")
+    FILTER(CONTAINS(?label_en,\"vich\"))
+  }
+  #LIMIT 20
+} AS %get_humans_with_FAST_ID
+WHERE
+{
+  INCLUDE %get_humans_with_FAST_ID
+  ?item1 wdt:P569 ?birth.
+  ?item2 wdt:P569 ?birth.
+  BIND(str(YEAR(?birth)) AS ?birthyear)
+  ?item1 wdt:P570 ?death.
+  ?item2 wdt:P570 ?death.
+  BIND(str(YEAR(?death)) AS ?deathyear)
+  FILTER (?item1 != ?item2)
+  ?item2 wdt:P31 wd:Q5.
+  ?ruwiki_sitelink schema:about ?item2 .
+  ?ruwiki_sitelink schema:isPartOf <https://ru.wikipedia.org/>.
+  { ?item2 wdt:P27 wd:Q159. } UNION { ?item2 wdt:P27 wd:Q15180 . } UNION { ?item2 wdt:P27 wd:Q34266 . }
+  ?item2 rdfs:label ?label_ru.
+  FILTER (LANG(?label_ru) = \"ru\")
+}
+ORDER BY ?label_en""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/05>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

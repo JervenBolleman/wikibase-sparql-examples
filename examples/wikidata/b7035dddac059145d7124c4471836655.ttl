@@ -1,0 +1,25 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b7035dddac059145d7124c4471836655> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?person ?personLabel 
+(GROUP_CONCAT(DISTINCT ?occupationLab ; SEPARATOR=\", \") AS ?occupations) #concatenazione delle stringhe delle occupazioni
+WHERE {
+  ?person wdt:P31 wd:Q5 .
+  ?person wdt:P106 ?occupation . ?occupation rdfs:label ?occupationLab . FILTER(LANG(?occupationLab) = \"it\") #label per concatenazione, senza non funziona
+  ?person wdt:P106/wdt:P279* wd:Q901 . #estensione proprietà a sottoclassi, ricorsiva
+  ?person wdt:P19 wd:Q490 .    
+  MINUS { ?person wdt:P227 ?gnd } .
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],it,en\". }
+}
+GROUP BY ?person ?personLabel
+ORDER BY ?person ?personLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Alessandra.Moi/sandbox>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

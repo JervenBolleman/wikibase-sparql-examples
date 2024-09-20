@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ba95d1c5cd2ab16cbc54c4ccbf7852b5> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel (sum(?number) as ?count)
+WHERE 
+{
+#  VALUES ?instrument {wd:Q5994} # count only the number of pianos
+  VALUES ?item {wd:Q831870 wd:Q3414614 wd:Q2352641 wd:Q3053508 }
+  ?item p:P870 ?stat.
+  ?stat ps:P870 ?instrument .
+#  FILTER (?instrument NOT IN (wd:Q8355)) # exclude violins from the count
+  OPTIONAL {?stat pq:P1132 ?no1.}
+  OPTIONAL {?stat pq:P1114 ?no2.}
+  BIND(COALESCE(?no2,?no1,1) as ?number)
+#  FILTER NOT EXISTS {?item wdt:P870 wd:Q8355} # exclude music having a violin
+#  FILTER EXISTS {?item wdt:P870 wd:Q8355} # include music only is it has a violin
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} group by ?item ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

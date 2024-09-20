@@ -1,0 +1,52 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b3e5666dc2a5a16481aab1fa2325cbd1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target1: <http://www.wikidata.org/entity/Q6053150>
+PREFIX target2: <http://www.wikidata.org/entity/Q125207931>
+
+SELECT
+  ?persons
+
+  ?role ?roleLabel
+
+  ?other_event_series ?other_event_seriesLabel
+  (CONCAT(\"#scientificeventseries/\", SUBSTR(STR(?other_event_series), 32)) AS ?other_event_seriesUrl)
+
+  ?example_person ?example_personLabel
+  (CONCAT(\"#author/\", SUBSTR(STR(?example_person), 32)) AS ?example_personUrl)
+WITH {
+  SELECT 
+    (COUNT(DISTINCT ?person) AS ?persons)
+    ?other_event_series
+    ?role
+    (SAMPLE(?person) AS ?example_person)
+  WHERE {
+    ?event wdt:P179 target1: ;
+           p:P664 ?organizer_statement .
+    ?organizer_statement ps:P664 ?person ;
+                          pq:P3831 target2: .
+
+    [] wdt:P179 ?other_event_series ;
+       p:P664 ?other_organizer_statement .
+    ?other_organizer_statement ps:P664 ?person ;
+                               pq:P3831 ?role .
+    FILTER (target2: != ?role)
+  }
+  GROUP BY ?other_event_series ?role
+} AS %roles                             
+
+WHERE {
+  INCLUDE %roles
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?persons)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:scientificeventseries-organizationalrole>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

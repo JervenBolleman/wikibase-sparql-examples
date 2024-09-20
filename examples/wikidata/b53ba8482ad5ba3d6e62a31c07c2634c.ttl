@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b53ba8482ad5ba3d6e62a31c07c2634c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?insee ?commune
+WHERE {
+  BIND ( \"2017-01-01\"^^xsd:dateTime as ?dateRecherche )        # date recherchée
+#  values ?commune {wd:Q55589867}
+#  ?commune wdt:P374 ?insee.                                   # code INSEE
+  ?commune p:P374 ?P374node .                 # there is a P374
+  ?P374node ps:P374 ?insee .                  # with this value
+  filter not exists {?P374node pq:P582 [] .}  # and without this qualifier
+  ?commune p:P31 ?nature.
+  {?nature ps:P31 wd:Q484170.}                           # commune de France
+  UNION { ?nature ps:P31 wd:Q22927616. }                   # commune française à statut particulier
+  OPTIONAL { ?commune wdt:P571 ?dateCréation. }                  # date création
+  OPTIONAL { ?commune wdt:P576 ?dateDissolution. }                    # date dissolution
+  FILTER ( !BOUND(?dateCréation)||| ?dateDissolution > ?dateRecherche )      # communes passées
+  FILTER ( !STRSTARTS(?insee, \"98\") )                      # - Polynésie
+  FILTER ( !STRSTARTS(?insee, \"975\") )                     # - Saint-Pierre et Miquelon
+}
+ORDER BY (?insee)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

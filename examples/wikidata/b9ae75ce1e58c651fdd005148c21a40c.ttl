@@ -1,0 +1,51 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b9ae75ce1e58c651fdd005148c21a40c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#-------------------------------------------------------------------------------
+# Unternehmen, Vereine und Behörden in Dresden
+#-------------------------------------------------------------------------------
+#defaultView:Table
+SELECT DISTINCT ?item ?itemLabel ?itemDescription ?Steuernummer ?rechtsformLabel ?adresse ?street ?streetLabel ?coordinate ?image
+WHERE {
+  {   
+    ?item wdt:P131 wd:Q1731.                    # liegt in Dresden
+    ?item (wdt:P31/wdt:P279*) wd:Q6881511.      # ist ein Unternehmen 
+  }
+  union
+  {
+    ?item wdt:P159 wd:Q1731.                    # hat Hauptverwaltung in Dresden
+  }
+    union
+   {
+     ?item wdt:P131 wd:Q1731.                   # liegt in Verwaltungseinheit Dresden
+     ?item wdt:P3608 ?Steuernummer              # hat eine Steuernummer
+     FILTER (CONTAINS(?Steuernummer, '')).                 
+   }
+    union
+   {
+     ?item wdt:P131 wd:Q1731.                   # liegt in Verwaltungseinheit Dresden
+     ?item wdt:P1454 ?rechtsform                # hat eine Rechtsform
+      FILTER (CONTAINS(?rechtsform, '')).
+   }
+  OPTIONAL {?item wdt:P6375 ?adresse            # hat Adresse
+  #FILTER (CONTAINS(?adresse, ''))              # Filter für die Adresse
+  .}
+  OPTIONAL { ?item wdt:P18 ?image. }            # Bild
+  OPTIONAL { ?item wdt:P625 ?coordinate. }      # Koordinate
+  OPTIONAL { ?item wdt:P669 ?street. }          # Straße
+  OPTIONAL { ?item wdt:P3608 ?Steuernummer. }
+  OPTIONAL { ?item wdt:P1454 ?rechtsform.}      #Rechtsform
+  ?item rdfs:label ?name 
+  #FILTER(REGEX(STR(?name), \"Gl\"))               # Filter für Name
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en,[AUTO_LANGUAGE]\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stefan_K%C3%BChn/Dresden>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

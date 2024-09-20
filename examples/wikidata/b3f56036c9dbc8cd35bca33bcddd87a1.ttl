@@ -1,0 +1,75 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b3f56036c9dbc8cd35bca33bcddd87a1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Kategorie Person (Religion,_München) inclusive Unterkategorien
+SELECT DISTINCT ?kategorie ?page_title ?article ?item ?statements (GROUP_CONCAT(DISTINCT ?klasse;separator=\", \") as ?art) ?geboren_in ?gestorben_in (GROUP_CONCAT(DISTINCT ?wirkortLabel;separator=\", \") as ?arbeitsorte) (GROUP_CONCAT(DISTINCT ?beruf;separator=\", \") as ?berufe) WHERE {
+   VALUES ?kategorie { \"Kategorie:Person_(Religion,_München)\" 
+\"Kategorie:Erzbischof_von_München_und_Freising\" 
+\"Kategorie:Person_des_Judentums_(München)\" 
+\"Kategorie:Domherr_(München)\" 
+\"Kategorie:Person_des_Christentums_(München)\" 
+\"Kategorie:Abt_(St._Bonifaz_München)\" 
+\"Kategorie:Landesbischof_der_Evangelisch-Lutherischen_Kirche_in_Bayern\" 
+\"Kategorie:Person_des_Islam_(München)\" 
+\"Kategorie:Evangelischer_Geistlicher_(München)\"  }
+    SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:endpoint \"de.wikipedia.org\";
+                     wikibase:api \"Generator\";
+                     mwapi:generator \"categorymembers\";
+                     mwapi:gcmtitle ?kategorie;
+                     mwapi:gcmprop \"ids%7Ctitle%7Ctype\";
+                     mwapi:gcmlimit \"max\".
+     ?member wikibase:apiOutput mwapi:title.
+     ?ns wikibase:apiOutput \"@ns\".
+     ?item wikibase:apiOutputItem mwapi:item.
+  }
+FILTER(BOUND(?item) && ?ns = \"0\")
+  OPTIONAL {   ?article schema:about ?item;
+      schema:isPartOf <https://de.wikipedia.org/>;
+      schema:name ?page_title.
+            }  
+  OPTIONAL { ?item wikibase:statements ?statements. }  
+    OPTIONAL {
+    ?item wdt:P19 ?geburtsort.
+    }
+    OPTIONAL {
+    ?item wdt:P569 ?geboren_am.
+    }
+  OPTIONAL {
+    ?item wdt:P20 ?sterbeort.
+    }
+  OPTIONAL {
+    ?item wdt:P937 ?wirkort.
+    }
+  OPTIONAL {
+    ?item wdt:P21 ?gender.
+    }
+  OPTIONAL {
+    ?item wdt:P106 ?occupation.
+    }  
+  OPTIONAL {
+    ?item wdt:P31 ?class.
+    }  
+  FILTER(BOUND(?class))
+  BIND(IF((?class = wd:Q5),?gender,?class) AS ?cl).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+            ?geburtsort rdfs:label ?geboren_in .
+            ?sterbeort rdfs:label ?gestorben_in .
+            ?wirkort rdfs:label ?wirkortLabel .
+            ?gender rdfs:label ?geschlecht.
+            ?occupation rdfs:label ?beruf.
+            ?cl rdfs:label ?klasse.
+    }
+}
+group by ?kategorie ?page_title ?article ?item ?statements ?geboren_in ?gestorben_in
+order by ?kategorie ?page_title""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:No39188/personenQueries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

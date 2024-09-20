@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b0787decb4c6056300565195ea6c9537> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT
+  ?item
+  ?itemLabel
+  (GROUP_CONCAT(DISTINCT ?citizenship; SEPARATOR=', ') AS ?citizenships)
+  (GROUP_CONCAT(DISTINCT ?occupation; SEPARATOR=', ') AS ?occupations)
+  ?startTime
+  (COUNT(?refHandle) AS ?cnt_refs)
+  ?sr_url
+WHERE {
+  ?item wdt:P1447 ?sr; p:P1050 ?s .
+  BIND(IRI(CONCAT('https://www.sports-reference.com/olympics/athletes/', ?sr, '.html')) AS ?sr_url)
+  OPTIONAL { ?item wdt:P27/rdfs:label ?citizenship . FILTER(LANG(?citizenship) = 'en') }
+  OPTIONAL { ?item wdt:P106/rdfs:label ?occupation . FILTER(LANG(?occupation) = 'en') }
+  ?s ps:P1050 wd:Q84263196 .
+  OPTIONAL { ?s pq:P580 ?startTime }
+  OPTIONAL { ?s prov:wasDerivedFrom ?refHandle }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+} GROUP BY ?item ?itemLabel ?startTime ?sr_url""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/sports/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b24e6d70214d935c5a83a84fc0142e91> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title:Query for recent revisions to items
+select ?item ?itemLabel ?string ?content ?timestamp ?user {
+  ?item wdt:P31 wd:Q146. # find cats
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  
+  BIND(STRAFTER(wikibase:decodeUri(str(?item)), \"http://www.wikidata.org/entity/\") AS ?string)
+  # need to make the ID something the API can understand
+  
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+       wikibase:api \"Generator\";
+       wikibase:limit \"once\";
+       mwapi:generator \"allpages\";
+       mwapi:gapfrom ?string;
+       mwapi:gapnamespace 0 ; # main namespace
+       mwapi:gaplimit 1; # only one 
+       mwapi:prop \"revisions\";
+       mwapi:rvdir \"newer\"; # FIRST revision
+       mwapi:rvprop \"timestamp""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Will_(Wiki_Ed)/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

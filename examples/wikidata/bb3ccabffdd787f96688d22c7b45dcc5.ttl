@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-bb3ccabffdd787f96688d22c7b45dcc5> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?municip ?municipLabel ?statutLabel ?mrcLabel ?regionLabel  
+WHERE 
+{
+    {?municip wdt:P31/wdt:P279* wd:Q3327873 } UNION {?municip wdt:P31 wd:Q3518810 }
+    ?municip wdt:P31 ?statut .
+    ?municip wdt:P131 ?mrc .
+    ?mrc wdt:P131 ?region .  
+    ?region wdt:P131 wd:Q176 .
+    Optional {?municip wdt:P2100 ?ctq .}
+    FILTER NOT EXISTS { ?municip wdt:P2100 ?x }
+    FILTER NOT EXISTS { ?municip wdt:P576 ?dissolu}
+    FILTER NOT EXISTS { ?municip wdt:P582 ?end }
+    FILTER NOT EXISTS {?municip p:P31 [ pq:P582 ?pqfin ] } # Test
+	SERVICE wikibase:label {
+		bd:serviceParam wikibase:language \"en\",\"fr\" .
+	}
+} 
+ORDER BY ?regionLabel ?mrcLabel ?municipLabel
+LIMIT 1000""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

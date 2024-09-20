@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b8577f234bad86145c9f232a6c9fd5de> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?place ?dist ?placeLabel ?placeDescription ?istEinLabel ?liegtInLabel ?ortLabel ?OsmLi ?OsmKn
+WHERE
+{
+  # Nearby ohne Stolpersteine, Straßen und Sonderausstellungen
+  wd:Q2204038 wdt:P625 ?loc . # irgendein Item mit Geokoordinaten
+  #BIND ( \"Point(-79.71 15.8)\"^^geo:wktLiteral AS ?loc ) . # Beliebige Position. Erst Ost/West. keine Blanks vor oder nach den Koordinaten!
+  SERVICE wikibase:around {
+      ?place wdt:P625 ?location .
+      bd:serviceParam wikibase:center ?loc .
+      bd:serviceParam wikibase:radius \"5\" .
+  }
+  OPTIONAL { ?place wdt:P31 ?istEin }
+  OPTIONAL { ?place wdt:P131 ?liegtIn }
+  OPTIONAL { ?place wdt:P10689 ?OsmLi }
+  OPTIONAL { ?place wdt:P11693 ?OsmKn }
+  OPTIONAL { ?place wdt:P276  ?ort }
+  FILTER ( ?istEin != wd:Q26703203 && ?istEin != wd:Q29023906 && ?istEin != wd:Q79007 )
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" }
+  BIND(geof:distance(?loc, ?location) as ?dist)
+} ORDER BY ?dist
+LIMIT 50""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Gerd_Fahrenhorst>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

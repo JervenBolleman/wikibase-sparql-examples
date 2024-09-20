@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b2d1f6e1eb20432978b0609b839070bf> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT  ?ratio  ?item2 ?item2Label ?dist ?mileage_diff ?section ?lin ?lin2 ?sectionLabel 
+
+WITH {
+  SELECT ?item ?section ?elr ?lin ?itemLoc WHERE {
+    ?item p:P795 ?stmt .
+    ?stmt ps:P795 ?section . 
+    ?section wdt:P10271 ?elr .
+    ?stmt pq:P6710 ?lin .
+    ?item wdt:P625 ?itemLoc .
+  }
+} AS %items
+
+WHERE { 
+  VALUES ?item {wd:Q2525068} .
+  INCLUDE %items .
+  ?item2 wdt:P795 ?section .
+  FILTER (?item != ?item2) .
+  {
+    SELECT (?item AS ?item2) ?section (?lin AS ?lin2) (?itemLoc AS ?item2Loc) WHERE {
+      INCLUDE %items .
+    }
+  }
+  BIND ((geof:distance(?itemLoc, ?item2Loc) / 1.609) AS ?dist) .
+  BIND (abs(?lin - ?lin2) AS ?mileage_diff) . 
+  BIND (?dist / ?mileage_diff AS ?ratio) . 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } .
+} 
+ORDER BY ?lin2""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

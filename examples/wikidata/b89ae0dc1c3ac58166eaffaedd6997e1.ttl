@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b89ae0dc1c3ac58166eaffaedd6997e1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Wikidata entries for British ambassadors and high commissioners
+# all people who held at least one such position
+# one line per position held (so many people appear repeatedly)
+# start/end dates for that particular position
+
+select ?person ?personLabel ?positionLabel ?startyear ?endyear where
+{
+  { ?position wdt:P31 wd:Q18115939 . } union { ?position wdt:P31 wd:Q56760832 } . # position is UK ambassador or high commissioner
+    ?person p:P39 ?positionStatement . ?positionStatement ps:P39 ?position . # find positions they held
+    optional { ?positionStatement pq:P580 ?start . bind(year(?start) as ?startyear) } # id start year
+    optional { ?positionStatement pq:P582 ?end . bind(year(?end) as ?endyear) } # id end year
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/ambassadors>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

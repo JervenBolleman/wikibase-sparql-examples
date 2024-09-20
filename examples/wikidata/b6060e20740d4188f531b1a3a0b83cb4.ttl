@@ -1,0 +1,42 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b6060e20740d4188f531b1a3a0b83cb4> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:ImageGrid
+
+SELECT ?file ?image ?stype ?stypeLabel ?collec ?collecLabel ?role ?roleLabel ?de ?deLabel
+with {
+  select ?stype ?stypeLabel ?collec ?collecLabel ?role ?de ?roleLabel ?deLabel {
+   service <https://query.wikidata.org/sparql> {
+     select ?stype ?stypeLabel ?collec ?collecLabel ?role ?de ?roleLabel ?deLabel { 
+       ?stype wdt:P31/wdt:P279* wd:Q51255340 
+       SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+       optional {
+         ?stype wdt:P195 ?collec .
+       }
+       ?stype p:P2868 [ps:P2868 ?role ; pq:P642 ?de] .
+       values ?collec {
+        wd:Q16949336 # Auckland Institute and Museum 
+        wd:Q915603 # Museum of New Zealand Te Papa Tongarewa
+       }
+     }
+   }
+  }
+} as %types
+WHERE {
+  ?file wdt:P180 ?stype ; schema:contentUrl ?url .
+  
+  bind(iri(concat(\"http://commons.wikimedia.org/wiki/Special:FilePath/\", replace(substr(str(?url),53),\"_\",\"%20\"))) AS ?image) .
+  
+  #?file wdt:P180  wd:Q105607273  .
+  include %types
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Ambrosia10>, <https://www.wikidata.org//wiki/User:Christian_Ferrer>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

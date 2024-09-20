@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b570897df630fc7017bb66a0e0d450b5> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?count ?name ?sitelink {
+  VALUES (?lang ?regex) {
+    #('cs' 'rozcestník|příjmení')
+    #('de' 'Begriffsklärung|Wegweiser')
+    #('en' 'disambiguation|name')
+    ('vi' 'định hướng|đổi hướng')
+  } .
+  ?item wdt:P31 wd:Q4167410; ^schema:about ?sitelink .
+  ?sitelink schema:inLanguage ?lang; schema:name ?name .
+  FILTER ( STRENDS ( STR( ?name ), ')' ) ) .
+  FILTER ( !REGEX( STRBEFORE( STRAFTER( STR( ?name ), '(' ), ')' ), ?regex ) ) .
+  OPTIONAL { ?item wikibase:sitelinks ?count } .
+} LIMIT 50""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_Disambiguation_pages>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

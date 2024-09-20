@@ -1,0 +1,39 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b844b3da2a229b4d29c92dd3afa7ec89> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?id ?geo
+  (IF (BOUND(?nl_title), CONCAT(\"[[:nl:\", ?nl_title, \"|\", ?idLabel, \"]]\"), ?idLabel) AS ?title)
+  (SAMPLE(?image) AS ?img)
+  (IF (BOUND(?img), CONCAT(?creatorLabel, \"\\n\", \"[[File:\", SUBSTR(STR(?img), 52), \"|200px]]\"), ?creatorLabel) AS ?description)
+  (IF(?gender = wd:Q6581097, \"#CCFFFF\", IF(?gender = wd:Q6581072, \"#FFCCCC\", \"#CCCCCC\")) AS ?marker_color)
+WHERE {
+  ?id wdt:P136 wd:Q557141;
+    wdt:P625 ?geo;
+    wdt:P17 wd:Q31.
+  OPTIONAL {
+    ?id wdt:P170 ?creator.
+    ?creator wdt:P21 ?gender.
+  }
+  OPTIONAL { ?id wdt:P18 ?image }
+  OPTIONAL {
+    ?sitelink schema:about ?id.
+    ?sitelink schema:isPartOf <https://nl.wikipedia.org/> .
+    ?sitelink schema:name ?nl_title .
+  }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en, nl\".
+    ?id rdfs:label ?idLabel.
+    ?creator rdfs:label ?creatorLabel.
+  }
+}
+GROUP BY ?id ?geo ?creator ?gender ?nl_title ?idLabel ?creatorLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,57 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-bad0db8b1a5e484c059b6edfdd8ff170> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Graph
+#defaultView:Graph
+PREFIX target: <http://www.wikidata.org/entity/Q818846>
+
+SELECT DISTINCT
+  ?from ?from_image ?fromLabel
+  ?to ?to_image ?toLabel
+WITH {
+  SELECT DISTINCT
+    ?from
+  WHERE {
+    { BIND(target: AS ?from) }
+    UNION
+    { target: (wdt:P169| wdt:P488 | wdt:P1037 | wdt:P3320)? ?from }
+    UNION
+    { target: ( (wdt:P127 | ^wdt:P1830 | wdt:P749 | ^wdt:P355)+ | 
+                (^wdt:P127 | wdt:P1830 | ^wdt:P749 | wdt:P355)+)
+        / (wdt:P169 | wdt:P488 | wdt:P1037 | wdt:P3320)?
+                                                       ?from . }        
+  }
+} AS %froms
+WITH {
+  SELECT DISTINCT
+    ?to
+  WHERE {
+    { BIND(target: AS ?to) }
+    UNION
+    { target: ( (wdt:P127 | ^wdt:P1830 | wdt:P749 | ^wdt:P355)+ | 
+                (^wdt:P127 | wdt:P1830 | ^wdt:P749 | wdt:P355)+) ?to }
+  }
+} AS %tos
+WHERE {
+  INCLUDE %froms
+  INCLUDE %tos
+  { ?from wdt:P1830 | wdt:P355 ?to . }
+  UNION
+  { ?to wdt:P127 ?from }
+  UNION 
+  { ?to wdt:P169 | wdt:P488 | wdt:P1037 | wdt:P3320 ?from }
+
+  OPTIONAL { ?from wdt:P18 ?from_image . }
+  OPTIONAL { ?to wdt:P18 ?to_image . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"da,en\" .  } 
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:danskvirksomhed>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-be56d2d8cd3f3ac171bc102ac6bf9247> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?cityLabel ?countryLabel (MAX(?pop) AS ?population) ?namedLabel (GROUP_CONCAT(distinct ?officeLabel; SEPARATOR=\", \") AS ?offices)
+WHERE
+{
+    ?city wdt:P31/wdt:P279* wd:Q515 .
+    ?city wdt:P138 ?named .
+    ?city wdt:P1082 ?pop .
+    ?city wdt:P17 ?country .
+    ?named wdt:P39 ?office .
+    ?office wdt:P31/wdt:P279* wd:Q294414.
+    MINUS{ ?office wdt:P31/wdt:P279* wd:Q112806846. }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\"}
+  
+}
+GROUP BY ?cityLabel ?countryLabel ?namedLabel
+ORDER BY DESC(?population)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

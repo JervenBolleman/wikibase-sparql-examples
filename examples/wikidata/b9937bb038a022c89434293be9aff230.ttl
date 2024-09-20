@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b9937bb038a022c89434293be9aff230> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#OpenMLOL author merges
+SELECT ?item (GROUP_CONCAT(DISTINCT CONCAT(\"https://openmlol.it/autore/\",?op); separator=\", \") AS ?openmlol) (count(?op) AS ?num)
+       (GROUP_CONCAT(DISTINCT CONCAT(\"https://viaf.org/viaf/\",?v); separator=\", \") AS ?viaf) (count(?v) AS ?num2)
+WHERE {
+  ?item wdt:P3762 ?op . 
+  OPTIONAL { ?item wdt:P214 ?v . }
+  #?article schema:about ?item .
+  #?article schema:isPartOf <https://it.wikipedia.org/> .
+  #SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],it,en\". }
+  } 
+GROUP BY ?item
+HAVING(?num > 3)
+ORDER BY DESC(?num2)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/sandbox>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

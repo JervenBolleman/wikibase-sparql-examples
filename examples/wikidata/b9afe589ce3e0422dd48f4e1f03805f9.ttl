@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b9afe589ce3e0422dd48f4e1f03805f9> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?itemLabel ?sfnal ?efanzines ?fancy ?fanac WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en-GB,en,mul\"}
+
+        {?item wdt:P9307 ?a}            # Fancyclopedia ID
+  UNION {?item wdt:P1343 wd:Q5323019}   # eFanzines
+  UNION {?item wdt:P1343 wd:Q112954537} # Fanac
+
+  BIND (CONCAT(\"https://sfnal.info/\",REPLACE(STR(?item), \"http://www.wikidata.org/entity/\",\"\")) AS ?sfnal)
+      
+  OPTIONAL {?item wdt:P9307 ?temp2. BIND (CONCAT(\"https://fancyclopedia.org/\",STR(?temp2)) AS ?fancy)}
+  OPTIONAL {?item p:P1343 ?temp3.
+            ?temp3 ps:P1343 wd:Q5323019; pq:P2699 ?efanzines}
+  OPTIONAL {?item p:P1343 ?temp4.
+            ?temp4 ps:P1343 wd:Q112954537; pq:P2699 ?fanac}
+}
+ORDER BY ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Vicarage>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

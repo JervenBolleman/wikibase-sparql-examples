@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-bbda68b0d95766cf0d7cd6a9869a6f8e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+    ?value (SAMPLE(?valueLabel) AS ?valueLabel) (SAMPLE(?ct) AS ?ct)
+    (GROUP_CONCAT(DISTINCT(STRAFTER(STR(?item), \"/entity/\")); separator=\", \") AS ?items)
+    (GROUP_CONCAT(DISTINCT(?itemLabel); separator=\", \") AS ?itemLabels)
+WHERE    
+{
+  	{ 	SELECT ?value (COUNT(DISTINCT ?item) as ?ct)
+  		WHERE
+  		{ 
+  			?item wdt:P240 ?value 
+		}
+    	GROUP BY ?value HAVING (?ct>1) 
+    	ORDER BY DESC(?ct)
+	}
+  	?item wdt:P240 ?value . 
+	SERVICE wikibase:label {
+    	bd:serviceParam wikibase:language \"fr, en\" . 
+    	?item rdfs:label ?itemLabel .
+    	?value rdfs:label ?valueLabel .
+  	}
+}
+GROUP BY ?value
+ORDER BY DESC(?ct)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Bouzinac/D%C3%A9doublonnages>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b757ec14dbdb580b269d02b9bf20b970> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# items with location BStGS or collection part of BStGS
+SELECT
+  ?item ?itemLabel
+  (GROUP_CONCAT(DISTINCT ?invno ; SEPARATOR=\", \") AS ?invnos)
+  ?collectionLabel ?locationLabel WHERE {
+{
+    ?item wdt:P195 ?sub0 .
+    ?sub0 wdt:P361 wd:Q812285 .
+} UNION {
+    ?item wdt:P276 wd:Q812285 .
+}
+  OPTIONAL { ?item wdt:P217 ?invno . }
+  OPTIONAL { ?item wdt:P195 ?collection . }
+  OPTIONAL { ?item wdt:P276 ?location . }
+  FILTER NOT EXISTS { ?item wdt:P195 wd:Q812285 . }
+  MINUS { ?item wdt:P31 wd:Q15206795 } # no exhibition rooms
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,de,fr,it,es,pt,ca,la\" . }
+}
+GROUP BY ?item ?itemLabel ?invnos ?collectionLabel ?locationLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Marsupium/BStGS>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

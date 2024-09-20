@@ -1,0 +1,81 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b54a6dcd52b34738b4d98cdedf03b2c0> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Namegivers of alba amicorum of KB
+SELECT DISTINCT 
+?item ?itemLabel 
+?namedafter ?namedafterLabel 
+?owner ?ownerLabel 
+?dedicatedto ?dedicatedtoLabel
+?nameNL
+?genderLabel 
+?image  
+?commonscat
+(GROUP_CONCAT(DISTINCT ?dob_year ; separator = \" -- \") as ?birth_year)
+(GROUP_CONCAT(DISTINCT ?dod_year ; separator = \" -- \") as ?death_year)
+(GROUP_CONCAT(DISTINCT ?nta_url ; separator = \" -- \") as ?nta_urls)
+(GROUP_CONCAT(DISTINCT ?viaf_url ; separator = \" -- \") as ?viaf_urls)
+?ownerofLabel 
+?notableworkLabel  
+?onfocuslistLabel
+?maintainedbyLabel
+?hasworksincollectionLabel ?KBcollectionItemLabel
+?copyrightstatusLabel
+WHERE 
+{
+  ?item p:P31/ps:P31 wd:Q457843 .
+  ?item p:P195/ps:P195 wd:Q1526131.
+  # Consideration: We might want to do a UNION between ?owner, ?namedafter and ?dedicatedto, as ?owner is not always present in a Qitem
+  ?item wdt:P138 ?namedafter.
+  OPTIONAL {?item wdt:P127 ?owner.
+           FILTER(?owner = ?namedafter) # The FIRST, ORGINAL owner of the album, after whom the album was named
+           } 
+  OPTIONAL {?item wdt:P825 ?dedicatedto.}
+  OPTIONAL {?namedafter wdt:P21 ?gender.}
+  OPTIONAL {?namedafter wdt:P1559 ?nameNL.}
+           FILTER(LANG(?nameNL) = \"nl\") .
+  OPTIONAL {?namedafter wdt:P1006 ?nta.
+           BIND(URI(CONCAT(\"http://data.bibliotheken.nl/doc/thes/p\", ?nta)) as ?nta_url).}
+  OPTIONAL {?namedafter wdt:P214 ?viaf.
+           BIND(URI(CONCAT(\"https://viaf.org/viaf/\", ?viaf)) as ?viaf_url).}
+  OPTIONAL {?namedafter wdt:P18 ?image.} # Add images to items
+  OPTIONAL {?namedafter wdt:P373 ?commonscat.} 
+  OPTIONAL {?namedafter wdt:P569 ?dob.
+           BIND(year(?dob) as ?dob_year).}
+  OPTIONAL {?namedafter wdt:P570 ?dod.
+           BIND(year(?dod) as ?dod_year).}
+  OPTIONAL {?namedafter wdt:P1830 ?ownerof. # Reverse check
+           FILTER(?ownerof = ?item)
+           } 
+  OPTIONAL {?namedafter wdt:P800 ?notablework.
+           FILTER(?notablework = ?item)         
+           } 
+  OPTIONAL {?namedafter wdt:P5008 ?onfocuslist.
+           FILTER(?onfocuslist = wd:Q99484628)         
+           }  
+  OPTIONAL {?namedafter wdt:P6104 ?maintainedby.
+           FILTER(?maintainedby = wd:Q99484628)         
+           }  
+  OPTIONAL {?namedafter p:P6379 ?x.
+           ?x ps:P6379 ?hasworksincollection.
+           FILTER(?hasworksincollection = wd:Q1526131) # only KB         
+           ?x pq:P518 ?KBcollectionItem #aplies to part = P518
+           FILTER(?KBcollectionItem = ?item)                              
+           } 
+  OPTIONAL {?namedafter wdt:P7763 ?copyrightstatus.}
+ 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],nl\". }
+} 
+GROUP BY ?item ?itemLabel ?owner ?ownerLabel ?namedafter ?namedafterLabel ?dedicatedto ?dedicatedtoLabel ?genderLabel ?nameNL
+?image  ?commonscat ?ownerofLabel ?notableworkLabel  ?onfocuslistLabel ?maintainedbyLabel ?hasworksincollectionLabel ?KBcollectionItemLabel ?copyrightstatusLabel
+ORDER BY ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Alba_amicorum_National_Library_of_the_Netherlands/Album_owners>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,51 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b5bedd2a034f4bacf3beada1ed9acc6c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target1: <http://www.wikidata.org/entity/Q35>
+PREFIX target2: <http://www.wikidata.org/entity/Q2539>
+
+SELECT
+  ?works
+  (CONCAT(\"#author/\", SUBSTR(STR(?author), 32), \"/topic/\", SUBSTR(STR(target2:), 32)) AS ?worksUrl)
+
+  ?author ?authorLabel 
+  (CONCAT(\"#author/\", SUBSTR(STR(?author), 32)) AS ?authorUrl)
+  ?authorDescription
+
+  ?example_work ?example_workLabel
+  (CONCAT(\"#work/\", SUBSTR(STR(?example_work), 32)) AS ?example_workUrl)
+WITH {
+  SELECT 
+    ?work
+  WHERE {
+    ?work wdt:P921 / (wdt:P361| wdt:P1269 | wdt:P31 | wdt:P279)? target2:
+  }
+} AS %works
+WITH {
+  SELECT
+    (COUNT(DISTINCT ?work) AS ?works)
+    ?author 
+    (SAMPLE(?work) AS ?example_work)
+  WHERE {
+    INCLUDE %works
+    ?work wdt:P50 ?author .
+    ?author ( wdt:P108 | wdt:P1416 ) / wdt:P17 target1:
+  }
+  GROUP BY ?author
+} AS %author_works
+WHERE {
+  INCLUDE %author_works
+  service wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . } 
+}
+ORDER BY DESC(?works)
+LIMIT 2000""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:country-topic>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,222 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b92f32c55fb901c6bb84c0725f986318> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/L2310>
+
+# Data for a specific lexeme
+SELECT DISTINCT
+  ?description
+  (?valueLabel AS ?value_) ?value_Url
+  ?source ?sourceUrl
+
+  ?wikidata ?wikidataLabel ?wikidataUrl
+
+  ?ordia ?ordiaLabel ?ordiaUrl
+
+WHERE {
+  {
+    BIND(1 AS ?order)
+    BIND(\"Lemma\" AS ?description)
+    target: wikibase:lemma ?value .
+    BIND(?value AS ?valueLabel)
+    
+    BIND(target: AS ?wikidata)
+    BIND(CONCAT(SUBSTR(STR(target:), 32), \"&nbsp;↗\") AS ?wikidataLabel)
+    BIND(CONCAT(\"https://www.wikidata.org/wiki/Lexeme:\", SUBSTR(STR(target:), 32)) AS ?wikidataUrl)
+
+    BIND(target: AS ?ordia)
+    BIND(\"Ordia&nbsp;↗\" AS ?ordiaLabel)
+    BIND(CONCAT(\"https://ordia.toolforge.org/\", SUBSTR(STR(target:), 32)) AS ?ordiaUrl)
+
+  }
+  UNION 
+  {
+    BIND(2 AS ?order)
+    BIND(\"Language\" AS ?description)
+    target: dct:language ?value .
+    ?value rdfs:label ?valueLabel .
+    FILTER (LANG(?valueLabel) = 'en')
+    BIND(CONCAT(\"#language/\", SUBSTR(STR(?value), 32))  AS ?value_Url)
+  }
+  UNION 
+  {
+    BIND(3 AS ?order)
+    BIND(\"Lexical category\" AS ?description)
+    target: wikibase:lexicalCategory ?value .
+    ?value rdfs:label ?valueLabel .
+    FILTER (LANG(?valueLabel) = 'en')
+    BIND(CONCAT(\"#lexicalcategory/\", SUBSTR(STR(?value), 32))  AS ?value_Url)
+  }
+  UNION 
+  {
+    BIND(4 AS ?order)
+    BIND(\"Instance of\" AS ?description)
+    target: p:P31 ?value_statement .
+    ?value_statement ps:P31 ?value .
+    ?value rdfs:label ?valueLabel .
+    FILTER (LANG(?valueLabel) = 'en')
+    BIND(CONCAT(\"#property/P31/value/\", SUBSTR(STR(?value), 32))  AS ?value_Url)
+    OPTIONAL {
+      ?value_statement prov:wasDerivedFrom / pr:P248 ?source_ .
+      ?source_ rdfs:label ?source .
+      FILTER (LANG(?source) = 'en')
+      BIND(CONCAT(\"#work/\", SUBSTR(STR(?source_), 32))  AS ?sourceUrl)
+    }
+  }
+  UNION 
+  {
+    BIND(6 AS ?order)
+    BIND(\"Word stem\" AS ?description)
+    OPTIONAL {
+      target: wdt:P5187 ?value .
+    }
+    BIND(?value AS ?valueLabel)
+  }
+  UNION 
+  {
+    BIND(10 AS ?order)
+    BIND(\"Grammatical gender\" AS ?description)
+    target: wdt:P5185 ?value .
+    ?value rdfs:label ?valueLabel .
+    FILTER (LANG(?valueLabel) = 'en')
+  }
+  UNION 
+  {
+    BIND(11 AS ?order)
+    BIND(\"Conjugation class\" AS ?description)
+    target: wdt:P5186 ?value .
+    ?value rdfs:label ?valueLabel .
+    FILTER (LANG(?valueLabel) = \"en\")
+    BIND(CONCAT(\"#property/P5186/value/\", SUBSTR(STR(?value), 32))  AS ?value_Url)
+
+  }
+  UNION 
+  {
+    BIND(12 AS ?order)
+    BIND(\"Auxiliary verb\" AS ?description)
+    target: wdt:P5401 ?value .
+    ?value wikibase:lemma ?valueLabel .
+    # BIND(CONCAT(\"#property/P5401/value/\", SUBSTR(STR(?value), 32))  AS ?value_Url)
+    BIND(SUBSTR(STR(?value), 32) AS ?value_Url)
+  }
+  UNION 
+  {
+    # Characterized by
+    BIND(13 AS ?order)
+    BIND(\"Characterized by\" AS ?description)
+    wd:L2310 wdt:P1552 ?value .
+    ?value rdfs:label ?valueLabel .
+    FILTER (LANG(?valueLabel) = \"en\")
+    BIND(CONCAT(\"#property/P1552/value/\", SUBSTR(STR(?value), 32))  AS ?value_Url)
+  }
+  UNION 
+  {
+    # Derived from
+    BIND(14 AS ?order)
+    BIND(\"Derived from\" AS ?description)
+    OPTIONAL {
+     target: wdt:P5191 ?value .
+     ?value wikibase:lemma ?valueLabel .	  
+    }
+    BIND(CONCAT(\"#lexeme/\", SUBSTR(STR(?value), 32))  AS ?value_Url)
+  }
+  UNION 
+  {
+    # Homographs
+    BIND(15 AS ?order)
+    BIND(\"Homographs\" AS ?description)
+    target: wdt:P5402 ?value .
+    ?value wikibase:lemma ?valueLabel .
+    BIND(CONCAT(\"#lexeme/\" ,SUBSTR(STR(?value), 32)) AS ?value_Url)
+  }
+  UNION 
+  {
+    BIND(18 AS ?order)
+    BIND(\"Compound\" AS ?description)
+    target: wdt:P5238+ ?value .
+    ?value wikibase:lemma ?valueLabel .
+    BIND(CONCAT(\"#lexeme/\", SUBSTR(STR(?value), 32))  AS ?value_Url)
+  }
+  UNION 
+  {
+    BIND(20 AS ?order)
+    BIND(\"Described in\" AS ?description)
+    target: ontolex:lexicalForm? / p:P1343 ?value_statement .
+    ?value_statement ps:P1343 ?value .
+    ?value rdfs:label ?valueLabel .
+    FILTER (LANG(?valueLabel) = 'en')
+    BIND(CONCAT(\"#work/\", SUBSTR(STR(?value), 32))  AS ?value_Url)
+    OPTIONAL {
+      ?value_statement prov:wasDerivedFrom / pr:P854 ?sourceUrl .
+      BIND(\"↗\" AS ?source)
+    }
+  }
+  UNION 
+  {
+    BIND(30 AS ?order)
+    BIND(\"First attested from\" AS ?description)
+    target: p:P6684 ?value_statement .
+    ?value_statement ps:P6684 ?value .
+    ?value rdfs:label ?valueLabel .
+    FILTER (LANG(?valueLabel) = \"en\")
+    BIND(CONCAT(\"#work/\", SUBSTR(STR(?value), 32))  AS ?value_Url)
+    OPTIONAL {
+      ?value_statement prov:wasDerivedFrom / pr:P854 ?sourceUrl .
+      OPTIONAL { ?value_statement pq:P577 ?date }
+      BIND(COALESCE(
+        CONCAT(STR(YEAR(?date)), \"-\", STR(MONTH(?date)), \"-\", STR(DAY(?date))),
+        \"↗\") AS ?source)
+    }
+  }
+  UNION 
+  {
+    BIND(31 AS ?order)
+    BIND(\"Attested in\" AS ?description)
+    target: ontolex:lexicalForm? / p:P5323 ?value_statement .
+    ?value_statement ps:P5323 ?value .
+    ?value rdfs:label ?valueLabel .
+    FILTER (LANG(?valueLabel) = \"en\")
+    BIND(CONCAT(\"#lexemeattestor/\", SUBSTR(STR(?value), 32))  AS ?value_Url)
+    OPTIONAL {
+      ?value_statement prov:wasDerivedFrom / pr:P854 ?sourceUrl .
+      OPTIONAL { ?value_statement pq:P577 ?date }
+      BIND(COALESCE(
+	  CONCAT(STR(YEAR(?date)), \"-\", STR(MONTH(?date)), \"-\", STR(DAY(?date)), \"&nbsp;↗\"),
+        \"↗\") AS ?source)
+    }
+    OPTIONAL {
+      ?value wdt:P577 ?date . 
+      BIND(CONCAT(STR(YEAR(?date)), \"-\", STR(MONTH(?date)), \"-\", STR(DAY(?date))) AS ?source)
+    }
+
+  }
+  UNION 
+  {
+    BIND(32 AS ?order)
+    BIND(\"Usage example\" AS ?description)
+    target: p:P5831 ?value_statement .
+    ?value_statement ps:P5831 ?value .
+    BIND(CONCAT(?value, \" ↗\") AS ?valueLabel)
+    BIND(CONCAT(\"https://ordia.toolforge.org/text-to-lexemes?text=\", ENCODE_FOR_URI(?value), \"&text-language=\", LANG(?value)) AS ?value_Url)
+    OPTIONAL {
+      ?value_statement prov:wasDerivedFrom / pr:P248 ?source_ . 
+      OPTIONAL {
+        ?source_ rdfs:label ?title .
+        FILTER (LANG(?title) = \"en\")     
+      }
+      BIND(COALESCE(?title, \"Ref.\") AS ?source)
+      BIND(CONCAT(\"#reference/\", SUBSTR(STR(?source_), 32)) AS ?sourceUrl)
+    }   
+  }
+}
+ORDER BY ?order""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:lexeme>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

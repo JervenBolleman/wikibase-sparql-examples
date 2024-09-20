@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ba0dad8d4899598b0b70f5e04089c53a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?continentLabel ?country ?countryLabel  ?city ?cityLabel ?population ?coords ?elevation_above_sea_level ?area WHERE {  
+  {
+    SELECT ?country ?continent WHERE {
+      ?country wdt:P31 wd:Q6256 .
+      ?country wdt:P30 ?continent .
+
+      FILTER(?continent = wd:Q15).
+    }
+  }
+  
+  ?city wdt:P31/wdt:P279* wd:Q486972 .
+  ?city wdt:P17 ?country .
+  ?city wdt:P1082 ?population .
+  FILTER(?population >= 10000).
+  OPTIONAL { ?city wdt:P625 ?coords .}
+  OPTIONAL { ?city wdt:P2044 ?elevation_above_sea_level .}
+  OPTIONAL { ?city wdt:P2046 ?area .}
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"bg, en, [AUTO_LANGUAGE]\" }
+} ORDER BY ?countryLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Vislupus>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

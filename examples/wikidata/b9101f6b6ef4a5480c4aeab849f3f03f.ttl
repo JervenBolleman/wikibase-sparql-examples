@@ -1,0 +1,50 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b9101f6b6ef4a5480c4aeab849f3f03f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# show Water Margin characters' residences and birth/death places on map
+# with ?edgeLabel as layer
+#defaultView:Map{\"layer\":\"?edgeLabel\"}
+### Note: 1. The dot on map does not reflect the number of persons who were born or died there, i.e.,
+### no matter how many persons share a same birth/death place, the dot on that place remains the same size.
+### 2. If \"layer\" is not used, clicking a multi-person place will show options of each person, while
+### if \"layer\" is used (as in this query), clicking a multi-person place will only show one person's information.
+# show ?person's description by using ?personDescription (my first time showing description)
+SELECT DISTINCT ?person ?nick_name ?personLabel ?image ?personDescription ?groupLabel ?edgeLabel ?place ?placeLabel ?coord 
+WHERE {
+  # define ?person as one that is present in work (P1441) Water Margin (Q70827), and
+  ?person wdt:P1441 wd:Q70827;
+          # is instance of (P31) or any subclass of (P279) fictional character (Q95074)
+          wdt:P31/wdt:P279* wd:Q95074.
+  # optional: show ?person's birth place (P19) or residence (P551) or death place (P20) as ?place
+  OPTIONAL {?person (wdt:P19|wdt:P551|wdt:P20) ?place
+             # optional: show ?place's coordinate location (P625) as ?coord
+             ### Note: show ?coord as optional so that those places with no value or unknown value 
+             ### can also be shown in table, although not on map
+            OPTIONAL {?place wdt:P625 ?coord}
+            # To avoid showing any other relation
+            # define ?relation as birth place (P19) or residence (P551) or death place (P20) 
+            VALUES ?relation {wdt:P19 wdt:P551 wdt:P20}
+            # ?relation is from ?person to ?place
+            ?person ?relation ?place.
+            # show ?relation on graph edges
+           ?edge wikibase:directClaim ?relation;
+               a wikibase:Property}
+  # show ?person's nick name (P1449) as ?nick_name
+  OPTIONAL {?person wdt:P1449 ?nick_name}
+  # optional: show ?person's member_of (P463) as ?group
+  OPTIONAL {?person wdt:P463 ?group}
+  # optional: show ?person's image (P18) as ?image
+  OPTIONAL {?person wdt:P18 ?image}
+  # show label in simplified Chinese (zh-hans) as default, and English when no default label exists
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"zh-hans,en\".}
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

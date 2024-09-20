@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b9f97c0025dc9c00c9afed034f50fb0f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title:Deprecated values sourced with Beweb, and corresponding correct values
+SELECT DISTINCT ?item ?itemLabel ?pLabel ?deprecatedValueLabel ?BeWeB ?valueToUseLabel
+WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"it\". }
+  ?item ?property ?deprecatedStatement .
+  ?p wikibase:claim ?property ; wikibase:statementProperty ?stprop .
+  ?deprecatedStatement ?stprop ?deprecatedValue ; prov:wasDerivedFrom ?ref ; wikibase:rank wikibase:DeprecatedRank .
+  OPTIONAL { ?item ?property ?normalStatement . ?normalStatement ?stprop ?normalValue ; wikibase:rank wikibase:NormalRank } .
+  OPTIONAL { ?item ?property ?preferredStatement . ?preferredStatement ?stprop ?preferredValue ; wikibase:rank wikibase:PreferredRank } .
+  BIND(COALESCE(?preferredValue,?normalValue) AS ?valueToUse).
+  ?ref pr:P248 wd:Q77541206 .
+  ?ref pr:P7796 ?beweb.
+  wd:P7796 wdt:P1630 ?fmt .
+  BIND(IRI(REPLACE(?beweb,  CONCAT('(',?beweb,')'), ?fmt)) AS ?BeWeB) .
+}
+ORDER BY ?pLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/Queries>, <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/sandbox>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

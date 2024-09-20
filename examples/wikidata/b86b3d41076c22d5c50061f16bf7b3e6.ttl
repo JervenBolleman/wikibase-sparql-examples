@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b86b3d41076c22d5c50061f16bf7b3e6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: The northernmost city in Africa
+SELECT ?x ?xLabel ?latitude ?longitude  WITH {
+
+# select all the cities in a continent
+SELECT ?x WHERE {
+  ?x wdt:P31/wdt:P279* wd:Q515 . # x is a type of city (big city, city state etc)
+  ?x wdt:P17 ?country .
+  ?country wdt:P30 wd:Q15 .  # <== put the continent here
+  MINUS { ?country wdt:P31 wd:Q3024240 } # current countries only
+} } AS %cities
+
+# get each city's latitude/longitude
+# sort depending on east/west or north/south
+# select the first one
+WHERE {
+  INCLUDE %cities
+  ?x p:P625 [
+    psv:P625 [
+    wikibase:geoLatitude ?latitude ; 
+    wikibase:geoLongitude ?longitude ;
+      ]
+    ]          
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}     
+ORDER BY DESC (?latitude)      # ASC for southernmost; DESC for northernmost
+#ORDER BY ASC (?longitude)      # ASC for westernmost; DESC for easternmost
+LIMIT 1""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

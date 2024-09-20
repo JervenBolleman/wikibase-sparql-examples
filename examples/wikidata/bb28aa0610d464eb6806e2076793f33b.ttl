@@ -1,0 +1,24 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-bb28aa0610d464eb6806e2076793f33b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map{\"hide\": [\"?coord\", \"?layer\"]}
+SELECT DISTINCT ?person ?name ?birthplace ?birthyear ?coord ?layer WHERE {
+   {?person wdt:P106 wd:Q188094} UNION {?person wdt:P101 wd:Q8134} MINUS {?person wdt:P106 wd:Q188094; wdt:P101 wd:Q8134}
+   ?person wdt:P570 ?dod;
+     wdt:P19 ?place .
+   ?place wdt:P625 ?coord
+   OPTIONAL { ?person wdt:P569 ?dob }
+   BIND(YEAR(?dob) as ?birthyear)
+  BIND(IF( (?birthyear < 1700), \"Pre-1700\", IF((?birthyear < 1751), \"1700-1750\", IF((?birthyear < 1801), \"1751-1800\", IF((?birthyear < 1851), \"1801-1850\", IF((?birthyear < 1901), \"1851-1900\", IF((?birthyear < 1951), \"1901-1950\", \"Post-1950\") ) ) ) )) AS ?layer )
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\".?person rdfs:label ?name. ?place rdfs:label ?birthplace }
+} ORDER BY ?birthyear""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,46 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b2bf780ca5a3c277a0a40a875e16e54c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?airport ?airportLabel ?pays ?paysLabel (SAMPLE(?coord) AS ?coord)
+  ?ICAO ?IATA (SAMPLE(?Local_Code) AS ?Local_Code)
+WITH
+{
+  SELECT DISTINCT ?airport
+  WHERE
+  {
+    ?airport (wdt:P31/wdt:P279*) wd:Q62447.
+    #?airport wdt:P17 wd:Q408.                                       # make a country filter
+    MINUS { ?airport wdt:P576 _:b2. }                                # remove items with P576 (dissolved, abolished or demolished) as a main property
+    MINUS { ?airport wdt:P582 _:b3. }                                # remove items with P582 (end date) as a main property
+  MINUS {
+    ?airport (wdt:P31/(wdt:P279*)) ?thing.
+    VALUES ?thing {
+      wd:Q695850      wd:Q2265915      wd:Q1311670      wd:Q7373622      wd:Q782667      wd:Q502074      wd:Q44665966      wd:Q2071567
+      wd:Q3631092     wd:Q4930096
+    }
+  } 
+    MINUS { ?airport a wdno:P17.}                                    # exclude airports that aren't physically based in a country
+  }
+} AS %get_airport
+WHERE
+{
+  INCLUDE %get_airport
+  ?airport wdt:P625  ?coord. 
+  OPTIONAL { ?airport wdt:P239  ?ICAO. }
+  OPTIONAL { ?airport wdt:P238  ?IATA. }
+  ?airport wdt:P17   ?pays.
+  OPTIONAL { ?airport (wdt:P240|wdt:P5699|wdt:P5746|wdt:P5851|wdt:P6120) ?Local_Code. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,fr,[AUTO_LANGUAGE]\". }
+}
+GROUP BY ?airport ?airportLabel ?ICAO ?IATA ?pays ?paysLabel
+ORDER BY ?paysLabel ?coord""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Bouzinac/Airports_lists>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

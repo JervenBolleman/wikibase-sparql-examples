@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-bdd5b2fe636bc563047372d105e29984> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# coses en una el·lipse per posar barri o districte 
+SELECT?item ?itemLabel  ?layer ?layerLabel ?coord WHERE {
+  ?item wdt:P17 wd:Q29.
+  ?item wdt:P131+ wd:Q1492.
+  ?item wdt:P31 ?layer.
+  ?item wdt:P625 ?coord.
+  MINUS {?item wdt:P31 wd:Q15079663}
+  MINUS {?item wdt:P31 wd:Q75135432}
+  wd:Q30269827 wdt:P625 ?focus1.
+  wd:Q113138252 wdt:P625 ?focus2.
+  BIND (geof:distance(?coord, ?focus1)+geof:distance(?coord, ?focus2) as ?d).
+  FILTER(?d < 1.85).
+    OPTIONAL {
+    ?item wdt:P131+ ?div.
+    ?div wdt:P31 wd:Q75135432 # barri Q75135432, districte Q790344.
+  }
+  FILTER (!BOUND(?div))
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],ca,en,es,fr,de\" . 
+  }
+}
+#defaultView:Map""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Pere_prlpz>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

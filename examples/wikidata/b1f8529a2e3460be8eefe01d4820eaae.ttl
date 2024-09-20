@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b1f8529a2e3460be8eefe01d4820eaae> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT 
+  ?works_using_dataset
+
+  ?dataset ?datasetLabel
+  (CONCAT(\"#dataset/\", SUBSTR(STR(?dataset), 32)) AS ?datasetUrl)
+
+  ?example_work ?example_workLabel
+  (CONCAT(\"#work/\", SUBSTR(STR(?example_work), 32)) AS ?example_workUrl)
+
+WITH {
+  SELECT 
+    (COUNT(DISTINCT ?work) AS ?works_using_dataset)
+    ?dataset
+    (SAMPLE(?work) AS ?example_work)
+  WHERE {
+    ?dataset wdt:P31 / wdt:P279? wd:Q1172284 .
+    OPTIONAL {
+      ?work wdt:P4510 ?dataset .
+    }
+  }
+  GROUP BY ?dataset
+} AS %datasets
+WHERE {
+  INCLUDE %datasets
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?works_using_dataset)
+LIMIT 500""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:dataset-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

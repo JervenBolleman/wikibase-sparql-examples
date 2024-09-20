@@ -1,0 +1,49 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-bd251f4f622f57eb36bbfbe5395826df> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:LineChart
+
+SELECT 
+#?item
+?date  ?price 
+#?pointTimeMonthNorm
+WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?item wdt:P31/(wdt:P279)* wd:Q114885389.
+  ?item p:P2284 ?priceStatement.
+  ?priceStatement ps:P2284 ?price.
+  ?priceStatement pq:P366 wd:Q215627.
+  ?priceStatement pq:P1552 wd:Q10585806.
+  
+  OPTIONAL{
+    ?item wdt:P585 ?itemPointTime.
+    }
+  
+   OPTIONAL{
+    ?priceStatement pq:P585 ?priceStatementPointTime.
+    }.
+  
+  BIND(IF(BOUND(?itemPointTime),?itemPointTime, ?priceStatementPointTime) as ?pointTime)
+  
+    BIND(YEAR(?pointTime) as ?pointTimeYear)
+    BIND(MONTH(?pointTime) as ?pointTimeMonth)
+#    IF(?pointTimeMonth < 10,
+#       BIND(CONCAT(\"0\",?pointTimeMonth) AS ?pointTimeMonth),       
+#       BIND(CONCAT(\"0\",?pointTimeMonth) AS ?pointTimeMonth)
+#      )
+#    IF( 1 < 2, BIND(?pointTimeMonth as ?A), (?pointTimeMonth as ?A))
+    BIND(IF(?pointTimeMonth < 10, CONCAT(\"0\",Str(?pointTimeMonth)), Str(?pointTimeMonth)) as ?pointTimeMonthNorm)
+    BIND(CONCAT(Str(?pointTimeYear), \"年\", Str(?pointTimeMonthNorm), \"月\") as ?date)
+}
+ORDER BY ASC(?date)
+LIMIT 10000""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Bangbang.S>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

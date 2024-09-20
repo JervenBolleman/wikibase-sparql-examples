@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b260886e8562573a562ae9b384c51187> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+# Population growth in districts of India between 2001 and 2011
+#Credit: Mahir256
+#defaultView:BubbleChart
+#?fbclid=IwAR1KBWqLU5J2-SJ3jj8Jfc7PxnXgTNXUkofDcSPM9CvstaiVo22xFYtpD_Q
+SELECT DISTINCT ?vLabel ?pop WHERE {
+  ?v wdt:P31 wd:Q1149652.
+  ?v wdt:P17 wd:Q668.
+  ?v p:P1082 ?popStmt2011.
+  ?popStmt2011 ps:P1082 ?pop2011.
+  ?popStmt2011 pq:P585 \"+2011-01-01T00:00:00Z\"^^xsd:dateTime.
+  ?v p:P1082 ?popStmt2001.
+  ?popStmt2001 ps:P1082 ?pop2001.
+  ?popStmt2001 pq:P585 \"+2001-01-01T00:00:00Z\"^^xsd:dateTime.
+  BIND((xsd:integer(?pop2011)) - (xsd:integer(?pop2001)) AS ?change)
+  BIND(IF(?change > 0, ?change, 0) AS ?pop)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?pop ?vLabel
+ORDER BY DESC(?pop)
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_India/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

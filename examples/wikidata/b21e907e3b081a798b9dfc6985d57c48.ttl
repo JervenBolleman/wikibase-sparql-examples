@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b21e907e3b081a798b9dfc6985d57c48> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# musicals and rock operas first performed in Hungary with the list of authors
+SELECT DISTINCT ?musical ?musicalLabel ?premieredate ?premiereplaceLabel
+(GROUP_CONCAT(DISTINCT(?author); separator=\" – \") as ?authors)
+WHERE {
+  { ?musical wdt:P31/wdt:P279* wd:Q2743 . }
+  UNION
+  { ?musical wdt:P31/wdt:P279* wd:Q253137 . }
+  ?musical p:P1191 [
+    ps:P1191 ?premieredate;
+    pq:P276 ?premiereplace
+  ] .
+  ?premiereplace wdt:P131+ wd:Q28
+  OPTIONAL { ?musical (wdt:P86|wdt:P676|wdt:P87)/rdfs:label ?author FILTER (lang(?author) = \"hu\") . }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"hu\" .
+  }
+} GROUP BY ?musical ?musicalLabel ?premieredate ?premiereplaceLabel ORDER BY ASC(?premieredate)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:M%C3%A1t%C3%A9>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

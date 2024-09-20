@@ -1,0 +1,39 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-bde81a15d4a22fc46cc78891e9e8fe54> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?count ?award ?awardLabel ?recipients ?recipientsUrl
+WITH {
+  SELECT (COUNT(?researcher) AS ?count) ?award 
+  (GROUP_CONCAT(DISTINCT ?researcher_label; separator=\", \") AS ?recipients) 
+  WHERE {
+    { 
+      SELECT DISTINCT ?researcher ?award WHERE {
+        VALUES ?topic { wd:Q84263196 wd:Q81068910 wd:Q82069695 } 
+        hint:Query hint:optimizer \"None\" .
+        
+        ?work wdt:P921 ?topic .
+        ?work wdt:P50 ?researcher .
+        ?researcher wdt:P166 ?award .
+      } 
+      LIMIT 100
+    }
+    ?researcher rdfs:label ?researcher_label . FILTER (LANG(?researcher_label) = 'en')
+  }
+  GROUP BY ?award 
+} AS %result
+WHERE {
+  INCLUDE %result
+    ?award rdfs:label ?awardLabel . FILTER (LANG(?awardLabel) = 'en')
+}
+GROUP BY ?count ?award ?awardLabel ?recipients ?recipientsUrl
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_COVID-19/Queries/SPARQL_Study>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

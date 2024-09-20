@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b090aa96fd9ef63e28752e58d979e8cb> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+SELECT ?place ?location ?placeLabel ?placeDescription ?istEinLabel ?liegtInLabel ?pic
+WHERE
+{
+  wd:Q1055 wdt:P625 ?loc . # Q1055=Hamburg, Q1715=Hannover, muss mit Geokoord. sein
+  SERVICE wikibase:around {
+      ?place wdt:P625 ?location .
+      bd:serviceParam wikibase:center ?loc .
+      bd:serviceParam wikibase:radius \"20\" .
+  }
+  OPTIONAL { ?place wdt:P31 ?istEin }
+  OPTIONAL { ?place wdt:P131 ?liegtIn }
+  OPTIONAL { ?place wdt:P17 ?staat }
+  OPTIONAL { ?place wdt:P18 ?pic }
+  #FILTER ( ?placeLabel == \"Brunnen\" ) # funktioniert nicht ?!
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" }
+  FILTER ( ?istEin = wd:Q483453 )   # Q483453 ist Zierbrunnen, Q43483 Wasserbrunnen
+  BIND(geof:distance(?loc, ?location) as ?dist)
+} ORDER BY ?dist
+LIMIT 150""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Gerd_Fahrenhorst>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

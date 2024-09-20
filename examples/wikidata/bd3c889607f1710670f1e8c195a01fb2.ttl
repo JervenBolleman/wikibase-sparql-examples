@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-bd3c889607f1710670f1e8c195a01fb2> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?itemDescription ?location  ?tripadvisor
+  (GROUP_CONCAT(DISTINCT ?propertyCategoryLabel; SEPARATOR = \", \") AS ?categories) WHERE {
+
+  {
+    SELECT ?item ?propertyCategoryLabel ?itemLabel ?itemDescription ?location ?tripadvisor WHERE {
+      {
+        ?item p:P31 ?statement0.
+        ?statement0 (ps:P31/(wdt:P279*)) wd:Q1785071.
+      }
+      UNION
+      {
+        ?item p:P31 ?statement1.
+        ?statement1 (ps:P31/(wdt:P279*)) wd:Q23413.
+      }
+      UNION
+      {
+        ?item p:P31 ?statement2.
+        ?statement2 (ps:P31/(wdt:P279*)) wd:Q56344492.
+      }
+      ?item p:P7959 ?statement3.
+      ?statement3 (ps:P7959/(wdt:P279*)) wd:Q67479626.
+    
+      OPTIONAL { ?item wdt:P31 ?propertyCategory. }
+      OPTIONAL { ?item wdt:P3134 ?tripadvisor.}
+      OPTIONAL { ?item wdt:P625 ?location.}
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+    }
+  }
+}
+
+GROUP BY ?item ?itemLabel ?itemDescription ?location ?tripadvisor""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

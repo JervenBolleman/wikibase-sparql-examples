@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-bf7dedba9e2c3ce5423e2829a02728b6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# MAINTAINCE QUERY: Return only values without country assigned
+# instances_of=heliport (Q502074); NOT EXISTS P17 ?country
+SELECT DISTINCT ?item ?itemLabel ?countryLabel ?icao ?iata ?geo ?official_website WHERE {
+  VALUES ?instances_of {
+    wd:Q502074
+  }
+  { ?item (p:P31/ps:P31/(wdt:P279*)) ?instances_of. }
+  OPTIONAL { ?item wdt:P17 ?country. }
+  OPTIONAL { ?item wdt:P239 ?icao. }
+  OPTIONAL { ?item wdt:P238 ?iata. }
+  OPTIONAL { ?item wdt:P625 ?geo. }
+  OPTIONAL { ?item wdt:P856 ?official_website. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de,fr,ru,es,ja,zh,ar\". }
+  FILTER(NOT EXISTS { ?item wdt:P17 ?val. })
+}
+ORDER BY (?countryLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:WiK14ot0g/sandbox/objectlists>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

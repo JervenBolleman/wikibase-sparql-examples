@@ -1,0 +1,46 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b66b99958d63b7cf066db64c0b1d361f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?registry ?registryLabel ?count
+WITH {
+  SELECT DISTINCT ?item WHERE {
+    ?item wdt:P31 wd:Q30612 ;
+  }
+  LIMIT 400000
+} AS %items 
+WITH {
+  SELECT DISTINCT ?registry ?registryIDitem WHERE {
+    ?registry wdt:P31 wd:Q2138567 .
+    ?registryIDitem wdt:P1535 ?registry .
+  }
+  GROUP BY ?registry ?registryIDitem
+  LIMIT 100
+} AS %registries 
+WITH {
+  SELECT DISTINCT ?registry (COUNT(*) AS ?count) WHERE {
+    INCLUDE %items.
+    INCLUDE %registries.
+    ?item ?p [ ] .
+    ?property wdt:P1629 ?registryIDitem;
+              wikibase:claim ?p.
+    ?property wikibase:propertyType wikibase:ExternalId .
+  }
+  GROUP BY ?registry 
+  LIMIT 100
+} AS %results 
+WHERE {
+  INCLUDE %results.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY DESC(?count)
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Clinical_Trials/Query>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

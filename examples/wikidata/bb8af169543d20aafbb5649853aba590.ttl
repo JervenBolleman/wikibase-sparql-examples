@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-bb8af169543d20aafbb5649853aba590> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map{\"hide\":[\"?rgb\",\"?layer\"]}
+SELECT ?item ?coord ?en ?fr ?layer ?rgb WHERE {
+  ?item wdt:P17 wd:Q16;
+    (wdt:P131*) wd:Q1965;
+    wdt:P625 ?coord.
+  
+    OPTIONAL {
+      ?en schema:about ?item;
+        schema:isPartOf <https://en.wikipedia.org/>.
+    }
+  OPTIONAL
+    {
+      ?fr schema:about ?item;
+        schema:isPartOf <https://fr.wikipedia.org/>.
+    }
+  FILTER(BOUND(?en) || BOUND(?fr))
+  BIND (if(BOUND(?en) && BOUND(?fr),\"ff0000\",if(BOUND(?en),\"00ff00\",if(BOUND(?fr),\"0000FF\",\"000000\" ))) as ?rgb)
+  BIND (if(BOUND(?en) && BOUND(?fr),\"EN & FR\",if(BOUND(?en),\"EN\",if(BOUND(?fr),\"FR\",\"NIL\" ))) as ?layer)
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

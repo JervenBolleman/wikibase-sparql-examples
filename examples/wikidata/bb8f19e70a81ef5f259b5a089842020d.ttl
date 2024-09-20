@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-bb8f19e70a81ef5f259b5a089842020d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# parliamentary terms of a single person
+# here, Winston Churchill
+SELECT DISTINCT ?constituencyLabel ?partyLabel ?start ?electionLabel ?end ?causeLabel {
+ wd:Q8016 p:P39 ?positionStatement . # all positions held by this person
+  ?positionStatement ps:P39 [wdt:P279* wd:Q16707842] . # filter to positions which are a subclass of UK MP
+ OPTIONAL { ?positionStatement pq:P768 ?constituency . }  # then find various specific values for each term
+ OPTIONAL { ?positionStatement pq:P4100 ?party . }
+ OPTIONAL { ?positionStatement pq:P580 ?start . }
+ OPTIONAL { ?positionStatement pq:P2715 ?election . }
+ OPTIONAL { ?positionStatement pq:P582 ?end . }
+ OPTIONAL { ?positionStatement pq:P1534 ?cause . }
+ SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}
+ORDER BY ?start""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

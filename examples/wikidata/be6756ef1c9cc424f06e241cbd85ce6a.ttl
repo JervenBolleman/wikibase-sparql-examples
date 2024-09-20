@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-be6756ef1c9cc424f06e241cbd85ce6a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+# Select the ItemId, label and coordinate location
+SELECT ?place ?placeLabel ?location WHERE {
+  
+       
+  # Select the coordinate location(P625) of Livorno(Q6761) as the centeral coordinate ?mainLoc
+  wd:Q6761 wdt:P625 ?mainLoc . 
+  
+  # Use the around service
+  SERVICE wikibase:around { 
+  # Looking for items with coordinate locations(P625)
+    ?place wdt:P625 ?location . 
+    # That are in a circle with a centre of ?mainLoc(The coordinate location of Berlin)
+    bd:serviceParam wikibase:center ?mainLoc . 
+    # Where the circle has a radius of 10km
+    bd:serviceParam wikibase:radius \"10\" . 
+  }
+  
+  # Use the label service to get the English label
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" .  }
+  
+  ?place wdt:P31*/wdt:P279* wd:Q16970 .  # Instance of churches
+
+}
+LIMIT 200""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:FabC>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

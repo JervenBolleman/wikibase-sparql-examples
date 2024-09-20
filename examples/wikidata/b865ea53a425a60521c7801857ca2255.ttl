@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b865ea53a425a60521c7801857ca2255> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Find number of steps in article text at Wikipedia
+# by Jura1, 2017-07-03
+# last checked: July 2017, some 28 false positives remain (enwiki)
+# change \"en.wikipedia.org\" and search term for other wikis
+SELECT ?itemLabel ?item ?art
+WHERE
+{
+  SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:api \"Generator\" .
+      bd:serviceParam wikibase:endpoint \"en.wikipedia.org\" .
+      bd:serviceParam mwapi:generator \"search\" .
+      bd:serviceParam mwapi:gsrsearch \"steps lighthouse\" .
+      bd:serviceParam mwapi:gsrlimit \"max\" .
+      ?item wikibase:apiOutputItem mwapi:item .    
+  }
+  ?item wdt:P31 wd:Q39715 
+  FILTER NOT EXISTS { ?item wdt:P2670 wd:Q3289701 }
+  ?art schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY DESC(xsd:integer(SUBSTR(STR(?item),33)))""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Lighthouses/tools>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

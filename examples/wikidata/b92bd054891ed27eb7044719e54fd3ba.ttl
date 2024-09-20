@@ -1,0 +1,25 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b92bd054891ed27eb7044719e54fd3ba> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?language ?topicSitelink ?code ?article ?label WHERE {
+  ?item wdt:P31 wd:Q10876391.
+  ?item wdt:P856 ?itemLink .
+  ?item wdt:P407 ?lang .
+  BIND(SUBSTR(STR(?lang), 32 ) AS ?language)
+  BIND(STRAFTER(STRBEFORE(STR(?itemLink), \".\"),\"//\") AS ?code)
+  BIND(wd:Q1071518 AS ?topic) .
+  ?topicSitelink schema:isPartOf ?itemLink;
+                schema:about ?topic.
+  BIND(replace(wikibase:decodeUri(STRAFTER(STR(?topicSitelink), \"wiki/\" )),\"_\",\" \") AS ?article)
+  OPTIONAL{ ?topic rdfs:label ?label filter (lang(?label) = ?code).}
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

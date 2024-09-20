@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-baca4810f2f4c0c15a6476cc4addda46> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title:Qualifiers for P1114
+SELECT DISTINCT ?qual ?qualLabel ?count ?sample ?isAllowed ?isRequired {
+  {
+    SELECT ?qual (COUNT(DISTINCT ?item) AS ?count) (SAMPLE(?statement) AS ?sample) {
+      hint:Query hint:optimizer \"None\" .
+      ?item p:P1114 ?statement .
+      ?statement ?pq_qual ?pq_obj .
+      ?qual wikibase:qualifier ?pq_qual .
+    } GROUP BY ?qual
+  } .
+  OPTIONAL { wd:P1114 p:P2302 [ pq:P2306 ?qual ; ps:P2302 wd:Q21510851 ] . BIND(\"y\" as ?isAllowed) }
+  OPTIONAL { wd:P1114 p:P2302 [ pq:P2306 ?qual ; ps:P2302 wd:Q21510856 ] . BIND(\"y\" as ?isRequired ) }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?count) ASC(?qualLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Mzaki/P1114>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,51 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b14776a9986858a7a655b44d02bc68a3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:LineChart
+SELECT ?date (COUNT(DISTINCT ?item) AS ?count)
+WITH {
+  # get all the dates where the number of living people who have walked on the moon changed
+  # (person walked on the moon or person died)
+  SELECT DISTINCT ?date WHERE {
+    {
+      # person walked on the moon
+      ?item p:P793 [
+        ps:P793 wd:Q42882411;
+        pq:P580 ?date_
+      ].
+    } UNION {
+      # person died
+      ?item p:P793/ps:P793 wd:Q42882411;
+            wdt:P570 ?date_.
+    }
+    # for each date, inject a second date, one day before,
+    # so that we get a straight line until that date and then a steep climb/drop for the real change,
+    # instead of a diagonal slope over the entire preceding period
+    VALUES ?toggle { true false }
+    BIND(IF(?toggle, ?date_, ?date_ - \"P1D\"^^xsd:duration) AS ?date)
+  }
+} AS %dates
+WHERE {
+  # inject the current time as another date, so that the chart continues until the present day
+  { INCLUDE %dates. } UNION { BIND(NOW() AS ?date) }
+  # main query: find all living people who have walked on the moon at each date
+  ?item p:P793 [
+    ps:P793 wd:Q42882411;
+    pq:P580 ?walkdate
+  ].
+  FILTER(?date >= ?walkdate) # must have walked on the moon already
+  OPTIONAL { ?item wdt:P570 ?died. }
+  FILTER(!BOUND(?died) || ?date < ?died) # must not yet have died
+}
+GROUP BY ?date
+ORDER BY ?date""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/number_of_living_people_who_have_walked_on_the_moon>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-bf6caa56bbe08240c4f75b2ee598eb89> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?date ?dateLabel ?monthNumber ?dayNumber WHERE {
+  # a date item is a “determinator for date of periodic occurrence” and part of a month
+  ?date wdt:P31 wd:Q14795564;
+        wdt:P361 ?month.
+  # a month is a month of the Gregorian calendar and has a month number
+  ?month wdt:P279 wd:Q18602249;
+         wdt:P2837 ?monthNumber.
+  # February 30 and “first saturday in March” …
+  FILTER(?date NOT IN (wd:Q37096, wd:Q21130129)).
+  # and here it gets ugly, it seems there’s no way to get the date’s day except from the label
+  ?date rdfs:label ?dateLabel. FILTER(LANG(?dateLabel) = \"en\").
+  ?month rdfs:label ?monthLabel. FILTER(LANG(?monthLabel) = \"en\").
+  FILTER(STRSTARTS(?dateLabel, CONCAT(?monthLabel, \" \"@en))). # sanity check
+  BIND(xsd:integer(SUBSTR(?dateLabel, STRLEN(?monthLabel)+1)) AS ?dayNumber).
+}
+ORDER BY ?monthNumber ?dayNumber""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

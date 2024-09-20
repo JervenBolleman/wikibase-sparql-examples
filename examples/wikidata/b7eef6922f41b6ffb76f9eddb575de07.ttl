@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b7eef6922f41b6ffb76f9eddb575de07> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?age60 ?age70 ?age80 ?age90 ?items
+(CONCAT(str(round(10000 * ?o/?items) / 100), \"%\")  as ?O)
+(CONCAT(str(round(10000 * ?a/?items) / 100), \"%\")  as ?A)
+(CONCAT(str(round(10000 * ?b/?items) / 100), \"%\")  as ?B)
+(CONCAT(str(round(10000 * ?ab/?items) / 100), \"%\")  as ?AB) {
+  { 
+    SELECT ?age60 ?age70 ?age80 ?age90 (count(?o_items) as ?o) (count(?a_items) as ?a) (count(?b_items) as ?b) (count(?ab_items) as ?ab) (count(?all_items) as ?items) {
+      {?o_items wdt:P1853 wd:Q19831451 ; wdt:P569 ?naissance ; wdt:P570 ?mort ; wdt:P31 wd:Q5 } UNION
+      {?a_items wdt:P1853 wd:Q19831453 ; wdt:P569 ?naissance ; wdt:P570 ?mort ; wdt:P31 wd:Q5 } UNION
+      {?b_items wdt:P1853 wd:Q19831454 ;wdt:P569 ?naissance ; wdt:P570 ?mort ; wdt:P31 wd:Q5 } UNION
+      {?ab_items wdt:P1853 wd:Q19831455 ; wdt:P569 ?naissance ; wdt:P570 ?mort ; wdt:P31 wd:Q5 } UNION
+      {?all_items wdt:P1853 ?group ; wdt:P569 ?naissance ; wdt:P570 ?mort ; wdt:P31 wd:Q5}
+      BIND(round((?mort - ?naissance)/365.2425) as ?age )
+      BIND ((60 < ?age && ?age < 70) as ?age60)
+      BIND ((70 < ?age && ?age < 80) as ?age70)
+      BIND ((80 < ?age && ?age < 90) as ?age80)
+      BIND ((90 < ?age && ?age < 100) as ?age90)
+  	}
+  	GROUP BY ?age60 ?age70 ?age80 ?age90 
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\"  } 
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

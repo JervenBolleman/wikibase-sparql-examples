@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b2fa6cf79a9d0b3b9b3c52e38acad50c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?l1 ?lemma1 ?sense1 ?gloss1 ?l2 ?lemma2 ?sense2 ?gloss2 WHERE {
+  # Assuming that we have a given sense ?sense1 (here: L34190-S1),
+  FILTER (?sense1 = wd:L34190-S1)
+
+  # we are looking for a ?sense2 that has the same conceptualized meaning ?meaning,
+  ?sense1 wdt:P5137 ?meaning.
+  ?sense2 wdt:P5137 ?meaning.
+  
+  # but we don’t want the ?meaning to be the gender aspect of the sense.
+  MINUS { 
+    ?meaning wdt:P31 wd:Q48277, wd:Q48264
+  }
+
+  # We also want the ?sense2 to be about a lexeme in the same language
+  ?l1 dct:language/^dct:language ?l2.
+  # where ?l1 and ?l2 are the lexemes for the senses ?sense1 and ?sense2, respectively  
+  ?sense1 ^ontolex:sense ?l1.
+  ?sense2 ^ontolex:sense ?l2.
+  # (Note that we would write the above three triples as the single line
+  ?sense1 ^ontolex:sense/dct:language/^dct:language/ontolex:sense ?sense2.
+  # but then we wouldn’t be binding lexemes ?l1 and ?l2, which we might want for debugging.)
+
+  # And we don’t want ?sense2 to be identical to the original ?sense1
+  FILTER (?sense2 != ?sense1)
+                              
+  # Finally, for debugging purposes, we’re binding the lemmas and glosses for ?sense1 and ?sense2
+  ?l1 wikibase:lemma ?lemma1.
+  ?sense1 skos:definition ?gloss1.
+  ?l2 wikibase:lemma ?lemma2.
+  ?sense2 skos:definition ?gloss2.
+}
+LIMIT 1""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Property_proposal/feminine_form>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

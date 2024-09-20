@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b10cda0e7d9a2dc2deb945c417b69732> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:LineChart
+SELECT (SAMPLE(?date) AS ?date) (SUM(?count) AS ?cumulative_count) ?milestone
+{
+
+  { SELECT ?qid_rounded (count(?item) AS ?count) (SAMPLE(?item) AS ?exampleitem) WHERE {
+      ?item wdt:P17 wd:Q142  .
+      BIND( xsd:integer( substr(str(?item), 33)) as ?qid)
+      BIND(xsd:integer(?qid/20000) as ?qid_cut)
+      BIND(?qid_cut*20000 as ?qid_rounded)
+               
+      #SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } .
+    }
+    GROUP BY ?qid_rounded
+  }
+  wd:Q38074555 p:P1114 ?milestonep .
+  ?milestonep ps:P1114 ?milestone .
+  FILTER(?milestone > ?qid_rounded) .
+  ?milestonep pq:P585 ?date .
+}
+GROUP BY ?milestone""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

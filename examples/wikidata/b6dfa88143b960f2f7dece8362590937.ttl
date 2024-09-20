@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b6dfa88143b960f2f7dece8362590937> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Informations privées sur les participants au Prix de Lausanne
+
+SELECT ?item ?itemLabel ?genreLabel ?employerLabel ?dateofbirth ?dateofdeath ?spouseLabel  # affiche les résultats de ces labels (en langage id Q ou en langage humain si on ajoute Label au label), on peut aussi préciser ici les item
+
+WHERE
+{
+	# Item Property Value Stop
+	?item wdt:P31 wd:Q5 .  # ajouter instance of human
+      { ?item wdt:P1344 wd:Q673014 . } # participant à Prix de Lausanne
+    UNION
+      { ?item wdt:P2522 wd:Q673014 . } # victoire à Prix de Lausanne
+	?item wdt:P21 ?genre
+	OPTIONAL { ?item wdt:P569 ?dateofbirth } .
+  	OPTIONAL { ?item wdt:P570 ?dateofdeath } .
+    OPTIONAL { ?item wdt:P26 ?spouse } .
+   	OPTIONAL { ?item wdt:P108 ?employer } .   # afficher l'employeur si connu
+
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"ru,ja,es,fr,en,[AUTO_Language]\" . }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Gilliane/Tipps/SPARQL-PrixdeLausanne>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .
