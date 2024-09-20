@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-c2531903eb45a1510e6ab31d759cdad0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q9035>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:language-lexicalcategory-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q9035>
 
 SELECT
   ?lexemes
@@ -34,9 +42,65 @@ WHERE {
   ?example_lexeme wikibase:lemma ?example_lemma .
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?lexemes)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q9035>
+
+SELECT
+  ?lexemes
+  (CONCAT(\"#language/\", SUBSTR(STR(target:), 32), \"/lexicalcategory/\", SUBSTR(STR(?lexical_category), 32)) AS ?lexemesUrl)
+
+  ?lexical_category ?lexical_categoryLabel
+  (CONCAT(\"#lexicalcategory/\", SUBSTR(STR(?lexical_category), 32)) AS ?lexical_categoryUrl)
+
+  ?example_lexeme
+  (?example_lemma AS ?example_lexemeLabel)
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)
+
+WHERE {
+  {
+  SELECT
+    (COUNT(?lexeme) AS ?lexemes)
+    ?lexical_category
+    (SAMPLE(?lexeme) AS ?example_lexeme)
+  WHERE {
+    ?lexeme dct:language target: ;
+            wikibase:lexicalCategory ?lexical_category .
+  }
+  GROUP BY ?lexical_category
+}
+  ?example_lexeme wikibase:lemma ?example_lemma .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?lexemes)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:language-lexicalcategory-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q9035>
+
+SELECT
+  ?lexemes
+  (CONCAT(\"#language/\", SUBSTR(STR(target:), 32), \"/lexicalcategory/\", SUBSTR(STR(?lexical_category), 32)) AS ?lexemesUrl)
+
+  ?lexical_category ?lexical_categoryLabel
+  (CONCAT(\"#lexicalcategory/\", SUBSTR(STR(?lexical_category), 32)) AS ?lexical_categoryUrl)
+
+  ?example_lexeme
+  (?example_lemma AS ?example_lexemeLabel)
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)
+WITH {
+  SELECT
+    (COUNT(?lexeme) AS ?lexemes)
+    ?lexical_category
+    (SAMPLE(?lexeme) AS ?example_lexeme)
+  WHERE {
+    ?lexeme dct:language target: ;
+            wikibase:lexicalCategory ?lexical_category .
+  }
+  GROUP BY ?lexical_category
+} AS %lexical_categories
+WHERE {
+  INCLUDE %lexical_categories
+  ?example_lexeme wikibase:lemma ?example_lemma .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?lexemes)""" .

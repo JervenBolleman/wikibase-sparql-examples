@@ -6,7 +6,18 @@
 
 <https://www.wikidata.org/#query-c9c4a126749618a24f6dfac3aee2dbf3> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?item ?itemLabel (count(?item2) as ?count) WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel (count(?item2) as ?count) WITH {
 SELECT ?item ?itemLabel WHERE {
 SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
   {
@@ -28,8 +39,25 @@ WHERE
   ?item2 ?predicate []. 
   ?item wikibase:claim ?predicate.
 } group by ?item ?itemLabel order by desc(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/10>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?itemLabel (count(?item2) as ?count) WITH {
+SELECT ?item ?itemLabel WHERE {
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+  {
+    SELECT DISTINCT ?item WHERE {
+      ?item p:P31 ?statement0.
+      ?item wikibase:propertyType wikibase:Url.
+      ?statement0 (ps:P31/(wdt:P279*)) wd:Q84764641.
+      MINUS {
+        ?item p:P31 ?statement1.
+        ?statement1 (ps:P31/(wdt:P279*)) wd:Q19847637.
+      }
+    }
+  }
+  MINUS { ?item wdt:P8966 [] } .
+} } as %i
+WHERE
+{
+  INCLUDE %i
+  ?item2 ?predicate []. 
+  ?item wikibase:claim ?predicate.
+} group by ?item ?itemLabel order by desc(?count)""" .

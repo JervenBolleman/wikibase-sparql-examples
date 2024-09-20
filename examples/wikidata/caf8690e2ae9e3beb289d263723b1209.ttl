@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-caf8690e2ae9e3beb289d263723b1209> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?count_of_external_identifiers
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?count_of_external_identifiers
 WITH
 {
   SELECT ?item (COUNT(?id) AS ?count_of_external_identifiers)
@@ -32,9 +40,59 @@ WHERE
 {
   INCLUDE %without_labels
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?count_of_external_identifiers
+
+WHERE
+{
+  {
+  SELECT ?item (COUNT(?id) AS ?count_of_external_identifiers)
+  WHERE
+  {
+    SERVICE bd:slice
+    {
+      ?item wdt:P6039 [] .
+      bd:serviceParam bd:slice.offset 50000 .
+      bd:serviceParam bd:slice.limit 10000 .
+    }
+    OPTIONAL
+    {
+      ?item ?id ?value .
+      ?p wikibase:directClaim ?id .
+      ?p wikibase:propertyType wikibase:ExternalId
+    }
+  }
+  GROUP BY ?item
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/02>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?count_of_external_identifiers
+WITH
+{
+  SELECT ?item (COUNT(?id) AS ?count_of_external_identifiers)
+  WHERE
+  {
+    SERVICE bd:slice
+    {
+      ?item wdt:P6039 [] .
+      bd:serviceParam bd:slice.offset 50000 .
+      bd:serviceParam bd:slice.limit 10000 .
+    }
+    OPTIONAL
+    {
+      ?item ?id ?value .
+      ?p wikibase:directClaim ?id .
+      ?p wikibase:propertyType wikibase:ExternalId
+    }
+  }
+  GROUP BY ?item
+}
+AS %without_labels
+WHERE
+{
+  INCLUDE %without_labels
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}""" .

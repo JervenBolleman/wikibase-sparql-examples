@@ -6,7 +6,18 @@
 
 <https://www.wikidata.org/#query-c263814f2bb4f1dcde4ac7f377e8b9b3> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?property ?value ?identifier ?id WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/misc/references>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?item ?property ?value ?identifier ?id WITH {
   SELECT DISTINCT ?item WHERE {
     ?item p:P106/ps:P106/wdt:P279* wd:Q26270618 .
   }
@@ -16,9 +27,32 @@
   ?identifier wikibase:propertyType wikibase:ExternalId; wikibase:claim ?identifierClaim; wikibase:statementProperty ?identifierStatementProperty; wikibase:reference ?ref .
   ?item ?claim [ ?statementProperty ?value; prov:wasDerivedFrom [ ?ref ?id ] ] .
   MINUS { ?item ?identifierClaim [ ?identifierStatementProperty ?id ] }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?item ?property ?value ?identifier ?id  WHERE {
+  {
+  SELECT DISTINCT ?item WHERE {
+    ?item p:P106/ps:P106/wdt:P279* wd:Q26270618 .
+  }
+} 
+  ?property wikibase:claim ?claim; wikibase:statementProperty ?statementProperty .
+  ?identifier wikibase:propertyType wikibase:ExternalId; wikibase:claim ?identifierClaim; wikibase:statementProperty ?identifierStatementProperty; wikibase:reference ?ref .
+  ?item ?claim [ ?statementProperty ?value; prov:wasDerivedFrom [ ?ref ?id ] ] .
+  MINUS { ?item ?identifierClaim [ ?identifierStatementProperty ?id ] }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/misc/references>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?property ?value ?identifier ?id WITH {
+  SELECT DISTINCT ?item WHERE {
+    ?item p:P106/ps:P106/wdt:P279* wd:Q26270618 .
+  }
+} AS %subquery WHERE {
+  INCLUDE %subquery 
+  ?property wikibase:claim ?claim; wikibase:statementProperty ?statementProperty .
+  ?identifier wikibase:propertyType wikibase:ExternalId; wikibase:claim ?identifierClaim; wikibase:statementProperty ?identifierStatementProperty; wikibase:reference ?ref .
+  ?item ?claim [ ?statementProperty ?value; prov:wasDerivedFrom [ ?ref ?id ] ] .
+  MINUS { ?item ?identifierClaim [ ?identifierStatementProperty ?id ] }
+}""" .

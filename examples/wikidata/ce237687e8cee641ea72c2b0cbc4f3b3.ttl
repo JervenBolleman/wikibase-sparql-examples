@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-ce237687e8cee641ea72c2b0cbc4f3b3> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q9035>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:language-hyphenation-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX target: <http://www.wikidata.org/entity/Q9035>
 
 SELECT 
   ?forms
@@ -32,8 +41,29 @@ WHERE {
   ?example_lexeme wikibase:lemma ?example_lexemeLabel
 }
 ORDER BY DESC(?forms)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:language-hyphenation-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q9035>
+
+SELECT 
+  ?forms
+  ?last_part
+
+  ?example_lexeme ?example_lexemeLabel
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)  
+WITH {
+  SELECT 
+    (COUNT(?form) AS ?forms)
+    ?last_part 
+    (SAMPLE(?lexeme) AS ?example_lexeme)
+  WHERE {
+    ?lexeme dct:language target: ;
+            ontolex:lexicalForm ?form .
+    ?form wdt:P5279 ?hyphenation .
+    BIND(REPLACE(?hyphenation, \".+‧([^‧]+)$\", \"$1\") AS ?last_part)
+  }
+  GROUP BY ?last_part
+} AS %last_parts
+WHERE {
+  INCLUDE %last_parts
+  ?example_lexeme wikibase:lemma ?example_lexemeLabel
+}
+ORDER BY DESC(?forms)""" .

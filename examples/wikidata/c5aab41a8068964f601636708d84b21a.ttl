@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-c5aab41a8068964f601636708d84b21a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?property ?propertyLabel ?value ?valueLabel ?unit ?unitLabel
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?property ?propertyLabel ?value ?valueLabel ?unit ?unitLabel
 WITH {
   SELECT ?statement WHERE { 
 	  ?statement prov:wasDerivedFrom/pr:P248 wd:Q105645500 .
@@ -31,8 +41,28 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . } 
 } 
 ORDER BY DESC(?itemLabel)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/07>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?property ?propertyLabel ?value ?valueLabel ?unit ?unitLabel
+WITH {
+  SELECT ?statement WHERE { 
+	  ?statement prov:wasDerivedFrom/pr:P248 wd:Q105645500 .
+  }
+  LIMIT 2000
+} AS %statements 
+WITH {
+  SELECT ?item ?property ?value ?unit
+  WHERE {
+    INCLUDE %statements
+    ?item ?p ?statement .
+    ?property wikibase:claim ?p . 
+    ?statement ?a ?value .
+    ?item ?b ?value .  
+    OPTIONAL {?statement ?psv_statement_predicate ?psv_statement .
+    ?statement_predicate_property wikibase:statementValue ?psv_statement_predicate.
+    ?psv_statement wikibase:quantityUnit ?unit}
+  }
+} AS %result
+WHERE {
+  INCLUDE %result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . } 
+} 
+ORDER BY DESC(?itemLabel)""" .

@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-cc81bc258628549d461ce8a46e725cea> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:BubbleChart
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Property_talk:P2860>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:BubbleChart
 SELECT ?count ?author ?authorLabel 
 WITH {
   SELECT ?author (COUNT(?publication) AS ?count) WHERE {
@@ -21,9 +29,39 @@ WHERE {
     bd:serviceParam wikibase:language \"en\" .
   }
 }
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:BubbleChart
+SELECT ?count ?author ?authorLabel 
+
+WHERE {
+  {
+  SELECT ?author (COUNT(?publication) AS ?count) WHERE {
+    ?item wdt:P2860 ?publication .
+    ?publication wdt:P50 ?author .
+  }
+  GROUP BY ?author
+}
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+  }
+}
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Property_talk:P2860>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#defaultView:BubbleChart
+SELECT ?count ?author ?authorLabel 
+WITH {
+  SELECT ?author (COUNT(?publication) AS ?count) WHERE {
+    ?item wdt:P2860 ?publication .
+    ?publication wdt:P50 ?author .
+  }
+  GROUP BY ?author
+} AS %result
+WHERE {
+  INCLUDE %result
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+  }
+}
+ORDER BY DESC(?count)""" .

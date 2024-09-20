@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-c19deac1a997498d881fc61e99394fc2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# list of nouns
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+PREFIX dct: <http://purl.org/dc/terms/>
+# list of nouns
 SELECT
   ?lexeme ?lexemeLabel
   ?lexical_category ?lexical_categoryLabel
@@ -27,9 +37,53 @@ WHERE {
     ?lexical_category rdfs:label ?lexical_categoryLabel .
     FILTER (LANG(?lexical_categoryLabel) = \"en\")
   }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+PREFIX dct: <http://purl.org/dc/terms/>
+# list of nouns
+SELECT
+  ?lexeme ?lexemeLabel
+  ?lexical_category ?lexical_categoryLabel
+
+WHERE {
+  {
+  SELECT ?lexeme ?lexemeLabel ?lexical_category WHERE {
+    ?lexeme a ontolex:LexicalEntry ;
+            dct:language wd:Q1860 ; 
+            wikibase:lemma ?lexemeLabel .
+    OPTIONAL {
+      ?lexeme wikibase:lexicalCategory ?lexical_category .
+    }
+  }
+  LIMIT 10000
+}
+  OPTIONAL {        
+    ?lexical_category rdfs:label ?lexical_categoryLabel .
+    FILTER (LANG(?lexical_categoryLabel) = \"en\")
+  }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/07>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """# list of nouns
+SELECT
+  ?lexeme ?lexemeLabel
+  ?lexical_category ?lexical_categoryLabel
+WITH {
+  SELECT ?lexeme ?lexemeLabel ?lexical_category WHERE {
+    ?lexeme a ontolex:LexicalEntry ;
+            dct:language wd:Q1860 ; 
+            wikibase:lemma ?lexemeLabel .
+    OPTIONAL {
+      ?lexeme wikibase:lexicalCategory ?lexical_category .
+    }
+  }
+  LIMIT 10000
+} AS %results
+WHERE {
+  INCLUDE %results
+  OPTIONAL {        
+    ?lexical_category rdfs:label ?lexical_categoryLabel .
+    FILTER (LANG(?lexical_categoryLabel) = \"en\")
+  }
+}""" .

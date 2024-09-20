@@ -6,7 +6,20 @@
 
 <https://www.wikidata.org/#query-cee6120733a9d8b32b867240fd09acb1> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel WITH { 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel WITH { 
 SELECT (MIN(?date_) as ?date) (MIN(?number_) AS ?number) WHERE
   { wd:Q38074555 p:P1114 ?stat . 
     ?stat ps:P1114 ?number_ .
@@ -21,8 +34,18 @@ WHERE
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
   filter(xsd:integer(strafter(str(?item),\"Q\")) > ?number ) 
 } order by ?item""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/11>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel WITH { 
+SELECT (MIN(?date_) as ?date) (MIN(?number_) AS ?number) WHERE
+  { wd:Q38074555 p:P1114 ?stat . 
+    ?stat ps:P1114 ?number_ .
+    ?stat pq:P585 ?date_ .
+    filter(?date_ >  \"2021-09-31\"^^xsd:dateTime)
+  }
+} as %i
+WHERE 
+{
+  INCLUDE %i
+  ?item wdt:P31 wd:Q7889.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+  filter(xsd:integer(strafter(str(?item),\"Q\")) > ?number ) 
+} order by ?item""" .

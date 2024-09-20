@@ -6,28 +6,6 @@
 
 <https://www.wikidata.org/#query-c0eda7a7b4c0b8a9deaa0c512eff10f0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?senator ?senatorLabel ?districtLabel ?partyLabel ?assumedOffice (sample(?image) as ?image) where {
-  # Get all senators
-  ?senator p:P39 ?posheld; # With position held
-           p:P102 ?partystatement. # And with a certain party
-
-  # Get the party
-  ?partystatement ps:P102 ?party.
-  MINUS { ?partystatement pq:P582 ?partyEnd. } # but minus the ones the senator is no longer a member of
-  MINUS { ?party wdt:P361 ?partOf. } # and the 'Minnesota Democratic–Farmer–Labor Party' and such
-
-  # Check on the position in the senate
-  ?posheld ps:P39 wd:Q4416090; # Position held is in the senate
-           pq:P768 ?district;
-           pq:P580 ?assumedOffice. # And should have a starttime
-
-  MINUS { ?posheld pq:P582 ?endTime. } # But not an endtime
-
-  # Add an image
-  OPTIONAL { ?senator wdt:P18 ?image. }
-
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }
-} GROUP BY ?senator ?senatorLabel ?districtLabel ?partyLabel ?assumedOffice ORDER BY ?senatorLabel""";
   rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/lb>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/th>,
@@ -65,4 +43,33 @@
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?senator ?senatorLabel ?districtLabel ?partyLabel ?assumedOffice (sample(?image) as ?image) where {
+  # Get all senators
+  ?senator p:P39 ?posheld; # With position held
+           p:P102 ?partystatement. # And with a certain party
+
+  # Get the party
+  ?partystatement ps:P102 ?party.
+  MINUS { ?partystatement pq:P582 ?partyEnd. } # but minus the ones the senator is no longer a member of
+  MINUS { ?party wdt:P361 ?partOf. } # and the 'Minnesota Democratic–Farmer–Labor Party' and such
+
+  # Check on the position in the senate
+  ?posheld ps:P39 wd:Q4416090; # Position held is in the senate
+           pq:P768 ?district;
+           pq:P580 ?assumedOffice. # And should have a starttime
+
+  MINUS { ?posheld pq:P582 ?endTime. } # But not an endtime
+
+  # Add an image
+  OPTIONAL { ?senator wdt:P18 ?image. }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }
+} GROUP BY ?senator ?senatorLabel ?districtLabel ?partyLabel ?assumedOffice ORDER BY ?senatorLabel""" .

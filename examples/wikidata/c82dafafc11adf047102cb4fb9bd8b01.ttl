@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-c82dafafc11adf047102cb4fb9bd8b01> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?item ?itemLabel ?id1 ?image ?metres ?item2 ?item2Label ?id2 WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?id1 ?image ?metres ?item2 ?item2Label ?id2 WITH {
   SELECT ?formatter {
     wd:P1260 wdt:P1630 ?formatter .
   } LIMIT 1
@@ -25,9 +34,48 @@
   BIND( URI( REPLACE( ?formatter, '\\\\$1', ?_id1 ) ) AS ?id1 ) .
   BIND( URI( REPLACE( ?formatter, '\\\\$1', ?_id2 ) ) AS ?id2 ) .
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"sv,en\" } .
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?id1 ?image ?metres ?item2 ?item2Label ?id2  WHERE {
+  {
+  SELECT ?formatter {
+    wd:P1260 wdt:P1630 ?formatter .
+  } LIMIT 1
+} .
+  ?item wdt:P1260 ?_id1; wdt:P625 ?coord1; wdt:P18 ?image .
+  SERVICE wikibase:around {
+    ?item2 wdt:P625 ?location .
+    bd:serviceParam wikibase:center ?coord1 .
+    bd:serviceParam wikibase:radius \"0.05\" .
+    bd:serviceParam wikibase:distance ?distance .
+  } .
+  ?item2 wdt:P1260 ?_id2 .
+  MINUS { ?item2 wdt:P18 [] } .
+  BIND( ?distance * 1000 AS ?metres ) .
+  BIND( URI( REPLACE( ?formatter, '\\\\$1', ?_id1 ) ) AS ?id1 ) .
+  BIND( URI( REPLACE( ?formatter, '\\\\$1', ?_id2 ) ) AS ?id2 ) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"sv,en\" } .
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/06>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?itemLabel ?id1 ?image ?metres ?item2 ?item2Label ?id2 WITH {
+  SELECT ?formatter {
+    wd:P1260 wdt:P1630 ?formatter .
+  } LIMIT 1
+} AS %formatter WHERE {
+  INCLUDE %formatter .
+  ?item wdt:P1260 ?_id1; wdt:P625 ?coord1; wdt:P18 ?image .
+  SERVICE wikibase:around {
+    ?item2 wdt:P625 ?location .
+    bd:serviceParam wikibase:center ?coord1 .
+    bd:serviceParam wikibase:radius \"0.05\" .
+    bd:serviceParam wikibase:distance ?distance .
+  } .
+  ?item2 wdt:P1260 ?_id2 .
+  MINUS { ?item2 wdt:P18 [] } .
+  BIND( ?distance * 1000 AS ?metres ) .
+  BIND( URI( REPLACE( ?formatter, '\\\\$1', ?_id1 ) ) AS ?id1 ) .
+  BIND( URI( REPLACE( ?formatter, '\\\\$1', ?_id2 ) ) AS ?id2 ) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"sv,en\" } .
+}""" .

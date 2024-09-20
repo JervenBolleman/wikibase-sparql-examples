@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-c46e4d1837ccc70bd1d19388946338ad> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:BubbleChart
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:cor-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:BubbleChart
 
 SELECT
   ?lexical_category ?lexical_categoryLabel
@@ -25,9 +33,47 @@ WHERE {
   INCLUDE %lexical_categories
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?lexemes)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:BubbleChart
+
+SELECT
+  ?lexical_category ?lexical_categoryLabel
+  ?lexemes
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(?lexeme) AS ?lexemes)
+    ?lexical_category
+  WHERE {
+    ?lexeme wikibase:lexicalCategory ?lexical_category ;
+            wdt:P10831 ?cor_lemma .
+  }
+  GROUP BY ?lexical_category
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?lexemes)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:cor-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#defaultView:BubbleChart
+
+SELECT
+  ?lexical_category ?lexical_categoryLabel
+  ?lexemes
+WITH {
+  SELECT 
+    (COUNT(?lexeme) AS ?lexemes)
+    ?lexical_category
+  WHERE {
+    ?lexeme wikibase:lexicalCategory ?lexical_category ;
+            wdt:P10831 ?cor_lemma .
+  }
+  GROUP BY ?lexical_category
+} AS %lexical_categories
+WHERE {
+  INCLUDE %lexical_categories
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?lexemes)""" .
