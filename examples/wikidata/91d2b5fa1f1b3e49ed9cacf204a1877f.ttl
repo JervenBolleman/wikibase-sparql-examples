@@ -1,0 +1,50 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-91d2b5fa1f1b3e49ed9cacf204a1877f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Dataset of cities of Ukraine, suitable for import in GIS software
+# Author: [[User:Valerio Bozzolan]]
+# Date: 2023-10-05
+# License: CC0
+SELECT DISTINCT ?city ?cityLabel ?cityLocation ?administrative  ?administrativeLabel ?country WHERE {
+    
+  # Force to Ukraine
+  # (Explicit here so you can easily do the same for other countries)
+  BIND(wd:Q212 AS ?country)
+  
+  ?city wdt:P31/wdt:P279* wd:Q515.
+  ?city wdt:P17 ?country .
+  ?city wdt:P625 ?cityLocation .
+  ?city wdt:P17 ?country.
+  ?city wdt:P131 ?administrative.
+  ?administrative p:P31 ?administrativeInstanceOf;
+  
+  # Exclude former cities.
+  MINUS {
+     ?city wdt:P31/wdt:P279* wd:Q22674925. 
+  }
+
+  # Excludes administratives with end time
+  MINUS {
+    ?administrativeInstanceOf pq:P582 ?administrativeEndTime.
+  }
+  
+  # Exclude administratives that are abolished.
+  MINUS {
+    ?administrative wdt:P576 ?administrativeAbolishedDate. 
+  }
+
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"uk,en\" .
+  }
+}
+ORDER BY DESC(?administrativeLabel) DESC(?cityLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_Ukraine>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

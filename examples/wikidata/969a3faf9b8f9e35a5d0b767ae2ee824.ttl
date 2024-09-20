@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-969a3faf9b8f9e35a5d0b767ae2ee824> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Genes associated with at least two diseases
+#defaultView:BubbleChart
+SELECT ?gene ?geneLabel ?count
+WHERE 
+{
+  {
+    SELECT ?gene (COUNT(?disease) AS ?count)    
+WHERE {
+        ?gene wdt:P2293 ?disease .
+        ?disease wdt:P31 wd:Q12136 .
+       }
+  GROUP BY ?gene 
+  HAVING (?count > 1)        
+  }
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+ORDER BY DESC(?count)
+LIMIT 500""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiFactMine/Core_SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

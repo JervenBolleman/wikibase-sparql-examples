@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-935421161e59414e7bf5c1afb3d8e2bf> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Durchschnittliche Zahl an Quellenangabe (URL bzw. Item) bei Objekten in Kunstmuseen
+SELECT ?collection ?collectionLabel (AVG(?numberOfReferences) AS ?revAverage)
+WITH {
+  #named Subquery via https://renenyffenegger.ch/notes/development/Data/open/Wikidata/index nach https://w.wiki/5pWb
+  SELECT ?obj $collection WHERE {
+    ?obj wdt:P276 $collection .
+    ?collection wdt:P31 wd:Q207694;
+                wdt:P17 wd:Q183 .
+  }
+} AS %objects
+
+WHERE {
+  SELECT ?collection ?collectionLabel ?obj (COUNT(?refnode) AS ?numberOfReferences)
+  WHERE {
+    include %objects
+    ?obj ?x ?statement.
+    ?statement prov:wasDerivedFrom ?refnode.
+    ?refnode (pr:P248| pr:P854) ?ref.
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  }
+  GROUP BY ?collection ?collectionLabel ?obj
+}
+GROUP BY ?collection ?collectionLabel
+ORDER BY DESC(?revAverage)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Awinkler3>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

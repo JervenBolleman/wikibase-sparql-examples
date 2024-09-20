@@ -1,0 +1,76 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-928022ef6f964ed6a9570fb1bc79f505> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  ?property
+  ?propertyLabel
+  ?value
+  ?valueExists
+  ?countInDirectClaims
+  ?countInQualifiers
+  ?countInReferences
+WITH {
+  SELECT DISTINCT ?property {
+    ?property wikibase:propertyType [].
+  }
+} AS %a
+WITH {
+  SELECT ?wdt (COUNT(*) AS ?count) {
+    [] ?wdt [].
+  }
+  GROUP BY ?wdt
+} AS %0
+WITH {
+  SELECT ?property (?count AS ?countInDirectClaims) {
+    INCLUDE %0.
+    ?property wikibase:directClaim ?wdt.
+  }
+} AS %1
+WITH {
+  SELECT ?property (?count AS ?countInQualifiers) {
+    INCLUDE %0.
+    ?property wikibase:qualifier ?wdt.
+  }
+} AS %2
+WITH {
+  SELECT ?property (?count AS ?countInReferences) {
+    INCLUDE %0.
+    ?property wikibase:reference ?wdt.
+  }
+} AS %3
+WITH {
+  SELECT * {
+    INCLUDE %a.
+    OPTIONAL{INCLUDE %1}
+    OPTIONAL{INCLUDE %2}
+    OPTIONAL{INCLUDE %3}
+    OPTIONAL {
+      ?property schema:description ?value
+      FILTER(LANG(?value) = \"ml\").
+    }
+    BIND(IF(BOUND(?value), \"Yes\", \"No\") AS ?valueExists).
+  }
+} AS %4
+WITH {
+  SELECT * {
+    INCLUDE %4.
+    BIND(IF(BOUND(?countInDirectClaims), ?countInDirectClaims, 0) AS ?countInDirectClaims)
+    BIND(IF(BOUND(?countInQualifiers), ?countInQualifiers, 0) AS ?countInQualifiers)
+    BIND(IF(BOUND(?countInReferences), ?countInReferences, 0) AS ?countInReferences)
+  }
+} AS %5
+{
+  INCLUDE %5.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\"}.
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Akbarali/Most_used_properties_in_direct_claims,_qualifiers_and_references>,
+    <https://www.wikidata.org//wiki/User:Rdrg109/1/25>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

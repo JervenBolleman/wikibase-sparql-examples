@@ -1,0 +1,58 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9f97b20c07b7041ba53dc93114e6793e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# # # generate all members serving on a specific date
+# # # with their constituency, party group (amalgamated) and experience in days
+# # # seems valid back to 1997 but perhaps unreliable before that
+
+SELECT DISTINCT ?item ?itemLabel ?constituencyLabel ?groupLabel ?experience_in_days 
+where 
+{  
+  { select ?item (sum(round(?duration)) as ?experience_in_days)
+    WHERE {
+     { bind((\"1997-05-07T00:00:00Z\"^^xsd:dateTime) as ?date) .
+       ?item p:P39 ?ps . ?ps ps:P39 ?term . ?term wdt:P279 wd:Q16707842 . 
+       ?ps pq:P580 ?start . ?ps pq:P582 ?end . 
+       filter ( ?end < ?date ) . 
+       BIND((?end - ?start) AS ?duration) . }
+     # period for all previous terms
+     union
+     { bind((\"1997-05-07T00:00:00Z\"^^xsd:dateTime) as ?date) .
+       ?item p:P39 ?ps . ?ps ps:P39 ?term . ?ps pq:P580 ?start .  ?ps pq:P582 ?end .
+       ?term wdt:P279 wd:Q16707842 . filter ( ?start <= ?date ) .filter ( ?end >= ?date ) .
+       BIND((?date - ?start) AS ?duration) } 
+     # period for the term containing this date with an end 
+     union
+     { bind((\"1997-05-07T00:00:00Z\"^^xsd:dateTime) as ?date) .
+       ?item p:P39 ?ps . ?ps ps:P39 ?term . ?ps pq:P580 ?start .  
+       ?term wdt:P279 wd:Q16707842 . filter ( ?start <= ?date ) .filter not exists { ?ps pq:P582 ?end } .
+       BIND((?date - ?start) AS ?duration) }     
+     # period for an ongoing term containing this date 
+   } group by ?item
+  }  
+  { select ?item ?constituency ?group
+    where {
+      bind((\"1997-05-07T00:00:00Z\"^^xsd:dateTime) as ?date) .
+      ?item p:P39 ?positionStatement . ?positionStatement ps:P39 ?term . ?term wdt:P279 wd:Q16707842 .
+      ?positionStatement pq:P580 ?start . ?positionStatement pq:P768 ?constituency . 
+      OPTIONAL { ?positionStatement pq:P582 ?end . } filter (?start <= ?date ) . filter (COALESCE(?end, NOW()) > ?date ) .
+      OPTIONAL { ?positionStatement pq:P4100 ?party . 
+        BIND(IF(?party = wd:Q6467393, wd:Q9630 ,
+               (IF(?party = wd:Q61751194 , wd:Q327591 , 
+                  (IF(?party = wd:Q67153570 , wd:Q327591 , ?party)))  )  )  AS ?group) . }
+      # use qualifier dates; if no end date use now ; also merge independent groups & labour co-op
+      # touch wood this should give numbers for TODAY, so if they have changed today it gives the newest grouping
+   }
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

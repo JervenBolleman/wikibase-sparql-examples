@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-98e95c6aad67997ec51048cce7d8fb30> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q9035>
+
+SELECT 
+  ?count
+  ?class ?classLabel ?classDescription 
+  ?example_lexeme ?example_lexemeLabel
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)
+WITH {
+  SELECT 
+    (COUNT(?lexeme) AS ?count)
+    ?class
+    (SAMPLE(?lexeme) AS ?example_lexeme)
+  WHERE {
+    ?lexeme dct:language target: ;
+            wdt:P31 ?class .
+  }
+  GROUP BY ?class
+} AS %classes
+WHERE {
+  INCLUDE %classes
+  ?example_lexeme wikibase:lemma ?example_lexemeLabel
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:language>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

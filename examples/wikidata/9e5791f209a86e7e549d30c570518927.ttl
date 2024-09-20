@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9e5791f209a86e7e549d30c570518927> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT  ?item ?urlJoc ?creaLabel ?itemLabel  ?id
+WHERE {
+  ?item wdt:P347 ?IDJoconde .
+  wd:P347 wdt:P1630 ?formatterurl .
+  BIND(IRI(REPLACE(?IDJoconde, '^(.+)$', ?formatterurl)) AS ?urlJoc)
+  
+  ?item p:P170 ?declarationCrea.
+  ?declarationCrea ps:P170 ?crea.
+  ?declarationCrea prov:wasDerivedFrom ?ref.
+  ?ref pr:P854 ?URLref.
+  FILTER regex(str(?URLref), \"jocondelab\")
+  
+  BIND(xsd:integer(REPLACE(str(?item), 'http://www.wikidata.org/entity/Q', '')) AS ?id)    
+   
+  SERVICE wikibase:label {
+   bd:serviceParam wikibase:language \"fr\"
+  }
+}ORDER BY DESC(?id)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Shonagon/Archive_3>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

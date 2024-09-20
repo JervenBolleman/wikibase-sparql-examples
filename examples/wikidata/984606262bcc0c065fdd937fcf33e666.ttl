@@ -1,0 +1,46 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-984606262bcc0c065fdd937fcf33e666> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?itemLabel ?numericQuantity ?coord ?layer WHERE {            # put ?coord & ?layer in this select          
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". 
+   }
+  {
+    SELECT DISTINCT ?item ?coord ?numericQuantity ?layer WHERE {  # put ?coord ?layer in this select
+      OPTIONAL {?item wdt:P625 ?coord.}                           # get the coord
+      ?item p:P31 ?statement0.
+      ?statement0 (ps:P31/(wdt:P279*)) wd:Q483110.
+      ?item p:P1083 ?statement1.
+      ?statement1 (psv:P1083/wikibase:quantityAmount) ?numericQuantity.
+      ?statement1 a wikibase:BestRank.
+      FILTER(?numericQuantity > \"59999\"^^xsd:decimal)
+      MINUS {
+        ?item p:P3999 ?statement_3.
+        ?statement_3 psv:P3999 ?statementValue_3.
+        ?statementValue_3 wikibase:timeValue ?P3999_3.
+      } 
+      ?item p:P625 ?statement4.
+      ?statement4 (ps:P625) _:anyValueP625.
+      bind(if(?numericQuantity >100000,\"100k+\",                     # assign numeric ranges
+        if(?numericQuantity >90000,\"90k+\",
+        if(?numericQuantity >80000,\"80k+\",
+        if(?numericQuantity >70000,\"70k+\",
+        if(?numericQuantity >60000,\"60k+\",
+        if(?numericQuantity >50000,\"50k+\",
+        if(?numericQuantity >40000,\"40k+\",
+        if(?numericQuantity >30000,\"30k+\",
+        if(?numericQuantity >20000,\"20k+\",
+        if(?numericQuantity >10000,\"10k+\",
+        if(?numericQuantity >10000,\"0k+\",\"\"))))))))))) as ?layer)
+    }
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Project_chat/Archive/2023/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

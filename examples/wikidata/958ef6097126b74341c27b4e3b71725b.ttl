@@ -1,0 +1,43 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-958ef6097126b74341c27b4e3b71725b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:BubbleChart
+SELECT DISTINCT ?w ?wLabel ?students ?rgb {  
+  ?w wdt:P31/wdt:P279* wd:Q38723 .      # nur Hochschulen
+  # ?w wdt:P31/wdt:P279* wd:Q1365560 .      # HAWs only
+  # ?w wdt:P31/wdt:P279* wd:Q3918 .      # Unis only
+  ?w wdt:P17 wd:Q183 .
+  OPTIONAL {
+    ?p wdt:P101 wd:Q30089794 .
+    ?p wdt:P31 wd:Q679206 .
+    ?p wdt:P361 ?w . 
+    BIND(TRUE AS ?kontaktstelle)
+  }
+  OPTIONAL {?w wdt:P2196 ?students .} # Lernende
+  # OPTIONAL {?w wdt:P1128 ?students .}  # Mitarbeiter
+  OPTIONAL { ?w wdt:P463 wd:Q105757481 .
+   BIND(\"Vereinsmitglied\" AS ?affiliationTypeLabel)
+   BIND(TRUE AS ?NFDIassociated)
+  }
+  OPTIONAL {
+    ?p wdt:P31 wd:Q98270496 .
+    ?p p:P1416 ?statement .
+    ?statement ps:P1416 ?w .
+    OPTIONAL { ?statement pq:P3831 ?affiliationType .}   
+    BIND(TRUE AS ?NFDIassociated)
+  } 
+  #BIND(IF(Bound(?NFDIassociated), \"0abaf0\", \"666666\") AS ?rgb)  # NFDI: blau
+  #BIND(IF(Bound(?kontaktstelle), \"a3c717\", \"666666\") AS ?rgb)  # Kontaktstelle: grün
+  BIND(IF(Bound(?NFDIassociated), IF(Bound(?kontaktstelle), \"a3c717\", \"0abaf0\"), IF(Bound(?kontaktstelle), \"a3c717\", \"666666\")) AS ?rgb)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de\" }
+} ORDER BY DESC(?students) ASC(?wLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Wiljes/div>, <https://www.wikidata.org//wiki/User:Wiljes/NFDI>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

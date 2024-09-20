@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-90c6b6d131447d39fde49ff1f3f7c3dc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?city ?cityLabel ?mayor ?mayorLabel 
+WHERE 
+{
+	?city wdt:P31/wdt:P279* wd:Q515 .  # find instances of subclasses of city
+	?city p:P6 ?statement .            # with a P6 (head of goverment) statement
+	?statement ps:P6 ?mayor .           # ... that has the value ?mayor
+	?mayor wdt:P21 wd:Q6581072 .       # ... where the ?mayor has P21 (sex or gender) female
+	FILTER NOT EXISTS { ?statement pq:P582 ?x }  # ... but the statement has no P582 (end date) qualifier	 
+	# Now select the population value of the ?city
+	# (wdt: properties use only statements of \"preferred\" rank if any, usually meaning \"current population\")
+	?city wdt:P1082 ?population .
+	# Optionally, find English labels for city and mayor:
+	SERVICE wikibase:label {
+		bd:serviceParam wikibase:language \"en\" .
+	}
+}
+ORDER BY DESC(?population)
+LIMIT 10""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Smalyshev_(WMF)/TestQ>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

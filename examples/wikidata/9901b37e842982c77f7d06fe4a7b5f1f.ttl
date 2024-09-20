@@ -1,0 +1,55 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9901b37e842982c77f7d06fe4a7b5f1f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT distinct ?election ?electionLabel ?members ?veterans ?held_at_dissolution where
+{
+  { SELECT distinct ?election ?electiondate where 
+    { ?election wdt:P31 wd:Q15283424 . ?election wdt:P585 ?electiondate . 
+    filter (?electiondate >= \"1990-01-01T00:00:00Z\"^^xsd:dateTime) } # throttle to post-1990
+  } # find all general elections and their date (for sorting)
+  
+  { SELECT ?election (count(distinct ?item) as ?members) where 
+    { ?item p:P39 ?positionStatement . ?positionStatement ps:P39 ?membership . 
+      ?membership wdt:P2715 ?election . ?positionStatement pq:P2715 ?election .
+    } group by ?election
+  } # number of people elected in this election
+    # this code finds anyone who served the parliamentary term linked to this election
+    # with a P39 value which started with this election
+
+  { SELECT ?election (count(distinct ?item) as ?veterans) where 
+    { ?item p:P39 ?positionStatement . ?positionStatement ps:P39 ?membership . 
+      ?membership wdt:P2715 ?election . ?positionStatement pq:P2715 ?election . 
+     # item holds a term which began with the election
+      ?item p:P39 ?positionStatement2 . ?positionStatement2 ps:P39 ?membership2 . 
+      ?positionStatement2 pq:P580 ?start . filter ( ?start < ?electiondate ) .
+      ?membership2 wdt:P279 wd:Q16707842 . ?election wdt:P585 ?electiondate .
+     # item also holds another term which began before the election
+     # and, critically, was an MP!
+    } group by ?election
+  } # people who served in any previous term
+
+  { SELECT ?election (count(distinct ?item) as ?held_at_dissolution) where 
+    { ?item p:P39 ?positionStatement . ?positionStatement ps:P39 ?membership . 
+      ?membership wdt:P2715 ?election . ?positionStatement pq:P2715 ?election . 
+     # item holds a term which began with the election
+      ?membership wdt:P155 ?membership2 .
+     # find the term which preceded that one
+      ?item p:P39 ?positionStatement2 . ?positionStatement2 ps:P39 ?membership2 . 
+     # find all items which hold that term
+      ?positionStatement2 pq:P1534 wd:Q741182
+     # and made it to dissolution
+    } group by ?election
+  } # people who served up to dissolution of the previous term
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+} order by desc(?electiondate)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

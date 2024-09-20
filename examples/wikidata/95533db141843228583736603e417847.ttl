@@ -1,0 +1,48 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-95533db141843228583736603e417847> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q6053150>
+
+SELECT
+  ?events
+  
+  ?sponsor ?sponsorLabel
+  (CONCAT(\"#sponsor/\", SUBSTR(STR(?sponsor), 32)) AS ?sponsorUrl)
+
+  ?roles
+
+  ?example_event ?example_eventLabel
+  (CONCAT(\"#scientificevent/\", SUBSTR(STR(?example_event), 32)) AS ?example_eventUrl)
+WITH {
+  SELECT  
+    (COUNT(?event) AS ?events)
+    ?sponsor
+    (GROUP_CONCAT(?role; separator=\", \") AS ?roles)
+    (SAMPLE(?event) AS ?example_event)
+  WHERE {
+    ?event wdt:P179 target: ;
+           p:P859 | p:P8324 ?sponsor_statement .
+    ?sponsor_statement ps:P859 | ps:8324 ?sponsor .
+    OPTIONAL {
+      ?sponsor_statement pq:P3831 / rdfs:label ?role .
+      FILTER (LANG(?role) = \"en\")
+    }
+  } 
+  GROUP BY ?sponsor
+} AS %sponsors
+  
+WHERE {
+  INCLUDE %sponsors 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?events)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:scientificeventseries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-92571e46c6ab9ff4ddc562a48cae1142> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT DISTINCT ?publisherLabel ?publisher ?typeLabel ?viafURI (COUNT(?publisher) as ?count)
+WHERE {
+  ?publisher wdt:P31 ?type.
+  OPTIONAL {?publisher wdt:P214 ?viaf}
+  { ?publisher wdt:P31 wd:Q2085381}
+  UNION
+  { ?s wdt:P123 ?publisher . }
+  BIND (URI(CONCAT(\"http://viaf.org/viaf/\",?viaf)) AS ?viafURI)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+GROUP BY ?publisher ?publisherLabel ?typeLabel ?viafURI
+ORDER BY DESC(?count)
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Realworldobject/ShowTell>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

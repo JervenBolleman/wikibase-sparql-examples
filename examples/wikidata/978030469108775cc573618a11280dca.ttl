@@ -1,0 +1,50 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-978030469108775cc573618a11280dca> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Graph
+SELECT ?item ?itemLabel ?linkTo ?linkToLabel ?rgb
+WITH {
+  SELECT DISTINCT ?item ?linkTo {
+    ?item
+      wdt:P31/wdt:P279* wd:Q55341040;
+      wdt:P10568 ?linkTo.
+    ?linkTo wdt:P31/wdt:P279* wd:Q55341040.
+  }
+} AS %0
+WITH {
+  SELECT DISTINCT ?item (\"FFA500\" AS ?rgb) {
+    INCLUDE %0.
+    ?item wdt:P1687 [].
+  }
+} AS %1
+WITH {
+  SELECT * {
+    INCLUDE %0.
+    # By using OPTIONAL, we make sure that this query also return
+    # those rows that don't have a value for ?rgb. That is, those
+    # items that don't use Wikidata property (P1687).
+    #
+    # If optional weren't used, then we would be finding the
+    # intersection between %0 and %1, which would be only video game
+    # databases that have Wikidata property (P1687)
+    OPTIONAL{INCLUDE %1}.
+  }
+} AS %2
+{
+  INCLUDE %2.
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\".
+    ?item rdfs:label ?itemLabel.
+    ?linkTo rdfs:label ?linkToLabel.
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/3/5>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

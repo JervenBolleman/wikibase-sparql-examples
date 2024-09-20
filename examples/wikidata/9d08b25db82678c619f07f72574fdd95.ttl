@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9d08b25db82678c619f07f72574fdd95> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT 
+  ?awards
+  ?actor
+  ?actorLabel
+  (CONCAT(\"#actor/\", SUBSTR(STR(?actor), 32)) AS ?actorUrl)
+  ?actorDescription
+WITH {
+  SELECT
+    (COUNT(*) AS ?awards)
+    ?actor
+  WHERE {
+    ?actor wdt:P166 [] .
+    FILTER EXISTS { ?actor wdt:P106 wd:Q33999 }
+  }
+  GROUP BY ?actor
+  ORDER BY DESC(?awards)
+  LIMIT 200
+} AS %actors
+WHERE {
+  INCLUDE %actors
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?awards)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:actor-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

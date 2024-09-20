@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-90bb681da460f9a4b710f21b64a7d8d3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?statement ?subject ?subjectLabel ?propertyLabel ?valueLabel ?start1 ?end1 ?start2 ?end2 WITH {
+  SELECT * WHERE {
+    ?statement pq:P580 ?start1, ?start2;
+               pq:P582 ?end1, ?end2.
+    FILTER(?start1 < ?end1
+           && ?end1 < ?start2
+           && ?start2 < ?end2)
+  }
+  LIMIT 100
+} AS %results WHERE {
+  INCLUDE %results.
+  ?property wikibase:claim ?p;
+            wikibase:statementProperty ?ps.
+  ?subject ?p ?statement.
+  ?statement ?ps ?value;
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/statements_with_more_than_one_pair_of_start_and_end_time>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

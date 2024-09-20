@@ -1,0 +1,75 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9a13afd075da9af40253f340857b1c57> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item
+WITH {
+  SELECT DISTINCT ?item {
+    ?property
+      wikibase:propertyType wikibase:ExternalId;
+      wikibase:directClaim ?wdt.
+    # Wikidata property related to museums
+    {?property wdt:P31/wdt:P279* wd:Q111339517}
+    UNION
+    # Wikidata property for authority control for cultural heritage
+    {?property wdt:P31/wdt:P279* wd:Q18618628}
+    ?item ?wdt [].
+  }
+} AS %0
+WITH {
+  SELECT ?item {
+    INCLUDE %0.
+    FILTER NOT EXISTS {
+      ?item wdt:P31 [].
+    }
+  }
+} AS %1
+WITH {
+  SELECT ?lemma {
+    []
+      wikibase:lexicalCategory wd:Q1084;
+      ontolex:sense?/wdt:P5137/wdt:P279* wd:Q80228;
+      wikibase:lemma ?lemma.
+  }
+} AS %2
+WITH {
+  SELECT ?item ?label {
+    INCLUDE %1.
+    ?item rdfs:label ?label.
+  }
+} AS %3
+WITH {
+  SELECT ?item ?description {
+    ?item schema:description ?description.
+  }
+} AS %4
+WITH {
+  SELECT ?item {
+    INCLUDE %2.
+    INCLUDE %3.
+    FILTER(LANG(?label) = LANG(?lemma) &&
+           CONTAINS(LCASE(?label), LCASE(?lemma))).
+  }
+} AS %5
+WITH {
+  SELECT ?item {
+    INCLUDE %2.
+    INCLUDE %4.
+    FILTER(LANG(?description) = LANG(?lemma) &&
+           CONTAINS(LCASE(?description), LCASE(?lemma))).
+  }
+} AS %6
+{
+  {INCLUDE %5}
+  UNION
+  {INCLUDE %6}
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/3/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

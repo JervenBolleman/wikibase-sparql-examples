@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-906c76c01bebda3b88fc78769f619330> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:BubbleChart
+SELECT ?consagrante ?consagranteLabel (COUNT(DISTINCT ?person) AS ?numeroConsagrados) (SAMPLE(?imagenConsagrante) AS ?imagen)
+WHERE {
+  {?person wdt:P31 wd:Q5;
+          p:P793 ?eventoSignificativo.
+  ?eventoSignificativo ps:P793 wd:Q125375;
+                       pq:P1598 ?consagrante.
+   }
+  UNION
+  {?person wdt:P31 wd:Q5;
+           p:P1598 [
+             ps:P1598 ?consagrante;
+             pq:P3831 wd:Q18442817
+             ].
+   }
+  ?person wdt:P140 ?religion.
+  OPTIONAL{?consagrante wdt:P18 ?imagenConsagrante}
+  FILTER(?religion = wd:Q1841 || ?religion = wd:Q9592).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  }
+GROUP BY ?consagrante ?consagranteLabel
+HAVING(?numeroConsagrados > 5)
+ORDER BY DESC(?numeroConsagrados)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jaimemf/ObisposConsagrados>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

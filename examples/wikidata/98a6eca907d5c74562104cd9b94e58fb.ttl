@@ -1,0 +1,24 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-98a6eca907d5c74562104cd9b94e58fb> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?pItem ?taxon ?parentTaxon ?sitelink WHERE {
+    ?item  wdt:P171 ?pItem .          # has parent item
+    ?item  wdt:P225 ?taxon .          # taxon name
+    ?item  wdt:P105 ?rank .           # taxon rank
+    ?pItem wdt:P225 ?parentTaxon .    # parent taxon name
+    VALUES ?rank {wd:Q7432 }          # restrict rank to species only at this moment
+    ?sitelink schema:about ?item .
+    FILTER(STRSTARTS(STR(?sitelink), \"https://no.wikipedia.org/wiki/\"))
+    FILTER(STRENDS(STR(?sitelink), ENCODE_FOR_URI(?parentTaxon))) # norwegian article name matches parent taxon
+    #MINUS{ ?item wdt:P225 ?parentTaxon . }
+} LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Bot_requests/Archive/2017/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

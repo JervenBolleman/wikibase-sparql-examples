@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-97693c45e43e739a568da683ab4ca38b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?P18_value ?filename ?contentUrl
+WHERE
+{
+  SERVICE <https://query.wikidata.org/sparql>
+  {
+    SERVICE bd:slice
+    {
+      [] ps:P18 ?P18_value .
+      bd:serviceParam bd:slice.offset 0 .
+      bd:serviceParam bd:slice.limit 10000 .
+    }
+    BIND (REPLACE(SUBSTR(wikibase:decodeUri(STR(?P18_value)), 52), \" \", \"_\") AS ?filename)
+    BIND (MD5(?filename) AS ?MD5)
+    BIND (URI(CONCAT(\"https://upload.wikimedia.org/wikipedia/commons/\",
+                     SUBSTR(?MD5, 1, 1), \"/\",
+                     SUBSTR(?MD5, 1, 2), \"/\", ENCODE_FOR_URI(?filename)
+                    )
+             ) AS ?contentUrl)
+  }
+  FILTER NOT EXISTS { ?file schema:contentUrl ?contentUrl . }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

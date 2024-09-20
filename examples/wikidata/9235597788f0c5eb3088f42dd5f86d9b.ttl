@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9235597788f0c5eb3088f42dd5f86d9b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Graph
+SELECT ?superClass ?rgb ?parent ?superClassLabel ?parentLabel
+WHERE {
+  bind (wd:Q1001 as ?item).
+  {
+    bind ('FF0000' as ?rgb).
+    bind (?item as ?superClass). # I suspect this line is causing the timeout, but I don't know the appropriate alternative
+    ?superClass wdt:P31 ?parent.
+  } UNION {
+    bind ('FFFFFF' as ?rgb).
+    ?item wdt:P31 ?class.
+    ?class wdt:P279* ?superClass.
+    ?superClass wdt:P279 ?parent.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"it,en,[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:TomT0m/classification.js/Archive/2023>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

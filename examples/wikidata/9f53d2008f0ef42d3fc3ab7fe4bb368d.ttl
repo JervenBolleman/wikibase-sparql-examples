@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9f53d2008f0ef42d3fc3ab7fe4bb368d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?state ?string (COUNT(*) AS ?count) WITH {
+  SELECT DISTINCT ?state WHERE {
+    ?state wdt:P31/wdt:P279* wd:Q3624078;
+           p:P463 ?memberOfStatement.
+    ?memberOfStatement a wikibase:BestRank;
+                       ps:P463 wd:Q1065.
+    MINUS { ?memberOfStatement pq:P582 ?endTime. }
+    MINUS { ?state wdt:P576|wdt:P582 ?end. }
+  }
+} AS %states WHERE {
+  INCLUDE %states.
+  ?state rdfs:label ?label.
+  BIND(STR(?label) AS ?string)
+}
+GROUP BY ?state ?string
+HAVING(?count >= 50)
+ORDER BY DESC(?count)
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/UN_member_states_with_most_identical_labels_across_languages>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

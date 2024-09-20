@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-92db45f78686da096b82ae4cbf8bd6cd> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#List of predicates, which are not IDs, and frequency of use.
+SELECT DISTINCT ?p ?ppLabel ?count
+WITH {
+  SELECT ?p (COUNT(?p) AS ?count)
+  WHERE { [] ?p [] . }
+  GROUP BY ?p
+} AS %i
+WHERE {
+  INCLUDE %i
+  MINUS { ?pp ?ptype ?p. ?pp wikibase:propertyType wikibase:ExternalId. }
+  OPTIONAL {
+    ?pp wikibase:claim|wikibase:directClaim|wikibase:directClaimNormalized|
+    wikibase:qualifier|wikibase:qualifierValue|wikibase:qualifierValueNormalized|
+    wikibase:statementProperty|wikibase:statementValue|wikibase:statementValueNormalized|
+    wikibase:reference|wikibase:referenceValue|wikibase:referenceValueNormalized ?p .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infrastruktur/Sandbox1>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

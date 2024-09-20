@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9fb7ec9790cd2512992c70f58c042e2c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?sitelink ?site ?endpoint ?title ?size ?size_kbyte
+WHERE
+{
+  ?sitelink schema:about wd:Q18207978.
+  ?sitelink schema:isPartOf ?site.
+  ?sitelink schema:name ?title.
+  BIND (STRBEFORE(STRAFTER(STR(?site), \"https://\"), \"/\") AS ?endpoint)
+  BIND (STR(?title) AS ?title_nolang)
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint ?endpoint.
+    bd:serviceParam wikibase:api \"Generator\".
+    bd:serviceParam mwapi:generator \"revisions\".
+    bd:serviceParam mwapi:titles ?title_nolang.
+    bd:serviceParam mwapi:prop \"revisions\".
+    bd:serviceParam mwapi:rvprop \"size\".
+    bd:serviceParam mwapi:grvdir \"older\".
+    bd:serviceParam mwapi:grvlimit \"max\".
+    ?size wikibase:apiOutput \"revisions/rev[last()]/@size\".
+  }
+  BIND (ROUND(xsd:integer(?size)/1024) AS ?size_kbyte)
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/06>,
+    <https://www.wikidata.org//wiki/Wikidata:Contact_the_development_team/Query_Service_and_search/Archive/2020/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

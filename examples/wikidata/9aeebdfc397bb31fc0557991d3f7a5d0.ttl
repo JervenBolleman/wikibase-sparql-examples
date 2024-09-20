@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9aeebdfc397bb31fc0557991d3f7a5d0> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?taxonName ?state ?publication ?title {
+  ?item p:P225 ?statement .
+  ?statement ps:P225 ?taxonName .
+  ?statement pq:P574 ?date .
+  ?statement prov:wasDerivedFrom ?refnode .
+  ?refnode pr:P248 ?ref
+  OPTIONAL {?refnode pr:P304 ?page }
+  OPTIONAL {?refnode pr:P6184 ?state_}  ?ref wdt:P1433 wd:Q2003024 .
+  ?ref wdt:P478 ?volume .
+  ?ref wdt:P433 ?issue .
+  ?ref wdt:P304 ?pages_ .
+  OPTIONAL {?ref wdt:P1476 ?title} .
+  BIND(if(!BOUND(?date), \"\", xsd:string(YEAR(?date))) as ?year)
+  BIND(if(sameTerm(?state_, wd:Q1361864), \"tax. nov.\", if(sameTerm(?state_, wd:Q14594740), \"comb. nov.\", if(sameTerm(?state_, wd:Q749462), \"nom. nov.\", \"\"))) as ?state) 
+  BIND(CONCAT(\"Taxon \", CONCAT(?volume, CONCAT( \"(\",CONCAT(?issue, CONCAT(\"): \", CONCAT(?page, CONCAT(\". \", ?year))))))) AS ?publication)  
+  FILTER(bound(?state))
+}
+ORDER BY ASC(?taxonName)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Succu/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

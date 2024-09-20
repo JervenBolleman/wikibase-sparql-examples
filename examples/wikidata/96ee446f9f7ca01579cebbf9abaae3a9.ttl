@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-96ee446f9f7ca01579cebbf9abaae3a9> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?author ?country ?link WHERE {
+
+  ?item wdt:P31 wd:Q7725634 . # get some stuff
+  
+  OPTIONAL {?item p:P50 ?stat . ?stat ps:P50 ?author . FILTER (!wikibase:isSomeValue(?author)) # get ?author and exclude <unknown value>
+            BIND(REPLACE(STR(?author),\"http://www.wikidata.org/entity/\",\"\") AS ?authorQID)     # get the ?author QId in the form Q12345
+           }
+  OPTIONAL {?item wdt:P495 ?country . 
+            BIND(REPLACE(STR(?country),\"http://www.wikidata.org/entity/\",\"\") AS ?countryQID)
+           }  
+  BIND(IF( BOUND(?authorQID) && BOUND(?countryQID) , CONCAT(?authorQID,\" \",?countryQID), 
+        IF(BOUND(?authorQID),?authorQID,
+        IF(BOUND(?countryQID),?countryQID,\"\"))) as ?link) 
+
+ FILTER NOT EXISTS {?item a wdno:P50} # reject ?author = <no value>
+  
+} limit 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

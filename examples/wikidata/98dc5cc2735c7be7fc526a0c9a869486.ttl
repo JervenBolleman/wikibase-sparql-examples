@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-98dc5cc2735c7be7fc526a0c9a869486> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# using https://cs.wikipedia.org/wiki/Algoritmus_pro_v%C3%BDpo%C4%8Det_dne_v_t%C3%BDdnu#Zeller%C5%AFv_algoritmus
+SELECT (?q AS ?Date) (SUM(?mon) AS ?Mon) (SUM(?tue) AS ?Tue) (SUM(?wed) AS ?Wed) (SUM(?thu) AS ?Thu) (SUM(?fri) AS ?Fri) (SUM(?sat) AS ?Sat) (SUM(?sun) AS ?Sun)  (COUNT(?start_time) AS ?Tot)  WHERE {
+  ?disaster wdt:P31/wdt:P279* wd:Q3839081 ;
+            p:P580 ?start_time_stm .
+  ?start_time_stm ps:P580 ?start_time .
+  ?start_time_stm psv:P580 ?start_time_node .
+  ?start_time_node wikibase:timePrecision ?tp . FILTER(?tp=11)
+  BIND( DAY( ?start_time ) AS ?q ) .
+  BIND( MONTH( ?start_time ) + IF( MONTH( ?start_time ) < 3, 12, 0 ) AS ?m ) .
+  BIND( YEAR( ?start_time ) - IF( MONTH( ?start_time ) < 3, 1, 0 ) AS ?_year ) .
+  BIND( ?_year - FLOOR( ?_year / 100 ) * 100 AS ?K ) . # modulo
+  BIND( FLOOR( YEAR( ?start_time ) / 100 ) AS ?J ) .
+  BIND( ?q + FLOOR( 13 * ( ?m + 1 ) / 5 ) + ?K + FLOOR( ?K / 4 ) + FLOOR( ?J / 4 ) - 2 * ?J AS ?_h ) .
+  BIND( ?_h - FLOOR( ?_h / 7 ) * 7 AS ?weekday) . # modulo, 0 is Saturday
+  BIND(IF(?weekday=2,1,0) AS ?mon)
+  BIND(IF(?weekday=3,1,0) AS ?tue)
+  BIND(IF(?weekday=4,1,0) AS ?wed)
+  BIND(IF(?weekday=5,1,0) AS ?thu)
+  BIND(IF(?weekday=6,1,0) AS ?fri)
+  BIND(IF(?weekday=0,1,0) AS ?sat)
+  BIND(IF(?weekday=1,1,0) AS ?sun)
+}
+GROUP BY ?q
+ORDER BY ?Date""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

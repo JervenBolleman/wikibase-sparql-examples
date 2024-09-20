@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-90ca81babfc50a838d8a27421e9264ba> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# German-language female science fiction authors
+SELECT DISTINCT ?author ?authorLabel ?dateOfBirth ?dateOfDeath WHERE {
+  ?author wdt:P31 wd:Q5;
+          wdt:P21/wdt:P279* wd:Q6581072.
+  # speaks/writes German, or citizen of Germany, Austria or Liechtenstein (since “languages spoken, written or signed” alone is not very complete; Swiss citizenship would probably include too many French- or Italian-writing authors)
+  {
+    ?author wdt:P1412 wd:Q188.
+  } UNION {
+    VALUES ?country { wd:Q183 wd:Q40 wd:Q347 }
+    ?author wdt:P27 ?country.
+  }
+  # genre science fiction, or occupation science fiction author, or genre science fiction as qualifier on occupation author statement
+  {
+    ?author wdt:P136/wdt:P279* wd:Q24925.
+  } UNION {
+    ?author wdt:P106/wdt:P279* wd:Q28225718.
+  } UNION {
+    ?author p:P106 [
+      a wikibase:BestRank;
+      ps:P106/wdt:P279* wd:Q482980;
+      pq:P136/wdt:P279* wd:Q24925
+    ].
+  }
+  OPTIONAL { ?author wdt:P569 ?dateOfBirth. }
+  OPTIONAL { ?author wdt:P570 ?dateOfDeath. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/German-language_female_science_fiction_authors>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

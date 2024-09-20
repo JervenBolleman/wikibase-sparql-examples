@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9a77f3f591e48880804687a0d030af2b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?lexeme (GROUP_CONCAT(DISTINCT ?lemma; separator = \"/\") AS ?lemmata) ?sampleSense (SAMPLE(?gloss) AS ?anyGloss)
+WITH {
+  SELECT ?lexeme (SAMPLE(?sense) AS ?sampleSense) WHERE {
+    SERVICE bd:sample {
+      ?lexeme dct:language wd:Q8752.
+      bd:serviceParam bd:sample.limit 20 .
+    }
+    OPTIONAL { ?lexeme ontolex:sense ?sense. }
+  }
+  GROUP BY ?lexeme
+} AS %lexemesWithOneSense
+WHERE {
+  INCLUDE %lexemesWithOneSense.
+  ?lexeme wikibase:lemma ?lemma.
+  BIND(BOUND(?sampleSense) AS ?haveSampleSense) # if ?sampleSense is unbound, the result of the below OPTIONAL is meaningless
+  BIND(?sampleSense AS ?sampleSense_) # copy of ?sampleSense that can be bound without harm (not included in GROUP BY / SELECT)
+  OPTIONAL { ?sampleSense_ skos:definition ?gloss_. } # if ?sampleSense_ was unbound, it is now bound to any sense of any gloss
+  BIND(IF(?haveSampleSense, ?gloss_, ?unbound) AS ?gloss) # use the gloss only if it belongs to the already known ?sampleSense
+}
+GROUP BY ?lexeme ?sampleSense""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/03>,
+    <https://www.wikidata.org//wiki/User:Infovarius/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

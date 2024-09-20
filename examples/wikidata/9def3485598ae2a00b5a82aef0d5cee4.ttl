@@ -1,0 +1,53 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9def3485598ae2a00b5a82aef0d5cee4> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?Taxon ?TaxonName ?SampleWork ?SampleTitle ?WorkCount
+WITH {
+  SELECT ?work WHERE {
+    hint:Query hint:optimizer \"None\".
+
+    {  SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:api \"Search\";
+                      wikibase:endpoint \"www.wikidata.org\";
+                      mwapi:srsearch \"\"hypothesis\" haswbstatement:P31=Q13442814 haswbstatement:P6104=Q56241615\".
+      ?page_title wikibase:apiOutput mwapi:title.
+    }
+    }
+    UNION
+    {  SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:api \"Search\";
+                      wikibase:endpoint \"www.wikidata.org\";
+                      mwapi:srsearch \"impact haswbstatement:P31=Q13442814 haswbstatement:P6104=Q56241615\".
+      ?page_title wikibase:apiOutput mwapi:title.
+    }
+    }    BIND(IRI(CONCAT(STR(wd:), ?page_title)) AS ?work)
+  }
+}
+AS %works
+WITH {
+  SELECT ?Taxon ?TaxonName (SAMPLE(?work) AS ?SampleWork) (COUNT(?work) AS ?WorkCount) WHERE {
+    INCLUDE %works
+    ?work wdt:P921 ?Taxon .
+    ?Taxon wdt:P105 wd:Q7432 .
+    ?Taxon wdt:P225 ?TaxonName .
+  }
+  GROUP BY ?Taxon ?TaxonName ?SampleWork ?WorkCount
+}
+AS %taxa
+WHERE {
+  INCLUDE %works
+  INCLUDE %taxa
+  ?SampleWork wdt:P1476 ?SampleTitle .
+}
+GROUP BY ?Taxon ?TaxonName ?SampleWork ?SampleTitle ?WorkCount
+ORDER BY DESC(?WorkCount)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

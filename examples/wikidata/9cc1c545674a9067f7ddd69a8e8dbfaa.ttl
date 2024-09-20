@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9cc1c545674a9067f7ddd69a8e8dbfaa> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#TEMPLATE={ \"template\": { \"en\": \"settlements in ?state with more than one word in the name\" }, \"variables\": { \"?state\": { \"query\": \"SELECT DISTINCT ?id WHERE { ?id wdt:P31/wdt:P279* wd:Q3624078; p:P463 ?memberOfStatement. ?memberOfStatement a wikibase:BestRank; ps:P463 wd:Q1065. MINUS { ?memberOfStatement pq:P582 ?endTime. } MINUS { ?id wdt:P576|wdt:P582 ?end. } }\" } } }
+#defaultView:Map{ \"layer\": \"?words\", \"hide\": [\"?words\", \"?coordinates\"] }
+SELECT ?city ?cityLabel ?words ?coordinates WHERE {
+  BIND(wd:Q142 AS ?state)
+  ?city wdt:P31/wdt:P279* wd:Q486972;
+        wdt:P17 ?state;
+        wdt:P625 ?coordinates;
+        wdt:P1448 ?cityLabel.
+  # According to https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html, a word character (\\w) is equivalent to the following character class, assuming the UNICODE_CHARACTER_CLASS flag is defined:
+  # [\\p{Alpha}\\p{gc=Mn}\\p{gc=Me}\\p{gc=Mc}\\p{Digit}\\p{gc=Pc}]
+  # BlazeGraph does not define this flag, therefore we have to emulate word characters using the following variant:
+  # [\\p{IsAlphabetic}\\p{gc=Mn}\\p{gc=Me}\\p{gc=Mc}\\p{IsDigit}\\p{gc=Pc}]
+  # That is, a word character is alphabetic, any kind of mark (nonspacing, enclosing, or spacing combining), a digit, or connector punctuation.
+  # Non-word characters are the inverse of this character class,
+  # and words are runs of one or more word characters separated by one or more non-word characters.
+  # As an optimization, at the beginning and end of the pattern we can replace “one or more” with “one”,
+  # so that the extra characters (if they exist) are not part of the match.
+  # As a further optimization, we pre-filter the names using the much simpler regex \\w\\W+\\w,
+  # which has some false positives (e. g. Zürich, due to the umlaut) but no false negatives.
+  FILTER(REGEX(?cityLabel, \"\\\\w\\\\W+\\\\w\"))
+  FILTER(REGEX(?cityLabel, \"[\\\\p{IsAlphabetic}\\\\p{gc=Mn}\\\\p{gc=Me}\\\\p{gc=Mc}\\\\p{IsDigit}\\\\p{gc=Pc}][^\\\\p{IsAlphabetic}\\\\p{gc=Mn}\\\\p{gc=Me}\\\\p{gc=Mc}\\\\p{IsDigit}\\\\p{gc=Pc}]+[\\\\p{IsAlphabetic}\\\\p{gc=Mn}\\\\p{gc=Me}\\\\p{gc=Mc}\\\\p{IsDigit}\\\\p{gc=Pc}]\"))
+  BIND(IF(REGEX(?cityLabel, \"[\\\\p{IsAlphabetic}\\\\p{gc=Mn}\\\\p{gc=Me}\\\\p{gc=Mc}\\\\p{IsDigit}\\\\p{gc=Pc}][^\\\\p{IsAlphabetic}\\\\p{gc=Mn}\\\\p{gc=Me}\\\\p{gc=Mc}\\\\p{IsDigit}\\\\p{gc=Pc}]+[\\\\p{IsAlphabetic}\\\\p{gc=Mn}\\\\p{gc=Me}\\\\p{gc=Mc}\\\\p{IsDigit}\\\\p{gc=Pc}]+[^\\\\p{IsAlphabetic}\\\\p{gc=Mn}\\\\p{gc=Me}\\\\p{gc=Mc}\\\\p{IsDigit}\\\\p{gc=Pc}]+[\\\\p{IsAlphabetic}\\\\p{gc=Mn}\\\\p{gc=Me}\\\\p{gc=Mc}\\\\p{IsDigit}\\\\p{gc=Pc}]+[^\\\\p{IsAlphabetic}\\\\p{gc=Mn}\\\\p{gc=Me}\\\\p{gc=Mc}\\\\p{IsDigit}\\\\p{gc=Pc}]+[\\\\p{IsAlphabetic}\\\\p{gc=Mn}\\\\p{gc=Me}\\\\p{gc=Mc}\\\\p{IsDigit}\\\\p{gc=Pc}]+[^\\\\p{IsAlphabetic}\\\\p{gc=Mn}\\\\p{gc=Me}\\\\p{gc=Mc}\\\\p{IsDigit}\\\\p{gc=Pc}]+[\\\\p{IsAlphabetic}\\\\p{gc=Mn}\\\\p{gc=Me}\\\\p{gc=Mc}\\\\p{IsDigit}\\\\p{gc=Pc}]\"), \"5+\"@en,
+          IF(REGEX(?cityLabel, \"[\\\\p{IsAlphabetic}\\\\p{gc=Mn}\\\\p{gc=Me}\\\\p{gc=Mc}\\\\p{IsDigit}\\\\p{gc=Pc}][^\\\\p{IsAlphabetic}\\\\p{gc=Mn}\\\\p{gc=Me}\\\\p{gc=Mc}\\\\p{IsDigit}\\\\p{gc=Pc}]+[\\\\p{IsAlphabetic}\\\\p{gc=Mn}\\\\p{gc=Me}\\\\p{gc=Mc}\\\\p{IsDigit}\\\\p{gc=Pc}]+[^\\\\p{IsAlphabetic}\\\\p{gc=Mn}\\\\p{gc=Me}\\\\p{gc=Mc}\\\\p{IsDigit}\\\\p{gc=Pc}]+[\\\\p{IsAlphabetic}\\\\p{gc=Mn}\\\\p{gc=Me}\\\\p{gc=Mc}\\\\p{IsDigit}\\\\p{gc=Pc}]+[^\\\\p{IsAlphabetic}\\\\p{gc=Mn}\\\\p{gc=Me}\\\\p{gc=Mc}\\\\p{IsDigit}\\\\p{gc=Pc}]+[\\\\p{IsAlphabetic}\\\\p{gc=Mn}\\\\p{gc=Me}\\\\p{gc=Mc}\\\\p{IsDigit}\\\\p{gc=Pc}]\"), \"4\"@en,
+             IF(REGEX(?cityLabel, \"[\\\\p{IsAlphabetic}\\\\p{gc=Mn}\\\\p{gc=Me}\\\\p{gc=Mc}\\\\p{IsDigit}\\\\p{gc=Pc}][^\\\\p{IsAlphabetic}\\\\p{gc=Mn}\\\\p{gc=Me}\\\\p{gc=Mc}\\\\p{IsDigit}\\\\p{gc=Pc}]+[\\\\p{IsAlphabetic}\\\\p{gc=Mn}\\\\p{gc=Me}\\\\p{gc=Mc}\\\\p{IsDigit}\\\\p{gc=Pc}]+[^\\\\p{IsAlphabetic}\\\\p{gc=Mn}\\\\p{gc=Me}\\\\p{gc=Mc}\\\\p{IsDigit}\\\\p{gc=Pc}]+[\\\\p{IsAlphabetic}\\\\p{gc=Mn}\\\\p{gc=Me}\\\\p{gc=Mc}\\\\p{IsDigit}\\\\p{gc=Pc}]\"), \"3\"@en,
+                \"2\"@en)))
+       AS ?words)
+}
+ORDER BY DESC(?words)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/French_settlements_with_more_than_one_word_in_the_name>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,50 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-90c3846efee3fb5f814d45c53cc1628f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#All Greek mythology related items and their links to MANTO, Mythoskop, MythsOnMaps
+#and ToposText as well as their article in the Realencyclopädie
+SELECT DISTINCT ?item ?itemLabel ?REArticle ?MANTO ?Mythoskop ?MythsOnMaps ?ToposText WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?item (wdt:P31/wdt:P279*)?/wdt:P361 wd:Q34726 .
+  OPTIONAL { ?item p:P1343 ?statement .
+            ?statement ps:P1343 wd:Q1138524 .
+            OPTIONAL { ?statement pq:P805 ?REitem .
+                       ?REArticle schema:about ?REitem ;
+                                  schema:isPartOf <https://de.wikisource.org/> .}
+            OPTIONAL { ?statement pq:P958 ?REArticle . } #the RE article exists, but has yet to be made available
+            }
+  OPTIONAL { ?item2 wdt:P460 ?item ;
+                    p:P1343 ?statement .
+            ?statement ps:P1343 wd:Q1138524 .
+            OPTIONAL { ?statement pq:P805 ?REitem .
+                       ?REArticle schema:about ?REitem ;
+                                  schema:isPartOf <https://de.wikisource.org/> . } #the item isn't described, but another figure to whom it is said to be the same as is described
+            OPTIONAL { ?statement pq:P958 ?REArticle . } #same as above, but has yet to be made available
+            }
+  OPTIONAL { ?item wdt:P9660 wd:Q1138524 .
+             BIND(\"N/A\" AS ?REArticle) } #if there is no RE article
+  OPTIONAL { ?item wdt:P9736 ?manto .
+             wd:P9736 wdt:P1630 ?fmtMANTO .
+             BIND(IRI(REPLACE(?manto,  CONCAT('(',?manto,')'), ?fmtMANTO)) AS ?MANTO) .}
+  OPTIONAL { ?item wdt:P11946 ?mythoskop .
+             wd:P11946 wdt:P1630 ?fmtMythoskop .
+             BIND(IRI(REPLACE(?mythoskop,  CONCAT('(',?mythoskop,')'), ?fmtMythoskop)) AS ?Mythoskop) .}
+  OPTIONAL { ?item wdt:P12402 ?mythsonmaps .
+             wd:P12402 wdt:P1630 ?fmtMythsOnMaps .
+             BIND(IRI(REPLACE(?mythsonmaps,  CONCAT('(',?mythsonmaps,')'), ?fmtMythsOnMaps)) AS ?MythsOnMaps) .}
+  OPTIONAL { ?item wdt:P8069 ?topostext .
+             wd:P8069 wdt:P1630 ?fmtToposText .
+             BIND(IRI(REPLACE(?topostext,  CONCAT('(',?topostext,')'), ?fmtToposText)) AS ?ToposText) .}
+}
+
+ORDER BY STR(?itemLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Ancient_Greece/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

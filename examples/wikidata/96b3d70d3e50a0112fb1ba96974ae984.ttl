@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-96b3d70d3e50a0112fb1ba96974ae984> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Institution partenaires décrites dans Memobase (avec les informations souhaitées)
+SELECT
+  ?item ?label_fr # ?label_it ?label_de 
+  (GROUP_CONCAT(DISTINCT(?typeLabel); separator=\", \") AS ?typesA) 
+  ?adress ?muniLabel ?cantonLabel 
+  # ?website ?email ?geo ?geoid ?site_portal
+WHERE 
+{
+  ?item wdt:P1343 wd:Q96192978.
+  OPTIONAL {?item wdt:P31 ?type}.
+  OPTIONAL {?type rdfs:label ?typeLabel. filter(lang(?typeLabel)=\"fr\") }. 
+  OPTIONAL {?item wdt:P6375 ?adress.}
+  OPTIONAL {?item wdt:P131 ?muni . 
+            ?muni wdt:P31 wd:Q70208 .
+            ?muni p:P131 ?decl_loc2. 
+            ?decl_loc2 ps:P131 ?canton.  ?canton wdt:P31 wd:Q23058. 
+             FILTER NOT EXISTS{ ?decl_loc2 ps:P131 ?canton ; pq:P582 ?datefin.}
+            }
+  OPTIONAL {?item wdt:P856 ?website.}
+  OPTIONAL {?item wdt:P968 ?email.}
+  OPTIONAL {?item wdt:P625 ?geo.}
+  OPTIONAL {?item p:P159 ?decl_siege.
+    ?decl_siege ps:P159 ?siege.
+    ?decl_siege pq:P625 ?geoid.}
+  OPTIONAL{?item rdfs:label ?label_fr. FILTER (LANG(?label_fr) = \"fr\")}.
+  OPTIONAL{?item rdfs:label ?label_it. FILTER (LANG(?label_it) = \"it\")}. 
+  OPTIONAL{?item rdfs:label ?label_de. FILTER (LANG(?label_de) = \"de\")}.
+  OPTIONAL{?portal wdt:P31 wd:Q186165; wdt:P137 ?item; wdt:P856 ?site_portal}.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,it,en\". }
+}
+GROUP BY ?item ?label_fr ?label_it ?label_de ?typesA ?adress ?muniLabel ?cantonLabel ?website ?email ?geo ?geoid ?site_portal
+ORDER BY ?item""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

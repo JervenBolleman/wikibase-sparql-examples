@@ -1,0 +1,48 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9b1a1ab2dce937c92248a3f3ef04a34a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?place ?placeLabel ?dist ?placeDescription (SAMPLE(?coords) as ?coord) (SAMPLE(?image) AS ?image)
+          WHERE {
+              SERVICE wikibase:around {
+                ?place wdt:P625 ?coords.
+                                bd:serviceParam wikibase:center 'Point(-3.2485 37.5873)'^^geo:wktLiteral.
+                bd:serviceParam wikibase:radius '70'. }
+              { ?place (wdt:P31/(wdt:P279*)) wd:Q386426. }
+              UNION
+              { ?place (wdt:P31/(wdt:P279*)) wd:Q20671979. }
+              UNION
+              {
+                VALUES ?prop { wdt:P677 wdt:P757 wdt:P809 wdt:P1732 wdt:P1848 wdt:P2467
+	            wdt:P2516 wdt:P2520 wdt:P2525 wdt:P2584 wdt:P2621 wdt:P2763
+	              wdt:P3009 wdt:P3296 wdt:P3327 wdt:P3401 wdt:P3412 wdt:P3425
+	              wdt:P3498 wdt:P3515 wdt:P3516 wdt:P3609 wdt:P3613 wdt:P3810
+	              wdt:P3974 wdt:P4001 wdt:P4029 wdt:P4083 wdt:P4154 wdt:P4171
+	              wdt:P4170 wdt:P4172 wdt:P4182 wdt:P4190 wdt:P4762 wdt:P4800
+	              wdt:P4977 wdt:P5965 wdt:P6070 wdt:P6230 wdt:P6280 wdt:P6478
+	              wdt:P6560 wdt:P6602 wdt:P6659 wdt:P6700 wdt:P7129 wdt:P7308
+	              wdt:P8114 wdt:P9516 wdt:P9552 wdt:P9755 wdt:P10015 wdt:P10392 wdt:P10513 wdt:P10514 }
+                ?place ?prop ?natural.
+              }
+            SERVICE wikibase:label {
+              bd:serviceParam wikibase:language 'es,en'.}
+            SERVICE wikibase:label {
+              bd:serviceParam wikibase:language \"es,en\".
+             ?place schema:description ?placeDescription.
+            }
+            OPTIONAL { ?place wdt:P18 ?image. }
+            OPTIONAL { ?place wdt:P17 ?country. }
+  BIND(geof:distance(\"Point(-3.2485 37.5873 )\"^^geo:wktLiteral, ?coords) AS ?dist)            FILTER NOT EXISTS {?place wdt:P576 ?bar.}
+            FILTER NOT EXISTS {?place wdt:P582 ?bar.}
+            }
+            GROUP BY ?place ?placeLabel ?dist ?placeDescription
+            ORDER BY ?dist""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

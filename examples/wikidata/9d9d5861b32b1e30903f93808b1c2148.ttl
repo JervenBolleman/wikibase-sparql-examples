@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9d9d5861b32b1e30903f93808b1c2148> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Objekte im Umkreis um eine geographische Koordinate finden
+#Quelle: https://stackoverflow.com/questions/49302399/how-to-get-cities-around-a-location-in-wikidata
+
+SELECT DISTINCT ?distance ?obj ?objLabel ?location WHERE {
+
+   # Use the around service
+   # Erläuterung: https://en.wikibooks.org/wiki/SPARQL/SERVICE_-_around_and_box
+   SERVICE wikibase:around { 
+     # Looking for items with coordinate locations(P625)
+     ?obj wdt:P625 ?location . 
+
+     # definierte Koordinate, die als Zentrum der Umkreissuche verwendet werden soll:
+     # Format: \"Point(lon,lat)\"^^geo:wktLiteral
+     bd:serviceParam wikibase:center \"Point(13.339785,52.519163)\"^^geo:wktLiteral   . 
+     # Umkreis in km
+     bd:serviceParam wikibase:radius \"0.1\" . 
+     bd:serviceParam wikibase:distance ?distance .
+   } .
+  
+   # Optional kann die Treffermenge auch auf bestimmte
+   # Objektkategorien eingeschränkt werden
+   # relevante Objektklassen (Statue, Denkmal, Skulptur)
+   # ggf. auskommentieren
+   # VALUES ?object { wd:Q179700 wd:Q4989906 wd:Q860861}
+   # ?obj wdt:P31/wdt:P279* ?object .
+
+   # Use the label service to get the English label
+   SERVICE wikibase:label {
+   bd:serviceParam wikibase:language \"de\" . 
+   }
+}
+ORDER BY ?distance""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Awinkler3/BiB2WD>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-90d92ed95b8d5a0e7523ab109ad5a3e9> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?officialLabel ?itemLabel ?langcode ?article
+WHERE
+{
+  ?item wdt:P361 wd:Q83741704. #item is one of the articles about Covid by territor
+  ?item wdt:P17 ?country. #item has a country
+  ?country wdt:P37 ?official. #country has an official language
+  ?official wdt:P424 ?langcode. #official language has wiki language code
+  ?wiki wdt:P31 wd:Q10876391; #there is a wikipedia
+     wdt:P424 ?langcode; #that wikipedia has a langcode that is the same as an official language
+     wdt:P856 ?sitesurl. #that wiki has a site url
+
+  #check if official languages are represented in Wikipedia
+  OPTIONAL
+  {
+    hint:Group hint:optimizer \"Runtime\".
+    ?article schema:about ?item.
+    ?article schema:isPartOf ?sitesurl. 
+  }
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

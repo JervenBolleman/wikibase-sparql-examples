@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-93d798072ae01d9a20523a095fe68a34> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?school ?schoolLabel ?subject ?subjectLabel (count(distinct(?paper)) as ?countPapers)
+WHERE {
+  {?subject wdt:P279* wd:Q638328.} #subject is dynamical system
+  UNION
+  {?subject wdt:P279* wd:Q1787424.} #subject is chaos
+  UNION
+  {?subject wdt:P279* wd:Q185961.} #subject is time perception
+  {?paper wdt:P31/wdt:P279* wd:Q13442814.} #is a scholarly article
+  UNION
+  {?paper wdt:P31/wdt:P279* wd:Q18918145.} #is a academic journal article
+  ?paper wdt:P921 ?subject;
+         wdt:P50 ?author.
+  {?author wdt:P69 ?school.} #author educated at
+  UNION
+  {?author wdt:P108 ?school.} #author employed at
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+group by ?school ?schoolLabel ?subject ?subjectLabel
+order by desc(?countPapers)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Hdevine825/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

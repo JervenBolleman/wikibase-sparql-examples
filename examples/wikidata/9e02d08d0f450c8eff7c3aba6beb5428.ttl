@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9e02d08d0f450c8eff7c3aba6beb5428> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?file ?url ?title
+WHERE {
+  VALUES ?categories { 
+   \"Category:Vidéos LSF par Laura Jauvert\"
+  }
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Generator\" ;
+                    wikibase:endpoint \"commons.wikimedia.org\" ;
+                    mwapi:gcmtitle ?categories ;
+                    mwapi:generator \"categorymembers\" ;
+                    mwapi:gcmtype \"file\" ;
+                    # mwapi:prop \"P407\" ; # I have no clue how to query strucured data P407
+                    mwapi:gcmlimit \"max\" .
+    ?title wikibase:apiOutput mwapi:title .
+    ?pageid wikibase:apiOutput \"@pageid\" .
+    #?lang wikibase:apiOutput mwapi:prop.
+  }
+  BIND (URI(CONCAT('https://commons.wikimedia.org/entity/M', ?pageid)) AS ?file)
+  BIND (URI(CONCAT('https://commons.wikimedia.org/wiki/', ?title)) AS ?url)  
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

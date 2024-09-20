@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-99fef27a66e1e0bf1863da5dd0d09f1b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Calciatori italiani in attività, ordinati per presunta età anagrafica
+
+SELECT ?item ?itemLabel ?ruoloLabel ?datafinecarriera ?age
+WHERE 
+{
+  ?item wdt:P27 wd:Q38.                               # Cittadino italiano
+  ?item wdt:P106 wd:Q937857.                          # Occupazione calciatore
+  
+  MINUS {?item p:P106 [pq:P582 ?datafinecarriera]}.   # Elimina quelli che hanno il qualificatore di data di fine carriera
+  MINUS { ?item wdt:P570 ?deathdate }                 # Elimina i deceduti
+
+  OPTIONAL {?item wdt:P569 ?born. }                   # Calcola età 
+  BIND(FLOOR((NOW() - ?born)/365.2425) AS ?age). 
+  
+  OPTIONAL { ?item wdt:P413 ?ruolo}.                  # Estrai il ruolo
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?age)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:FabC>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

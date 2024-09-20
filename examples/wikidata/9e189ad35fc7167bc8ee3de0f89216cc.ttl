@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9e189ad35fc7167bc8ee3de0f89216cc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:ImageGrid
+SELECT ?file ?image ?depicts ?depictsLabel with { SELECT ?file ?image ?depicts where {
+  hint:Query hint:optimizer \"None\".
+  ?file wdt:P6731 wd:Q63348040 . # valued
+#  ?file wdt:P6731 wd:Q63348069 . # quality
+#  ?file wdt:P6731 wd:Q63348049 . # featured
+  ?file schema:contentUrl ?url .
+  ?file wdt:P180 ?depicts .
+  BIND(IRI(CONCAT(\"http://commons.wikimedia.org/wiki/Special:FilePath/\", wikibase:decodeUri(SUBSTR(STR(?url),53)))) AS ?image)
+} limit 10000 } as %i
+WHERE
+  {
+    include %i
+    SERVICE <https://query.wikidata.org/sparql>
+    {
+      ?depicts wdt:P21 wd:Q6581072.
+  #    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+    }
+  }""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

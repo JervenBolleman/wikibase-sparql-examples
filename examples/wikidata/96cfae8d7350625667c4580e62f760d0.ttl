@@ -1,0 +1,59 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-96cfae8d7350625667c4580e62f760d0> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# graph of presidents of the United States by succession (also viewable as table)
+# querying qualifier
+#defaultView:Graph
+SELECT ?position_holder ?position_holderLabel ?image ?series_ordinal ?start ?end ?end_causeLabel ?predecessorLabel ?successor ?successorLabel ?edgeLabel ?birth_date ?death_date ?death_mannerLabel ?start_age ?end_age ?death_age
+WHERE {
+  # ?position_holder is instance of (P31) human (Q5)
+  ?position_holder wdt:P31 wd:Q5;
+  # ?position_holder's \"position held\" (P39) statment is ?x
+                   p:P39 ?x.
+  # ?x's value is President of the United States (Q11696)
+  ?x ps:P39 wd:Q11696.
+  # optional: show ?position_holder's image (P18) as ?image
+  OPTIONAL {?position_holder wdt:P18 ?image}
+  # optional: show ?x's qualifier \"series ordinal\" (P1545) as ?series_ordinal
+  OPTIONAL {?x pq:P1545 ?series_ordinal}
+  # optional: show ?x's qualifier \"start time\" (P580) as ?start
+  OPTIONAL {?x pq:P580 ?start}
+  # optional: show ?x's qualifier \"end time\" (P582) as ?end
+  OPTIONAL {?x pq:P582 ?end}
+  # optional: show ?x's qualifier \"end cause\" (P1534) as ?end_cause
+  OPTIONAL {?x pq:P1534 ?end_cause}
+  # optional: show ?x's qualifier \"replaces\" (P1365) as ?predecessor
+  OPTIONAL{?x pq:P1365 ?predecessor}
+  # optional: show ?x's qualifier \"replaced by\" (P1366) as ?successor
+  OPTIONAL {?x pq:P1366 ?successor.
+  # get P1366 (replaced by)'s property label and allow it to appear on graph edge
+  ### Note: Property label can be got when property is used as main value (wdt), not when used as qualifier (pq).
+  ### So it doesn't work to define ?relation as a group of properties from ?a to ?b and get ?relation's property label
+  ### if the properties are used as qualifiers.
+           ?edge wikibase:directClaim wdt:P1366;
+               a wikibase:Property}
+  # optional: show ?position_holder's birth date (P569) as ?birth_date
+  OPTIONAL {?position_holder wdt:P569 ?birth_date}
+  # optional: show ?position_holder's death date (P570) as ?death_date
+  OPTIONAL {?position_holder wdt:P570 ?death_date}
+  # optional: show ?position_holder's manner of death (P1196) as ?death_manner
+  OPTIONAL {?position_holder wdt:P1196 ?death_manner}
+  # use IF to calculate the age when term started, and bind the age as ?start_age
+  BIND(IF(MONTH(?start)>MONTH(?birth_date) || (MONTH(?start)=MONTH(?birth_date) && DAY(?start)>=DAY(?birth_date)), YEAR(?start)-YEAR(?birth_date), YEAR(?start)-YEAR(?birth_date)-1) AS ?start_age)
+  # use IF to calculate the age when term ended, and bind the age as ?end_age
+  BIND(IF(MONTH(?end)>MONTH(?birth_date) || (MONTH(?end)=MONTH(?birth_date) && DAY(?end)>=DAY(?birth_date)), YEAR(?end)-YEAR(?birth_date), YEAR(?end)-YEAR(?birth_date)-1) AS ?end_age)
+  # use IF to calculate the age of death, and bind the age as ?death_age
+  BIND(IF(MONTH(?death_date)>MONTH(?birth_date) || (MONTH(?death_date)=MONTH(?birth_date) && DAY(?death_date)>=DAY(?birth_date)), YEAR(?death_date)-YEAR(?birth_date), YEAR(?death_date)-YEAR(?birth_date)-1) AS ?death_age)
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

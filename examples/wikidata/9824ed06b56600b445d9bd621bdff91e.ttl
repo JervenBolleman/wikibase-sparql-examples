@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9824ed06b56600b445d9bd621bdff91e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+#title: Wikipediaseiten mit Bezug zu München
+SELECT ?page_title (GROUP_CONCAT(DISTINCT ?instanceLabel; SEPARATOR = \", \") AS ?ist_ein) (GROUP_CONCAT(DISTINCT ?velabel; SEPARATOR = \", \") AS ?verwaltungseinheiten) ?article ?item ?comcat ?location WHERE {
+  ?item (wdt:P131*) ?top.
+  BIND(wd:Q1726 AS ?top)
+  ?item wdt:P131 ?ve.
+  OPTIONAL { ?item wdt:P31 ?instance. }
+  OPTIONAL { ?item wdt:P625 ?location. }
+  OPTIONAL { ?item wdt:P373 ?commons. }
+  BIND(IF(BOUND(?commons), URI(CONCAT(\"https://commons.wikimedia.org/wiki/Category:\", STR(?commons))), \"\") AS ?comcat)
+  OPTIONAL {
+    ?article schema:about ?item;
+      schema:isPartOf <https://de.wikipedia.org/>;
+      schema:name ?page_title.
+  }
+  FILTER(BOUND(?article))
+  VALUES ?top {
+    wd:Q1030034
+    wd:Q41176
+    wd:Q35145263
+    wd:Q2065736
+  }
+  FILTER(EXISTS { ?item (wdt:P31/(wdt:P279*)) ?top. })
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?instance rdfs:label ?instanceLabel.
+    ?ve rdfs:label ?velabel.
+  }
+}
+GROUP BY ?item ?page_title ?article ?comcat ?location
+ORDER BY (?verwaltungseinheiten)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:No39188>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

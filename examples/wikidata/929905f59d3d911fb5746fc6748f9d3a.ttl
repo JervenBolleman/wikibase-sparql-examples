@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-929905f59d3d911fb5746fc6748f9d3a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select ?item ?itemLabel ?pm20
+where {
+  
+  # items with PM20 id
+  ?item wdt:P4293 ?pm20Id ;
+        wdt:P106 ?occupation .
+  
+  # occupation: economist or business economist
+  filter(?occupation in (wd:Q188094, wd:Q1860032))
+
+  # restrict to items with online accessible articles
+  ?item p:P4293/pq:P5592 ?workCount .
+  filter(?workCount > 0)
+
+  # add folder link
+  bind(uri(concat('http://purl.org/pressemappe20/folder/', ?pm20Id)) as ?pm20)
+  
+  # add labels
+  service wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en, de, fr, es, nl, pl, ru\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jneubert/Special_queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

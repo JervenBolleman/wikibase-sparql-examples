@@ -1,0 +1,42 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-942aef7e921bf59ccbd98e59d85258a6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """Select ?pers ?persLabel ?count {
+  {
+	SELECT ?pers (COUNT (DISTINCT ?article) as ?count)  WHERE {
+  	?pers wdt:P31 wd:Q5 .
+    {
+  		?pers wdt:P27 wd:Q183 .
+    } Union
+    {
+  		?pers wdt:P27 wd:Q40 .
+    } Union
+    {
+  		?pers wdt:P27 wd:Q39 .
+    } Union
+    {
+  		?pers wdt:P103 wd:Q188 .
+    } Minus {
+        ?pers wdt:P443 ?audio
+    } .
+
+    ?article schema:about $pers .
+            
+ 	} group by ?pers 
+	ORDER BY DESC(?count) Limit 1000
+ }
+
+  SERVICE wikibase:label {
+         bd:serviceParam wikibase:language \"de\" .
+     }  
+} ORDER BY DESC(?count) Limit 200""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MichaelSchoenitzer/Audio>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

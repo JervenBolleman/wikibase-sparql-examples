@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9b887d2aca2cbe5c6f102aa78877884e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Table
+#title: Wikipediaseiten mit Bezug zu München
+SELECT ?page_title (GROUP_CONCAT(DISTINCT ?instanceLabel; SEPARATOR = \", \") AS ?ist_ein) (GROUP_CONCAT(DISTINCT ?velabel; SEPARATOR = \", \") AS ?verwaltungseinheiten) ?article ?item ?location WHERE {
+  ?item (wdt:P131*) ?top.
+  BIND(wd:Q1726 AS ?top)
+  ?item wdt:P131 ?ve.
+  OPTIONAL { ?item wdt:P31 ?instance. }
+  OPTIONAL { ?item wdt:P625 ?location. }
+  OPTIONAL {
+    ?article schema:about ?item;
+      schema:isPartOf <https://de.wikipedia.org/>;
+      schema:name ?page_title.
+  }
+  FILTER(BOUND(?article) && !(?instance IN(wd:Q253270, wd:Q253019, wd:Q123705)))
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?instance rdfs:label ?instanceLabel.
+    ?ve rdfs:label ?velabel.
+  }
+}
+GROUP BY ?item ?page_title ?article ?location
+ORDER BY (?verwaltungseinheiten)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:No39188>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

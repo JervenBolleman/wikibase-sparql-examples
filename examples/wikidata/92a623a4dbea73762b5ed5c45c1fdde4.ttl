@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-92a623a4dbea73762b5ed5c45c1fdde4> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:ImageGrid
+SELECT DISTINCT * WHERE {
+  {?mask wdt:P31 wd:Q271779} UNION {?mask wdt:P279 wd:Q271779}.
+  ?mask wdt:P5008 wd:Q87748614.
+  ?mask rdfs:label ?label.
+  ?mask wdt:P18 ?image.
+  FILTER(LANG(?label)=\"en\")
+  BIND(REPLACE(wikibase:decodeUri(CONCAT(\"File:\", STRAFTER(STR(?image), \"/wiki/Special:FilePath/\"))), \" \", \"_\") AS ?imageTitle)
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Categories\";
+                    wikibase:endpoint \"commons.wikimedia.org\";
+                    mwapi:titles ?imageTitle.
+    ?categoryTitle wikibase:apiOutput mwapi:category.
+  }
+  FILTER(?categoryTitle = \"Category:CC-Zero\"""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_COVID-19/Queries/SPARQL_Study>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

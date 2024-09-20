@@ -1,0 +1,24 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9d667f07d83bde91c38f56ba6d7d79e8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX v: <http://www.wikidata.org/prop/statement/>
+
+SELECT ?film ?ordinal ?publication ?filmLabel (GROUP_CONCAT(DISTINCT(?directorName);separator=\", \") AS ?directors) (COUNT(?directorName) AS ?count) WHERE {
+  ?film p:P179 ?series . ?series v:P179 wd:Q689438 . ?series pq:P1545 ?ordinal .
+  ?film wdt:P577 ?publication .
+  ?film wdt:P57 ?dir . ?dir rdfs:label ?directorName . FILTER(lang(?directorName) = \"de\")
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" }
+}
+GROUP BY ?film ?filmLabel ?ordinal ?publication
+HAVING (?count > 1)
+ORDER BY ?publication""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jobu0101/Tatort>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

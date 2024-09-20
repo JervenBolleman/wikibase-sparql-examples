@@ -1,0 +1,39 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9d940f2a8c73a6b82e4624f7a2bd9b48> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# All musicians born in a special country
+SELECT ?musiker ?musikerLabel 
+      (GROUP_CONCAT(DISTINCT ?berufLabel; separator=\", \") AS ?berufe)
+      (GROUP_CONCAT(DISTINCT ?genreLabel; separator=\", \") AS ?genres)
+      ?geb ?gest ?gebOrtLabel ?img 
+WHERE {
+  VALUES ?land { wd:Q1005 wd:Q1041 }  # Maroko (changy to whatever country you want)
+  VALUES ?b { wdt:P19 wdt:P27 }
+  ?musiker wdt:P31 wd:Q5;
+           ?b [wdt:P17 ?land];
+           wdt:P106 [wdt:P31/wdt:P279* wd:Q66715801].
+  ?musiker wdt:P106 ?beruf.
+  ?musiker wdt:P19 ?gebOrt.
+  OPTIONAL { ?musiker wdt:P569 ?geb. }
+  OPTIONAL { ?musiker wdt:P570 ?gest. }
+  OPTIONAL { ?musiker wdt:P136 ?genre. }
+  OPTIONAL { ?musiker wdt:P18 ?img. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr\". 
+    ?musiker rdfs:label ?musikerLabel .
+    ?gebOrt rdfs:label ?gebOrtLabel .
+    ?beruf rdfs:label ?berufLabel .
+    ?genre rdfs:label ?genreLabel .
+  }
+}
+GROUP BY ?musiker ?musikerLabel ?geb ?gest ?gebOrtLabel ?img
+ORDER BY ASC (?geb)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Alexander_Leisser/Musik>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

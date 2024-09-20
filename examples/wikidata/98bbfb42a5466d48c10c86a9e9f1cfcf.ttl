@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-98bbfb42a5466d48c10c86a9e9f1cfcf> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?date ?count
+{
+  {
+    SELECT ?item ?date (COUNT(?timevalue ) AS ?count)
+    WHERE
+    {
+      ?item wdt:P238 ?airport_code .
+      ?item p:P3872 ?statement .
+      ?statement pqv:P585 ?timevalue .
+      ?statement ps:P3872 ?numberperperiod .
+      VALUES ?rank { wikibase:NormalRank wikibase:PreferredRank } 
+      ?statement wikibase:rank ?rank.
+      ?timevalue wikibase:timeValue ?date .
+      ?timevalue wikibase:timePrecision 10 . # Precicison is month
+    }
+    GROUP BY ?item ?itemLabel ?date
+    HAVING (?count > 1)
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Dipsacus_fullonum>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

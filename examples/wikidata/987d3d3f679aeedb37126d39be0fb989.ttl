@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-987d3d3f679aeedb37126d39be0fb989> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Communes of Italy without article in ro.wiki
+SELECT 
+	?item ?itemLabel
+	(COUNT(distinct ?sitelink) as ?count) 
+	(GROUP_CONCAT(distinct(?sitelink); separator=\", \") as ?sitelinks)
+WHERE
+{
+ ?item wdt:P31 wd:Q747074 .
+ ?item wdt:P17 wd:Q38 .
+	?sitelink schema:about ?item .
+	FILTER EXISTS { ?wen schema:about ?item . ?wen schema:inLanguage \"en\" }
+	FILTER NOT EXISTS { ?wfr schema:about ?item . ?wfr schema:inLanguage \"ro\" }
+	SERVICE wikibase:label {
+		bd:serviceParam wikibase:language \"en,it,ro\" .
+	}
+}
+GROUP BY ?item ?itemLabel
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:XXN/q>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

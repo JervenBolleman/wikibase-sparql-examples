@@ -1,0 +1,57 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9459d9e52cbe64d3512a889d3127a6d1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
+SELECT DISTINCT ?coordinates ?line ?station ?stationLabel ?connectLabel ?image ?opening ?rgb
+
+WITH {
+  SELECT ?station ?coordinates ?image ?lat ?lon ?opening WHERE {
+    {
+      SELECT ?station (SAMPLE(?coord_stmt) AS ?coord_stmt) (SAMPLE(?image) AS ?image) (sample(?opening) as ?opening) WHERE {
+        ?station wdt:P31 wd:Q14562709 .
+        ?station p:P625 ?coord_stmt  .
+        OPTIONAL { ?station wdt:P18 ?image }.
+        OPTIONAL { ?station wdt:P1619 ?opening }.
+      } GROUP BY ?station
+    }
+    hint:SubQuery hint:optimizer \"None\".
+    ?coord_stmt ps:P625 ?coordinates .
+    ?coord_stmt psv:P625 / wikibase:geoLatitude ?lat .
+    ?coord_stmt psv:P625 / wikibase:geoLongitude ?lon . 
+  }
+} AS %stations
+
+WITH {
+  SELECT (?station AS ?nextstation) (?lat AS ?lat2) (?lon AS ?lon2) WHERE {
+    INCLUDE %stations
+  }
+} AS %nextstations
+
+WITH {
+  SELECT ?line ?connect ?rgb WHERE {
+    INCLUDE %stations .
+    INCLUDE %nextstations .
+    ?station p:P197 ?nextstationstatement .
+    ?nextstationstatement ps:P197 ?nextstation .
+    ?nextstationstatement pq:P81 ?connect . ?connect wdt:P361 wd:Q20075  . 
+    ?connect wdt:P465 ?rgb .
+    FILTER(STR(?station) < STR(?nextstation)) .    
+    BIND(CONCAT('LINESTRING (', STR(?lon), ' ', STR(?lat), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
+    BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
+  }
+} AS %lines 
+ 
+WHERE {
+  { INCLUDE %stations }  UNION { INCLUDE %lines  } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

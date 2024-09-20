@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9117c8cdadd2da7b5b0e9292447633ba> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT  ?title 
+WHERE {
+  hint:Query hint:optimizer \"None\" .
+  SERVICE <https://query.wikidata.org/sparql> {
+    SELECT ?title  (SAMPLE(?dte) AS ?date) 
+    WHERE {
+     MINUS{?title wdt:P18 ?img .}   
+     ?link schema:about ?title .
+     ?link schema:isPartOf <https://en.wikipedia.org/>.  
+
+     ?title ?timeType ?dte.
+     FILTER(\"1500\"^^xsd:dateTime >= ?dte).  
+     FILTER(\"1300\"^^xsd:dateTime <= ?dte).
+
+     ?title wdt:P31/wdt:P279? wd:Q1190554. 
+}
+    GROUP BY ?title ?date 
+  LIMIT 40000                 
+  }
+  
+}GROUP BY  ?title""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

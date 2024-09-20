@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-98bb90191fe58dba8c930a46b08d8a51> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?park ?parkLabel ?countryLabel ?size WHERE {
+   # Aire protégée par ordre décroissant par hectare
+   ?park wdt:P31/wdt:P279* wd:Q473972 .
+   ?park p:P2046 ?sizeS .
+   ?sizeS ?sp ?sv .
+   ?park wdt:P17 ?country .
+   ?sv rdf:type wikibase:QuantityValue .
+   { 
+     ?sv wikibase:quantityAmount ?size .
+     ?sv wikibase:quantityUnit wd:Q35852 . # hectare
+   } UNION {
+     ?sv wikibase:quantityAmount ?ha.
+     ?sv wikibase:quantityUnit wd:Q712226 . # kilomètre carré
+     BIND(ROUND((?ha *100)) AS ?size)
+   } UNION {
+     ?sv wikibase:quantityAmount ?sqmi.
+     ?sv wikibase:quantityUnit wd:Q232291 . # mille carré
+     BIND(ROUND((?sqmi *258.999)) AS ?size)
+   } UNION {
+     ?sv wikibase:quantityAmount ?ac.
+     ?sv wikibase:quantityUnit wd:Q81292 . # acre
+     BIND(ROUND((?ac *0.404686)) AS ?size)
+   }
+   SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"fr, en\" .
+   }
+ } ORDER BY DESC(?size)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:YanikB>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

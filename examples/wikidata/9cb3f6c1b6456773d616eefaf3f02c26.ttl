@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9cb3f6c1b6456773d616eefaf3f02c26> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# MPs who sat for three constituencies in the same parliament
+SELECT DISTINCT ?item ?itemLabel ?membership1Label ?constituency1Label ?elected1 ?constituency2Label ?elected2 ?constituency3Label ?elected3
+WHERE {
+ ?membership1 wdt:P279 wd:Q16707842 . 
+ ?membership2 wdt:P279 wd:Q16707842 . 
+ ?membership3 wdt:P279 wd:Q16707842 . 
+ ?item p:P39 ?positionStatement1 . ?positionStatement1 ps:P39 ?membership1 ; pq:P768 ?constituency1 ; pq:P580 ?elected1 .
+ ?item p:P39 ?positionStatement2 . ?positionStatement2 ps:P39 ?membership2 ; pq:P768 ?constituency2 ; pq:P580 ?elected2 .
+ ?item p:P39 ?positionStatement3 . ?positionStatement3 ps:P39 ?membership3 ; pq:P768 ?constituency3 ; pq:P580 ?elected3 .
+ FILTER ( ?membership1 = ?membership2 ) . FILTER ( ?membership2 = ?membership3 ) . # check they are all in the same Parliament
+ FILTER(STR(?constituency1) > STR(?constituency2)) . # 
+ FILTER(STR(?constituency2) > STR(?constituency3)) . # this stops us returning several lines, and also confirms they are different seats
+ SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' } }""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

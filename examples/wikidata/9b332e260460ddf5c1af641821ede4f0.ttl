@@ -1,0 +1,47 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9b332e260460ddf5c1af641821ede4f0> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?name ?en_a ?en_t ?fr_a ?fr_t WHERE {
+  ?item wdt:P5008 wd:Q85931561.
+  
+  FILTER NOT EXISTS { ?article_nl schema:about ?item ;
+                                  schema:isPartOf <https://nl.wikipedia.org/>. }
+  
+  OPTIONAL {  
+  ?article_en schema:about ?item ;
+              schema:isPartOf <https://en.wikipedia.org/> ;
+              schema:name ?sitelink_en.
+  OPTIONAL { ?item rdfs:label ?itemLabel_nl . FILTER(lang(?itemLabel_nl)='nl') }
+  BIND(COALESCE(?itemLabel_nl,?sitelink_en) as ?target_en_nl)  
+  BIND(CONCAT(\"[https://nl.wikipedia.org/wiki/Special:ContentTranslation?title=Special:ContentTranslation&page=\", 
+              ENCODE_FOR_URI(?sitelink_en), \"&from=nl&to=pap&targettitle=\", ENCODE_FOR_URI(?target_en_nl), 
+              \" T]\") AS ?en_t)
+  BIND(CONCAT(\"[\",STR(?article_en),\" A]\") as ?en_a)
+  }
+  
+  OPTIONAL {  
+  ?article_fr schema:about ?item ;
+              schema:isPartOf <https://fr.wikipedia.org/> ;
+              schema:name ?sitelink_fr .
+  OPTIONAL { ?item rdfs:label ?itemLabel_nl . FILTER(lang(?itemLabel_nl)='nl') }
+  BIND(COALESCE(?itemLabel_nl,?sitelink_fr) as ?target_fr_nl)  
+  BIND(CONCAT(\"[https://nl.wikipedia.org/wiki/Special:ContentTranslation?title=Special:ContentTranslation&page=\", 
+              ENCODE_FOR_URI(?sitelink_fr), \"&from=nl&to=pap&targettitle=\", ENCODE_FOR_URI(?target_fr_nl), 
+              \" T]\") AS ?fr_t)
+   BIND(CONCAT(\"[\",STR(?article_fr),\" A]\") as ?fr_a)
+  }
+
+  BIND(COALESCE(?itemLabel_nl, ?sitelink_en, ?sitelink_fr) as ?name) # name for this row in the table
+  BIND(COALESCE(?article_en,?article_fr) as ?test) # check there is an article to translate from
+  FILTER(BOUND(?test))                             # if ?test is null, there is not, so no row.
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .
