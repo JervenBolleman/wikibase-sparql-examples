@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1ca07a63fccbf1207a4d8edeb43f0cff> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?subjectLabel ?predicateLabel ?objectLabel ?qualifier ?source_doi WHERE {
+  VALUES ?subject {wd:Q84263196 wd:Q82069695 wd:Q81068910}
+  VALUES ?qual {pq:P5102 pq:P1480}
+  ?subject ?p [?prop ?object; ?qual ?nos].
+  ?object rdfs:label ?objectLabel.
+  FILTER(LANG(?objectLabel)=\"en\")
+  FILTER(?object != ?nos)
+  ?predicate wikibase:claim ?p.
+  OPTIONAL {
+    ?subject ?p ?statement.
+    ?statement ?p1 ?object.
+    ?statement (prov:wasDerivedFrom/pr:P248) ?source.
+    ?source wdt:P356 ?source_doi. 
+  }
+  BIND(IF(?qual = pq:P5102, \"Nature of statement\", \"Sourcing circumstances\") AS ?qualifier).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+  }""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_COVID-19/Queries/SPARQL_Study>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

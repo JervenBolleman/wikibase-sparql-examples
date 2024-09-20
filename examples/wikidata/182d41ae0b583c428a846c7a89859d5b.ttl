@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-182d41ae0b583c428a846c7a89859d5b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?place (sample(?latitude) as ?latitude) (sample(?longitude) as ?longitude)
+WHERE {
+  ?place_sub wdt:P279* wd:Q811979 .
+  ?place wdt:P31 ?place_sub.
+  SERVICE wikibase:around { 
+    ?place wdt:P625 ?location.
+    bd:serviceParam wikibase:center \"Point(13.5812565 52.5153623)\"^^geo:wktLiteral .
+    bd:serviceParam wikibase:radius \"5\" .
+    }
+  ?place p:P625 ?statement .
+  ?statement ps:P625 ?value.
+  filter (?value=?location)
+  ?statement psv:P625 ?coordinate_node .
+  ?coordinate_node wikibase:geoLatitude ?latitude .
+  ?coordinate_node wikibase:geoLongitude ?longitude . 
+} group by ?place""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

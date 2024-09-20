@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-177634ab70dc8c46794ed18676514e29> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Get Gene Ontology subcellular localization information, with evidence codes, and references for Reelin
+SELECT distinct ?proteinLabel ?value ?valueLabel ?determination ?determinationLabel ?reference_stated_inLabel ?reference_retrieved ?reference_URL WHERE {
+  ?protein wdt:P352 \"P78509\" . # get a protein by uniprot id 
+  ?protein p:P681 ?statement . # get the cell component statements
+  ?statement ps:P681 ?value .  # get the value associated with the statement
+  ?statement pq:P459 ?determination . # get 'determination method' qualifiers associated with the statements
+  # change ?determination to wd:Q23175558 for ISS (Inferred from Sequence or structural Similarity)
+  # or e.g. wd:Q23190881 for IEA (Inferred from Electronic Annotation)
+  #add reference links 
+  ?statement prov:wasDerivedFrom/pr:P248 ?reference_stated_in . #where stated
+  ?statement prov:wasDerivedFrom/pr:P813 ?reference_retrieved . #when retrieved
+  ?statement prov:wasDerivedFrom/pr:P854 ?reference_URL 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+} ORDER BY ?value""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:ProteinBoxBot/SPARQL_Examples>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

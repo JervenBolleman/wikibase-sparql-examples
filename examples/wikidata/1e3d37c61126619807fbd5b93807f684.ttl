@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1e3d37c61126619807fbd5b93807f684> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Future Events
+SELECT DISTINCT ?event ?eventLabel ?date
+WHERE
+{
+	# find events
+	?event wdt:P31/wdt:P279* wd:Q1190554.
+	# with a point in time or start date
+	OPTIONAL { ?event wdt:P585 ?date. }
+	OPTIONAL { ?event wdt:P580 ?date. }
+	# but at least one of those
+	FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+	# in the future
+	BIND(NOW() - ?date AS ?distance).
+	FILTER(0 >= ?distance ).
+	# and get a label as well
+	OPTIONAL {
+		?event rdfs:label ?eventLabel.
+		FILTER(LANG(?eventLabel) = \"en\").
+	}
+}
+# limit to 100 results so we don't timeout
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

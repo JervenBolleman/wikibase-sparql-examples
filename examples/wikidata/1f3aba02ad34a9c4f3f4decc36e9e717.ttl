@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1f3aba02ad34a9c4f3f4decc36e9e717> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item1 ?item1Label ?item2 ?item2Label ?dob ?coc ?gender ?sibling1 ?sibling2 WITH {
+  SELECT DISTINCT ?item1 ?dob ?coc ?gender WHERE {
+    ?item1 p:P106/ps:P106/wdt:P279* wd:Q26270618; p:P569 [ psv:P569 [ wikibase:timeValue ?dob; wikibase:timePrecision 11 ] ]; wdt:P27 ?coc; wdt:P21 ?gender .
+  }
+} AS %subquery WHERE {
+  INCLUDE %subquery .
+  ?item2 p:P106/ps:P106/wdt:P279* wd:Q26270618; p:P569 [ psv:P569 [ wikibase:timeValue ?dob; wikibase:timePrecision 11 ] ]; wdt:P27 ?coc; wdt:P21 ?gender .
+  FILTER(xsd:integer(STRAFTER(STR(?item1), 'Q')) < xsd:integer(STRAFTER(STR(?item2), 'Q'))) .
+  OPTIONAL {
+    ?item1 p:P3373 ?sibling2s .
+    ?sibling2s ps:P3373 ?sibling2 .
+    FILTER(?sibling2 = ?item2) .
+  }
+  OPTIONAL {
+    ?item2 p:P3373 ?sibling1s .
+    ?sibling1s ps:P3373 ?sibling1 .
+    FILTER(?sibling1 = ?item1) .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/rowing/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,42 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-128ce5006050c9f4b73863d6341580c8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# generació continguts preparats per Listeriabot i evitar row_template
+SELECT distinct * WHERE {   
+    VALUES ?tipus {wd:Q489357 wd:Q585956}
+    ?item wdt:P17 wd:Q29;  rdfs:label ?itemLabel.   FILTER(LANG(?itemLabel) = \"ca\").
+
+    ?item wdt:P31/wdt:P279* ?tipus.
+    ?item wdt:P131* ?municipi.  
+
+    ?municipi wdt:P31 wd:Q33146843;  rdfs:label ?municipiLabel.   FILTER(LANG(?municipiLabel) = \"ca\").
+    ?municipi wdt:P131 wd:Q14303.
+ 
+  OPTIONAL {?item wdt:P18 ?imatgebrut. }
+  BIND(IF(BOUND(?imatgebrut),
+          REPLACE(STR(?imatgebrut), \"http://commons.wikimedia.org/wiki/Special:FilePath/\", \"\", \"i\"), \" \")
+           as ?imatgenom).
+  BIND(IF(BOUND(?imatgebrut),
+          CONCAT(\"[\",\"[\",\"File:\", ?imatgenom, \"|60px\",\"]\",\"]\" ), \" \")
+           as ?imatge).
+
+  OPTIONAL {?item wdt:P2044 ?alt. }
+  BIND(IF(BOUND(?alt),CONCAT (\" (\", STR(?alt), \"↑)\"),\"\") AS ?altitude).
+
+  OPTIONAL {?item p:P625 [ psv:P625 [ wikibase:geoLatitude ?latitude; wikibase:geoLongitude ?longitude ] ].}
+
+  BIND (REPLACE(STR(?item), \"http://www.wikidata.org/entity/\", \"\", \"i\") as ?itemId).
+  BIND (CONCAT (\"[\",\"[\",\"File:Arbcom ru editing.svg|12px|center|\",  
+              \"Modifica les dades a Wikidata|\", ?lat, \"|\", ?lon,
+  \"|dim:100\", \"|\", ?lat, \"|\", ?lon,
+  \"|dim:100\", \"""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Amadalvarez/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

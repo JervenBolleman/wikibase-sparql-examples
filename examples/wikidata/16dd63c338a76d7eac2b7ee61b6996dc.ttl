@@ -1,0 +1,63 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-16dd63c338a76d7eac2b7ee61b6996dc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Austrian Municipalities \"named after\" Austrian Chancellors or Vice-Chancellors
+SELECT DISTINCT ?Ortsname ?coords ?OrganwalterLabel  WITH {
+SELECT DISTINCT ?Name ?Organwalter WHERE {
+  {
+    VALUES ?kanzler {
+      wd:Q1006398
+      wd:Q692110
+    }
+    ?Organwalter wdt:P39 ?kanzler;
+      wdt:P735 ?Vorname;
+      wdt:P734 ?Nachname.
+    ?Vorname rdfs:label ?VornameLabel.
+    ?Nachname rdfs:label ?NachnameLabel.
+    FILTER((LANG(?VornameLabel)) = \"de\")
+    FILTER((LANG(?NachnameLabel)) = \"de\")
+    BIND(?VornameLabel AS ?Name)
+  }
+  UNION
+  {
+    VALUES ?kanzler {
+      wd:Q1006398
+      wd:Q692110
+    }
+    ?Organwalter wdt:P39 ?kanzler;
+      wdt:P735 ?Vorname;
+      wdt:P734 ?Nachname.
+    ?Vorname rdfs:label ?VornameLabel.
+    ?Nachname rdfs:label ?NachnameLabel.
+    FILTER((LANG(?VornameLabel)) = \"de\")
+    FILTER((LANG(?NachnameLabel)) = \"de\")
+    BIND(?NachnameLabel AS ?Name)
+  }
+}
+}AS %kanzlernames
+WITH {
+  SELECT DISTINCT ?Ortsname ?coords WHERE {
+  { SELECT * WHERE { ?item (wdt:P31/(wdt:P279*)) wd:Q667509. } }
+  { SELECT * WHERE { ?item wdt:P17 wd:Q40. } }
+  {
+    SELECT * WHERE {
+      ?item rdfs:label ?Ortsname;
+            wdt:P625 ?coords.
+      FILTER((LANG(?Ortsname)) = \"de\")
+      }
+  }
+  } } AS %austrianplaces
+WHERE { INCLUDE %kanzlernames INCLUDE %austrianplaces
+      FILTER(REGEX(?Ortsname,  ?Name) )
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Mfchris84/Places_in_Austria_named_after_Chancellors>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

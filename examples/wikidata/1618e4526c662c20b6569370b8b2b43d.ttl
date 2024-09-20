@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1618e4526c662c20b6569370b8b2b43d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# 100 most significant items missing labels in Twi 
+# (change the \"tw\" below to another language code to get the same query for another language)
+
+SELECT ?item ?sitelinks WHERE {
+  ?item wikibase:sitelinks ?sitelinks. hint:Prior hint:rangeSafe true.
+  FILTER(?sitelinks >= 100) # use at-least-100-sitelinks as an indicator of significance
+
+  MINUS { ?item wdt:P31/wdt:P279* wd:Q58494026} # exclude Wikimedia internal items (categories, templates, etc.)
+
+  MINUS { ?item rdfs:label ?label FILTER(LANG(?label) = \"tw\") } # <-- change language here
+
+} ORDER BY DESC(?sitelinks)
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ijon/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1a94cd64bc4c06e5b369e5b2f3e6a0e9> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target1: <http://www.wikidata.org/entity/Q24905>
+PREFIX target2: <http://www.wikidata.org/entity/Q9035>
+
+# List lexemes wrt. a lexical category and language
+SELECT
+  ?number_of_lexemes
+
+  ?descriptor ?descriptorLabel
+  (CONCAT(\"#lexemedescriptor/\", SUBSTR(STR(?descriptor), 32)) AS ?descriptorUrl)
+  ?descriptorDescription
+WITH {      
+  SELECT 
+    ?descriptor
+    (COUNT(?lexeme) AS ?number_of_lexemes)
+  WHERE {
+    ?lexeme wikibase:lexicalCategory target1: ;
+            dct:language target2: ;
+            wdt:P1343 ?descriptor .
+  }
+  GROUP BY ?descriptor
+} AS %result
+WHERE {
+  INCLUDE %result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?number_of_lexemes)
+LIMIT 10000""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:lexicalcategory-language>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

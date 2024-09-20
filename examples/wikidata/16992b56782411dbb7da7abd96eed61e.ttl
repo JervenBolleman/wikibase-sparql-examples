@@ -1,0 +1,25 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-16992b56782411dbb7da7abd96eed61e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# People with multiple MPs as children
+SELECT distinct ?person ?personLabel ?born ?died ?count WHERE {
+  { select distinct ?person (count(distinct ?child) as ?count) where {
+  ?person wdt:P40 ?child . 
+  ?child p:P39 ?positionStatement . ?positionStatement ps:P39 ?term . 
+  { ?term wdt:P279 wd:Q16707842 } union { ?term wdt:P279 wd:Q18015642 } union { ?term wdt:P279 wd:Q18018860 } 
+  } group by ?person } 
+  optional { ?person wdt:P569 ?born }
+  optional { ?person wdt:P570 ?died }
+  filter (?count > 3 ) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } 
+} order by desc(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

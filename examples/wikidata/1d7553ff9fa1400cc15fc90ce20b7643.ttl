@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1d7553ff9fa1400cc15fc90ce20b7643> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#---------------------------------------------------------------------------------------
+# Objekte zerstört vor 1946, ohne altesdresden
+#---------------------------------------------------------------------------------------
+#defaultView:Table;Map;
+SELECT ?item ?itemLabel ?itemDescription ?aufloesung ?streetLabel ?housenumber ?image  ?coordinate
+WHERE
+{
+  ?item wdt:P131 wd:Q1731.  # in Dresden
+  MINUS { ?item wdt:P11855 [] } . # kein altesdresden
+  ?item wdt:P576 ?aufloesung.         # Erbaut am
+  FILTER (?aufloesung <= \"1946-01-01T00:00:00Z\"^^xsd:dateTime)  # vor 1945
+  OPTIONAL { ?item wdt:P18  ?image . }
+  OPTIONAL { ?item wdt:P625 ?coordinate. }
+  OPTIONAL { ?item wdt:P669 ?street.  }                     # Straße
+  OPTIONAL { ?item p:P669 [  pq:P670 ?housenumber ]  . }    # Hausnummer  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\"  }
+}
+order by ?aufloesung ?streetLabel ?housenumber""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stefan_K%C3%BChn/altesdresden>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

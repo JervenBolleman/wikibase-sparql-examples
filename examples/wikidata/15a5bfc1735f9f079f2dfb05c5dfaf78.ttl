@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-15a5bfc1735f9f079f2dfb05c5dfaf78> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?game ?date ?statementNodeType ?check0 ?check1 ?check2 ?check3
+WHERE
+{
+    VALUES ?game {
+      wd:Q4931588  # no value
+      wd:Q1107793  # one value
+      wd:Q18857304 # unknown value
+      wd:Q2385     # multiple values
+      wd:Q23647080 # no property
+    }
+    OPTIONAL
+    {
+      ?game      p:P577  ?statementNode
+      OPTIONAL { ?statementNode ps:P577  ?date }
+      OPTIONAL { ?statementNode rdf:type ?statementNodeType FILTER (?statementNodeType IN (wdno:P577)) }
+    }
+    
+    BIND(IF(BOUND(?statementNode),true,false)              as ?check0) # property is here?
+    BIND(COALESCE(DATATYPE(?date) = xsd:dateTime  , false) as ?check1) # real date?
+    BIND(COALESCE((wdno:P577 = ?statementNodeType), false) as ?check2) # no value?
+    BIND(COALESCE(isBlank(?date)                  , false) as ?check3) # unkown?
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Datumizer>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

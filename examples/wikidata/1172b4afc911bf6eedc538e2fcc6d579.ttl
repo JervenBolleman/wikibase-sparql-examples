@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1172b4afc911bf6eedc538e2fcc6d579> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+#
+# SWIB20 participants' institutions, mapped to Wikidata and enriched from there
+#
+PREFIX zbwext: <http://zbw.eu/namespaces/zbw-extensions/>
+#
+# from possibly multi-valued fields, use an arbitrary value
+select distinct ?item ?itemLabel (sample(?logo1) as ?logo) (sample(?img) as ?image) (sample(?pos) as ?coord) ?participants
+where {
+  # institutions' items and count of participants from custom WDQS-enabled endpoint
+  service <http://zbw.eu/beta/sparql/econ_corp/query> {
+    ?item zbwext:swib20participants ?count .
+    bind(concat(str(?count), ' participant', if(?count > 1, 's', '')) as ?participants)
+  }
+  optional { ?item wdt:P18 ?img . }
+  optional { ?item wdt:P154 ?logo1 . }
+  optional { ?item wdt:P625 ?pos1 . }
+  optional { ?item wdt:P159/wdt:P625 ?pos2 . }
+  optional { ?item wdt:P131/wdt:P625 ?pos3 . }
+  optional { ?item wdt:P17/wdt:P625 ?pos4 . }
+  # use the most precise position
+  bind(coalesce(?pos1, ?pos2, ?pos3, ?pos4) as ?pos)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,[AUTO_LANGUAGE],de,fr,es\". }
+}
+group by ?item ?itemLabel ?participants""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jneubert/SWIB_queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

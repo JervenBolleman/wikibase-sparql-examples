@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1db0d55edfc626d36bc6f8217fdb4457> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select (replace(str(?stolperstein), str(wd:), \"\") as ?qid) (concat(\"L\", ?lang) as ?pid) (concat(\"\"\", ?prefix, ?name, \"\"\") as ?label) where {
+  ?stolperstein wdt:P31 wd:Q26703203;
+                rdfs:label ?Lde.
+  filter(lang(?Lde) = \"de\")
+
+  bind(replace(?Lde, \"Stolperstein für \", \"\") as ?name)
+
+  values (?lang ?prefix ?cond) {
+    (\"en\" \"Stolperstein dedicated to \" \"\")
+    (\"pt\" \"Stolperstein em memória de \" \"\")
+    (\"es\" \"Stolperstein en memoria de \" \"\")
+    (\"fr\" \"Stolperstein à la mémoire de \" \"^[^AEIOUY]\")
+    (\"fr\" \"Stolperstein à la mémoire d’\" \"^[AEIOUY]\")
+  }
+
+  filter(strstarts(?Lde, \"Stolperstein für \"))
+  filter(!regex(?name, \"^(den|die|das|Unbekannt|Zwangsarbeiter|\\\\d)\"))
+  filter(regex(?name, ?cond, \"i\"))
+  filter not exists {
+    ?stolperstein rdfs:label ?l.
+    filter(lang(?l) = ?lang)
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:CamelCaseNick/Stolpersteine>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

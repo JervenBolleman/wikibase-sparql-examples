@@ -1,0 +1,46 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1eeb17708eb5b81b0b64b5c121338d60> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item
+  (GROUP_CONCAT(DISTINCT lcase(?common_name); separator=\", \") as ?common_names)
+  (SAMPLE(?scientific_name) AS ?scientific_name)
+  (GROUP_CONCAT(DISTINCT lcase(?taxon_common); separator=\", \") as ?taxon_common)
+  (MIN(?score) AS ?matchscore)
+WHERE {
+  BIND (\"cat\" AS ?searchstr) # Fantastic cats and where to find them
+  ?item wdt:P31 wd:Q16521;
+    wdt:P171+ wd:Q7377;
+    wdt:P225 ?scientific_name.
+  OPTIONAL {
+    ?item wdt:P1843 ?taxon_common.
+    FILTER(LANGMATCHES(LANG(?taxon_common), \"en\"))
+  }
+  OPTIONAL {
+    ?item wdt:P366 ?common.
+    ?common rdfs:label ?common_name.
+    FILTER(LANGMATCHES(LANG(?common_name), \"en\"))
+  }
+  FILTER(BOUND(?common_name)|| BOUND(?taxon_common))
+  FILTER( CONTAINS(lcase(?common_name), ?searchstr) || CONTAINS(lcase(?taxon_common), ?searchstr) )
+  BIND((STRLEN(?common_name) - STRLEN(?searchstr)) AS ?ldiff_a)
+  BIND((STRLEN(?taxon_common) - STRLEN(?searchstr)) AS ?ldiff_b)
+  BIND(
+    IF(BOUND(?ldiff_a) && !BOUND(?ldiff_b), ?ldiff_a,
+      IF(!BOUND(?ldiff_a) && BOUND(?ldiff_b), ?ldiff_b,
+        IF(!BOUND(?ldiff_a) && !BOUND(?ldiff_b), 9999,
+          IF(?ldiff_a < ?ldiff_b, ?ldiff_a, ?ldiff_b))))
+  AS ?score)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+GROUP BY ?item
+ORDER BY ?matchscore""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

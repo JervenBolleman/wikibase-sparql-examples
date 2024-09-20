@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1e648e89f3bbc5f8c8e28f425fa6f23a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Scientific authors known to Wikidata, who do not have an ORCID iD listed there
+SELECT ?author ?authorLabel ?instit ?institLabel ?count WHERE {
+  {
+    SELECT ?author (COUNT(DISTINCT ?publication) AS ?count) WHERE {
+      ?publication wdt:P31 wd:Q13442814 .
+      ?publication wdt:P50 ?author .
+      MINUS { ?author wdt:P496 [] } .
+      MINUS {
+        ?author wdt:P570 ?dod .
+        FILTER((YEAR(?dod)) < 2012)
+      } .
+    } GROUP BY ?author
+  } .
+  MINUS {
+    ?author p:P108/ps:P108 ?instit1;
+            p:P108/ps:P108 ?instit2 .
+    FILTER(!SAMETERM(?instit1, ?instit2))
+  } .
+  ?author wdt:P108 ?instit .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+}
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2016/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

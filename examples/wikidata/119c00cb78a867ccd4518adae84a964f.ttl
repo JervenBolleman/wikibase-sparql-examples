@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-119c00cb78a867ccd4518adae84a964f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Films only on Armenian Wikipedia
+SELECT 	(SAMPLE(?year) AS ?year) 
+		?statements 
+		(GROUP_CONCAT(DISTINCT ?origlang) as ?origlangs) 
+		?item ?locallabel ?itemLabel ?itemDescription 
+		(SAMPLE(?originaltitle) AS ?originaltitle) 
+		(xsd:integer(STRAFTER(str(?item), \"Q\")) AS ?qid)
+{
+  	?item wdt:P31/wdt:P279* wd:Q11424 . 
+  	?item wikibase:sitelinks 1 . 
+  	[] schema:about ?item; schema:isPartOf <https://hy.wikipedia.org/>; schema:inLanguage ?lll .
+	?item rdfs:label ?locallabel . FILTER(lang(?locallabel) = ?lll ) .
+  	?item wikibase:statements ?statements . 
+  	OPTIONAL { ?item wdt:P364/wdt:P424 ?origlang } 
+  	OPTIONAL { ?item wdt:P1476 ?originaltitle }
+  	OPTIONAL { ?item wdt:P577 ?date . BIND(YEAR(?date) as ?year) } 
+  	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+GROUP BY ?item ?statements ?locallabel ?itemLabel ?itemDescription
+ORDER BY DESC(?year)	LIMIT 1000""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Armenia/Maintenance_Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

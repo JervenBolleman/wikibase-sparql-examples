@@ -1,0 +1,75 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1023716ae22d2ba5c921fb127e7ea3f7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?office ?officeLabel WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+  {
+    ?item wdt:P39 ?office.
+    VALUES ?office {
+      wd:Q13218630 # United States representative
+      wd:Q4416090  # United States senator
+      wd:Q48011080 # Member of the Landtag of South Tyrol
+      wd:Q62083474 # member of the Legislative Assembly of the Azores
+      wd:Q62032637 # member of the Legislative Assembly of Madeira
+    }
+  }
+  UNION {
+    ?item wdt:P39 ?office. # Members of Parliament (UK)
+    ?office wdt:P279 ?position.
+    VALUES ?position {
+      wd:Q106079967 # member of United States state lower house
+      wd:Q7603534   # state senator
+      wd:Q486839    # member of parliament
+    }
+  }
+  UNION {
+    ?item wdt:P39 ?office.
+    ?office wdt:P279 ?position1.
+    ?position1 wdt:P279 ?position.
+    VALUES ?position {
+      wd:Q486839 # member of parliament
+    }
+  }
+  
+  # REMOVE ENTRIES THAT DON'T COUNT
+  MINUS { ?item wdt:P31 wd:Q15632617. } # remove anyone who is fictional
+  MINUS { # remove values that don't meet WP:NSUBPOL through P1001 (applies to jurisdiction)
+    ?item wdt:P39 ?office.
+    ?office wdt:P1001 ?position.
+    VALUES ?position {
+      wd:Q15630895 # district of the German Democratic Republic
+      wd:Q194203   # arrondissement of France
+    }
+  }
+  MINUS { # remove values that don't meet WP:NSUBPOL through P279 (subclass of)
+    ?item wdt:P39 ?office2.
+    ?office2 wdt:P279 ?subclass.
+    VALUES ?subclass {
+      wd:Q382617   # mayor of a place in France
+      wd:Q55400987 # community councillor
+      wd:Q15113603 # municipal councillor
+      wd:Q96208019 # member of municipal council
+      wd:Q21705031 # Provincial Deputy
+    }
+  }
+  MINUS { # remove extra stuff
+    ?item wdt:P39 ?office.
+    VALUES ?office {
+      wd:Q65494735 # Special Guest of the Parliamentary Assembly of the Council of Europe
+    }
+  }
+  
+  # CHECK FOR ENWIKI PAGE
+  OPTIONAL { ?item wikibase:sitelinks ?linkcount }.
+  FILTER NOT EXISTS { ?wen schema:about ?item; schema:isPartOf <https://en.wikipedia.org/> }.
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Roc0ast3r/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

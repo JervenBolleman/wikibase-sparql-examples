@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-16e189344084dc1ecd3cc417121d59f2> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?countryA ?countryALabel ?countryB ?countryBLabel ?border ?borderLabel ?closed_start ?closed_end
+WHERE
+{
+  ?border wdt:P31 wd:Q12413618.
+  ?border wdt:P17 ?countryA.
+  ?border wdt:P17 ?countryB.
+  FILTER (STR(?countryA) < STR(?countryB))
+  ?countryA wdt:P30 wd:Q46. # continent is Europe
+  ?countryB wdt:P30 wd:Q46. # continent is Europe
+  FILTER NOT EXISTS { ?countryA wdt:P576 ?dissolved. } # No date for dissolved
+  FILTER NOT EXISTS { ?countryB wdt:P576 ?dissolved. } # No date for dissolved
+  OPTIONAL
+  {
+    ?border p:P31 ?instanceOfStatement.
+    ?instanceOfStatement ps:P31 wd:Q87443571.
+    OPTIONAL { ?instanceOfStatement pq:P580 ?closed_start. }
+    OPTIONAL { ?instanceOfStatement pq:P582 ?closed_end. }
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

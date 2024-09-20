@@ -1,0 +1,66 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-17a16180b3615c787448e8c55e27fee0> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# For all non-plate, non-text pages (in Category:Flora Batava - KB copy, and its subcategories), are all required structured data fields present?
+# Example File:Preface NL 01 - FloraBatava-KB-v01.jpg
+# - collection (P195) = Koninklijke Bibliotheek (Q1526131)
+# - instance of (P31) = digital image (Q1250322)
+# - copyright status (P6216) = public domain (Q19652)
+
+SELECT DISTINCT 
+?file ?title ?collection ?instanceof ?copyrightstatus
+WITH
+{
+  SELECT ?file ?title
+  WHERE
+  {
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+    bd:serviceParam mwapi:gcmtitle \"Category:Flora Batava - KB copy\" .
+    bd:serviceParam mwapi:generator \"categorymembers\" .
+    bd:serviceParam mwapi:gcmlimit \"100\" .
+    ?categoryName wikibase:apiOutput mwapi:title .
+    ?ns wikibase:apiOutput \"@ns\".
+  }
+  FILTER (?ns = \"14\") # (sub)categories only
+ 
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+    bd:serviceParam mwapi:gcmtitle ?categoryName.
+    bd:serviceParam mwapi:generator \"categorymembers\" .
+    bd:serviceParam mwapi:gcmtype \"file\" .
+    bd:serviceParam mwapi:gcmlimit \"3000\" .
+    ?title wikibase:apiOutput mwapi:title .
+    ?pageid wikibase:apiOutput \"@pageid\" .
+  }
+    BIND (URI(CONCAT('https://commons.wikimedia.org/entity/M', ?pageid)) AS ?file)
+  }
+} 
+AS %get_files
+WHERE
+{
+  INCLUDE %get_files
+          
+  FILTER(!REGEX(?title,\"(Pl[0-9]{4} - FloraBatava-KB-v[0-9]{2}.jpg)$\")) 
+  FILTER(!REGEX(?title,\"(DescriptionFR[0-9]+ - FloraBatava-KB-v[0-9]{2}.jpg)$\")) 
+  FILTER(!REGEX(?title,\"(DescriptionNL[0-9]+ - FloraBatava-KB-v[0-9]{2}.jpg)$\")) 
+  
+  OPTIONAL{ ?file wdt:P195 ?collection.}  # collection (P195) = Koninklijke Bibliotheek (Q1526131)
+  OPTIONAL{ ?file wdt:P6216 ?copyrightstatus.}  # copyright status (P6216) = public domain (Q19652)
+  OPTIONAL {?file wdt:P31 ?instanceof.
+            FILTER (?instanceof = wd:Q1250322)} # ?instanceof must be a digital image (Q1250322) 
+ } ORDER BY ?title""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Collection_highlights_National_Library_of_the_Netherlands/Flora_Batava/Data_quality>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

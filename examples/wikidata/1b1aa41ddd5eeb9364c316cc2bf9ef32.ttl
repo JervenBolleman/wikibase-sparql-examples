@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1b1aa41ddd5eeb9364c316cc2bf9ef32> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Graph
+#defaultView:Timeline
+SELECT DISTINCT ?eventStart ?event ?eventLabel ?mvtLabel (COUNT(?artist) AS ?count)   WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  VALUES ?eventTypes {
+    wd:Q213156
+    wd:Q212431
+    wd:Q682010
+    }
+  {?event wdt:P31 wd:Q667276. }.
+  ?event wdt:P136 ?eventTypes.
+  OPTIONAL {?event wdt:P136 ?mvt. }
+  OPTIONAL { ?event wdt:P580 ?eventStart.}
+  OPTIONAL { {?event wdt:P175 ?artist. } UNION {?event wdt:P710 ?artist. } } #usually P710 participants but P175 catches at least one event
+
+}
+GROUP BY ?eventStart ?event ?eventLabel ?mvtLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:AllyD/ArtistsActivities>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

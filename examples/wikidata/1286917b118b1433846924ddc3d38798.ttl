@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1286917b118b1433846924ddc3d38798> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?ISO639_1 ?ISO639_2 ?ISO639_3 ?country ?countryLabel
+WHERE 
+{
+  { SELECT ?item (SAMPLE(?ISO639_1_) as ?ISO639_1) (SAMPLE(?ISO639_2_) as ?ISO639_2) (SAMPLE(?ISO639_3_) as ?ISO639_3) WHERE
+    {
+      {?item wdt:P218 ?ISO639_1_ .}
+      UNION 
+      {?item wdt:P219 ?ISO639_2_ .}
+      UNION
+      {?item wdt:P220 ?ISO639_3_ .}
+      } group by ?item }
+  ?country wdt:P463 wd:Q1065. 
+  ?country wdt:P37 ?item.
+  #not a former country
+  FILTER NOT EXISTS {?country wdt:P31 wd:Q3024240}
+  #and no an ancient civilisation (needed to exclude ancient Egypt)
+  FILTER NOT EXISTS {?country wdt:P31 wd:Q28171280}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } 
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-118dce15d11e0ad882bc9cbf5c3f504d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+SELECT ?item ?itemLabel ?itemDescription ?instanceLabel ?cityLabel ?locationLabel ?distance ?layer ?article ?geolocation WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],nl,fr,en,de,es,it\". }
+  SERVICE wikibase:around {
+    ?item wdt:P625 ?geolocation.
+    bd:serviceParam wikibase:center \"Point(4.180303 50.870493)\"^^geo:wktLiteral;
+      wikibase:radius \"5\";
+      wikibase:distance ?distance.
+  }
+  ?item wikibase:sitelinks ?layer.
+  OPTIONAL { ?item wdt:P31 ?instance. }
+  OPTIONAL { ?item wdt:P131 ?city. }
+  OPTIONAL { ?item wdt:P276 ?location. }
+  OPTIONAL {
+    ?article schema:about ?item;
+      schema:inLanguage \"nl\";
+      schema:isPartOf <https://nl.wikipedia.org/>.
+  }
+}
+ORDER BY (?distance)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Geertivp/training/Wikidata_Query/Nearby_objects>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

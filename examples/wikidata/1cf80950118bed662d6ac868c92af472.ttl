@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1cf80950118bed662d6ac868c92af472> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?winner ?winnerLabel ?date_for_first_GS 
+WITH
+{
+  SELECT ?winner (MIN(?date) AS ?date_for_first_GS)
+  WHERE
+  {
+    VALUES ?class { wd:Q16893403 wd:Q16893072 } # vomen's and men's singles
+    ?GS_single wdt:P361 ?GS .
+    ?GS (wdt:P279| wdt:P31) / wdt:P361 wd:Q102113 .
+    ?GS wdt:P582 ?date . # End date of the tournament. Beware it is missing in many cases. 
+    ?GS_single wdt:P2094 ?class .
+    ?GS_single wdt:P1346 ?winner .
+  }
+  GROUP BY ?winner
+} AS %GS_winners
+WHERE
+{
+  INCLUDE %GS_winners
+  FILTER NOT EXISTS
+  {
+    VALUES ?tour { wd:Q2537906 wd:Q300008 } # WTA and ATP Tour
+    VALUES ?class { wd:Q16893403 wd:Q16893072 } # vomen's and men's singles
+    ?tour_season wdt:P3450 ?tour .
+    ?tourney wdt:P361 ?tour_season .
+    ?tourney wdt:P582 ?date . # End date of the tournament. Beware it is missing in many cases.
+    ?single wdt:P361 ?tourney .
+    ?single wdt:P2094 ?class .
+    ?single wdt:P1346 ?winner .
+    FILTER (?date < ?date_for_first_GS)
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

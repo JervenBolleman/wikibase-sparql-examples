@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1da7fdf13a738025d76c1654f0c11ac6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?type ?count
+WITH { SELECT ?item ?mass WHERE { ?item wdt:P31 wd:Q5; wdt:P106 wd:Q13381863; p:P2067 ?mass } } AS %fencers
+WITH { SELECT ?item ?mass WHERE { INCLUDE %fencers ?mass prov:wasDerivedFrom ?ref } } AS %fencersws
+WITH { SELECT ?item ?mass WHERE { INCLUDE %fencers ?mass prov:wasDerivedFrom ?ref MINUS { ?ref pr:P143 [] } } } AS %fencerswnws
+WHERE {
+  {
+    SELECT (\"Total count of fencers with mass present on their item\" AS ?type) (COUNT(DISTINCT ?item) AS ?count)
+    WHERE { INCLUDE %fencers }
+  }
+  UNION
+  {
+    SELECT (\"Total count of fencers with sourced mass present on their item\" AS ?type) (COUNT(DISTINCT ?item) AS ?count)
+    WHERE { INCLUDE %fencersws }
+  }
+  UNION
+  {
+    SELECT (\"Total count of fencers with non-Wikimedia sourced mass present on their item\" AS ?type) (COUNT(DISTINCT ?item) AS ?count)
+    WHERE { INCLUDE %fencerswnws }
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:T%C3%A1rsalg%C3%B3>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

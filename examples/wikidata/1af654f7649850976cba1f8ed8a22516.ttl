@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1af654f7649850976cba1f8ed8a22516> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?itemLabel ?itemDescription  ?article WHERE 
+{
+  ?item wdt:P27 wd:Q298.
+  ?item wdt:P31 wd:Q5.
+  ?article schema:about ?item.
+  ?article schema:isPartOf <https://en.wikipedia.org/>. # there is an en wiki article
+  FILTER NOT EXISTS                            # exclude items if
+  {
+    ?article1 schema:about ?item.              # there may be another article
+    ?article1 schema:inLanguage ?lang .        # in a language
+    filter not exists {wd:Q328 wdt:P424 ?lang} # which language (long story short) is not \"en\"
+    ?article1 schema:isPartOf ?thing.          # which article is part of something
+    ?thing wikibase:wikiGroup \"wikipedia\" .    # and that thing is a language wiki
+  }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+} limit 10""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1d35049738d84a3ddd4ea9a00680df4d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Libros escritos por año y genero desde 2000
+#defaultView:AreaChart
+SELECT ?cid (STR(SAMPLE(?year)) AS ?year) (COUNT(*) AS ?count) ?genero WHERE {
+   ?pid wdt:P31 wd:Q571;  # libro   
+        wdt:P50 ?autor; # autor 
+       wdt:P136 ?cid;  # genero
+       wdt:P577 ?_date_of_pub. # fecha de publicación
+  ?cid wdt:P279* wd:Q1318295.  # tipo de genero narrativo
+  ?autor wdt:P27 wd:Q29 # nacionalidad autor España
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+                         ?cid rdfs:label ?genero. }
+  BIND ( YEAR(?_date_of_pub) AS ?year )
+  FILTER( ?year >= 2000 )
+}
+GROUP BY ?cid ?genero ?year""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Tsaorin/TallerUSAL2020>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-108b7e0e53f4530fcdada90a49f154cc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+SELECT DISTINCT (?showLabel as ?layer) ?loc ?pic ?picLabel ?picURI ?picbyLabel  ?cooncilLabel WHERE { 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  VALUES ?itemtypes {
+   wd:Q483453
+   wd:Q1630622
+   }
+  ?pic wdt:P31 ?itemtypes.
+  ?pic wdt:P131 ?cooncil.  
+  { ?cooncil wdt:P131 wd:Q22} UNION {?cooncil wdt:P31 wd:Q15060255.}. 
+  ?pic wdt:P625 ?loc .
+  ?pic wdt:P31 ?itype. ?itype rdfs:label ?itypeLabel. FILTER(LANG(?itypeLabel) = \"en\").
+  FILTER (?itype = ?itemtypes).
+  OPTIONAL {?pic wdt:P18 ?picURI.}. 
+  OPTIONAL { ?pic wdt:P170 ?picCreatedBy. }. 
+  OPTIONAL { ?pic wdt:P287 ?picDesignedBy. }. 
+  BIND (IF (BOUND(?picCreatedBy), ?picCreatedBy, IF (BOUND(?picDesignedBy), ?picDesignedBy,\"No producer details\")) AS ?picby).
+  BIND (IF (BOUND(?picURI), ?itypeLabel, CONCAT (\"Unimaged \", ?itypeLabel)) AS ?showLabel).
+} LIMIT 1300""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:AllyD/GalleryArtworks>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

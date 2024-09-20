@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-18ebb0ee33a6308f333e5af33f7e90b8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# https://w.wiki/6h$$ 
+# https://w.wiki/6i23
+
+# Parité homme/femme dans les émissions TV de Frédéric Taddéï
+SELECT $series $seriesLabel ((?totalMale*100)/?totalGuests AS ?malePercent) ((?totalFemale*100)/?totalGuests AS ?femalePercent) 
+WHERE {
+  {
+    SELECT $series (SUM(?male) AS ?totalMale) (SUM(?female) AS ?totalFemale) ((SUM(?female) + SUM(?male)) AS ?totalGuests) 
+    WHERE {
+      $item wdt:P31 wd:Q21191270 .
+      $item wdt:P179 $series ; wdt:P5030 ?guest .
+      $series wdt:P371 wd:Q603 .
+      ?guest wdt:P21 $gender .
+  
+      BIND (
+        IF(?gender = wd:Q6581097 , 1, 0) AS ?male
+      )
+      BIND (
+        IF(?gender = wd:Q6581072 , 1, 0) AS ?female
+      )
+    }
+    GROUP BY $series $seriesLabel
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\". }
+}
+
+# https://w.wiki/6i2Q
+# https://w.wiki/6i5Y""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Deansfa/SPARQL>, <https://www.wikidata.org//wiki/User:Deansfa>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

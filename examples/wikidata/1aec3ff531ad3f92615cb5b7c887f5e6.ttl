@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1aec3ff531ad3f92615cb5b7c887f5e6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?label ?description ?imo (GROUP_CONCAT(DISTINCT ?manufacturer_name;separator=\", \") AS ?manufacturer_names) (GROUP_CONCAT(DISTINCT ?location_of_creation_name;separator=\", \") AS ?location_of_creation_names) ?yard_number (GROUP_CONCAT(DISTINCT ?iol;separator=\", \") AS ?instance_ofs) ?service_entry {
+  {
+    SELECT * {
+      VALUES ?manufacturer_list {wd:Q327429 wd:Q11874481 wd:Q4117007 wd:Q11887488 wd:Q2944983 wd:Q17334709 wd:Q18688797 wd:Q12358532 wd:Q11890180 wd:Q21927194 wd:Q7943682 wd:Q30638410 wd:Q1524298 wd:Q12358532 wd:Q65072048 wd:Q1278953 wd:Q3817603 wd:Q105019750 wd:Q7224811 wd:Q98204447 wd:Q18688871 wd:Q1197161 wd:Q43082510 wd:Q113458692 wd:Q112845005 wd:Q112653321 wd:Q124485935}
+      ?item wdt:P176 ?manufacturer_list .
+      OPTIONAL { ?item wdt:P458 ?imo . }
+      OPTIONAL { ?item wdt:P176 ?manufacturer . }
+      OPTIONAL { ?item wdt:P1071 ?location_of_creation . }
+      OPTIONAL { ?item wdt:P729 ?service_entry . }
+      OPTIONAL { ?item wdt:P617 ?yard_number . }
+      OPTIONAL { ?item wdt:P31 ?instance_of . }
+       FILTER(?instance_of not in (wd:Q118017625, wd:Q15057021, wd:Q15057020, wd:Q559026, wd:Q19832486, wd:Q15142894, wd:Q15056995, wd:Q34336, wd:Q55725952, wd:Q811704, wd:Q376, wd:Q11436, wd:Q76154857, wd:Q121289722, wd:Q15056993, wd:Q18758641, wd:Q63040754)).
+    }
+  }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+    ?item rdfs:label ?label . ?item schema:description ?description . ?instance_of rdfs:label ?iol . ?manufacturer rdfs:label ?manufacturer_name . ?location_of_creation rdfs:label ?location_of_creation_name
+  }
+}
+GROUP BY ?item ?label ?description ?imo ?yard_number ?service_entry
+ORDER BY xsd:integer(?yard_number)
+#ORDER BY DESC(?service_entry)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Kq-hit>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

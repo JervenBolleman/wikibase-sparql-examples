@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-13f64b429b609f4b10b39c41204230e6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?P641 ?P641Label (COUNT(?P641) AS ?ct) WHERE {
+  { ?item wdt:P31 wd:Q1194951. }
+  UNION
+  {
+    ?item wdt:P31 ?mm.
+    ?mm wdt:P279 wd:Q8031011.
+  }
+  UNION
+  {
+    ?item (wdt:P31/(wdt:P279*)) ?P279.
+    ?P279 wdt:P279 wd:Q1194951.
+  }
+  ?item wdt:P641 ?P641.
+  FILTER(NOT EXISTS { ?item wdt:P31 wd:Q23726798. })
+  FILTER(NOT EXISTS { ?item wdt:P31 wd:Q1477115. })
+  FILTER(NOT EXISTS { ?item wdt:P585 ?P585. })
+  FILTER(NOT EXISTS { ?item wdt:P580 ?P585. })
+  FILTER(NOT EXISTS { ?item wdt:P582 ?P585. })
+  ?item wikibase:sitelinks ?sl.
+  FILTER(NOT EXISTS {
+    _:b2 schema:about ?item;
+      schema:isPartOf <https://ar.wikipedia.org/>.
+  })
+  ?item rdfs:label ?arabicc.
+  FILTER((LANG(?arabicc)) = \"ar\")
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"ar,en\". }
+  FILTER(?sl > 0 )
+}
+GROUP BY ?P641 ?P641Label
+ORDER BY DESC (?ct)
+LIMIT 1000""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Mr._Ibrahem/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

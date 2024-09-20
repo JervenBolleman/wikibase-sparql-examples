@@ -1,0 +1,67 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-16171f1a62dc7476e8caf295e44ece6e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Relations between images on Wikimedia Commons, Wikidata and KB website - for files in Category:Flora Batava - KB copy, Volume 1, 1800
+SELECT DISTINCT ?title ?url
+?depicts ?depictsLabel ?depictsIsALabel
+?digrepofLabel 
+?mainsubject ?mainsubjectLabel ?mainsubjectIsALabel 
+?kbsourceurl
+WITH
+{
+  SELECT ?file ?title
+  WHERE
+  {
+   SERVICE wikibase:mwapi
+    {
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+    bd:serviceParam mwapi:gcmtitle \"Category:Flora Batava - KB copy, Volume 1, 1800\" .
+    bd:serviceParam mwapi:generator \"categorymembers\" .
+    bd:serviceParam mwapi:gcmtype \"file\" .
+    bd:serviceParam mwapi:gcmlimit \"max\" .
+    ?title wikibase:apiOutput mwapi:title .
+    ?pageid wikibase:apiOutput \"@pageid\" .
+    }
+    BIND (URI(CONCAT('https://commons.wikimedia.org/entity/M', ?pageid)) AS ?file)
+  }
+} AS %get_files
+WHERE
+{
+  INCLUDE %get_files
+  ?file schema:url ?url.
+  
+  OPTIONAL {?file wdt:P180 ?depicts.
+    SERVICE <https://query.wikidata.org/sparql> {
+      ?depicts rdfs:label ?depictsLabel FILTER (lang(?depictsLabel) = \"en\").
+      ?depicts wdt:P31 ?depictsIsA.
+      FILTER (?depictsIsA = wd:Q11060274)  # ?depicts must be instance of print/Q11060274
+      ?depictsIsA rdfs:label ?depictsIsALabel FILTER (lang(?depictsIsALabel) = \"en\").}
+    }
+  
+  OPTIONAL {?file wdt:P6243 ?digrepof. #digital representation of
+    SERVICE <https://query.wikidata.org/sparql> {
+      ?digrepof rdfs:label ?digrepofLabel FILTER (lang(?digrepofLabel) = \"en\").}
+    }
+  
+  OPTIONAL {?file wdt:P921 ?mainsubject.
+    SERVICE <https://query.wikidata.org/sparql> { 
+      ?mainsubject rdfs:label ?mainsubjectLabel FILTER (lang(?mainsubjectLabel) = \"la\").
+      ?mainsubject wdt:P31 ?mainsubjectIsA. 
+      FILTER (?mainsubjectIsA = wd:Q16521) # ?mainsubject must be instance of taxon/Q16521
+      ?mainsubjectIsA rdfs:label ?mainsubjectIsALabel FILTER (lang(?mainsubjectIsALabel) = \"en\").}
+    }
+
+  OPTIONAL {?file p:P7482 [ps:P7482 ?source; pq:P973 ?kbsourceurl].}
+}
+ORDER BY DESC (?depictsLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Collection_highlights_National_Library_of_the_Netherlands/Flora_Batava/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,96 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1d5d0976d6a3e8b1c919c6213c6937f6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultview:map
+#title: Average coordinates of depicted place (P9149) positions for some Commons categories
+#defaultView:Map
+#title: Average coordinates of depicted place (P9149) positions for some Commons categories
+#SELECT ?cat  (COUNT(?file) AS ?no_of_files) ?avg_lat ?avg_lon ?point (MAX(?dist) AS ?max_distance) (AVG(?d2) AS ?variance)
+SELECT (IRI(CONCAT('https://commons.wikimedia.org/wiki/',?cat)) AS ?category) (COUNT(?file) AS ?no_of_files) ?point (MAX(?dist) AS ?max_distance) (AVG(?d2) AS ?variance)
+WITH {
+  SELECT ?cat WHERE {
+    VALUES ?cat {
+      \"Category:Moy Bridge\"
+      \"Category:Aberchalder Swing Bridge\"
+      \"Category:Tomatin Railway Viaduct, over old A9 road\" 
+      \"Category:Old Spey Bridge, Speybridge\"
+      \"Category:Tomatin Viaduct (A9)\"
+      \"Category:Tomatin Railway Viaduct, over old A9 road\"
+      \"Category:Telford Bridge, The Mound\"
+      \"Category:Clachnaharry Swing Bridge\"
+      \"Category:Drochaid Beul-ath Cheapain\"
+      \"Category:Moy Swing Bridge\"
+      \"Category:Bonar Bridge (bridge built 1973)\"
+      \"Category:Fort Augustus Swing Bridge\"
+      \"Category:Lochy Railway Bridge\"
+      \"Category:Soldiers Bridge\"
+      \"Category:Steall Wire Bridge\"
+      \"Category:Holm Mills Bridge\"
+      \"Category:Cairngorm Club Footbridge\"
+      \"Category:Gairlochy Swing Bridge\"
+      \"Category:Helmsdale New Bridge (A9)\"
+      \"Category:Devorgilla Bridge\"
+    } .
+  }
+} AS %cats 
+
+WITH
+{
+  SELECT ?cat ?file ?title 
+  WHERE {
+    INCLUDE %cats .
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:api \"Generator\" .
+      bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+      bd:serviceParam mwapi:gcmtitle ?cat .
+      bd:serviceParam mwapi:generator \"categorymembers\" .
+      bd:serviceParam mwapi:gcmtype \"file\" .
+      bd:serviceParam mwapi:gcmlimit \"max\" .
+      ?title wikibase:apiOutput mwapi:title .
+      ?pageid wikibase:apiOutput \"@pageid\" .
+    }
+    BIND (URI(CONCAT('https://commons.wikimedia.org/entity/M', ?pageid)) AS ?file) .
+  }
+} AS %get_files
+
+WITH {
+  SELECT ?cat ?file ?coords_stmt WHERE {
+     INCLUDE %get_files .
+     ?file p:P9149 ?coords_stmt  . 
+  }
+} AS %coords_stmts
+
+WITH {
+  SELECT ?cat (AVG(?lat) AS ?avg_lat)  (AVG(?lon) AS ?avg_lon) WHERE {
+    INCLUDE %coords_stmts .
+    ?coords_stmt psv:P9149 ?obj .
+    ?obj wikibase:geoLatitude ?lat .
+    ?obj wikibase:geoLongitude ?lon . 
+  } GROUP BY ?cat
+} AS %avg_coords
+
+WITH {
+  SELECT ?cat ?avg_lat ?avg_lon ?point WHERE {
+    INCLUDE %avg_coords .
+    BIND(strdt(CONCAT(\"Point(\", str(?avg_lon), ' ', str(?avg_lat), ')'), geo:wktLiteral) AS ?point) .
+  }
+} AS %avg_points 
+
+WHERE {
+  INCLUDE %avg_points . 
+  INCLUDE %coords_stmts .
+  ?coords_stmt ps:P9149 ?coords .
+  BIND(geof:distance(?point, ?coords) as ?dist) .
+  BIND((?dist * ?dist) AS ?d2) .
+} GROUP BY ?cat ?avg_lat ?avg_lon ?point
+ORDER BY ?cat""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jheald/Scotland/bridges/average_Commons_coordinates>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

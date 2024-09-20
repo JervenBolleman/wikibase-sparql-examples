@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-18b98ad4080d506dcbe7a4bd218a28f8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?code WHERE {
+  { ?item wdt:P31 wd:Q1426271 } UNION { ?item wdt:P16 wd:Q1426271 } . 
+  MINUS { VALUES ?outre_mer { wd:Q17012 wd:Q17054 wd:Q3769 wd:Q17070 wd:Q34617 wd:Q17063 wd:Q25362 wd:Q126125 } . ?item wdt:P131 ?outre_mer } . 
+  OPTIONAL { ?item wdt:P1824 ?p1824 } 
+  BIND(STRLEN(str(?p1824)) as ?longp1824) 
+  BIND(SUBSTR(str(?p1824),1,1) as ?statut) 
+  BIND(SUBSTR(str(?p1824),2,(?longp1824 - 1)) as ?numero) 
+  BIND(REPLACE(SUBSTR(str(?numero),1,4),\"[A-Za-z ]\",\"\") as ?num) 
+  BIND(STRLEN(str(?num)) as ?longnum) 
+  BIND(CONCAT(IF(?longnum=1,\"000\",IF(?longnum=2,\"00\",IF(?longnum=3,\"0\",\"\"))), str(?num)) as ?numz) 
+  BIND(CONCAT(str(?statut),str(?num)) as ?numsp) 
+  BIND(STRLEN(str(?numsp)) as ?longnumsp) 
+  BIND((?longp1824 - ?longnumsp) as ?longprefixe) 
+  BIND(SUBSTR(str(?p1824),(?longnumsp + 1),?longprefixe) as ?prefixe) 
+  BIND(CONCAT(str(?statut),str(?numz),str(?prefixe)) as ?cledetri) 
+  BIND(REPLACE(str(?item),\"http://www.wikidata.org/entity/\",\"\") as ?wd_item)
+  BIND(IF(?statut=\"N\",\"RN \",IF(?statut=\"F\",\"RF \",\"\")) as ?statut2)
+  BIND(CONCAT(\"* [[\",?wd_item,\"|\",?statut2,?numero,\"]]\") as ?code)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\" . } 
+} ORDER BY ?cledetri""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Gz260/Roads/RN_(F)>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

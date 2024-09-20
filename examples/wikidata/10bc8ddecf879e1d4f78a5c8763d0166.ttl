@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-10bc8ddecf879e1d4f78a5c8763d0166> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item
+  # we are looking for P4952=Q51139288 which are missing any of four PQs
+  # a PQ of 'no value' is a valid PQ.
+WHERE { 
+       ?item p:P4952 ?statement.
+       ?statement ps:P4952 wd:Q51139288.
+       MINUS {
+       OPTIONAL { ?statement pq:P877 ?v877 }
+       FILTER(BOUND(?v877) || EXISTS{?statement a wdno:P877.})  #treat the value \"no value\" as valid
+       OPTIONAL { ?statement pq:P993 ?v993 }
+       FILTER(BOUND(?v993) || EXISTS{?statement a wdno:P993.})
+       OPTIONAL { ?statement pq:P994 ?v994 }
+       FILTER(BOUND(?v994) || EXISTS{?statement a wdno:P994.}) 
+       OPTIONAL { ?statement pq:P995 ?v995 }
+       FILTER(BOUND(?v995) || EXISTS{?statement a wdno:P995.}) 
+       }
+
+  # Out of the above emerges a list of P4952=Q51139288 where there is one or more missing PQs.
+  # ALSO the filter treats a PQ value of 'no value' as the PRESENCE of a PQ.
+  # So an item having the 4 PQs, but with one or more of 'no value', will NOT appear in the results.
+  
+  # Please note that also a PQ of 'unknown value', as e.g. Q331451 and Q21099636 have, is treated as a valid PQ
+  
+       SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+      }""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/05>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

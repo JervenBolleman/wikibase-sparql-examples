@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1cf51041d41b052ae9e65f0ba9811f06> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?taxonName ?personLabel ?isALabel WHERE {
+   SERVICE gas:service {
+     gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\" .
+     gas:program gas:in wd:Q756 . # Plantae
+     gas:program gas:out ?item . 
+     gas:program gas:maxIterations 20 . 
+     gas:program gas:maxVisited 2700000 .
+     gas:program gas:linkType wdt:P171 .
+     gas:program gas:traversalDirection \"Reverse\" .
+   }
+   #?item wdt:P105 wd:Q7432 .
+   ?item wdt:P225 ?taxonName .
+   OPTIONAL {?item wdt:P138 ?person} .
+   OPTIONAL {?item wdt:P138/wdt:P31 ?isA} .   
+   FILTER((STRENDS(?taxonName, \"iorum\")))
+   FILTER(bound(?person))
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ASC(?taxonName)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Succu/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

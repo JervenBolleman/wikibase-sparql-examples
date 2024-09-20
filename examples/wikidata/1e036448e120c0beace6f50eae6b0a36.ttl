@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1e036448e120c0beace6f50eae6b0a36> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  ?number_of_senses
+  (CONCAT(\"#lexicalcategory/\", SUBSTR(STR(?lexical_category), 32), \"/antonym\") AS ?number_of_sensesUrl)
+
+  ?lexical_category ?lexical_categoryLabel
+  (CONCAT(\"#lexicalcategory/\", SUBSTR(STR(?lexical_category), 32)) AS ?lexical_categoryUrl)
+
+  ?example_lexeme ?example_lexemeLabel
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)
+WITH {
+  SELECT
+    (COUNT(DISTINCT ?sense) AS ?number_of_senses)
+    ?lexical_category
+    (SAMPLE(?sense) as ?example_sense)
+  WHERE {
+    [] wikibase:lexicalCategory ?lexical_category ;
+       ontolex:sense ?sense .
+    ?sense wdt:P5974 [] .
+  }
+  GROUP BY ?lexical_category
+} AS %result
+WHERE {
+  INCLUDE %result
+  ?example_lexeme ontolex:sense ?example_sense .
+  ?example_lexeme wikibase:lemma ?example_lexemeLabel .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?number_of_senses)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:antonym-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

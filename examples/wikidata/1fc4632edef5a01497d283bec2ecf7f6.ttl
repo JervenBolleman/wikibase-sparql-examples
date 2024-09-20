@@ -1,0 +1,73 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1fc4632edef5a01497d283bec2ecf7f6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q54871>
+
+SELECT DISTINCT
+  ?description
+  ?value ?valueUrl 
+
+  ?wikidata ?wikidataUrl
+
+  ?scholia ?scholiaUrl
+
+  # ?wikidata_topic_curator1 ?wikidata_topic_curator1Url
+
+  # ?wikidata_topic_curator2 ?wikidata_topic_curator2Url
+WHERE {
+  {
+    BIND(1 AS ?order)
+    BIND(\"Topic\" AS ?description)
+    BIND(target: AS ?iri)
+    BIND(SUBSTR(STR(?iri), 32) AS ?q) 
+    ?iri rdfs:label ?value_string . 
+    FILTER (LANG(?value_string) = 'en')
+    BIND(COALESCE(?value_string, ?q) AS ?value)
+
+    BIND(CONCAT(?q, \"&nbsp;↗\") AS ?wikidata)
+    BIND(CONCAT(\"https://www.wikidata.org/wiki/\", ?q) AS ?wikidataUrl)
+
+    BIND(\"Scholia ↗\" AS ?scholia)
+    BIND(CONCAT(\"https://scholia.toolforge.org/topic/\", ?q) AS ?scholiaUrl)
+
+    # BIND(\"Wikidata Topic Curator (Scientific documents) ↗\" AS ?wikidata_topic_curator1)
+    # BIND(CONCAT(\"http://162.19.226.24:8080/term?lang=en&subgraph=&qid=\", ?q) AS ?wikidata_topic_curator1Url)
+
+    # BIND(\"Wikidata Topic Curator (Riksdagen documents) ↗\" AS ?wikidata_topic_curator2)
+    # BIND(CONCAT(\"http://162.19.226.24:8080/term?lang=sv&subgraph=riksdagen_documents&qid=\", ?q) AS ?wikidata_topic_curator2Url)
+  }
+  UNION
+  {
+    BIND(2 AS ?order)
+    BIND(\"Class\" AS ?description)
+    target: wdt:P31 ?iri .
+    BIND(SUBSTR(STR(?iri), 32) AS ?q) 
+    ?iri rdfs:label ?value_string . 
+    FILTER (LANG(?value_string) = 'en')
+    BIND(COALESCE(?value_string, ?q) AS ?value)
+    BIND(CONCAT(\"#topic/\", ?q) AS ?valueUrl)
+  }
+  UNION
+  {
+    BIND(3 AS ?order)
+    BIND(\"Superclass\" AS ?description)
+    target: wdt:P279 ?iri .
+    BIND(SUBSTR(STR(?iri), 32) AS ?q) 
+    ?iri rdfs:label ?value_string . 
+    FILTER (LANG(?value_string) = 'en')
+    BIND(COALESCE(?value_string, ?q) AS ?value)
+    BIND(CONCAT(\"#topic/\", ?q) AS ?valueUrl)
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} 
+ORDER BY ?order""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:topic>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

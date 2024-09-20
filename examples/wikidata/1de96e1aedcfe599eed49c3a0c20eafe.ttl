@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1de96e1aedcfe599eed49c3a0c20eafe> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# find items with Goratings ID, and show Goratings links
+SELECT ?goplayer ?goplayerLabel ?goratings_ID ?goratings_link
+WHERE {
+  # define ?goplayer's Goratings ID (P2805) value as ?goratings_ID
+  ?goplayer wdt:P2805 ?goratings_ID.
+  # define Goratings ID (P2805)'s formatter URL (P1630) as ?url
+  wd:P2805 wdt:P1630 ?url
+  # replace ?goratings_ID with ?url, and get
+  # IRI (Internationalized Resource Identifier) of ?url; and
+  # bind ?url's IRI as ?goratings_link
+  BIND(IRI(REPLACE(?goratings_ID, '^(.+)$', ?url)) AS ?goratings_link). 
+  # show label in simplified Chinese (zh-hans) as default, and English when no default label exists
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"zh-hans,en\".}  
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Goratings.org/Query>,
+    <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

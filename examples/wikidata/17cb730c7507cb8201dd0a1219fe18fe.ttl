@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-17cb730c7507cb8201dd0a1219fe18fe> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#by CamelCaseNick
+select (replace(str(?stolperstein), str(wd:), \"\") as ?qid) (\"Dde\" as ?pid) (concat(\"\"\", ?description, \"\"\") as ?vid) where {
+  values (?city ?quarterClass ?prefix ?conn) {
+    (wd:Q1055 wd:Q15830667 \"Hamburg-\" wdt:P276)
+    (wd:Q64 wd:Q35034452 \"Berlin-\" wdt:P276)
+    (wd:Q24879 wd:Q17278559 \"Bremen-\" wdt:P131)
+    (wd:Q365 wd:Q15632166 \"Köln-\" wdt:P131)
+    (wd:Q1718 wd:Q1852178 \"Düsseldorf-\" wdt:P131)
+    (wd:Q1022 wd:Q2740635 \"Stuttgart-\" wdt:P131)
+    (wd:Q1720 wd:Q26703203 \"Mainz-\" wdt:P131)
+    (wd:Q1794 wd:Q79416466 \"Frankfurt-\" wdt:P131)
+  }
+  ?stolperstein wdt:P31 wd:Q26703203; wdt:P131+ ?city; ?conn ?quarter.
+  filter exists { ?quarter wdt:P31 ?quarterClass. }
+  ?quarter rdfs:label ?qDe. filter(lang(?qDe) = \"de\")
+  bind(concat(\"Stolperstein in \", if(strstarts(?qDe, ?prefix), \"\", ?prefix), ?qDe) as ?description)
+  optional { ?stolperstein schema:description ?de. filter(lang(?de) = \"de\") }
+  filter not exists { ?stolperstein schema:description ?de. filter(lang(?de) = \"de\") }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:CamelCaseNick/Stolpersteine>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

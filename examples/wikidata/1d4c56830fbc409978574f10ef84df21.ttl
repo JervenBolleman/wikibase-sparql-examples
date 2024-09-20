@@ -1,0 +1,46 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1d4c56830fbc409978574f10ef84df21> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Paul Erdös timeline
+#defaultView:Timeline
+SELECT DISTINCT ?t ?value ?rrLabel ?valueLabel (SAMPLE(?image) as ?img)
+WHERE
+{
+  {wd:Q173746 ?prop ?t FILTER (datatype(?t)=xsd:dateTime) .
+   ?value wikibase:directClaim ?prop. }
+  UNION
+  {
+   wd:Q173746 ?q ?statement  FILTER regex (STR(?q),\"prop/P\") . #exclude P:describedBy
+   wd:Q173746 wdt:P570 ?death . 
+   ?statement ?p ?t FILTER regex (STR(?p), \"prop/qualifier/P\") FILTER (datatype(?t)=xsd:dateTime) FILTER (?t < ?death).
+   ?statement ?r ?value FILTER regex (STR(?r),\"prop/statement/\") .
+   BIND(IRI(CONCAT(CONCAT(SUBSTR(STR(?r),1,29),\"direct/\"),SUBSTR(STR(?r),40))) as ?rprop) 
+   ?rr wikibase:directClaim ?rprop .
+   OPTIONAL {?value wdt:P18 ?image}
+  }
+  UNION {
+   ?value wdt:P50 wd:Q173746 .
+#   wd:Q309765 wdt:P570 ?death .
+   ?value wdt:P577 ?t . 
+#          FILTER (?t < ?death) 
+#    FILTER NOT EXISTS {?value wdt:P629 ?x .} .
+#   ?value wdt:P1433 ?rr .
+   OPTIONAL {?value wdt:P18 ?image}
+  }
+  UNION
+  {
+   wd:Q173746 wdt:P800 ?rr .
+   ?rr  wdt:P577 ?t .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,de, fr\". }
+} GROUP BY ?t ?value ?rrLabel ?valueLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Charles_Matthews/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

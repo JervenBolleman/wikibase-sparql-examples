@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-13a810c3195cf0533cead44a1eb4fc49> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: denkmalgeschützte Objekte, wo die Denkmalliste nicht mit der Denkmalliste der Gemeinde übereinstimmt
+# können grenzüberschreitende oder verschobene Denkmäler sein
+# Ausgenommen: Denkmallisten in Gemeinden, die aufgeteilt sind.
+SELECT ?_s ?_sLabel ?_sDescription ?gemeinde ?gemeindeLabel ?dl1Label ?dl2Label WHERE {
+  ?_s wdt:P17 wd:Q40 .
+  ?_s wdt:P1435 wd:Q1188447.
+  ?_s wdt:P131 ?gemeinde .
+  FILTER(?gemeinde != wd:Q1735). # Innsbruck
+  FILTER(?gemeinde != wd:Q34713). # Salzburg
+  FILTER(?gemeinde != wd:Q1741). # Wien
+  FILTER(?gemeinde != wd:Q13298). # Graz
+  FILTER(?gemeinde != wd:Q82500). # St. Pölten
+  FILTER(?gemeinde != wd:Q302745). # Hall in Tirol
+  FILTER(?gemeinde != wd:Q871601). # Friesach
+  FILTER(?gemeinde != wd:Q255684). # Hallein
+  ?_s wdt:P2817 ?dl1.
+  ?gemeinde wdt:P31 wd:Q667509 .
+  ?gemeinde wdt:P1456  ?dl2 .
+  FILTER(?dl1 != ?dl2) .
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE,de,en]' }
+} GROUP BY ?_s ?_sLabel ?_sDescription ?gemeinde ?gemeindeLabel ?dl1Label ?dl2Label ORDER BY ASC(?_sLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Herzi_Pinki/Sparql>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

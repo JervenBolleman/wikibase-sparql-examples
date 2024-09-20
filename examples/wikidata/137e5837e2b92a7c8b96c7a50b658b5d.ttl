@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-137e5837e2b92a7c8b96c7a50b658b5d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# defaultView:Map
+SELECT ?url ?item ?itemLabel ?itemDescription (SAMPLE(?coords) AS ?point) 
+
+WITH {
+  SELECT ?item ?id WHERE {
+    ?item wdt:P1343 wd:Q105770461 .
+#    ?item wdt:P31 wd:Q2116450 .
+    ?item wdt:P3029 ?id 
+  }
+} AS %items
+WHERE {
+  INCLUDE %items .  hint:Prior hint:runFirst true.
+  ?item (wdt:P131|wdt:P276)/wdt:P625 ?coords. hint:Prior hint:gearing \"forward\".
+
+#  BIND(IRI(CONCAT(\"https://discovery.nationalarchives.gov.uk/details/c/\",?id)) AS ?url) .
+   
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} GROUP BY ?url ?item ?itemLabel ?itemDescription 
+ORDER BY ?item""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

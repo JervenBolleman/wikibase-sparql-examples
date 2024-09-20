@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-12c4c11c321fcecdad966dcfb8838930> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT 
+?city
+?cityLabel
+(?city as ?id) 
+(SAMPLE(?img) as ?img) 
+(SAMPLE(?fill) as ?fill) 
+(concat('[[:d:',substr(str(?city),32,100),  ' | ', ?cityLabel, ']]') as ?title)
+(concat('[[File:', substr(str(?img), 52, 100), '|200px]]') as ?description)
+WHERE {
+  ?item wdt:P361 wd:Q20252009.
+  ?item wdt:P1867 ?total_voters .
+  ?item wdt:P1697 ?active_voters.
+  ?item wdt:P1001 ?city.
+  BIND (100*?active_voters/?total_voters AS ?percent) .
+  BIND(
+    if(?percent>= 75, '#610604', 
+    if(?percent>= 70, '#994910', 
+    if(?percent>= 65, '#D0B01F', 
+    if(?percent>= 60, '#CBF13F', 
+    if(?percent>= 55, '#ABF97A', 
+    if(?percent>= 50, '#B1FFB3', '#a6a6a6')))))
+  ) as ?fill).
+  OPTIONAL { ?city wdt:P94 ?img . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en,fi,sv'. }
+} GROUP BY ?city ?cityLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Template:Election_map_example>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

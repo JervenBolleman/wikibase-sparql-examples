@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-168707192b70b098e6ea9708119aed27> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?name (CONCAT(\"Born \",str(?born), \", \",?birthplace,\"; Died \", str(?died)) as ?dates) ?article WHERE {
+   ?person wdt:P19 ?place . # place of birth
+   {?place wdt:P131* wd:Q23165 } UNION { ?place wdt:P131* ?county. ?county wdt:P47 wd:Q23165 }. # born in Oxfordshire or adjacent county 
+   ?person wdt:P607 wd:Q361 . # involved in World War I
+    # ?place wdt:P625 ?coord . # lat and long of birthplace
+     MINUS { ?person wdt:P18 ?image }. #image
+      ?person wdt:P569 ?dob . #date of birth
+	BIND(YEAR(?dob) as ?born).
+    OPTIONAL { ?person wdt:P570 ?dod }. #date of death
+  BIND(YEAR(?dod) as ?died).
+   ?person rdfs:label ?name filter (lang(?name) = \"en\")
+   ?place rdfs:label ?birthplace filter (lang(?birthplace) = \"en\")
+OPTIONAL{ ?article schema:about ?person. ?article schema:isPartOf <https://en.wikipedia.org/>.  }
+} ORDER by ?birthplace""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .
