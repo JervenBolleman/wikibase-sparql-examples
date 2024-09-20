@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7dd720643738e81164929812f4643aeb> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?country ?countryLabel ?items
+(CONCAT(str(round(10000 * ?o/?items) / 100), \"%\")  as ?O)
+(CONCAT(str(round(10000 * ?a/?items) / 100), \"%\")  as ?A)
+(CONCAT(str(round(10000 * ?b/?items) / 100), \"%\")  as ?B)
+(CONCAT(str(round(10000 * ?ab/?items) / 100), \"%\")  as ?AB) {
+  { 
+    SELECT ?country (count(?o_items) as ?o) (count(?a_items) as ?a) (count(?b_items) as ?b) (count(?ab_items) as ?ab) (count(?all_items) as ?items) {
+      {?o_items wdt:P1853 wd:Q19831451 ; wdt:P27 ?country ; wdt:P31 wd:Q5 } UNION
+      {?a_items wdt:P1853 wd:Q19831453 ; wdt:P27 ?country ; wdt:P31 wd:Q5 } UNION
+      {?b_items wdt:P1853 wd:Q19831454 ; wdt:P27 ?country ; wdt:P31 wd:Q5 } UNION
+      {?ab_items wdt:P1853 wd:Q19831455 ; wdt:P27 ?country ; wdt:P31 wd:Q5 } UNION
+      {?all_items wdt:P1853 [] ; wdt:P27 ?country ; wdt:P31 wd:Q5 }
+  	}
+  	GROUP BY ?country
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\"  } 
+}
+ORDER BY DESC(?items)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Property_talk:P1853>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,39 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7432e0813d7fcc40358166389ce63dfd> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select ?bound (count(?country) as ?count)
+
+with {
+
+  select ?country {
+     ?country wdt:P31/wdt:P279* wd:Q3624078 # sovereign states, I don’t know if it’s the right item
+  } 
+}as %countries
+with
+{
+  select distinct ?bound {
+    ?country (wdt:P571|wdt:P576) ?bound. 
+    include %countries .
+    filter (year(?bound) > 1800)
+   }
+} as %bounds
+
+where {
+  include %bounds .
+  include %countries .
+  ?country wdt:P571 ?creation .
+  optional { ?country wdt:P576 ?dest_maybe . }
+  bind (coalesce(?dest_maybe, now()) as ?destruction)
+  
+  filter ( ?creation <= ?bound  && ?destruction > ?bound )
+} group by ?bound order by ?bound""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/05>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

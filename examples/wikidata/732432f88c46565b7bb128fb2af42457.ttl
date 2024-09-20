@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-732432f88c46565b7bb128fb2af42457> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  ?property
+  ?propertyLabel
+  ?count
+WITH {
+  SELECT DISTINCT ?property ?wdt {
+    ?property
+      a wikibase:Property;
+      wdt:P31/wdt:P279* wd:Q105388954;
+      wikibase:directClaim ?wdt.
+  }
+} AS %0
+WITH {
+  SELECT DISTINCT ?item {
+    ?item wdt:P106 wd:Q5482740.
+  }
+  LIMIT 1234
+} AS %1
+WITH {
+  SELECT ?property (COUNT(*) AS ?count) {
+    INCLUDE %0.
+    INCLUDE %1.
+    ?item ?wdt [].
+  }
+  GROUP BY ?property
+} AS %2
+{
+  INCLUDE %2.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\"}.
+}
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/3/4>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7f4d613976b459a4f8a5f18fc43811de> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title:P8034 by number of 20 most frequent occupations
+#defaultView:BubbleChart
+SELECT (SUM(?count) AS ?occ_count) (IF(?group=\">20\", \" other\", SAMPLE(?itemLabel)) AS ?occ)
+WITH  {  
+        SELECT DISTINCT ?item (COUNT(?p) AS ?count) WHERE { ?p wdt:P8034 []; wdt:P106 ?item } GROUP BY ?item ORDER BY DESC(?count) 
+      } AS %all 
+WITH  {
+        SELECT (?item AS ?item2) (?count AS ?count2) WHERE { INCLUDE %all }
+      } AS %all2 
+WITH  {
+        SELECT ?item (SUM(?x) AS ?rank) ?count WHERE {
+          INCLUDE %all .
+          INCLUDE %all2 .
+          BIND( IF( ?count  <= ?count2 , 1, 0 ) AS ?x ) .
+        } GROUP BY ?item ?count
+      } AS %main 
+WHERE
+{
+  hint:Query hint:optimizer \"None\".    
+  INCLUDE %main .
+  BIND( IF(?rank < 21, STR(?rank), 
+        \">20\")
+        AS ?group)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". ?item rdfs:label ?itemLabel }
+}
+GROUP BY ?group
+ORDER BY (?group=\">20\") DESC(?occ_count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/Queries>, <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/sandbox>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

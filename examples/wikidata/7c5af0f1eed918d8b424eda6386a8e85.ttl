@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7c5af0f1eed918d8b424eda6386a8e85> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?extract
+WHERE
+{
+  ?item wdt:P31 wd:Q484170 .
+  BIND (SUBSTR(STR(?item), 32) AS ?item_title)
+  OPTIONAL
+  {
+    SERVICE wikibase:mwapi
+    {
+      bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+      bd:serviceParam wikibase:api \"Generator\" .
+      bd:serviceParam mwapi:generator \"allpages\" .
+      bd:serviceParam mwapi:gapnamespace \"1\" .
+      bd:serviceParam mwapi:gapfrom ?item_title .
+      bd:serviceParam mwapi:gapto ?item_title .
+      bd:serviceParam mwapi:prop \"extracts\" .
+      bd:serviceParam mwapi:explaintext \"true\" .
+      bd:serviceParam mwapi:exchars \"50\" .
+      bd:serviceParam mwapi:exlimit \"1\" .
+      ?extract wikibase:apiOutput \"extract/text()\".
+    }
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+LIMIT 10""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

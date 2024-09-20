@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-78343cbe81e67d0d004fffab50eff4ea> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Oslo metro
+#defaultView:Map{\"hide\": [\"?rgb\", \"?coord1\",\"?line\"]}
+SELECT DISTINCT ?station1 ?station1Label ?coord1 ?nowiki ?rgb ?line
+WHERE {
+  ?class wdt:P279* wd:Q928830 .
+  ?station1 p:P31 ?st1inst_st;
+    wdt:P16 wd:Q24492;
+    wdt:P625 ?coord1.
+  ?st1inst_st ps:P31 ?class;
+    a wikibase:BestRank .
+  MINUS { ?st1inst_st pq:P582 [] . }
+  MINUS { ?station1 wdt:P576 [] . }
+  OPTIONAL { ?station1 wdt:P1192/wdt:P465 ?rgb_ . }
+  OPTIONAL {
+    ?station1 wdt:P197 ?station2.
+    ?station1 p:P625 [ ps:P625 []; psv:P625 [ wikibase:geoLongitude ?coord1lon; wikibase:geoLatitude ?coord1lat ] ] .
+    ?station2 p:P625 [ ps:P625 []; psv:P625 [ wikibase:geoLongitude ?coord2lon; wikibase:geoLatitude ?coord2lat ] ] .
+    BIND(CONCAT('LINESTRING (', STR(?coord1lon), ' ', STR(?coord1lat), ',', STR(?coord2lon), ' ', STR(?coord2lat), ')') AS ?str) .
+    BIND(STRDT(?str, geo:wktLiteral) AS ?line) .
+  }
+  OPTIONAL {
+    ?nowiki schema:about ?station1 ;
+      schema:isPartOf <https://no.wikipedia.org/> .
+  }
+  BIND (COALESCE(?rgb_, \"000000\") AS ?rgb)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"nb,en\" . }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infrastruktur/Sandbox2>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,48 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-79675b25910cdd1b77755d84a37cdfbc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Songs with all info
+SELECT ?song 
+(GROUP_CONCAT(DISTINCT(?songName); separator=\" / \") as ?names)
+?songLabel ?songDescription
+(GROUP_CONCAT(DISTINCT(?countryLabel); separator=\" + \") as ?countries)
+(GROUP_CONCAT(DISTINCT(?langLabel); separator=\" + \") as ?langs)
+# ?performer ?performerLabel # several lines if several performers of the song
+#or use this line for combined label:
+(GROUP_CONCAT(DISTINCT(?performerLabel); separator=\" + \") as ?performers)
+(GROUP_CONCAT(DISTINCT(?composerLabel); separator=\"; \") as ?composers)
+(GROUP_CONCAT(DISTINCT(?poetLabel); separator=\"; \") as ?poets) 
+(GROUP_CONCAT(DISTINCT(?genreLabel); separator=\", \") as ?genres) 
+?pub ?creat ?length
+WHERE
+{
+  SELECT ?song ?songName ?songLabel ?songDescription ?countryLabel ?langLabel ?performer ?performerLabel ?composerLabel ?poetLabel ?genreLabel ?pub ?creat ?length WHERE {
+  ?euro wdt:P179 wd:Q276; wdt:P585 ?time. FILTER (YEAR(?time)=2024).
+  VALUES ?format {wd:Q7366 wd:Q134556 wd:Q105543609}
+  ?song wdt:P31 ?format.
+  ?song wdt:P1344 ?euro.
+  OPTIONAL {?song wdt:P1476 ?songName.}
+  OPTIONAL {?song wdt:P175 ?performer.}
+  OPTIONAL {?song wdt:P495 ?country.}
+  OPTIONAL {?song wdt:P407 ?lang.}
+  OPTIONAL {?song wdt:P86 ?composer.}
+  OPTIONAL {?song wdt:P676 ?poet.}
+  OPTIONAL {?song wdt:P136 ?genre.}
+  OPTIONAL {?song wdt:P577 ?pub.}
+  OPTIONAL {?song wdt:P571 ?creat.}
+  OPTIONAL {?song wdt:P2047 ?length.}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  }
+ }
+GROUP BY ?song ?songLabel ?songDescription ?pub ?creat ?length
+ORDER BY ?names""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Eurovision>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

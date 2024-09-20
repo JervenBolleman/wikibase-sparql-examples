@@ -1,0 +1,72 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7febc4a826b2383b488008ecaad3e0fb> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?player ?playerLabel ?Wikipedia ?sitelink ?country_code
+                ?en_sitelink ?de_sitelink ?es_sitelink ?it_sitelink ?fr_sitelink ?ru_sitelink ?ja_sitelink
+WHERE {
+  VALUES ?ATP_player_ID { \"AC58\" }
+  VALUES ?Wikipedia_code { \"de\" }   # Code for Wikipedia version
+
+  # Find the player
+  ?player wdt:P536 ?ATP_player_ID.
+
+  # Find the Wikipedia, its language(s), and sitelink for the Wikipedia
+  BIND (URI(CONCAT(\"https://\", ?Wikipedia_code, \".wikipedia.org/\")) AS ?Wikipedia)
+  OPTIONAL {
+    ?sitelink schema:about ?player.
+    ?sitelink schema:isPartOf ?Wikipedia.
+  }
+
+  # Find player's label in the language(s)
+  OPTIONAL {
+    VALUES ?language_code { \"de\" }    # Language code for player label
+    ?player rdfs:label ?playerLabel.
+    FILTER (LANG(?playerLabel) = ?language_code)
+  }
+
+  # Find the country/ies and country code(s)
+  OPTIONAL { ?player wdt:P1532 ?represents. }
+  ?player wdt:P27 ?citizenship.
+  BIND (COALESCE(?represents, ?citizenship) AS ?country)
+  ?country wdt:P298 ?country_code.
+  
+  # Sitelinks to selected Wikipedias
+  OPTIONAL {
+    ?en_sitelink schema:about ?player.
+    ?en_sitelink schema:isPartOf <https://en.wikipedia.org/>.
+  }
+  OPTIONAL {
+    ?de_sitelink schema:about ?player.
+    ?de_sitelink schema:isPartOf <https://de.wikipedia.org/>.
+  }
+  OPTIONAL {
+    ?es_sitelink schema:about ?player.
+    ?es_sitelink schema:isPartOf <https://es.wikipedia.org/>.
+  }
+  OPTIONAL {
+    ?it_sitelink schema:about ?player.
+    ?it_sitelink schema:isPartOf <https://it.wikipedia.org/>.
+  }
+  OPTIONAL {
+    ?fr_sitelink schema:about ?player.
+    ?fr_sitelink schema:isPartOf <https://fr.wikipedia.org/>.
+  }
+  OPTIONAL {
+    ?ru_sitelink schema:about ?player.
+    ?ru_sitelink schema:isPartOf <https://ru.wikipedia.org/>.
+  }
+  OPTIONAL {
+    ?ja_sitelink schema:about ?player.
+    ?ja_sitelink schema:isPartOf <https://ja.wikipedia.org/>.
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

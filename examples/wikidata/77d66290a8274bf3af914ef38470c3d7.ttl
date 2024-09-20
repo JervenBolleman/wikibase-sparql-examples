@@ -1,0 +1,50 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-77d66290a8274bf3af914ef38470c3d7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:ScatterChart
+SELECT DISTINCT ?locCounty ?locCountyLabel ?rgb
+?deadBand  (CONCAT(STR(YEAR(?rulest)),\" \", ?deadBandLab) AS ?deadBandLabel)  
+(COUNT(?accperLabel) AS ?count) 
+WHERE {
+  
+  ## Inner query for basic case/person data
+  {
+SELECT DISTINCT ?accper ?accperLabel ?accused ?causeDied ?accwhen ?accstart ?dateDied ?placeDiedQ ?res ?locator ?locCounty ?locCountyLabel ?deadBand ?deadBandLab ?rulest ?rgb WHERE 
+                        {
+  { ?accper wdt:P4478 ?accused.}
+  ?accper rdfs:label ?accperLabel. FILTER((LANG(?accperLabel)) = \"en\").
+  ##temp filter down to only Youngs
+  ##  FILTER (CONTAINS(?accperLabel, \"Young\")).
+  ##
+  #OPTIONAL { ?accper wdt:P509 ?causeDiedQ. ?causeDiedQ rdfs:label ?causeDied. FILTER((LANG(?causeDied)) = \"en\"). }  
+  ### Date ###
+  OPTIONAL {?accper wdt:P570 ?dateDied }.
+  OPTIONAL {?accper p:P793 / pq:P585 ?accdate. BIND (?accdate AS ?dateDied).}.
+  OPTIONAL {?accper p:P793 / pq:P580 ?accdate2. BIND (?accdate2 AS ?dateDied).}.
+  #FILTER (BOUND(?dateDied1)). ##Optional filter for known death (though some died during so process never concluded)
+  ### Location ###
+  OPTIONAL {?accper wdt:P20 ?placeDiedQ. } 
+  OPTIONAL {?accper wdt:P551 ?res}.
+  BIND(COALESCE(?res, ?placeDiedQ, wd:Q22) AS ?locator).
+  OPTIONAL {?locator wdt:P7959 ?locCounty. ?locCounty wdt:P625 ?loc. ?locCounty rdfs:label ?locCountyLabel. FILTER((LANG(?locCountyLabel)) = \"en\").}
+  ##Time period
+  ?ruler wdt:P17 wd:Q230791.
+  ?ruler p:P35 ?ruleper. ?ruleper ps:P35 ?deadBand. ?ruleper pq:P580 ?rulest. ?ruleper pq:P582 ?rulestop. FILTER (?dateDied > ?rulest && ?dateDied < ?rulestop ).
+  ?deadBand rdfs:label ?deadBandLab. FILTER((LANG(?deadBandLab)) = \"en\").
+  ## Add colour when generating Graph only
+  ## BIND(\"3CB0FD\" AS ?rgb).
+} LIMIT 6000
+        }
+
+}
+ GROUP BY ?locCounty ?locCountyLabel ?rgb ?deadBand  ?rulest ?deadBandLab ?accperLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:AllyD/sandbox>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,42 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-75635f2aa8f22216d33412bc8ffa0795> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q9035> 
+
+SELECT 
+  ?lexemes
+
+  ?author ?authorLabel
+  (CONCAT(\"#author/\", SUBSTR(STR(?author), 32)) AS ?authorUrl)
+  ?authorDescription
+
+  ?example_lexeme
+  (SUBSTR(STR(?example_lexeme), 32) AS ?example_lexemeLabel)
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)
+WITH {
+  SELECT 
+    (COUNT(?lexeme) AS ?lexemes)
+    ?author
+    (SAMPLE(?lexeme) AS ?example_lexeme)
+  WHERE {
+    ?lexeme wdt:P1343 ?descriptor ;
+            dct:language target: .
+    ?descriptor wdt:P50 ?author
+  }
+  GROUP BY ?author
+} AS %descriptors
+WHERE{
+  INCLUDE %descriptors
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?lexemes)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:language-lexemedescriptor-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-70989eaff55e43adf7d9510fa8377320> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q1084>
+
+SELECT
+  ?lexeme (?lemma AS ?lexemeLabel)
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?lexeme), 32)) AS ?lexemeUrl)
+
+  ?lexical_category ?lexical_categoryLabel
+  (CONCAT(\"#lexicalcategory/\", SUBSTR(STR(?lexical_category), 32)) AS ?lexical_categoryUrl)
+  # ?lexical_categoryDescription
+
+  (?lexeme AS ?wikidata)
+  (CONCAT(SUBSTR(STR(?lexeme), 32), \"&nbsp;↗\") AS ?wikidataLabel)
+  (CONCAT(\"https://www.wikidata.org/wiki/Lexeme:\", SUBSTR(STR(?lexeme), 32)) AS ?wikidataUrl)
+
+  (?lexeme AS ?ordia)
+  (\"Ordia&nbsp;↗\" AS ?ordiaLabel)
+  (CONCAT(\"https://ordia.toolforge.org/\", SUBSTR(STR(?lexeme), 32)) AS ?ordiaUrl)
+
+WHERE {
+  BIND(target: AS ?lexical_category)
+  ?lexeme wikibase:lexicalCategory target: ;
+          wikibase:lemma ?lemma ;
+          rdf:type wdno:P10831 . 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:lexicalcategory-cor-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

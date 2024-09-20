@@ -1,0 +1,64 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7b995747ffd6900baa6f9808e1dbbc4c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# graph of parent-child and legitimate shifu-disciple relations among xiangsheng performers by single-headed arrows 
+# also viewable as table
+# querying qualifiers
+### Note: In comparison with the parent section \"Graph of shifus and parents among xiangsheng performers: the use of UNION\",
+### this query, by using FILTER NOT EXISTS, gets shifu-disciple relations only in the \"legitimate\" family tree of xiangsheng performers,
+### so that generations are not messed up (by He Yunwei).
+#defaultView:Graph
+SELECT DISTINCT ?xiangsheng_performer ?xiangsheng_performerLabel ?birthdate ?image ?shifu_or_parent ?shifu_or_parentLabel ?edgeLabel
+WHERE {
+  # define ?xiangsheng_performer as one that has teacher (P1066) or student (P802) in the shifu-disciple relationship of xiangsheng performers (Q10436443)
+  # 1. ?xiangsheng_performer's \"teacher\" (P1066) or \"student\" (P802) statement is ?x1
+  ?xiangsheng_performer (p:P1066|p:P802) ?x1.
+  # 2. ?x1's qualifier \"criterion used\" (P1013) is shifu-disciple relationship of xiangsheng performers (Q10436443)
+  ?x1 pq:P1013 wd:Q10436443
+  # optional: show ?shifu_or_parent, which has teacher (P1066) or student (P802) in the shifu-disciple relationship of xiangsheng performers (Q10436443), same as ?xiangsheng_performer
+  # 1. ?shifu_or_parent's \"teacher\" (P1066) or \"student\" (P802) statement is ?x2
+  OPTIONAL { ?shifu_or_parent (p:P1066|p:P802) ?x2.
+             # 2. ?x2's qualifier \"criterion used\" (P1013) is shifu-disciple relationship of xiangsheng performers (Q10436443)
+             ?x2 pq:P1013 wd:Q10436443
+             # ?shifu_or_parent is ?xiangsheng_performer's teacher (P1066) in the shifu-disciple relationship of xiangsheng performers (Q10436443)
+             # 1. ?xiangsheng_performer's \"teacher\" (P1066) statement is ?x3
+             { ?xiangsheng_performer p:P1066 ?x3.
+               # 2. ?x3's value is ?shifu_or_parent
+               ?x3 ps:P1066 ?shifu_or_parent;
+               # 3. ?x3's qualifier \"criterion used\" (P1013) is shifu-disciple relationship of xiangsheng performers (Q10436443)
+                   pq:P1013 wd:Q10436443
+               # ?x3 should not have a qualifier \"end cause\" (P1534) with the value \"expulsion\" (Q873222)
+               ### Note: 1. FILTER NOT EXISTS (replaceable by MINUS in this query) is used to remove those shifu-disciple relations that ended up in expulsion,
+               ### so that this query only gets those in the \"legitimate\" family tree of xiangsheng performers.
+               ### 2. FILTER (\"values of ?x3's qualifier P1534\" != Q873222) is inapplicable here
+               ### because it removes not only those shifu-disciple relations that ended up in expulsion,
+               ### but also those that do not have the qualifier \"end cause\".
+               FILTER NOT EXISTS {?x3 pq:P1534 wd:Q873222}
+             }
+             # OR ?shifu_or_parent is ?xiangsheng_performer's father (P22) or mother (P25)
+             UNION {?xiangsheng_performer (wdt:P22|wdt:P25) ?shifu_or_parent}
+             # to avoid showing any other relation,
+             # define ?relation as teacher (P1066) or father (P22) or mother (P25)
+             VALUES ?relation {wdt:P1066 wdt:P22 wdt:P25}
+             # ?relation is from ?xiangsheng_performer to ?shifu_or_parent
+             ?xiangsheng_performer ?relation ?shifu_or_parent.
+             # get ?relation's property label and allow it to appear on graph edge
+             ?edge wikibase:directClaim ?relation;
+                 a wikibase:Property}
+  # optional: show ?xiangsheng_performer's birthdate (P569), which only appears in table, not graph
+  OPTIONAL {?xiangsheng_performer wdt:P569 ?birthdate}
+  # optional: show ?xiangsheng_performer's image (P18), which appears directly in graph, and as link in table
+  OPTIONAL {?xiangsheng_performer wdt:P18 ?image}
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,51 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-796636e65b8c7c8e1e455d11cfd2774b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: WGTN People
+SELECT DISTINCT ?academic ?academicLabel ?academicDescription ?academicAltLabel ?scholia ?lccnurl ?viafurl ?orcidurl  ?dob ?dod ?genderLabel ?ethnicLabel ?tribeLabel WHERE {
+   #  wd:Q1150437  == Victoria University of Wellington
+   #  wd:Q42417045 == Wellington College of Education
+   #  wd:Q17067645 == THW Press
+  
+   ## section where we express who we are interested in
+   ?academic wdt:P31 wd:Q5 . # academic is a person
+   {
+      ?academic wdt:P69 ?inst # employed
+      VALUES ?inst { wd:Q1150437  wd:Q42417045 } .
+   } UNION {
+      ?academic wdt:P108 ?inst # educated 
+      VALUES ?inst { wd:Q1150437  wd:Q42417045 } .
+   } UNION {
+      ?thesis wdt:P4101 wd:Q1150437 . # thesis submitted to Victoria University of Wellington
+      ?thesis wdt:P50 ?academic .  # author of
+   } UNION {
+      ?book wdt:P123 wd:Q17067645 . # book published by THW Press
+      ?book wdt:P50 ?academic . 
+   }
+  
+   ## section where we express what we want to know about them
+   
+   OPTIONAL { ?academic wdt:P21 ?gender . } .   
+   OPTIONAL { ?academic wdt:P172 ?ethnic . } .  
+   OPTIONAL { ?academic wdt:P12011 ?tribe . } .   
+
+   OPTIONAL { ?academic wdt:P569 ?dob . } .   
+   OPTIONAL { ?academic wdt:P570 ?dod . } .   
+
+   BIND( URI(CONCAT('https://scholia.toolforge.org/author/', STRAFTER(STR(?academic), \"/entity/\")))  AS ?scholia ) .
+   OPTIONAL { ?academic wdt:P244 ?lccn .  BIND( IRI(CONCAT('https://lccn.loc.gov/', STR(?lccn)))  AS ?lccnurl ) .   } . 
+   OPTIONAL { ?academic wdt:P214 ?viaf .  BIND( IRI(CONCAT('https://viaf.org/viaf/', STR(?viaf)))  AS ?viafurl ) . } . 
+   OPTIONAL { ?academic wdt:P496 ?orcid .  BIND( IRI(CONCAT('https://orcid.org/', STR(?orcid)))  AS ?orcidurl ) . } . 
+  
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stuartyeates/scratch>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

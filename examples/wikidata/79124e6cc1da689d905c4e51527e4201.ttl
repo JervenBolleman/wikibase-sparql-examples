@@ -1,0 +1,90 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-79124e6cc1da689d905c4e51527e4201> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# scatter chart of 108 Generals in Water Margin death chapters
+# classified by part (36/72 Stars, etc.) or narrative role or manner/cause/place/date of death
+# also viewable as table
+#defaultView:ScatterChart
+# ?death_chapter_number (1st non-item variable) as X-axis; ?108_name (2nd non-item variable) as Y-axis
+# ?partLabel (3rd non-item variable, replaceable by ?narrative_roleLabel) as color group
+SELECT DISTINCT ?death_chapter ?death_chapter_number ?108_name ?108 ?partLabel ?narrative_roleLabel ?death_mannerLabel ?death_causeLabel ?death_placeLabel ?death_dateLabel
+WHERE {
+  # ?108 is instance of (P31) \"subclass of (P279)\" [ZeroOrMorePath (*)] fictional character (Q95074)
+  ?108 wdt:P31/wdt:P279* wd:Q95074;
+             # and [InversePath (^)] has part (P527) [OneOrMorePath (+)] 108 Generals (Q905173)
+             ^wdt:P527+ wd:Q905173.
+  # ?death_chapter is instance of (P31) chapter (Q1980247)
+  ?death_chapter wdt:P31 wd:Q1980247;
+                 # and is part of (P361) [OneOrMorePath (+)] Water Margin's 120-chapter edition (Q70761009)
+                 wdt:P361+ wd:Q70761009;
+                 # ?death_chapter's \"characters\" (P674) statement is ?character
+                 p:P674 ?character.
+  # ?character's value is ?108
+  ?character ps:P674 ?108;
+             # ?character's qualifier \"significant event\" (P793) is \"death\" (Q4)
+             pq:P793 wd:Q4
+  # optional: ?death_chapter's chapter (P792) is ?death_number
+  OPTIONAL {?death_chapter wdt:P792 ?death_number}
+  # use IF to bind ?death_number's 3-character form as ?death_chapter_number:
+  # if ?death_number has 1 character, concatenate \"00\" and it;
+  BIND(IF(STRLEN(?death_number)=1, CONCAT(\"00\", ?death_number),
+       # if ?death_number has 2 characters, concatenate \"0\" and it;
+       IF(STRLEN(?death_number)=2, CONCAT(\"0\", ?death_number),
+       # otherwise (?death_number has 3 characters), don't change it
+       ?death_number)) AS ?death_chapter_number)
+  # optional: ?ordinal108 is defined as follows:
+  # 36 Tiangang (Q16830698)'s \"has part\" (P527) statement is ?36
+  OPTIONAL { {wd:Q16830698 p:P527 ?36.
+              # ?36's value is ?108
+              ?36 ps:P527 ?108;
+                  # ?36's qualifier \"series ordinal\" (P1545) is ?ordinal36
+                  ### Note: Ranking (P1352), whose data type is quantity, not string as P1545,
+                  ### cannot be used to generate ?ordinal108.
+                  pq:P1545 ?ordinal36
+              # use IF to bind ?ordinal36's 3-character form as ?ordinal108:
+              # if ?ordinal36 has 1 character, concatenate \"10\" and it;
+              BIND(IF(STRLEN(?ordinal36)=1, CONCAT(\"10\", ?ordinal36),
+                   # otherwise (?ordinal36 has 2 characters), concatenate \"1\" and it
+                   CONCAT(\"1\", ?ordinal36)) AS ?ordinal108) }
+             # OR ?ordinal108 is defined as follows:
+             # 72 Disha (Q16830671)'s \"has part\" (P527) statement is ?72
+             UNION {wd:Q16830671 p:P527 ?72.
+                    # ?72's value is ?108
+                    ?72 ps:P527 ?108;
+                        # ?72's qualifier \"series ordinal\" (P1545) is ?ordinal72
+                        pq:P1545 ?ordinal72
+                    # use IF to bind ?ordinal72's 3-character form as ?ordinal108:
+                    # if ?ordinal72 has 1 character, concatenate \"20\" and it;
+                    BIND(IF(STRLEN(?ordinal72)=1, CONCAT(\"20\", ?ordinal72),
+                         # otherwise (?ordinal72 has 2 characters), concatenate \"2\" and it
+                         CONCAT(\"2\", ?ordinal72)) AS ?ordinal108) }
+            }
+  # optional: ?108's name in native language (P1559) is ?native_name
+  OPTIONAL {?108 wdt:P1559 ?native_name}
+  # bind concatenation of ?ordinal108 and ?native_name as ?108_name
+  BIND(CONCAT(?ordinal108, ?native_name) AS ?108_name)
+  # optional: show ?108's \"member of (P463) or part of (P361)\" [OneOrMorePath (+)] as ?part
+  OPTIONAL {?108 (wdt:P463|wdt:P361)+ ?part}
+  # optional: show ?character's qualifier \"narrative role\" (P5800) as ?narrative_role
+  OPTIONAL {?character pq:P5800 ?narrative_role}
+  # optional: show ?108's manner of death (P1196) as ?death_manner
+  OPTIONAL {?108 wdt:P1196 ?death_manner}
+  # optional: show ?108's cause of death (P509) as ?death_cause
+  OPTIONAL {?108 wdt:P509 ?death_cause}
+  # optional: show ?108's place of death (P20) as ?death_place
+  OPTIONAL {?108 wdt:P20 ?death_place}
+  # optional: show ?108's date of death (P570) as ?death_date
+  OPTIONAL {?108 wdt:P570 ?death_date}
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

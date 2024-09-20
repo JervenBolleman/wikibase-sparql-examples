@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7e6738ccbecda6d527630e22b449844b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:ImageGrid
+select distinct 
+  ?movie ?movieLabel (min(year(?pubdate)) as ?year) (min(?duration) as ?durationTime) ?imdb (sample(?video) as ?videoFile) where {
+    
+  ?movie wdt:P10 ?video;      
+         wdt:P2047 ?duration; 
+         wdt:P345 ?imdb.      
+  
+  optional { ?movie wdt:P577 ?pubdate. }
+  
+  # Filter out trailers
+  minus { ?movie p:P10 [pq:P3831 wd:Q622550] }
+  
+  # For the Academy Awards a movie should at least be 40 minutes
+  filter (?duration > 39). 
+  
+  service wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} group by ?movie ?movieLabel ?year ?duration ?imdb ?video order by ?movieLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

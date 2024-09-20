@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7b4407c50504c32dff5636e5b06ac692> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#afficher le nombre d'éléments disposant de la propriété \"archivé par\" (P485) par institution française
+#afficher le lieu où est située l'institution.
+#classer les institution par ordre de nombre d'éléments décroissant.
+SELECT ?institution ?institutionLabel (GROUP_CONCAT(DISTINCT(?lieuLabel); separator=\", \") as ?lieuxLabel) (COUNT(?item) AS ?total) 
+WHERE 
+{
+  ?item wdt:P485 ?institution . #les éléments doivent disposé de la propriété \"archivé par\" qui renvoie à une institution.
+  ?institution wdt:P17 wd:Q142; #l'institution doit être localisée en France
+               wdt:P131 ?lieu. #localisation administrative de l'institution
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,en\". 
+                          ?institution rdfs:label ?institutionLabel.
+                          ?lieu rdfs:label ?LieuLabel.}
+}
+GROUP BY ?institution ?institutionLabel ?lieuxLabel
+ORDER BY DESC (?total)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

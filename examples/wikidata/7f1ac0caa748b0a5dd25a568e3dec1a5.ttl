@@ -1,0 +1,80 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7f1ac0caa748b0a5dd25a568e3dec1a5> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q56241615>
+
+SELECT
+  # Number of works with the author
+  ?count
+
+  # Author score - 3 points for authoring a work, 1 for being cited
+  ?score
+
+  # Author as a string
+  ?author
+
+  # Build URL to the Author disambiguator tool
+  (URI(CONCAT(
+      'https://author-disambiguator.toolforge.org/names_oauth.php?doit=Look+for+author&name=',
+      ENCODE_FOR_URI(?author))) AS ?resolver_url)
+WITH {
+  SELECT DISTINCT ?work WHERE {
+    ?work wdt:P6104 target: ;
+          wdt:P356 ?doi .
+  }
+  LIMIT 1000
+} AS %works
+WITH {
+  SELECT
+    (COUNT(?work) AS ?count)
+    ?author
+  WHERE {
+    INCLUDE %works
+    ?work wdt:P2093 ?author .
+  }
+  GROUP BY ?author
+} AS %result
+
+# Generate a score for each author
+WITH {
+  SELECT (SUM(?score_) AS ?score) ?author
+  WHERE {
+    {
+      # Assign them 3 points if they are an author of a work on the subject
+      SELECT (3 AS ?score_) ?author ?work WHERE {
+        ?work wdt:P2093 ?author .
+        ?work wdt:P6104 target: .
+      }
+    }
+    UNION
+    {
+      # Assign them 1 point if they are the author of a work that is cited by a work on the subject
+      SELECT (1 AS ?score_) ?author ?work WHERE {
+        ?work wdt:P2093 ?author .
+        ?citing_work wdt:P2860 ?work .
+        ?citing_work wdt:P6104 target: .
+      }
+    }
+  }
+  GROUP BY ?author
+} AS %scores
+
+WHERE {
+  INCLUDE %result
+  INCLUDE %scores
+
+  # Label the result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
+ORDER BY DESC(?count) DESC(?score)
+LIMIT 200""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7e4888716a2597b374a0285703323237> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#humain né-e ou mort-e dans la Canton de Vaud 
+SELECT ?humain ?humainLabel ?lieuNaissanceLabel ?lieuMortLabel ?occ
+WITH { SELECT ?humain (group_concat(?occupLabel;separator=\", \") as ?occ) WHERE 
+{
+  ?humain wdt:P31 wd:Q5.
+  optional {?humain wdt:P106 ?occup.
+  ?occup rdfs:label ?occupLabel. filter(lang(?occupLabel)=\"fr\")}
+  {?humain wdt:P19 ?lieuNaissance.
+  ?lieuNaissance wdt:P131 wd:Q12771.}
+  UNION
+  {?humain wdt:P20 ?lieuMort.
+  ?lieuMort wdt:P131 wd:Q12771.}
+  } group by ?humain  } as %i
+WHERE {include %i
+  OPTIONAL {?humain wdt:P19 ?lieuNaissance.}
+  OPTIONAL {?humain wdt:P20 ?lieuMort.}     
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr\". }
+} ORDER BY ?humainLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

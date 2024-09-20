@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-730fbb9e704319d5fa5140cfc7c78330> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?publication_date ?imdb_code (GROUP_CONCAT(?directorLabel;separator=\"; \") AS ?directors) WHERE {
+
+ SERVICE wikibase:mwapi
+ {
+   bd:serviceParam wikibase:api \"Search\" .
+   bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+   bd:serviceParam mwapi:srnamespace \"0\" .
+   bd:serviceParam mwapi:srsearch \"haswbstatement:P31=Q11424 -haswbstatement:P360 inlabel:'Titanic'@en\" .
+   ?item wikibase:apiOutputItem mwapi:title.
+   #?ddp wikibase:apiOutputItem mwapi:publication_date.  #it doesent't work like that obv
+ }
+  OPTIONAL {?item wdt:P577 ?publication_date . }
+  OPTIONAL {?item wdt:P345 ?imdb_code .}
+  OPTIONAL {?item wdt:P57 ?director .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,it,es,de,fr,hu,ro\" . 
+                            ?item rdfs:label ?itemLabel .
+                            ?director rdfs:label ?directorLabel .} 
+} group by ?item ?itemLabel ?publication_date ?imdb_code""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

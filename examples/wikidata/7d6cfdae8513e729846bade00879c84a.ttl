@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7d6cfdae8513e729846bade00879c84a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select distinct ?item ?itemLabel {
+  ?a ?p1 wd:Q1631944.
+  
+  # ignore sitelinks
+  minus { ?a schema:about wd:Q1631944 }
+
+  # if ?a is a statement node (has a rank), ?p1 is a predicate like ps: or pq:
+  # so select triples which use the statement node as a value (?p2 is a p: predicate)
+  optional {
+    ?a wikibase:rank [].
+    ?b ?p2 ?a.
+  }
+
+  # if ?a is a reference node, a statement node links to it using prov:wasDerivedFrom
+  # again, select triples which use the statement node as a value
+  optional {
+    ?c ?p3 [ prov:wasDerivedFrom ?a ].
+  }
+
+  # assign ?item to the first assigned value out of ?b (ps:/pq:), ?c (pr:) and ?a (wdt: and any cases not caught by the previous two)
+  bind (coalesce(?b, ?c, ?a) as ?item)
+
+  service wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} order by ?itemLabel ?item""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Olea/Ejemplos_de_consultas_WDQS>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

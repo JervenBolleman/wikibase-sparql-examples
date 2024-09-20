@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7c3ecfef88d1e148711b6d9acd781eea> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:AreaChart
+SELECT
+  ?month 
+  # (COUNT(DISTINCT ?m) as ?count_m)
+  # (COUNT(DISTINCT ?f) as ?count_f)  (COUNT(DISTINCT ?item) as ?count_all)
+  ( ROUND( COUNT(DISTINCT ?f) / COUNT(DISTINCT ?item) * 100) as ?pc_f) 
+WITH
+{
+   SELECT DISTINCT ?month { [] wdt:P31 wd:Q47018478 ; wdt:P585 ?month . 
+                           FILTER( YEAR(?month) > 1980 && YEAR(?month) < 2000 )  }
+} as %months
+WHERE
+{
+  INCLUDE %months
+  hint:Query hint:optimizer \"None\".
+  ?pos ps:P39 wd:Q10655178 ; pq:P580 ?start .
+  OPTIONAL { ?pos pq:P582 ?end0 }
+  BIND( COALESCE( ?end0, NOW() ) as ?end) 
+  FILTER( ?month >= ?start && ?month <= ?end ) 
+  ?item p:P39 ?pos .
+  OPTIONAL { ?item wdt:P21 wd:Q6581072 . BIND(?item as ?f) }
+  # OPTIONAL { ?item wdt:P21 wd:Q6581097 . BIND(?item as ?m) }  
+}
+GROUP BY ?month 
+ORDER BY ?month""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

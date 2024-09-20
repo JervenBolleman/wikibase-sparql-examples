@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-791c55642120c10571b499d81fec759a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# try to determine the license of an image
+SELECT ?item ?image ?categoryName WHERE {
+  BIND(wd:Q9188 AS ?item) # example
+  ?item wdt:P18 ?image.
+  BIND(REPLACE(wikibase:decodeUri(CONCAT(\"File:\", STRAFTER(STR(?image), \"/wiki/Special:FilePath/\"))), \" \", \"_\") AS ?imageTitle)
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Categories\";
+                    wikibase:endpoint \"commons.wikimedia.org\";
+                    mwapi:titles ?imageTitle.
+    ?categoryTitle wikibase:apiOutput mwapi:category.
+  }
+  BIND(STRAFTER(?categoryTitle, \"Category:\") AS ?categoryName)
+  FILTER(STRSTARTS(?categoryName, \"CC-\") || REGEX(?categoryName, \"^PD[- ]\"))
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Template_talk:Query_page/sandbox_2>,
+    <https://www.wikidata.org//wiki/Template:Query_page/sandbox_2>, <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/image_license_without_Structured_Commons>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

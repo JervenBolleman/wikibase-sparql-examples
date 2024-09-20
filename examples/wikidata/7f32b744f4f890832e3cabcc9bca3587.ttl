@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7f32b744f4f890832e3cabcc9bca3587> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?station ?stationLabel ?subwayLine ?line_number ?layer ?towards ?towardsLabel WHERE {
+  VALUES ?search {
+    wd:Q16950  
+#critère de recherche de système de métro
+  } 
+      ?search wdt:P527 ?lignes.#quelles sont les lignes de ce métro
+      ?lignes wdt:P559 ?termini.#quels sont les terminus de ce métro
+  ?station wdt:P31/wdt:P279* wd:Q928830;  #station de métro
+           wdt:P361|wdt:P16 ?search;#qui font partie du réseau recherché
+    wdt:P81|wdt:P1192 ?subwayLine;
+    wdt:P197 ?pred.
+  ?pred wdt:P625 ?coords_pred;
+    wdt:P81|wdt:P1192 ?subwayLine_pred.
+  ?station p:P197 _:b1.
+  _:b1 ps:P197 ?pred ;
+    pq:P5051 ?towards;
+    pq:P81|pq:P1192 ?line_pq.  optional{?subwayLine wdt:P1671 ?line_number.}
+  FILTER(?subwayLine_pred = ?lignes)#on ne prend les LIGNES que si la correspondance est sur la même ligne
+  FILTER(?subwayLine = ?lignes)
+  FILTER(?towards = ?termini ) 
+  MINUS { ?station (wdt:P576|wdt:P582|wdt:P3999) ?dispar. }#on ne veut pas les stations disparues
+  MINUS {
+    ?station wdt:P5817|wdt:P5816 ?interdit.
+    VALUES ?interdit {    wd:Q811683    wd:Q63065035    wd:Q12377751   wd:Q97317113   wd:Q55653430   wd:Q30108381   wd:Q55570340   wd:Q11639308 wd:Q104664889
+    }
+  }#on ne veut pas les cas particuliers, en construction etc
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr\" .
+    ?subwayLine rdfs:label ?layer.
+    ?pred rdfs:label ?predLabel . ?towards rdfs:label ?towardsLabel.
+    ?station rdfs:label ?stationLabel .
+  } } GROUP BY ?station ?stationLabel  ?subwayLine ?rgb ?predLabel ?layer  ?towards ?line_number ?towardsLabel order by asc( ?line_number ) ?subwayLine""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Bouzinac/Trains>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

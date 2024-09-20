@@ -1,0 +1,70 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7b03a56fbbfa8f9786fbe73260494d4e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Kategorie Person(München)
+SELECT DISTINCT ?page_title ?article ?item ?statements (GROUP_CONCAT(DISTINCT ?klasse;separator=\", \") as ?art) ?geboren_in ?jahr ?gestorben_in (GROUP_CONCAT(DISTINCT ?wirkortLabel;separator=\", \") as ?tätig_in) (GROUP_CONCAT(DISTINCT ?beruf;separator=\", \") as ?tätig_als) WHERE {
+   BIND ( wd:Q6139241 AS ?category)
+  ?link schema:about ?category; schema:isPartOf <https://de.wikipedia.org/>; schema:name ?kategorie .
+  SERVICE wikibase:mwapi {
+	 bd:serviceParam wikibase:api \"Generator\" .
+     bd:serviceParam wikibase:endpoint \"de.wikipedia.org\" .
+     bd:serviceParam mwapi:gcmtitle ?kategorie .
+     bd:serviceParam mwapi:generator \"categorymembers\" .
+     bd:serviceParam mwapi:gcmprop \"ids%7Ctitle%7Ctype\" .
+     bd:serviceParam mwapi:gcmlimit \"max\" .
+    # out
+    ?member wikibase:apiOutput mwapi:title  .
+    ?ns wikibase:apiOutput \"@ns\" .
+    ?item wikibase:apiOutputItem mwapi:item .
+  }
+  FILTER(BOUND(?item) && ?ns = \"0\")
+  ?item wikibase:statements ?statements.
+  OPTIONAL {   ?article schema:about ?item;
+      schema:isPartOf <https://de.wikipedia.org/>;
+      schema:name ?page_title.
+            }  
+    OPTIONAL {
+    ?item wdt:P19 ?geburtsort.
+    }
+    OPTIONAL {
+    ?item wdt:P569 ?geboren_am.
+    }
+  OPTIONAL {
+    ?item wdt:P20 ?sterbeort.
+    }
+  OPTIONAL {
+    ?item wdt:P937 ?wirkort.
+    }
+  OPTIONAL {
+    ?item wdt:P21 ?gender.
+    }
+  OPTIONAL {
+    ?item wdt:P106 ?occupation.
+    }  
+  OPTIONAL {
+    ?item wdt:P31 ?class.
+    }  
+  FILTER(BOUND(?class))
+  BIND(IF((?class = wd:Q5),?gender,?class) AS ?cl).
+  BIND(YEAR(?geboren_am) AS ?jahr)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+            ?geburtsort rdfs:label ?geboren_in .
+            ?sterbeort rdfs:label ?gestorben_in .
+            ?wirkort rdfs:label ?wirkortLabel .
+            ?gender rdfs:label ?geschlecht.
+            ?occupation rdfs:label ?beruf.
+            ?cl rdfs:label ?klasse.
+    }
+}
+group by ?page_title ?article ?item ?statements ?geboren_in ?jahr ?gestorben_in
+order by ?page_title""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:No39188/personenQueries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

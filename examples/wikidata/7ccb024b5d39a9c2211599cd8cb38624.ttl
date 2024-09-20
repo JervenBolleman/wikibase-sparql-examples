@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7ccb024b5d39a9c2211599cd8cb38624> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?p772 ?older ?olderLabel ?newer ?newerLabel {
+	VALUES ?p131 {wd:Q3908}
+    ?item1 wdt:P772 ?p772; wdt:P131* ?p131a .
+	?item2 wdt:P772 ?p772; wdt:P131* ?p131b .
+    FILTER(?p131a=?p131 || ?p131b=?p131)
+	FILTER(STR(?item1)<STR(?item2)) .
+    BIND(xsd:integer(STRAFTER(STR(?item1),'/Q')) AS ?q1)
+    BIND(xsd:integer(STRAFTER(STR(?item2),'/Q')) AS ?q2)
+    BIND(IF(?q1<?q2,?item1,?item2) AS ?older)
+    BIND(IF(?q1<?q2,?item2,?item1) AS ?newer)
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"es\" } .
+}
+ORDER BY ?p772""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

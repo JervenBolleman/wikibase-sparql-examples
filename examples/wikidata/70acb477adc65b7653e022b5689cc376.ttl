@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-70acb477adc65b7653e022b5689cc376> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Personnes décédées en 2018 classées par nombre de liens de sites
+select ?person ?personLabel ?died ?age ?sitelinks where {
+  ?person wdt:P31 wd:Q5;
+          wdt:P569 ?born;
+          wdt:P570 ?died.
+  
+  
+  BIND(?died - ?born AS ?ageInDays).
+  BIND(?ageInDays/365.2425 AS ?ageInYears).
+  BIND(FLOOR(?ageInYears) AS ?age).
+  
+  filter (?died >= \"2020-02-07T00:00:00Z\"^^xsd:dateTime && ?died < \"2020-03-07T00:00:00Z\"^^xsd:dateTime)
+  ?person wikibase:sitelinks ?sitelinks.
+  service wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}  order by desc(?sitelinks)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Kimdime>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

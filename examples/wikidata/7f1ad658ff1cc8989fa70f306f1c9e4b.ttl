@@ -1,0 +1,39 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7f1ad658ff1cc8989fa70f306f1c9e4b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Italia: number of comuni per province of the region Lombardia
+#defaultView:Table
+SELECT ?provincia ?provinciaLabel (COUNT(?comune) AS ?count)
+WHERE 
+{
+  ?provincia wdt:P131 wd:Q1210 .                 # Administrative divisions in Lombardia
+  
+  { ?provincia wdt:P31 wd:Q15089 . }             # List of provinces
+  UNION
+  { ?provincia wdt:P31 wd:Q15110 . }             # metropolitan cities of Italy
+  UNION
+  { ?provincia wdt:P31 wd:Q21190155 . }          # Liberi consorzi comunali of Sicily
+   
+  ?comune wdt:P131 ?provincia .                  # Administrative divisions in the province
+  {
+    ?comune wdt:P31 wd:Q747074 .                 # Italian municipality
+  }
+  UNION
+  {
+    ?comune wdt:P31 wd:Q954172 .                 # Italian sparse municipality
+  } 
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?provincia ?provinciaLabel
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Italy/Administrative_divisions>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

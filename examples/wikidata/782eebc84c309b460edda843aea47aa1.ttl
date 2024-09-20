@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-782eebc84c309b460edda843aea47aa1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?compound ?compoundLabel ?canonical_smiles (GROUP_CONCAT(CONCAT(?sourceLabel, IF(BOUND(?publicationDate), CONCAT(\", \", STR(?publicationDate)), \"\")); separator = \";\\n\") AS ?sources) WHERE  {
+  ?compound p:P233 ?statement.
+  ?statement ps:P233 ?canonical_smiles.
+  OPTIONAL {
+    ?statement prov:wasDerivedFrom/pr:P248 ?source.
+    OPTIONAL {
+      ?source wdt:P577 ?publicationDate.
+    }
+  }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\".
+    ?compound rdfs:label ?compoundLabel.
+    ?source rdfs:label ?sourceLabel.
+  }
+}
+GROUP BY ?compound ?compoundLabel ?canonical_smiles""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

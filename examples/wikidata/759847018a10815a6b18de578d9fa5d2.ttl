@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-759847018a10815a6b18de578d9fa5d2> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?property ?propertyLabel (GROUP_CONCAT(?alias; separator=\"; \") AS ?aliases) {
+  VALUES (?class) {(wd:Q5)}
+
+  ?property a wikibase:Property .
+  ?property p:P2302 [ ps:P2302 wd:Q21503250 ; 
+                      pq:P2309 wd:Q21503252 ; 
+                      pq:P2308 ?class ] .
+  
+  ?property a wikibase:Property ;
+              rdf:type wikibase:Property ;
+              wikibase:propertyType ?type ;
+              skos:altLabel ?alias .
+
+  FILTER(?type != wikibase:PropertyType && ?type != wikibase:ExternalId)
+  FILTER(LANG(?alias) = \"en\")
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }   
+}
+GROUP BY ?property ?propertyLabel
+ORDER BY ASC(xsd:integer(strafter(str(?property), concat(str(wd:), \"P\"))))""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

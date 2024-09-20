@@ -1,0 +1,46 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-70dd82aea20b1eb532b842076b414c35> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map{\"hide\": [ \"?geoLocation\", \"?layer\", \"?count\" ], \"markercluster\": true}
+select distinct ?count ?countryLabel ?country (concat(str(?count), ' folders') as ?folderCount) ?pm20Category ?geoLocation ?layer
+where {
+  # get countries, folder counts and one coordinate value
+  { 
+    select ?country (count(?item) as ?count) (sample(?coords) as ?geoLocation)
+    where {
+      ?item wdt:P31 wd:Q91257459 ;
+            wdt:P1269 ?country .
+      
+      # set default coordinates for items like \"world\"
+      bind(\"Point(-25 0)\"^^geo:wktLiteral as ?defaultCoords)
+      optional {
+        ?country wdt:P625 ?geoCoords .
+      }
+      bind(coalesce(?geoCoords, ?defaultCoords) as ?coords)
+    }
+    group by ?country
+  }
+  
+  # construct URI for country page access
+  ?country p:P8483 ?statement .
+  ?statement ps:P8483 ?geoCode ;
+             pq:P4390 wd:Q39893449 .
+  bind(uri(concat('https://pm20.zbw.eu/category/geo/s/', ?geoCode)) as ?pm20Category)
+  
+  # create map layer
+  bind(if(?count < 3, \"1 - 2 folders\",
+          if(?count < 51, \"3 - 50 folders\", \"more than 50 folders\")) as ?layer)
+                
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+order by ?layer""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_20th_Century_Press_Archives/Use_cases>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

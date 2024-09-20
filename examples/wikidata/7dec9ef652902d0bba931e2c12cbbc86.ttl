@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7dec9ef652902d0bba931e2c12cbbc86> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#ICD10 handling, case of \"oncology\". Output consists of items without \"medical specialty\" and indicated class 2, initial C, or D followed by 0, ..., 4.
+SELECT DISTINCT ?item ?itemLabel
+WHERE {
+ ?item wdt:P31 wd:Q12136 .
+  ?item wdt:P494 ?icd  .
+  OPTIONAL { ?item wdt:P1995 ?dummy0 }
+  FILTER(!bound(?dummy0))
+  BIND(SUBSTR(?icd,1,2) AS ?icd1)
+  FILTER REGEX(?icd1,'C|D')
+  BIND(SUBSTR(?icd,2,3) AS ?number)
+  BIND(CONCAT(\"1\",?number) AS ?number1)
+  BIND(xsd:integer(?number1) AS ?number2)
+  FILTER (STRSTARTS(?icd1, 'C')||(99 < ?number2 && ?number2 < 150))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+      }""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiFactMine/Core_SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

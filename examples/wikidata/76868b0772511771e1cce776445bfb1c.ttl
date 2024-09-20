@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-76868b0772511771e1cce776445bfb1c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?birth ?death WHERE {
+  {
+    SELECT ?item ?birth ?death WHERE {
+      # A születésnap kigyűjtése, csak ha legalább nap pontosságú (pontosabbat nem is lehet felvinni, de elvileg a Wikidata tudná tárolni)
+      ?item p:P569 ?pbdate. ?pbdate ps:P569 ?birth; psv:P569/wikibase:timePrecision ?bprec FILTER(?bprec >= 11).
+      # A halálozási dátum kigyűjtése, csak ha legalább nap pontosságú
+      ?item p:P570 ?pddate. ?pddate ps:P570 ?death; psv:P570/wikibase:timePrecision ?dprec FILTER(?dprec >= 11).
+
+      # Azonos a kettő hónap/nap része?
+      FILTER(MONTH(?birth) = MONTH(?death) && DAY(?birth) = DAY(?death)).
+    } LIMIT 250
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],hu,en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Pallor/Archive_2023>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

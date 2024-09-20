@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7bc314bce56e665996e34ae5bbd54ed0> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?jLabel ?dLabel ?lLabel ?num ?sampleitem with 
+{
+  SELECT distinct ?j ?d ?l (count(*) as ?num) (SAMPLE(?item) as ?sampleitem) where
+  {
+    ?item p:P6216 ?statement .
+    ?statement ps:P6216 wd:Q50423863 .                    # copyright status = copyrighted
+    optional { ?statement pq:P1001 ?j . }
+    optional { ?statement pq:P459  ?d . } 
+    optional { ?statement pq:P275  ?l . } 
+} group by ?j ?d ?l} as %i
+where
+{
+  include %i
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+order by desc(?num)
+Limit 1000""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Help:Copyrights/maintenance>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

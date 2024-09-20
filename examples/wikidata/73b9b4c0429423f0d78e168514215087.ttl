@@ -1,0 +1,39 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-73b9b4c0429423f0d78e168514215087> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# All itch.io URLs 
+SELECT ?item ?itemLabel (SAMPLE(?typeLabel) as ?nature) ?propertyLabel ?url
+WITH {
+  SELECT ?property WHERE {
+    ?property rdf:type wikibase:Property.
+    ?property wikibase:propertyType wikibase:Url .
+  }
+} AS %properties
+WITH {
+  SELECT ?item ?url ?property WHERE {
+    INCLUDE %properties .
+    ?property wikibase:directClaim ?wdt.
+    ?item ?wdt ?url.
+    FILTER regex (STR(?url), \"itch.io\").
+  }
+} AS %items
+WHERE {
+  INCLUDE %items.
+  ?item wdt:P31 ?type.
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+    ?type rdfs:label ?typeLabel.
+    ?item rdfs:label ?itemLabel.
+    ?property rdfs:label ?propertyLabel.
+  }
+} GROUP BY ?item ?itemLabel ?propertyLabel ?url""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Property_proposal/Identifiant_itch.io>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

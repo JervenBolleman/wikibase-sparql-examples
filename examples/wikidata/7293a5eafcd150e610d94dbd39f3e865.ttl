@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7293a5eafcd150e610d94dbd39f3e865> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?geography ?geographyLabel ?class1 ?class1Label (COUNT(DISTINCT ?class) AS ?classes) (MIN(?instances) AS ?min) (MAX(?instances) AS ?max) (SUM(?instances) AS ?sum) WHERE {
+  {
+    SELECT DISTINCT ?geography ?class1 ?class (COUNT(DISTINCT ?instance) AS ?instances) WHERE {
+      VALUES ?geography {wd:Q4006}
+      #VALUES ?geography {wd:Q8008} # wd:Q2221906 wd:Q2625603 wd:Q27096213}
+      OPTIONAL {?class1 wdt:P279 ?geography.
+                ?subclass wdt:P279* ?class1.}
+      BIND(COALESCE(?subclass, ?geography) AS ?class)
+      OPTIONAL {?class ?property ?value.}
+      #?property rdf:type owl:DatatypeProperty.
+      OPTIONAL {?instance wdt:P31 ?class.}
+    }
+    GROUP BY ?geography ?class1 ?class
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+GROUP BY ?geography ?geographyLabel ?class1 ?class1Label
+ORDER BY CONCAT(STR(?geography), \"  \", IF(BOUND(?class1), STR(?class1Label), \" \"))""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:SM5POR/Geography>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

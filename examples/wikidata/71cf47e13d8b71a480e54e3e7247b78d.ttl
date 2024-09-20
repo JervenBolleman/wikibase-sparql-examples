@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-71cf47e13d8b71a480e54e3e7247b78d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Get assembly constituencies  with specific district, loksabha const, assembly tewikilinks  for use in tewiki district article
+SELECT DISTINCT ?assembly ?assemblyLabel  ?loksabhaLabel (CONCAT(\"# [[\",STR(?page_titleTE),\"|\", STRBEFORE(STR(?page_titleTE), \" శాసనసభ నియోజకవర్గం\"), \"]]\") as ?assemblytewikilink)
+  WHERE {
+  ?assembly wdt:P31 wd:Q54375413.
+  ?tewikilink schema:about ?assembly;
+    schema:isPartOf <https://te.wikipedia.org/>;
+    schema:name ?page_titleTE.
+  ?loksabha wdt:P31 wd:Q47481352;
+            wdt:P131 wd:Q1159;
+            wdt:P527  ?assembly.
+  ?assembly    p:P131 ?districtnode. 
+  ?districtnode ps:P131 wd:Q110876712
+  OPTIONAL { ?districtnode pq:P580 ?startdate. }
+  OPTIONAL { ?districtnode pq:P582 ?enddate. }
+  OPTIONAL { ?assembly wdt:P576 ?defdate.}
+  BIND(IF(BOUND(?startdate), \"yes\", \"no\") AS ?startflag_)
+  BIND(IF(BOUND(?enddate), \"yes\", \"no\") AS ?endflag_)
+  BIND(IF(BOUND(?startdate), YEAR(?startdate), 0 ) AS ?startyear)
+  BIND(IF(BOUND(?enddate), YEAR(?enddate), 0 ) AS ?endyear)
+  BIND(IF(BOUND(?defdate), YEAR(?defdate), 0 ) AS ?defyear)
+  FILTER ((?startflag_ =\"yes\" && ?endflag_=\"no\" && ?startyear=2022 )|""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Arjunaraoc/assembly,_loksabha_for_specified_district_with_assembly_tewiki_article_link>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

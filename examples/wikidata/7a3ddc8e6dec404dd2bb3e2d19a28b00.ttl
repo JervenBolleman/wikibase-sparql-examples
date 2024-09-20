@@ -1,0 +1,58 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7a3ddc8e6dec404dd2bb3e2d19a28b00> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Map of all J/92 (Q97170629) and J/92s (Q97179551) home ports (P504)
+#boat = wikidata item id (qid)
+#home_portLabel = home port name
+#home_port_coord = home port coordinates
+#boatLabel = wikidata item name
+#boat_name (optional) = boat name
+#image (optional) = picture
+
+#defaultView:Map
+SELECT DISTINCT ?boat ?boatLabel ?boat_name ?instance_ofLabel ?home_portLabel ?image ?home_port_coord WHERE {
+  {
+  ?boat wdt:P31/wdt:P279* wd:Q97170629; #'?boat' are 'instance of'(P31) and any number of 'subclass of' (P279*) of 'J/92'(Q97170629)
+        wdt:P31 ?instance_of. #'?boat' 'instance of' (P31) are '?instance_of'
+  }
+  UNION
+  {
+  ?boat wdt:P31/wdt:P279* wd:Q97179551; #'?boat' are 'instance of'(P31) and any number of 'subclass of' (P279*) of 'J/92s'(Q97179551)
+        wdt:P31 ?instance_of. #'?boat' 'instance of' (P31) are '?instance_of'
+  }
+  
+  OPTIONAL {
+  ?boat wdt:P504 ?home_port . #'?boat' 'home port' (P504) are '?home_port'
+  #filter out home ports that are no longer current (home port (P504) with an 'end time' qualifier (P582))
+  ?boat p:P504 ?statement1 .
+  ?statement1 ps:P504 ?home_port .
+  FILTER NOT EXISTS { ?statement1 pq:P582 ?x }
+  ?home_port wdt:P625 ?home_port_coord. #'?home_port' 'coordinate location' (P625) are '?home_port_coord'
+  }
+  
+  
+  OPTIONAL { ?boat wdt:P18 ?image . } 
+  
+  #'?boat\" 'short name' (P1813) are '?boat_name'
+  #filter out names that are no longer current (short name (P1813) with an 'end time' qualifier (P582))
+  OPTIONAL {
+    ?boat wdt:P1813 ?boat_name.
+    ?boat p:P1813 ?statement2 .
+    ?statement2 ps:P1813 ?boat_name .
+    FILTER NOT EXISTS { ?statement2 pq:P582 ?x } 
+  }  
+  
+  #xxxLabel is the label for any variable called xxx
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Sailing/Queries/Map_of_all_J92_and_J92s_home_ports>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Sailing/Queries>, <https://www.wikidata.org//wiki/Wikidata:WikiProject_Sailing/Items>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

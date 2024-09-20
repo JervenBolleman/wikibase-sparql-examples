@@ -1,0 +1,53 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-783ab81339beb86125d101f6695efe02> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select distinct ?item ?itemLabel ?number_of_holders ?percent_mp_before ?percent_mp_after ?percent_mp_ever where
+{
+  { ?item wdt:P31 wd:Q18115939 . } union { ?item wdt:P31 wd:Q56760832 } . # ambassador or high commissioner
+   { select distinct ?item (count(distinct ?holder) as ?number_of_holders) where
+    {
+      { ?item wdt:P31 wd:Q18115939 . } union { ?item wdt:P31 wd:Q56760832 } .
+      ?holder p:P39 ?positionStatement . ?positionStatement ps:P39 ?item . 
+    } group by ?item
+  }
+ optional { select distinct ?item (count(distinct ?holder) as ?after) where
+    {
+      { ?item wdt:P31 wd:Q18115939 . } union { ?item wdt:P31 wd:Q56760832 } .
+      ?holder p:P39 ?positionStatement . ?positionStatement ps:P39 ?item . ?positionStatement pq:P580 ?poststart .
+      ?holder p:P39 ?positionStatement2 . ?positionStatement2 ps:P39 ?mp .
+      { ?mp wdt:P279* wd:Q16707842 } union { ?mp wdt:P279* wd:Q18015642 } union { ?mp wdt:P279* wd:Q18018860 } . 
+      ?positionStatement2 pq:P580 ?mpstart . filter (?mpstart >= ?poststart) . 
+    } group by ?item
+ }
+ optional { select distinct ?item (count(distinct ?holder) as ?before) where
+    {
+      { ?item wdt:P31 wd:Q18115939 . } union { ?item wdt:P31 wd:Q56760832 } .
+      ?holder p:P39 ?positionStatement . ?positionStatement ps:P39 ?item . ?positionStatement pq:P580 ?poststart .
+      ?holder p:P39 ?positionStatement2 . ?positionStatement2 ps:P39 ?mp .
+      { ?mp wdt:P279* wd:Q16707842 } union { ?mp wdt:P279* wd:Q18015642 } union { ?mp wdt:P279* wd:Q18018860 } . 
+      ?positionStatement2 pq:P582 ?mpend . filter (?mpend <= ?poststart) . 
+    } group by ?item
+  } 
+  { select distinct ?item (count(distinct ?holder) as ?ever) where
+    {
+      { ?item wdt:P31 wd:Q18115939 . } union { ?item wdt:P31 wd:Q56760832 } .
+      ?holder p:P39 ?positionStatement . ?positionStatement ps:P39 ?item . 
+      ?holder p:P39 ?positionStatement2 . ?positionStatement2 ps:P39 ?mp .
+      { ?mp wdt:P279* wd:Q16707842 } union { ?mp wdt:P279* wd:Q18015642 }  union { ?mp wdt:P279* wd:Q18018860 } . 
+	} group by ?item
+  }
+  BIND(ROUND(100*(?after/?number_of_holders)) as ?percent_mp_after) .
+  BIND(ROUND(100*(?before/?number_of_holders)) as ?percent_mp_before) .
+  BIND(ROUND(100*(?ever/?number_of_holders)) as ?percent_mp_ever) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} order by desc(?number_of_holders)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/ambassadors>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

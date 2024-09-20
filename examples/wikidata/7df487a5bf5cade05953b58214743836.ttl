@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7df487a5bf5cade05953b58214743836> a sh:SPARQLExecutable,
+    sh:SPARQLConstructExecutable;
+  sh:construct """CONSTRUCT {
+  ?class a owl:Class . 
+  ?class rdfs:subClassOf ?superclass . 
+  ?class rdfs:label ?classLabel . 
+  ?property rdfs:domain ?class . 
+  ?property rdfs:label ?classLabel .
+}
+WHERE {
+  BIND(wd:Q235557 AS ?mainClass) .    # Q11344 chemical element; Q1420 automobile
+  
+  # Pick one or the other of the following two triple patterns. 
+  #?class wdt:P279* ?mainClass.     # Find subclasses of the main class. 
+  ?mainClass wdt:P279* ?class.     # Find superclasses of the main class. 
+  
+  ?class wdt:P279 ?superclass .     # So we can create rdfs:subClassOf triples
+  ?class rdfs:label ?classLabel.
+  OPTIONAL {
+    ?class wdt:P1963 ?property.
+    ?property rdfs:label ?propertyLabel.
+    FILTER((LANG(?propertyLabel)) = \"en\")
+    }
+  FILTER((LANG(?classLabel)) = \"en\")
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:YULdigitalpreservation/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

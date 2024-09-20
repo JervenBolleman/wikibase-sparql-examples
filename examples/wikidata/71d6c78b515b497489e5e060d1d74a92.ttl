@@ -1,0 +1,39 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-71d6c78b515b497489e5e060d1d74a92> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?article ?sitelinks
+WITH
+{
+  SELECT ?item ?article ?sitelinks
+  WHERE
+  {
+    ?article schema:about ?item .
+    ?article schema:isPartOf <https://fr.wikipedia.org/> .
+    ?item wikibase:sitelinks ?sitelinks . hint:Prior hint:rangeSafe true .
+    FILTER (?sitelinks >= 100)
+  }
+} AS %articles
+WHERE
+{
+  INCLUDE %articles
+  MINUS
+  {
+    [] schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> .
+  }
+  MINUS
+  {
+    VALUES ?exclude { wd:Q11266439 wd:Q20010800 wd:Q15184295 wd:Q14204246
+                      wd:Q59541917 wd:Q36330215 wd:Q4167836  wd:Q23894233 }
+    ?item wdt:P31 ?exclude . # exclude templates, project pages, modules, categories
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

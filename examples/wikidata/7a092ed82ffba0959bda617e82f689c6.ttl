@@ -1,0 +1,51 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7a092ed82ffba0959bda617e82f689c6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Les plus grosses villes avec une femme maire
+#added before 2016-10
+#TEMPLATE={\"template\":\"Largest ?c with ?sex head of government\",\"variables\":{\"?sex\":{\"query\":\" SELECT ?id WHERE { ?id wdt:P31 wd:Q48264 .  } \"},\"?c\":{\"query\":\"SELECT DISTINCT ?id WHERE {  ?c wdt:P31 ?id.  ?c p:P6 ?mayor. }\"} } }
+SELECT DISTINCT ?city ?cityLabel?mayorLabel ?cityPopulation
+WHERE
+{
+  BIND(wd:Q6581072 AS ?sex)
+  BIND(wd:Q515 AS ?c)
+  BIND(wd:Q16 AS ?Canada)
+
+	?city wdt:P31/wdt:P279* ?c .  # find instances of subclasses of city
+    ?city wdt:P17 ?Canada.  # Only cities in Canada
+	?city p:P6 ?statement .            # with a P6 (head of goverment) statement
+	?statement ps:P6 ?mayor .          # ... that has the value ?mayor
+	?mayor wdt:P21 ?sex .       # ... where the ?mayor has P21 (sex or gender) female
+	FILTER NOT EXISTS { ?statement pq:P582 ?x }  # ... but the statement has no P582 (end date) qualifier
+	
+    # Ville du Québec
+    OPTIONAL { ?city wdt:P3856 ?idQC }
+     FILTER(# code géographique des municipalités du Québec
+      BOUND(?idQC)    
+     )
+  
+	# Now select the population value of the ?city
+	# (wdt: properties use only statements of \"preferred\" rank if any, usually meaning \"current population\")
+   ?city p:P1082 ?populationStatement .
+   ?populationStatement ps:P1082 ?cityPopulation.
+   ?populationStatement pq:P585 ?date
+   FILTER NOT EXISTS { ?city p:P1082/pq:P585 ?date_ . FILTER (?date_ > ?date) } 
+
+  
+	# Optionally, find English labels for city and mayor:
+	SERVICE wikibase:label {
+		bd:serviceParam wikibase:language \"fr\" .
+	}
+}
+ORDER BY DESC(?cityPopulation)
+LIMIT 20""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Dirac>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

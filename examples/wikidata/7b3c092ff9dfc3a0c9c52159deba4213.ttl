@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7b3c092ff9dfc3a0c9c52159deba4213> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#-------------------------------------------------------------------------------
+# Objekte in Dresden mit Schlüsselereignissen
+#-------------------------------------------------------------------------------
+SELECT ?item ?itemLabel #?countryLabel  
+?significant_eventLabel (year(?start) AS ?y1) (year(?end) AS ?y2) ?altesdresden
+?propLabel ?valLabel 
+#(year(?destroyed) AS ?yr_d) 
+
+WHERE { 
+  ?item wdt:P131 wd:Q1731 .
+  ?item p:P793 ?stmt .
+  
+  #?stmt ps:P793 wd:Q1441983 .   # Filter für bestimmte Ereignisse
+  OPTIONAL {?stmt ps:P793 ?significant_event.} .
+  OPTIONAL {?stmt pq:P580|pq:P585 ?start} .
+  OPTIONAL {?stmt pq:P582 ?end} .
+  OPTIONAL {
+    ?stmt ?pq ?val .
+    ?pq ^wikibase:qualifier ?prop .
+    FILTER(?prop NOT IN (wd:P580, wd:P582, wd:P585, wd:P793, wd:P18)) .
+  }
+  #OPTIONAL {?item wdt:P17 ?country } .
+  #OPTIONAL {?item wdt:P576 ?destroyed } . 
+  #OPTIONAL {?item wdt:P11855 ?altesdresden } . 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+order by ?y1
+#ORDER BY xsd:integer(STRAFTER(str(?item), 'Q')) ?start ?propLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stefan_K%C3%BChn/Dresden>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

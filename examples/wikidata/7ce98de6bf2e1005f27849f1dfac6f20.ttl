@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7ce98de6bf2e1005f27849f1dfac6f20> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?itemLabel ?country ?countryLabel ?age ?retirement (ROUND((NOW() - ?started)/365.2425) AS ?years_in_office)
+WHERE
+{ 
+  ?country wdt:P31 wd:Q3624078 ; p:P6 ?statement ; wdt:P6 ?item.    
+  ?statement ps:P6 ?item .
+  FILTER (!isBLANK(?item))
+  FILTER NOT EXISTS { ?statement pq:P582 ?x } 
+
+  ?item wdt:P569 ?dob . 
+  BIND(ROUND((NOW() - ?dob)/365.2425) AS ?age)
+  
+  OPTIONAL { ?country wdt:P3001 ?retirement }
+  BIND(COALESCE( ?retirement, 65 ) as ?retirement)
+  FILTER (?age >= ?retirement)
+
+  OPTIONAL { ?statement pq:P580 ?started }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+ORDER BY ?dob""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Heads_of_state_and_government/Oldest_Heads_of_Government>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

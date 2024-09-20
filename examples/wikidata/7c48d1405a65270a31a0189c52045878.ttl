@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7c48d1405a65270a31a0189c52045878> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?original_work ?original_workLabel (COUNT(?citingArticles) AS ?count) (GROUP_CONCAT(DISTINCT ?version_name; separator =\", \") as ?versions)
+WHERE {
+  ?original_work wdt:P50 wd:Q63809637.
+  FILTER NOT EXISTS { ?original_work wdt:P31 wd:Q3331189.}
+  OPTIONAL{
+    
+    {?citingArticles wdt:P2860 ?original_work.}   
+    UNION {
+      ?original_work wdt:P747 ?version.
+       OPTIONAL{?version wdt:P1476 ?version_name.}
+      OPTIONAL{?citingArticles wdt:P2860  ?version.}
+    }
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language
+    \"[AUTO_LANGUAGE], en\". }
+}
+GROUP BY ?original_work ?original_workLabel
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Julia.athen>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

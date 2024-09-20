@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7d5ee4a6762d6062c5a32c05b148de9b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?article ?aliasLabel
+WHERE
+{
+  # wikidata item has a link to ar.wikipedia. 
+  ?article 	schema:about ?item ;
+			schema:isPartOf <https://ar.wikipedia.org/> .
+
+  # wikidata record is a person. If you don't cut down the results set, you'll get a time-out ... that'll probably be your biggest problem
+  ?item wdt:P31 wd:Q5 .
+
+  # If there's an ar. alias, then we'll be wanting that ... 
+  optional {?item skos:altLabel ?alias FILTER (LANG (?alias) = \"ar\")}
+  
+  # Now show only items that have no alias
+  filter(!bound(?alias))
+
+  # Access the label service.
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],ar\" }
+}
+LIMIT 200""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

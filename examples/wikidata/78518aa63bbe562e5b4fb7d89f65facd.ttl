@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-78518aa63bbe562e5b4fb7d89f65facd> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Women without image, from a particular country, ordered by the number of Wikimedia projects in which they appear
+SELECT ?woman ?womanLabel ?linkcount
+WHERE
+{
+  ?woman wdt:P31 wd:Q5 ;   # Instance of human being...
+         wdt:P21 wd:Q6581072 .  # ...whose sex or gender is female.
+  ?woman wikibase:sitelinks ?linkcount .  # Count the number of sitelinks to different Wikipedias and other projects.
+  { ?woman wdt:P19/wdt:P131* wd:Q77 . }  # The woman was born in Uruguay or in a place located in the administrative territorial entity of Uruguay...
+  UNION  # ...or...
+  { ?woman wdt:P27 wd:Q77 . }  # ...her country of citizenship is Uruguay.
+  MINUS {
+  ?woman wdt:P18 ?image  # Exclude if she has an image in her Wikidata item.
+  } 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?woman ?womanLabel ?linkcount  # Group to avoid duplicate results.
+ORDER BY DESC(?linkcount)  # Order by descending number of sitelinks. More sitelinks suggest more relevance.""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Pepe_piton/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

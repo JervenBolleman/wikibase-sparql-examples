@@ -1,0 +1,59 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-70536677c8a8d1018db5099b94faa8cc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?image ?article ?image_title
+WITH
+{
+  SELECT ?item ?image ?article ?image_title
+  WHERE 
+  {
+    ?article schema:about ?item ;
+             schema:isPartOf <https://vi.wikipedia.org/> .
+    ?item wdt:P31 wd:Q16521 .
+    ?item wdt:P18 ?image .
+    ?item wdt:P5984 ?apni .
+    FILTER (CONTAINS(STR(?image),\"FilePath/P\"))
+    FILTER (CONTAINS(STR(?article),\"wiki/P\"))  
+    BIND (SUBSTR(wikibase:decodeUri(STR(?image)), 52) AS ?image_title)
+  }
+} AS %i
+WITH
+{
+  SELECT ?image_title
+  WHERE
+  {
+    SERVICE wikibase:mwapi
+    {
+      bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+      bd:serviceParam wikibase:api \"Generator\" .
+      bd:serviceParam mwapi:generator \"categorymembers\" .
+      bd:serviceParam mwapi:gcmtitle \"Category:Photographs by Kevin Thiele\" .
+      bd:serviceParam mwapi:gcmtype \"file\" .
+      bd:serviceParam mwapi:gcmprop \"title\" .
+      bd:serviceParam mwapi:gcmlimit \"max\" .
+      ?file wikibase:apiOutput mwapi:title .
+    }
+    BIND (SUBSTR(?file, 6) AS ?image_title)
+  }
+} AS %wanted_image_titles
+WHERE
+{
+  INCLUDE %i
+  INCLUDE %wanted_image_titles
+  FILTER NOT EXISTS
+  { 
+    ?article2 schema:about ?item ;
+              schema:isPartOf <https://en.wikipedia.org/> .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

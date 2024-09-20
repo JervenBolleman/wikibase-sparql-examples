@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-74f58fceb00026c2dd8144102b62c555> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select ?item ?itemLabel
+where {
+  # pm20 id starting with \"co/\"
+  ?item wdt:P4293 ?pm20Id .
+  filter(regex(?pm20Id, \"^co/\"))
+  # existing instance-of relationship
+  filter (exists {
+    ?item wdt:P31 [] .
+  })
+  # not an instance of (subclass of) organization
+  filter (not exists {
+      ?item p:P31/ps:P31/wdt:P279* wd:Q43229 .
+    })
+  # exclude items with mapping relations
+  filter (not exists {
+    ?item p:P4293/pq:P4390 ?relation .
+    })
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE,de,en,es,fr]\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jneubert/Special_queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

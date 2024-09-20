@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-794eb45a9112df4308b42e88d851f9a8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel 
+    (GROUP_CONCAT(?voornaamNL; separator=' ') as ?4) 
+    (GROUP_CONCAT(?verkorte_voornaam; separator='') as ?5) 
+    
+   WHERE { 
+    ?item wdt:P937 wd:Q33506500. 
+    ?item wdt:P735 ?voornaam .
+    ?voornaam rdfs:label ?voornaamNL .
+    BIND(replace(?voornaamNL,\"([A-Z]).*\",\"$1.\") AS ?verkorte_voornaam) .
+    FILTER (lang(?voornaamNL)='nl')
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"nl\" }
+    ?item rdfs:label ?label.
+    FILTER((LANG(?label)) = \"nl\")
+}
+GROUP BY ?item ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:CopyClear/monitor/shorten_full_name>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

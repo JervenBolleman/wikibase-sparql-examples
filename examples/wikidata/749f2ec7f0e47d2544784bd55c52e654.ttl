@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-749f2ec7f0e47d2544784bd55c52e654> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?name ?nameLabel ?count WHERE { 
+	{
+		SELECT ?name (COUNT(*) AS ?count) WHERE {
+			{?item wdt:P27 wd:Q28} UNION {?item wdt:P27 wd:Q171150}  UNION {?item wdt:P27 wd:Q655621} .
+			?item wdt:P31 wd:Q5 .
+			?item p:P735 ?nameStatement .
+			?nameStatement ps:P735 ?name .
+			OPTIONAL { ?nameStatement pq:P407 ?nameLang } .
+			FILTER(COALESCE(?nameLang, wd:Q9067) = wd:Q9067) .
+		} GROUP BY ?name
+	}
+	SERVICE wikibase:label {            # ... include the labels
+		bd:serviceParam wikibase:language \"hu\" .
+	}
+} ORDER BY DESC (?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:T%C3%A1rsalg%C3%B3/Archive_3>,
+    <https://www.wikidata.org//wiki/User:Pallor/Lek%C3%A9rdez%C3%A9s>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

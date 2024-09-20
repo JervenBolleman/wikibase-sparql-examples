@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7a30a576759e3f317f078662cc0324bd> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?positionLabel ?start ?end WITH {
+  SELECT ?item ?position ?start ?end WHERE {
+    BIND(420 AS ?year)
+    BIND(STRDT(CONCAT(STR(?year), \"-01-01\"), xsd:dateTime) AS ?yearStart)
+    BIND(STRDT(CONCAT(STR(?year + 1), \"-01-01\"), xsd:dateTime) AS ?nextYearStart)
+    ?item p:P39 [
+      ps:P39 ?position;
+      pq:P580 ?start;
+      pq:P582 ?end
+    ].
+    FILTER(?start < ?yearStart)
+    FILTER(?end >= ?nextYearStart)
+  }
+} AS %results WHERE {
+  INCLUDE %results.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

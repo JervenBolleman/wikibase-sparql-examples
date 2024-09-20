@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7eff9be68e1c9b354ade4eda8dcb515c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: lebendige Sprachen mit einer Seite auf dewiki
+SELECT ?code ?sprache (GROUP_CONCAT(DISTINCT ?sprachgruppe; SEPARATOR = \", \") AS ?familie) (GROUP_CONCAT(DISTINCT ?land; SEPARATOR = \", \") AS ?gesprochen_in) ?article ?item WHERE {
+  ?item wdt:P31 wd:Q1288568.
+  OPTIONAL {
+    ?article schema:about ?item;
+      schema:isPartOf <https://de.wikipedia.org/>;
+      schema:name ?page_title.
+  }
+  OPTIONAL { ?item wdt:P279 ?oberklasse. }
+  OPTIONAL { ?item wdt:P17 ?staat. }
+  OPTIONAL { ?item wdt:P424 ?code. }
+  FILTER(BOUND(?article))
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?item rdfs:label ?sprache.
+    ?staat rdfs:label ?land.
+    ?oberklasse rdfs:label ?sprachgruppe.
+  }
+}
+GROUP BY ?code ?sprache ?article ?item
+ORDER BY (?sprache)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:No39188>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

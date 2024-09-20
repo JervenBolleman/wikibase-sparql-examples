@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7b1db67f3afae947dda4ce7cc8eccf6c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?personLabel ?followers ?channelLabel WHERE {
+  ?person p:P8687 ?stat . 
+  ?stat ps:P8687 ?followers .
+  ?stat ?predicate ?value . 
+  ?property wikibase:qualifier ?predicate .
+  ?property wdt:P1629 ?channel .
+  filter not exists {wd:P585 wikibase:qualifier ?predicate.}
+  {
+    SELECT DISTINCT ?person (max(?followers_) as ?followers) WHERE
+    {
+    ?person wdt:P106 wd:Q937857 .
+    ?person wdt:P8687 ?followers_ .
+    } GROUP BY ?person
+  } hint:Prior hint:runFirst true .
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\" .}
+} ORDER BY DESC (?followers)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

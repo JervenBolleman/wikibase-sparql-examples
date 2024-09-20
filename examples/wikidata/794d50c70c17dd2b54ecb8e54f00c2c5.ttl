@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-794d50c70c17dd2b54ecb8e54f00c2c5> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT (year(?date) AS ?year) ?old_work ?old_workLabel (GROUP_CONCAT(DISTINCT ?old_lang_label; SEPARATOR = ' / ') AS ?old_langs) 
+    (GROUP_CONCAT(DISTINCT ?new_lang_label; SEPARATOR = ' / ') AS ?new_langs)  ?new_work ?new_workLabel (year(?new_date) AS ?new_year)
+         
+WHERE {
+  ?new_work wdt:P629 ?old_work .
+  ?new_work wdt:P407 ?new_lang .
+  ?old_work wdt:P407 ?old_lang .
+  FILTER (?new_lang != ?old_lang) .
+  OPTIONAL {?old_work wdt:P577 ?date} .
+  OPTIONAL {?old_work wdt:P571 ?date} .
+  OPTIONAL {?new_work wdt:P577 ?new_date} .
+  OPTIONAL {?new_work wdt:P571 ?new_date} .
+  ?new_lang rdfs:label ?new_lang_label FILTER(lang(?new_lang_label) = 'en') .
+  ?old_lang rdfs:label ?old_lang_label FILTER(lang(?old_lang_label) = 'en') .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr,de,it,es,nl,la,pl,ru,uk\". }
+  
+} GROUP BY ?date ?old_work ?old_workLabel ?new_work ?new_workLabel ?new_date
+ORDER BY ?year str(?old_workLabel) str(?old_work) ?new_year str(?new_workLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Project_chat/Archive/2019/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

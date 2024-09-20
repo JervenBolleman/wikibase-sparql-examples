@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-706816f4d2e252b6af6e2a3094e3bb2f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:LineChart
+SELECT ?pid (COUNT(?property1) as ?count) ?countryLabel
+    WITH {
+      SELECT DISTINCT ?property ?pid (SAMPLE(?country) AS ?country) WHERE {
+        ?property wdt:P31/wdt:P279* wd:Q18616576 .
+        ?property wdt:P17 ?country .
+        BIND (STR(10000+xsd:integer(SUBSTR(STR(?property),33,99))) AS ?pid)
+        #BIND (xsd:integer(SUBSTR(STR(?property),33,99)) AS ?pid)
+      }
+      GROUP BY ?property ?pid
+    } AS %props
+
+    WITH {
+      SELECT DISTINCT ?property1 ?pid1 ?country WHERE {
+        ?property1 wdt:P31/wdt:P279* wd:Q18616576.
+        ?property1 wdt:P17 ?country .
+        BIND (STR(10000+xsd:integer(SUBSTR(STR(?property1),33,99))) AS ?pid1)
+        #BIND (xsd:integer(SUBSTR(STR(?property1),33,99)) AS ?pid1)
+      }
+    } AS %props1
+
+    WHERE {
+      INCLUDE %props .
+      INCLUDE %props1 .
+      FILTER(?pid1 < ?pid) .
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+    } 
+  GROUP BY ?property ?pid ?countryLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

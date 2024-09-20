@@ -1,0 +1,63 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7137c23eb69d6095c862da6dacbd94af> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Upcoming awareness days
+SELECT DISTINCT ?event ?eventLabel ?eventTimestamp (GROUP_CONCAT(DISTINCT ?subjectLabel; separator=', ') AS ?subjects) ?countryLabel WHERE {
+  VALUES (?month ?month_order) {
+    ( wd:Q108 '01' )
+    ( wd:Q109 '02' )
+    ( wd:Q110 '03' )
+    ( wd:Q118 '04' )
+    ( wd:Q119 '05' )
+    ( wd:Q120 '06' )
+    ( wd:Q121 '07' )
+    ( wd:Q122 '08' )
+    ( wd:Q123 '09' )
+    ( wd:Q124 '10' )
+    ( wd:Q125 '11' )
+    ( wd:Q126 '12' )
+  }
+  
+  VALUES ?days {
+    wd:Q18574943
+    wd:Q422695
+  }
+  
+  ?event wdt:P31/wdt:P279* ?days .
+  MINUS { ?event wdt:P31 wd:Q57598 }
+  MINUS { ?event wdt:P31 wd:Q14914657 }
+  ?event wdt:P837 ?day .
+  MINUS { ?event wdt:P2894 [] }
+  ?day wdt:P361 ?month .
+  ?day p:P361 ?month_statement .
+  ?month_statement pq:P1545 ?day_of_month_rank .
+
+  OPTIONAL { ?event wdt:P17 ?country }
+ 
+  BIND(IF(xsd:integer(?day_of_month_rank) < 10, CONCAT('0', STR(?day_of_month_rank)), STR(?day_of_month_rank)) AS ?day_of_month_rank_with_padding)
+  BIND(xsd:dateTime(CONCAT(STR(YEAR(NOW())), '-', STR(?month_order), '-', STR(?day_of_month_rank_with_padding), 'T23:59:59')) AS ?eventTimestamp)
+  FILTER(?eventTimestamp > NOW())
+  
+  OPTIONAL { ?event wdt:P921 ?subject }
+  OPTIONAL { ?event wdt:P547 ?commemorates }
+  BIND(IF(!BOUND(?subject), ?commemorates, ?subject) AS ?subject)
+  
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language '[AUTO_LANGUAGE],en' .
+    ?subject rdfs:label ?subjectLabel .
+    ?event rdfs:label ?eventLabel .
+    ?country rdfs:label ?countryLabel .
+  }
+} 
+GROUP BY ?event ?eventLabel ?dayLabel ?eventTimestamp ?countryLabel
+ORDER BY ?eventTimestamp""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Oronsay/queries>, <https://www.wikidata.org//wiki/User:Abbe98/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

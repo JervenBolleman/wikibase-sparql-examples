@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7acc5a41592c65e4d2c38cc9c498d14b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# for comparison, this query is same as the above one except that sibling relation is removed. 
+#defaultView:Graph
+SELECT ?gene ?geneLabel ?birthdate ?image ?relative ?relativeLabel ?edgeLabel
+WHERE {
+  # define ?gene as Jia Baoyu (Q8428650)'s any father (P22) or mother (P25) or child (P40)'s father or mother or child's...
+  wd:Q8428650 (wdt:P22|wdt:P25|wdt:P40)* ?gene
+  # optional: define ?gene's father (P22) or mother (P25) or child (P40) as ?relative
+  optional {?gene (wdt:P22|wdt:P25|wdt:P40) ?relative
+            # To avoid showing any other relation than relative relation
+            # define ?relation as only father (P22) or mother (P25) or child (P40)
+            VALUES ?relation {wdt:P22 wdt:P25 wdt:P40}
+            # ?relation is from ?gene to ?relative
+            ?gene ?relation ?relative.
+            # show ?relation on graph edges
+            ?edge wikibase:directClaim ?relation;
+               a wikibase:Property}
+  # optional: show ?gene's birthdate (P569), which only appears in table, not graph
+  optional {?gene wdt:P569 ?birthdate}
+  # optional: show ?gene's image (P18), which appears directly in graph, and as link in table
+  optional {?gene wdt:P18 ?image}
+  # show label in simplified Chinese (zh-hans) as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"zh-hans,en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

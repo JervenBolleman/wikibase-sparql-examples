@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-776749d250c5795cb057b328b716059a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?n ?formatted
+WHERE
+{
+  BIND (\",\" AS ?sep)
+  VALUES ?n { 1 12 123 1234 12345 123456 1234567 12345678 123456789 1234567890 12345678901
+          123456789012 1234567890123 12345678901234 123456789012345 }
+  BIND (STR(?n) AS ?str)
+  BIND (STRLEN(?str) AS ?len)
+  BIND (?len - CEIL(?len/3)*3 + 3 AS ?length_first)
+  BIND (SUBSTR(?str, 1, ?length_first) AS ?group1)
+  BIND (SUBSTR(?str, ?length_first + 1, 3) AS ?group2)
+  BIND (SUBSTR(?str, ?length_first + 4, 3) AS ?group3)
+  BIND (SUBSTR(?str, ?length_first + 7, 3) AS ?group4)
+  BIND (SUBSTR(?str, ?length_first + 10, 3) AS ?group5)
+  BIND (COALESCE(
+    IF(?len > 12, CONCAT(?group1, ?sep, ?group2, ?sep, ?group3, ?sep, ?group4, ?sep, ?group5) , 1/0),
+    IF(?len > 9, CONCAT(?group1, ?sep, ?group2, ?sep, ?group3, ?sep, ?group4), 1/0),
+    IF(?len > 6, CONCAT(?group1, ?sep, ?group2, ?sep, ?group3), 1/0),
+    IF(?len > 3, CONCAT(?group1, ?sep, ?group2), 1/0),
+    ?group1
+  ) AS ?formatted)
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

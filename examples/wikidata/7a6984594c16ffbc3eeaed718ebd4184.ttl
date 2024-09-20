@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7a6984594c16ffbc3eeaed718ebd4184> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?dep ?INSEE ?depLabel ?itemCount(ROUND((IF(?_withCoord > ?itemCount, ?itemCount, ?_withCoord) / ?itemCount) * 100 * 100) / 100 AS ?withCoord) 
+WHERE {
+  {
+    SELECT ?dep (COUNT(DISTINCT ?item) AS ?itemCount) (COUNT(DISTINCT ?coord) AS ?_withCoord) WHERE {
+      hint:Query hint:optimizer \"None\".
+      ?item wdt:P131+ wd:Q142;
+             wdt:P31/wdt:P279* wd:Q16970;
+             wdt:P131 ?commune .
+      ?commune p:P131 ?stmt .
+      ?stmt ps:P131 ?dep .
+      MINUS { ?stmt pq:P582 [] } .
+      ?dep wdt:P2586 [] .
+      OPTIONAL { ?item wdt:P625 ?coord } .
+    } GROUP BY ?dep
+  } .
+  ?dep wdt:P2586 ?INSEE .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\" } .
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/05>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

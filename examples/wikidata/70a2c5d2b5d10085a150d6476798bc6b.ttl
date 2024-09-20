@@ -1,0 +1,22 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-70a2c5d2b5d10085a150d6476798bc6b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?work ?workLabel (COUNT(DISTINCT ?sitelink) as ?linkcount) WHERE {
+  ?work wdt:P50 wd:Q9068.  # works by Voltaire
+MINUS {?work wdt:P31 wd:Q39811647} # translations
+MINUS {?work wdt:P31 wd:Q3331189} # editions
+MINUS {?work wdt:P31 wd:Q105420} # anthologies
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en,fr,de\". }
+OPTIONAL{?sitelink schema:about ?work . # get Wikimedia pages about the work
+FILTER(CONTAINS(str(?sitelink), \".wikipedia.org/\")) } # only Wikipedia links
+} GROUP BY ?work ?workLabel ORDER BY DESC(?linkcount)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

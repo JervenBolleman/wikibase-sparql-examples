@@ -1,0 +1,39 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-77f15573d98acf4337d3084db1b2ce7e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT 
+  ?max_submissions
+  ?track ?trackLabel
+  ?event_series ?event_seriesLabel
+  (CONCAT(\"#scientificeventseries/\", SUBSTR(STR(?event_series), 32)) AS ?event_seriesUrl)
+WITH {
+  SELECT 
+    (MAX(?submissions) AS ?max_submissions)
+    ?event_series
+    ?track
+  WHERE {
+    ?event_series wdt:P31 / wdt:P279* wd:Q125391566 .
+    ?event wdt:P179 ?event_series ;
+           p:P12655 ?submissions_statement .
+    ?submissions_statement ps:P12655 ?submissions .
+    OPTIONAL { ?submissions_statement pq:P518 ?track_ . }
+    BIND(COALESCE(?track_, \"-\") AS ?track)
+    BIND(STR(YEAR(?datetime)) AS ?year)
+  }
+  GROUP BY ?event_series ?track
+} AS %event_series
+WHERE {
+  INCLUDE %event_series
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?max_submissions)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:scientificeventseries-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7adb3a99504b49219ce1e13dc5cabd89> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?mb_URL ?bbc_URL WHERE {
+  wd:Q383541 wdt:P434 ?mb_id .  # get BassHunter's MusicBrainz id
+  
+  # generate MusicBrainz URL
+  wd:P434 p:P1630 ?stmt .
+  ?stmt ps:P1630 ?mb_formatter .
+  ?stmt pq:P137 wd:Q14005 .   # operator MusicBrainz
+  BIND(IRI(REPLACE(?mb_id, '^(.+)$', ?mb_formatter)) AS ?mb_URL).
+  
+  # generate BBC Music URL
+  wd:P434 p:P3303 ?stmt1 .
+  ?stmt1 ps:P3303 ?mb_bbc_formatter .
+  ?stmt1 pq:P137 wd:Q4834855 . # operator BBC Music
+  BIND(IRI(REPLACE(?mb_id, '^(.+)$', ?mb_bbc_formatter)) AS ?bbc_URL).
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Property_proposal/BBC_artist_ID>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

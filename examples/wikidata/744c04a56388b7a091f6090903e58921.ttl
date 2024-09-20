@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-744c04a56388b7a091f6090903e58921> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+Prefix commons:<http://commons.wikimedia.org/data/main/Data:> 
+SELECT ?pais ?paisLabel ?poblacion ?area ?densidad ?mapaPais ?rgb 
+WHERE {
+  ?pais wdt:P463 wd:Q458;
+    wdt:P1082 ?poblacion;
+    wdt:P2046 ?area.
+  OPTIONAL { ?pais wdt:P3896 ?mapaPais. }
+  FILTER(NOT EXISTS {
+    ?pais p:P463 ?statement.
+    ?statement ps:P463 wd:Q458;
+      pq:P582 ?fecha_fin.
+  })
+  BIND(?poblacion / ?area AS ?densidad)
+  BIND(IF(?densidad < 50 , \"ffebee\", IF(?densidad < 100 , \"ef9a9a\", 
+       IF(?densidad < 200 , \"ef5350\", 
+       IF(?densidad < 300 , \"c62828\", \"7f0000\")))) AS ?rgb)
+  BIND(IF(?pais = wd:Q29999, commons:Nederland.map, 
+       ?mapaPais) AS ?mapaPais)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ORDER BY (?densidad)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Japastorsanchez/DPD-mapas-rutas-2023-2024>,
+    <https://www.wikidata.org//wiki/User:Japastorsanchez/WebDatos2022-2023>, <https://www.wikidata.org//wiki/User:Japastorsanchez/CursoHumanistaWikidata>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

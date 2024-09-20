@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-715c25177cb4c2ec6e1aa805fe8537b5> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?given ?count
+WHERE {
+
+SELECT ?given (COUNT(DISTINCT ?item) AS ?count)
+WHERE {
+  hint:Query hint:optimizer \"None\" .
+  ?item wdt:P21 wd:Q6581072 . # is female
+  ?item wdt:P735 ?given .
+  
+  ?given wdt:P31 wd:Q12308941 . # has male given name'
+  FILTER NOT EXISTS { ?given wdt:P31 wd:Q11879590 . } # not unisex
+
+  # filter out The Peerage entries, too many wrong entries,
+  # it should be handled separately
+  OPTIONAL { ?item wdt:P4638 ?thepeerageid . }
+  FILTER(!BOUND(?thepeerageid))
+      
+  # Prioritize cases with sitelinks at the moment
+  ?item wikibase:sitelinks ?linkcount .
+  FILTER (?linkcount >= 1)
+}
+GROUP BY ?given
+
+}
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MarioGom>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

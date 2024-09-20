@@ -1,0 +1,52 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7e681be3e86e2802ef57affdbe77c597> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?description (SAMPLE(?image_) as ?image) ?legend ?imageDate ?birthdate ?deathdate
+(GROUP_CONCAT(DISTINCT ?nationalityLabel_;separator=\"; \") as ?nationalityLabel)  
+(GROUP_CONCAT(DISTINCT ?sexLabel_;separator=\"; \") as ?sexLabel)  
+(GROUP_CONCAT(DISTINCT ?occupationLabel_;separator=\"; \") as  ?occupationLabel)
+
+?article WITH { 
+  SELECT ?item ?itemLabel ?birthdate WHERE {
+  ?item wdt:P31 wd:Q5;
+    wdt:P569 ?birthdate.
+  hint:Prior hint:rangeSafe \"true\"^^xsd:boolean.
+  FILTER((\"1991-00-00\"^^xsd:dateTime <= ?birthdate) && (?birthdate < \"1992-00-00\"^^xsd:dateTime))
+} } as %i
+WITH { SELECT ?item ?itemLabel ?description ?image ?legend ?imageDate ?birthdate ?deathdate ?nationality ?sex ?occupation ?article
+WHERE {
+  INCLUDE %i
+  OPTIONAL { ?item wdt:P734 ?lastname. }
+  OPTIONAL { ?item wdt:P570 ?deathdate. }
+  OPTIONAL { ?item wdt:P27 ?nationality. }
+  OPTIONAL { ?item wdt:P21 ?sex. }
+  OPTIONAL { ?item wdt:P106 ?occupation. }
+  OPTIONAL {
+    ?item p:P18 ?stat.
+    ?stat ps:P18 ?image_.
+    OPTIONAL { ?stat pq:P2096 ?legend. FILTER (langmatches(lang(?legend), \"en\")) }
+    OPTIONAL { ?stat pq:P585 ?imageDate. }
+  }
+  ?article schema:about ?item;
+      schema:isPartOf <https://en.wikipedia.org/>.
+} } as %j
+WHERE
+{
+  INCLUDE %j
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+                        ?nationality rdfs:label ?nationalityLabel_ . 
+                        ?item rdfs:label ?itemLabel_ . 
+                        ?sex rdfs:label ?sexLabel_ . 
+                        ?occupation rdfs:label ?occupationLabel_ . 
+                        ?item schema:description ?itemDescription .} 
+} GROUP BY ?item ?itemLabel ?description ?legend ?imageDate ?birthdate ?deathdate ?article""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

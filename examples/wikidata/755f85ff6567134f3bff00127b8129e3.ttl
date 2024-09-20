@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-755f85ff6567134f3bff00127b8129e3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#ICD9 handling
+SELECT DISTINCT ?item ?itemLabel 
+#?icd ?icd2 ?icd3 removed so that SELECT DISTINCT works
+WHERE {
+ ?item wdt:P31 wd:Q12136 .
+  ?item wdt:P493 ?icd  .
+  OPTIONAL { ?item wdt:P1995 ?dummy0 }
+  FILTER(!bound(?dummy0))
+  BIND(SUBSTR(?icd,1,3) AS ?icd1) #drop decimal point and anything after
+  BIND(CONCAT(\"1\",?icd1) AS ?icd2) #add initial digit 1 to preserve initial zeroes
+  BIND(xsd:integer(?icd2) AS ?icd3) # casting function to turn string to integer
+  FILTER(1000 < ?icd3 && ?icd3 <1140)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+      }""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiFactMine/Core_SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

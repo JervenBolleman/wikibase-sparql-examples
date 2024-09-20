@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-738f99fabb5b66c1b899ef2381e02c38> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Well-distributed random subset, portable version
+# The optimizer thwarts use of RAND() but UUID() and STRUUID() works,
+# and surprisingly generating pseudo-randoms with SHA512 is more efficient than anything else
+# even MD5 and SHA1 suggesting this hashing function is heavily optimized on Blazegraph.
+SELECT ?s ?sLabel ?random
+WITH { SELECT ?s ?random WHERE {
+  ?s wdt:P31 wd:Q5;
+     wdt:P27 wd:Q20.
+  #BIND(STRUUID() AS ?random)
+  BIND(SHA512(CONCAT(STR(RAND()), STR(?s))) AS ?random)
+} ORDER BY ?random LIMIT 1000 } AS %i
+WHERE {
+  INCLUDE %i
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infrastruktur/Sandbox2>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .
