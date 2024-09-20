@@ -1,0 +1,43 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f7d5711b9630e957e349284468e6b09a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT distinct ?election ?electionLabel ?members ?women ?men where
+{
+  { SELECT distinct ?election ?electiondate where 
+    { ?election wdt:P31 wd:Q15283424 . ?election wdt:P585 ?electiondate . }
+  } # find all general elections and their date (for sorting)
+  
+  { SELECT ?election (count(distinct ?item) as ?members) where 
+    { ?item p:P39 ?positionStatement . ?positionStatement ps:P39 ?membership . 
+      ?membership wdt:P2715 ?election . ?positionStatement pq:P2715 ?election .
+    } group by ?election
+  } # number of people elected in this election
+    # this code finds anyone who served the parliamentary term linked to this election
+    # with a P39 value which started with this election
+
+  { SELECT ?election (count(distinct ?item) as ?women) where 
+    { ?item p:P39 ?positionStatement . ?positionStatement ps:P39 ?membership . 
+      ?membership wdt:P2715 ?election . ?positionStatement pq:P2715 ?election .
+      ?item wdt:P21 wd:Q6581072 .
+    } group by ?election
+  } # as above, count only women
+
+  { SELECT ?election (count(distinct ?item) as ?men) where 
+    { ?item p:P39 ?positionStatement . ?positionStatement ps:P39 ?membership . 
+      ?membership wdt:P2715 ?election . ?positionStatement pq:P2715 ?election .
+      ?item wdt:P21 wd:Q6581097 .
+    } group by ?election
+  } # as above, count only men
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+} order by desc(?electiondate)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

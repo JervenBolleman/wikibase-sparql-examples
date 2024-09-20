@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f62f6b09cb58e7ec90b528d7e0e2b2fa> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Accessing Fast Range Counts from SPARQL (Blazegraph specific)
+# Compared to counting, FRCs have O(1) complexity and run in constant amortized time,
+# but accessing them using the slice service is inflexible and clunky,
+# since the service doesn't allow many inputs or unused variables.
+# These can also be obtained from Blazegraph's API, which is preferred, and much nicer.
+# Also ASTFastRangeCountOptimizer will try to convert some simple cases of counting to use FRC,
+# without you having to do anything. This is why count(*) on a simple triple pattern tends to be fast.
+SELECT ?pred ?count WHERE {
+  { bind(\"ps:P4342\" as ?pred) { select * where {
+    SERVICE bd:slice { [] ps:P4342 [] . bd:serviceParam bd:slice.range ?count . }
+  } } }
+  union
+  { bind(\"pq:P4342\" as ?pred) { select * where {
+    SERVICE bd:slice { [] pq:P4342 [] . bd:serviceParam bd:slice.range ?count . }
+  } } }
+  union
+  { bind(\"pr:P4342\" as ?pred) { select * where {
+    SERVICE bd:slice { [] pr:P4342 [] . bd:serviceParam bd:slice.range ?count . }
+  } } }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infrastruktur/Sandbox2>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

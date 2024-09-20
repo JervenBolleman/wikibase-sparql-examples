@@ -1,0 +1,50 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fbe5f4dca5e31d7f8955e9118923cc5f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT
+  ?proyecto
+  ?proyectoLabel
+  ?proyectoDescription
+  ?tema
+  ?temaLabel
+{
+  ?proyecto
+    # Instancias de Wikiproyectos o de alguna subclase de
+    # Wikiproyectos
+    wdt:P31/wdt:P279* wd:Q16695773;
+    wdt:P921|wdt:P101 ?tema.
+
+  # El tema principal debe ser Perú o alguna entidad que sea \"parte
+  # de\" (P361) o \"país\" (P17) Perú.
+
+  { VALUES ?tema {wd:Q419} }
+  UNION
+  {?tema wdt:P361 | wdt:P17 wd:Q419}
+
+  # Escondemos los que tienen fecha de fin, porque solo nos interesan
+  # los proyectos vigentes
+  #
+  # Tarea pendiente: Listar los eventos cuya fecha de fin sean pasados
+  # a la fecha actual. Pueden haber proyectos que están destinados a
+  # terminar en una fecha.
+
+  FILTER NOT EXISTS {
+    ?proyecto wdt:P582 [].
+  }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es\". }
+}
+ORDER BY DESC(?proyectoLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/de>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

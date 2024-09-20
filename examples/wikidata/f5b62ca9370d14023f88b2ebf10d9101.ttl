@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f5b62ca9370d14023f88b2ebf10d9101> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?label ?authorlabel (COUNT(?anotherItem) AS ?inbound_links) WHERE {
+  hint:Query hint:optimizer \"None\".
+  VALUES ?type {
+    wd:Q571
+    wd:Q7725634
+  }
+  ?item wdt:P31 ?type;
+    wdt:P577 ?date;
+    wdt:P50 ?author.
+  ?author wdt:P1559 ?authorlabel.
+  FILTER((LANG(?label)) = \"en\")
+  hint:Prior hint:rangeSafe \"true\".
+  FILTER(?date > \"1979-01-01T00:00:00Z\"^^xsd:dateTime)
+  ?item rdfs:label ?label.
+  FILTER((LANG(?label)) = \"en\")
+  ?item wdt:P495 wd:Q38.
+  OPTIONAL {?anotherItem ?predicate ?item .
+  ?property wikibase:directClaim ?predicate .}
+
+}
+GROUP BY ?item ?label ?authorlabel
+ORDER BY DESC (?inbound_links)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f37cba602db2365b2f855eefb1a71f7f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?competition ?competitionLabel ?date ?end WHERE {
+  { ?competition wdt:P31 wd:Q2990963. }
+  UNION
+  {
+    ?competition wdt:P31 wd:Q16510064.
+    ?competition wdt:P361 ?comp.
+    ?comp wdt:P31 wd:Q2990963.
+  }
+  UNION
+  {
+    ?competition wdt:P361 ?segment.
+    ?segment wdt:P31 wd:Q16510064.
+  }
+  OPTIONAL { ?competition wdt:P580 ?start. }
+  OPTIONAL { ?competition wdt:P582 ?end. }
+  OPTIONAL { ?competition wdt:P585 ?pointInTime. }
+  BIND(COALESCE(?start, ?pointInTime) AS ?date)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  FILTER((BOUND(?start)) || (BOUND(?pointInTime)))
+  FILTER(?end >= (NOW() - \"P1D\"^^xsd:duration))
+  FILTER((NOW()) >= ?date)
+}
+ORDER BY ?date""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Figure_skating/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

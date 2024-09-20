@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fe8f3fe87e312b278524c7c236643cab> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Commons Creator page without Commons category
+SELECT ?item ?itemLabel ?creatorLabel (SUBSTR(?name, 10 ) AS ?category) WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],nl,fr,de,en,es,it\". }
+  ?item wdt:P1472 ?creator;
+    wdt:P31 wd:Q5, ?instance.
+  {
+    ?article schema:about ?item;
+      schema:name ?name;
+      schema:isPartOf <https://commons.wikimedia.org/>.
+  }
+  FILTER(CONTAINS(STR(?article), \"/Category:\"))
+  MINUS { ?item wdt:P373 ?commonscat. }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Wikidata_curricula/Activities/Find_Commons_Creator_page_without_Commons_category>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

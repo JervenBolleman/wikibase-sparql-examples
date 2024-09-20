@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f22146684900a291acf8a0319f177c6f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Search for Belgian citizen without EN label
+SELECT DISTINCT ?item ?nlitemLabel ?itemDescription ?instanceLabel ?nationalityLabel ?professionLabel ?domainLabel WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,nl,fr,de,it,lu,es,no,pt\". }
+  VALUES ?instance { wd:Q5 }
+  VALUES ?nationality { wd:Q31 }
+  ?item wdt:P31 ?instance;
+    wdt:P27 ?nationality;
+    rdfs:label ?nlitemLabel.
+  FILTER((LANG(?nlitemLabel)) = \"nl\")
+  MINUS {
+    ?item rdfs:label ?enitemLabel.
+    FILTER((LANG(?enitemLabel)) = \"en\")
+  }
+  OPTIONAL { ?item wdt:P106 ?profession. }
+  OPTIONAL { ?item wdt:P101 ?domain. }
+}
+ORDER BY (?nlitemLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Geertivp/training/Wikidata_Query/Missing_label_in_target_language>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

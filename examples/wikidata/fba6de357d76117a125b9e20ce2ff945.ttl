@@ -1,0 +1,52 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fba6de357d76117a125b9e20ce2ff945> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:ImageGrid
+SELECT
+  ?imagen
+  ?plato
+  ?platoLabel
+WITH {
+  SELECT DISTINCT ?plato {
+    SERVICE <https://query.wikidata.org/sparql> {
+      ?plato wdt:P361 wd:Q749847.
+    }
+  }
+} AS %plato
+WITH {
+  SELECT ?plato ?platoLabel {
+    INCLUDE %plato.
+    SERVICE <https://query.wikidata.org/sparql> {
+      {
+        SELECT ?plato ?platoLabel {
+          SERVICE wikibase:label { bd:serviceParam wikibase:language \"es\". }
+        }
+      }
+    }
+  }
+} AS %platoLabel
+WITH {
+  SELECT DISTINCT ?imagen ?plato {
+    INCLUDE %plato.
+    [] wdt:P180 ?plato;
+       schema:url ?imagen.
+  }
+} AS %imagen
+{
+  INCLUDE %platoLabel
+  INCLUDE %imagen.
+}
+ORDER BY ASC(LCASE(?platoLabel))""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/de>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

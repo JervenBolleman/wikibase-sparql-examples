@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f75d3ee2b422459f3852e5a279caba73> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?name ?pages ?bhlLink WHERE {
+  ?item wdt:P225 ?name .
+  ?item wdt:P105 wd:Q34740 .
+  ?item p:P225 ?taxonName .
+  ?taxonName ps:P225 ?taxonNameValue .
+  ?taxonName pq:P405 wd:Q1043.
+  ?taxonName prov:wasDerivedFrom ?ref .
+  ?ref pr:P248 wd:Q40975586 .   
+  OPTIONAL {?ref pr:P304 ?pages}
+  OPTIONAL {?ref pr:P687 ?bhl}  
+  BIND(REPLACE(?pages, \"-\", \"–\") AS ?pages)
+  BIND(if(contains(?pages,  \"–\"), strbefore(?pages, \"–\"), ?pages) as ?startpage)
+  BIND(if(contains(?pages,  \"–\"), strafter(?pages, \"–\"), ?pages) as ?endpage)
+  BIND(uri(concat(\"http://biodiversitylibrary.org/page/\",?bhl)) as ?bhlLink)
+}
+ORDER BY ASC(?name)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Succu/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

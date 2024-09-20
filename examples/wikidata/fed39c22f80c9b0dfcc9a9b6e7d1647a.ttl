@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fed39c22f80c9b0dfcc9a9b6e7d1647a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?qual ?qualLabel ?count WHERE {
+  {
+    SELECT ?qual (COUNT(DISTINCT ?item) AS ?count) WHERE {
+         hint:Query hint:optimizer \"None\" .
+         ?item p:P243 ?statement .
+         ?statement ?pq_qual ?pq_obj .
+         ?qual wikibase:qualifier ?pq_qual .
+    }  GROUP BY ?qual
+  } .
+
+  OPTIONAL {
+    ?qual rdfs:label ?qualLabel filter (lang(?qualLabel) = \"en\") .
+  }
+}
+ORDER BY DESC(?count) ASC(?qualLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Realworldobject/ShowTell>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

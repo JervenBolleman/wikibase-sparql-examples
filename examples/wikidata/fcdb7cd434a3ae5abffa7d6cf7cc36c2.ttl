@@ -1,0 +1,43 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fcdb7cd434a3ae5abffa7d6cf7cc36c2> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# title of the query
+#title: graph of locations by level in Romance of the Three Kingdoms
+# viewed as graph
+#defaultView:Graph
+SELECT DISTINCT ?place ?placeLabel ?upper ?upperLabel ?edgeLabel
+WHERE {
+  # ?place is instance of (P31) \"subclass of (P279)\" [ZeroOrMorePath (*)] fictional location (Q3895768)
+  ?place wdt:P31/wdt:P279* wd:Q3895768;
+         # present in work (P1441): Romance of the Three Kingdoms (Q70806)
+         ### This query, as far as I remember, was created originally for Dream of the Red Chamber (Q8265)
+         ### between 4 September 2021 and 4 January 2022.
+         wdt:P1441 wd:Q70806
+  # use IF and EXISTS to bind a property as ?p:
+  # if ?place has location (P276), bind location (P276) as ?p
+  BIND(IF(Exists{?place wdt:P276 ?a}, wdt:P276,
+       # if ?place has \"located in the administrative territorial entity\" (P131),
+       # bind \"located in the administrative territorial entity\" (P131) as ?p
+       IF(Exists{?place wdt:P131 ?b}, wdt:P131,
+       # if ?place is instance of (P31) \"subclass of (P279)\" [ZeroOrMorePath (*)] fictional country (Q1145276),
+       # bind continent (P30) as ?p
+       IF(Exists{?place wdt:P31/wdt:P279* wd:Q1145276}, wdt:P30,
+       # otherwise, bind country (P17) as ?p
+       wdt:P17))) AS ?p)
+  # optional: ?place's ?p is ?upper
+  OPTIONAL {?place ?p ?upper.
+            # get ?p's property label and allow it to appear on graph edge
+            ?edge wikibase:directClaim ?p}
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1.1>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f2d42c2f753e25594df71a1f1d299097> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select distinct ?itemLabel ?item ?number ?dob ?pobLabel ?dod ?podLabel
+with { # select all the numbers of sitelinks
+  select ?number (count(*) as ?total) {
+    [] wikibase:sitelinks ?number .
+  } group by ?number
+} as %numbers
+where {
+  include %numbers .
+  filter (?number > 40) .
+  ?item wikibase:sitelinks ?number .
+  ?item wdt:P31 wd:Q5.
+  ?item wdt:P19 ?pob.
+  ?pob wdt:P17 wd:Q214.
+  OPTIONAL { ?item wdt:P569 ?dob }
+  OPTIONAL { ?item wdt:P570 ?dod } 
+  OPTIONAL { ?item wdt:P20 ?pod }  
+  ?sitelink <http://schema.org/about> ?item .
+  service wikibase:label { bd:serviceParam wikibase:language \"sk,en\". }
+} order by desc(?number)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Slovakia/Showcase_Queries/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Slovakia/Showcase_Queries/cs>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Slovakia/Showcase_Queries/en>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Slovakia/Showcase_Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

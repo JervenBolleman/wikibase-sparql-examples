@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fcd577e13ab97db3a18bf58b5ff9a6d2> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Utvalg av entiteter uten P31 'tilfelle av' og P279 'underklasse av'
+SELECT DISTINCT ?item ?itemLabel ?itemDescription ?articleURI
+WHERE {
+  #Utvalg
+  ?item wdt:P17 wd:Q20.
+  #Resten av spørringen
+  OPTIONAL { ?inst ^wdt:P31 ?item. }
+  OPTIONAL { ?super ^wdt:P279 ?item. }
+  FILTER(!BOUND(?inst) && !BOUND(?super))
+  OPTIONAL {
+    ?articleURI schema:about ?item;
+      schema:isPartOf <https://no.wikipedia.org/>.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"nb,en\". }
+}
+LIMIT 500""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infrastruktur/Sandbox2>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

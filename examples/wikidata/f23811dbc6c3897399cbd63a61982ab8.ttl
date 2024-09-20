@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f23811dbc6c3897399cbd63a61982ab8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?P17 ?P17Label ?P495 ?P495Label (GROUP_CONCAT(DISTINCT ?discog) as ?discogs)  (GROUP_CONCAT(DISTINCT ?rymurl) as ?rym_url) (GROUP_CONCAT(DISTINCT ?mburl) as ?mb_url) (GROUP_CONCAT(DISTINCT ?amurl) as ?am_url) WHERE {
+BIND( xsd:integer( STRAFTER( STR( ?item ), STR( wd:Q ) ) ) AS ?qid )
+  ?item wdt:P31/wdt:P279* wd:Q188451.
+  OPTIONAL {?item wdt:P17 ?P17.} .
+  OPTIONAL {?item wdt:P495 ?P495.} .
+  OPTIONAL {?item wdt:P9218 ?DgID. 
+            BIND(CONCAT(\"[https://www.discogs.com/genre/\",?DgID,\" \",?DgID,\"]\") as ?DgIDurl)}
+  OPTIONAL {?item wdt:P9219 ?DsID. 
+            BIND(CONCAT(\"[https://www.discogs.com/style/\",?DsID,\" \",?DsID,\"]\") as ?DsIDurl)}
+  BIND(IF(BOUND(?DgIDurl) && BOUND(?DsIDurl),concat(?DgIDurl,\" \",?DsIDurl),
+          IF(BOUND(?DgIDurl),?DgIDurl,
+            IF(BOUND(?DsIDurl),?DsIDurl,\"\"))) as ?discog) 
+  OPTIONAL {?item wdt:P9173 ?rymID. BIND(REPLACE(?rymID,\" \",\"%20\") as ?rymID1)
+            BIND(REPLACE(?rymID1,\"\\\\[\",\"%5B\") as ?rymID2)
+            BIND(REPLACE(?rymID2,\"\\\\]\",\"%5D\") as ?rymID_fix)
+            BIND(CONCAT(\"[https://rateyourmusic.com/genre/\",?rymID_fix,\" \",?rymID_fix,\"]\") as ?rymurl)}
+  OPTIONAL {?item wdt:P8052 ?mbID. 
+            wd:P8052 rdfs:label ?propItemLabelmb . FILTER (lang(?propItemLabelmb) = \"en\"). 
+            BIND(CONCAT(\"[https://musicbrainz.org/genre/\",?mbID,\" ID]\") as ?mburl)}
+  OPTIONAL {?item wdt:P9185 ?amID. 
+            wd:P9185 rdfs:label ?propItemLabelam . FILTER (lang(?propItemLabelam) = \"en\"). 
+            BIND(CONCAT(\"[https://www.allmusic.com/style/\",?amID,\" ID]\") as ?amurl)} 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} group by ?item ?P17 ?P17Label ?P495 ?P495Label""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/05>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

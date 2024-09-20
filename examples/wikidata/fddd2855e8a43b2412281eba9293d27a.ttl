@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fddd2855e8a43b2412281eba9293d27a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX v: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+
+SELECT ?ordinal (MIN(?publication) AS ?aired) ?film ?title (GROUP_CONCAT(DISTINCT(?investigatorName);separator=\", \") AS ?investigators) (GROUP_CONCAT(DISTINCT(?directorName);separator=\", \") AS ?directors)(GROUP_CONCAT(DISTINCT(?screenwriter);separator=\", \") AS ?screenwriters) (SAMPLE(?runtime) AS ?runtime) (SAMPLE(?imdb) AS ?imdb) WHERE {
+  ?film p:P179 ?series . ?series v:P179 wd:Q689438 . ?series pq:P1545 ?ordinal . FILTER(xsd:integer(?ordinal)<10000)
+  OPTIONAL{?film wdt:P1476 ?title}
+  OPTIONAL{?film wdt:P57 ?dir . ?dir rdfs:label ?directorName . FILTER(lang(?directorName) = \"de\")}
+  OPTIONAL{?film wdt:P58 ?screen . ?screen rdfs:label ?screenwriter .  FILTER(lang(?screenwriter) = \"de\")}
+  OPTIONAL{?film wdt:P345 ?imdb}
+  OPTIONAL{?film wdt:P577 ?publication}
+  OPTIONAL{?film wdt:P2047 ?runtime}
+  OPTIONAL{?film p:P161 ?cast . ?cast pq:P453 ?investigator . ?investigator wdt:P31 wd:Q110857263 . ?investigator rdfs:label ?investigatorName . FILTER(lang(?investigatorName) = \"de\")}
+}
+GROUP BY ?film ?title ?ordinal
+ORDER BY DESC(xsd:integer(?ordinal))""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jobu0101/API>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,88 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f78d60eae4d2821cdfecbebe3ec64351> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q9035>
+
+SELECT
+  ?description
+  ?value ?valueUrl
+
+  ?wikidata ?wikidataUrl
+  ?hangor ?hangorUrl
+  ?ordia ?ordiaUrl
+  ?scholia ?scholiaUrl
+WHERE {
+  {
+    BIND(1 AS ?order)
+    BIND(\"Language\" AS ?description)
+    target: rdfs:label ?value_string .
+    FILTER (LANG(?value_string) = 'en')
+    BIND(COALESCE(?value_string, SUBSTR(STR(target:), 32)) AS ?value)
+    
+    BIND(CONCAT(SUBSTR(STR(target:), 32), \"&nbsp;↗\") AS ?wikidata)
+    BIND(CONCAT(\"https://www.wikidata.org/wiki/\", SUBSTR(STR(target:), 32)) AS ?wikidataUrl)
+    
+    BIND(\"Hangor&nbsp;↗\" AS ?hangor)
+    BIND(CONCAT(\"https://hangor.toolforge.org/browse/\", SUBSTR(STR(target:), 32)) AS ?hangorUrl)
+
+    BIND(\"Ordia&nbsp;↗\" AS ?ordia)
+    BIND(CONCAT(\"https://ordia.toolforge.org/language/\", SUBSTR(STR(target:), 32)) AS ?ordiaUrl)
+
+    BIND(\"Scholia&nbsp;↗\" AS ?scholia)
+    BIND(CONCAT(\"https://scholia.toolforge.org/language/\", SUBSTR(STR(target:), 32)) AS ?scholiaUrl)
+  }
+  UNION
+  {
+    SELECT
+      (2 AS ?order)
+      (\"Number of lexemes\" AS ?description)
+      (COUNT(*) AS ?value)
+    {
+      [] dct:language target: .
+      BIND(1 AS ?dummy)
+    }
+    GROUP BY ?dummy
+  }
+  UNION
+  {
+    SELECT
+      (3 AS ?order)
+      (\"Number of senses\" AS ?description)
+      (COUNT(*) AS ?value)
+      (CONCAT(\"#language/\", SUBSTR(STR(target:), 32), \"/sense\") AS ?valueUrl)
+    WHERE {
+      [] ^ontolex:sense / dct:language target: .
+      BIND(1 AS ?dummy)
+    }
+    GROUP BY ?dummy
+  }
+  UNION
+  {
+    SELECT
+      (4 AS ?order)
+      (\"Number of forms\" AS ?description)
+      (COUNT(*) AS ?value)
+    {
+      [] ^ontolex:lexicalForm / dct:language target: .
+      BIND(1 AS ?dummy)
+    }
+    GROUP BY ?dummy
+  }
+  UNION
+  {
+    BIND(10 AS ?order)
+    BIND(\"Number of speakers\" AS ?description)
+    target: wdt:P1098 ?value .
+  }
+} 
+ORDER BY ?order""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:language>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

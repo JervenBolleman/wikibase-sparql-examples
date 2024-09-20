@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fd8e98d61c7d6b28d6e9b791a64b0b72> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: highly cited retracted papers
+SELECT ?work ?workLabel ?publisherLabel ?count WITH {
+  SELECT ?work (SAMPLE(?publisher_) AS ?publisher) (COUNT(DISTINCT ?citation) AS ?count) WHERE {
+    { ?work wdt:P31 wd:Q45182324 . } UNION
+    { ?work wdt:P793 wd:Q7316896 . } UNION
+    { ?work wdt:P5824 [] . }
+    ?work wdt:P1433 / wdt:P123 ?publisher_ .
+    ?citation wdt:P2860 ?work .
+} GROUP BY ?work ?workLabel
+  ORDER BY DESC(?count)
+  LIMIT 100
+} AS %WORKS WHERE {
+  INCLUDE %WORKS
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Retractions/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

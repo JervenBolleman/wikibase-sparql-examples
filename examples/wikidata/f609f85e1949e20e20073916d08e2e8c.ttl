@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f609f85e1949e20e20073916d08e2e8c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?league_land ?league_landLabel ?league ?leagueLabel ?team ?teamLabel ?home_venue ?home_venueLabel ?start_year ?end_year WHERE {
+  ?team wdt:P31 wd:Q17156793 .              # team is an American football team
+  ?team p:P118/ps:P118 ?league .            # team plays in a league
+  OPTIONAL {?league wdt:P17 ?league_land }  # the league is in country
+  OPTIONAL {
+    ?team p:P115 ?p115stm .                 # team has a home venue...
+    ?p115stm ps:P115 ?home_venue .
+    OPTIONAL {?p115stm pq:P580 ?startdate . BIND(YEAR(?startdate) AS ?start_year) }  # ...with a start date
+    OPTIONAL {?p115stm pq:P582 ?enddate .   BIND(YEAR(?enddate) AS ?end_year)}       # ...with a end date
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,ca,it\". }
+}
+ORDER BY ?league_landLabel ?leagueLabel ?teamLabel ?start_year""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

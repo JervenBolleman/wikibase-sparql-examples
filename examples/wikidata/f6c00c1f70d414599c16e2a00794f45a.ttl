@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f6c00c1f70d414599c16e2a00794f45a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+SELECT DISTINCT ?person ?name ?birthplace ?birthyear ?coord ?layer ?image
+WHERE {
+  VALUES ?collection { wd:Q106936149 wd:Q109123373  }
+  { ?novel wdt:P747 ?edition;
+           wdt:P50 ?person.
+    ?edition  wdt:P1433 ?collection.
+  }
+  ?person wdt:P19 ?place.
+  ?place wdt:P625 ?coord.
+  OPTIONAL { ?person wdt:P569 ?dob. }
+  OPTIONAL {?person wdt:P18 ?image.}
+  BIND(YEAR(?dob) AS ?birthyear)
+BIND(IF(?birthyear < 1801 , \"-1800\", IF(?birthyear < 1831 , \"1801-1840\",  IF(?birthyear < 1871 , \"1841-1870\", IF(?birthyear < 1901 , \"1871-1900\", \"Post-1900\")))) AS ?layer)
+  ?person rdfs:label ?name.
+  FILTER((LANG(?name)) = \"sr\")
+  ?place rdfs:label ?birthplace.
+  FILTER((LANG(?birthplace)) = \"sr\")
+}
+ORDER BY (?birthyear)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_SrpKor/Queries>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_ELTeC/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f3d8c406a716e7717cb841bb9932450b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?taxonName ?year (SUBSTR(?published1, 1, 10) as ?published) ?publishedIn ?title WHERE {
+      ?item p:P225 ?taxonNameStatement .
+      ?taxonNameStatement ps:P225 ?taxonName .
+      ?taxonNameStatement pq:P574 ?date .
+      ?taxonNameStatement prov:wasDerivedFrom ?ref .  
+      OPTIONAL {?ref pr:P248/wdt:P1476 ?title} .
+      OPTIONAL {?ref pr:P248/wdt:P577 ?published1} .
+      OPTIONAL {?ref pr:P248/wdt:P1433/wdt:P1476 ?publishedIn} .
+      BIND(xsd:integer(YEAR(?date)) as ?year) 
+      #Filter(?year >= 2000)
+      Filter(?year = 2016)  
+      #Filter(?year >= 2017)  
+}
+ORDER BY DESC(?year) ASC(?taxonName)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Succu/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

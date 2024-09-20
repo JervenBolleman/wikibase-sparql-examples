@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fdd8509e80e87fe31f8c443539fd0cee> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Look for empty items (no sitelinks, no statements, no use in other items)
+SELECT ?item {
+  ?item wikibase:sitelinks 0 . # no sitelinks (sometimes unreliable); alternative: ?sitelinkCount . FILTER(?sitelinkCount = 0) .
+  ?item wikibase:statements 0 . # no statements (sometimes unreliable); alternative: ?statementCount . FILTER(?statementCount = 0) .
+  MINUS { # not used in other items (mainsnak)
+    ?mainsnakProperty wikibase:propertyType wikibase:WikibaseItem; wikibase:claim ?claim; wikibase:statementProperty ?statementProperty; wikibase:directClaim ?directClaim .
+    [] ?claim [ ?statementProperty ?item ] .
+  }
+  MINUS { # not used in other items (as qualifier)
+    ?qualifierProperty wikibase:propertyType wikibase:WikibaseItem; wikibase:qualifier ?qualifier .
+    [] ?qualifier ?item .
+  }
+  MINUS { # not used in other items (as reference)
+    ?referenceProperty wikibase:propertyType wikibase:WikibaseItem; wikibase:reference ?reference .
+    [] prov:wasDerivedFrom [ ?reference ?item ] .
+  }
+  MINUS { # second check: no statements
+    ?anyProperty a wikibase:Property; wikibase:claim ?anyClaim .
+    ?item ?anyClaim [] .
+  }
+  MINUS { # second check: no sitelinks; unreliable as well
+    ?sitelink schema:about ?item .
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/sysop/items_for_deletion>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,46 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f465e42abc6a7c14bc69decf11862965> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?IATA (max(?number) as ?passengers) 
+?year
+with {
+  select ?item  ?IATA ?statement ?year ?timevalue ?numberperperiod{
+   ?item wdt:P31/wdt:P279* wd:Q644371.
+    ?item wdt:P238 ?IATA.    
+    ?item p:P3872 ?statement.
+    ?statement pqv:P585 ?timevalue
+               ; ps:P3872 ?numberperperiod.
+    ?timevalue wikibase:timeValue ?date .
+    optional { ?statement pq:P518 ?applies .}
+filter(bound(?applies)=false || ?applies = wd:Q2165236 )
+bind(if(bound(?applies)=false,\"no applies\",\"everywhere\") as ?where )
+MINUS { ?statement wikibase:rank wikibase:DeprecatedRank }
+bind (YEAR(?date) AS ?year)
+FILTER (?year >1949).
+FILTER (?year < year(now())).
+}
+} as %airport
+where {
+  {
+select ?item ?year (sum(?numberperperiod) as ?number) {
+include %airport .
+?timevalue wikibase:timePrecision ?prec filter ( ?prec > 9 )
+} group by ?item  ?year
+  } union {
+      ?timevalue wikibase:timePrecision 9 .
+    bind (?numberperperiod as ?number)
+      include %airport
+  } .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+} group by ?item ?itemLabel ?year ?IATA
+order by ?item desc (?year)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

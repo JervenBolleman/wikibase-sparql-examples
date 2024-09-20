@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f22c0fd7d665b41de3df246136a35394> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Most 'wikilar' living Indians citizens without an image 
+# Wikilar as per sitelinks
+SELECT ?item ?itemLabel ?itemDescription (COUNT(?sitelink) AS ?sitelinks) ?twitter
+WHERE {
+  ?item wdt:P27 wd:Q668 . # item is a citizen of India 
+  MINUS { ?item wdt:P18 [] }. # without an image linked at Wikidata
+  MINUS { ?item wdt:P570 [] } . # without date of death statement
+  ?sitelink schema:about ?item .
+    OPTIONAL {?item wdt:P2002 ?twitter .} 
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+} 
+GROUP BY ?itemLabel ?itemDescription ?twitter ?item HAVING(?sitelinks >= 10) #sitelink count to focus on the “most wikilar” people
+ORDER BY DESC(?sitelinks)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_India/Queries/MKar>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

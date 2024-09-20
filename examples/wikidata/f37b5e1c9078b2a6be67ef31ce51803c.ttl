@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f37b5e1c9078b2a6be67ef31ce51803c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?country ?countryLabel ?population ?ended
+# ideally we don't need a \"DISTINCT\" above
+# we get multiple records because some items have multiple P31 statements that lead to a Q3624078
+# we can trim duplicates as workaround (or inspect classification and P31 links)
+#SELECT ?country ?countryLabel ?population ?ended
+WHERE
+{
+  ?country wdt:P31/wdt:P279* wd:Q3624078; #countries
+           wdt:P1082         ?population; #with their population
+  MINUS 
+  {
+  ?country wdt:P576          ?ended. 
+  } # exclude \"former\" countries
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY DESC(?population) # most populous countries - descending population
+LIMIT 10""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:D1gggg/Wikidata_model_and_SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,39 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fd21267c75511cb2c73c51860dc9ae7b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+SELECT DISTINCT ?qid ?ipni ?comment
+WHERE
+{
+  SERVICE gas:service {
+    gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.SSSP\" ;
+                gas:in wd:Q21908; # parent taxon Malvales
+                gas:traversalDirection \"Reverse\" ;
+                gas:out ?item ;
+                gas:out1 ?depth ;
+                gas:maxIterations 10 ;
+                gas:linkType wdt:P171 .
+  }
+  ?item wdt:P105 wd:Q7432; # taxon rank species
+        wdt:P5037 ?powo.
+  FILTER ( NOT EXISTS { ?item wdt:P961 ?id. } )
+  OPTIONAL { ?item wdt:P171 ?linkTo }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+    ?item rdfs:label ?itemLabel .
+  }
+  FILTER ( !STRENDS(?powo, \"-4\") ) # POWO IDs ending in -4 are temporary, see: https://powo.science.kew.org/about 
+  BIND (CONCAT('\"', STRAFTER(?powo, \"urn:lsid:ipni.org:names:\"), '\"') AS ?ipni ) # surround with \"\"\" for Quickstatements v2
+  BIND (\"parsed from existing POWO identifier\" AS ?comment)
+  BIND (ENCODE_FOR_URI(REPLACE(STR(?item), \".*Q\", \"Q\")) AS ?qid)
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Kbseah/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

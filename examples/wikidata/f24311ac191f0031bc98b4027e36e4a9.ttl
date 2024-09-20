@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f24311ac191f0031bc98b4027e36e4a9> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?coord ?place ?placeLabel ?location ?dist
+WHERE 
+{
+  ?item wdt:P31/wdt:P279* wd:Q12323. 
+  ?item wdt:P625 ?coord. 
+  ?item wdt:P17 wd:Q17
+    BIND (geof:longitude(?coord) AS ?long)
+    FILTER (?long > 136)
+    FILTER (?long < 138)
+  
+  SERVICE wikibase:around { 
+      ?place wdt:P625 ?location . 
+      bd:serviceParam wikibase:center ?coord . 
+      bd:serviceParam wikibase:radius \"10.00001\" . 
+      bd:serviceParam wikibase:distance ?dist.
+  } 
+  ?place wdt:P31 wd:Q12323. 
+  filter(str(?item) < str(?place))
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

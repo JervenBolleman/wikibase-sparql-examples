@@ -1,0 +1,43 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f3c90c7a0d5a67f8e85f0d54c2e76dc9> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# UK Parliament constituencies and the number of male & female MPs they have elected since 1997
+
+SELECT DISTINCT ?constituency ?constituencyLabel ?created ?dissolved ?men_elected ?women_elected ?total
+{
+ ?constituency wdt:P31 wd:Q27971968 . 
+  filter not exists { ?constituency wdt:P576 ?end . FILTER (?end <= \"1997-05-01T00:00:00Z\"^^xsd:dateTime) . }
+  optional { ?constituency wdt:P576 ?end . bind(year(?end) as ?dissolved) . }
+  optional { ?constituency wdt:P571 ?start . bind(year(?start) as ?created) . }
+ # find all constituencies, omit any dissolved before 1997
+  optional { SELECT ?constituency (COUNT (distinct ?man) AS ?men_elected) WHERE {
+      ?constituency wdt:P31 wd:Q27971968 . 
+      ?man p:P39 ?positionStatement . ?positionStatement pq:P768 ?constituency . ?positionStatement pq:P580 ?start . 
+      ?man wdt:P21 wd:Q6581097 . FILTER (?start >= \"1997-05-01T00:00:00Z\"^^xsd:dateTime) . 
+    } GROUP BY ?constituency }  
+  # find and count all men elected (optional in case 0), omit any elected before 1997
+  optional { SELECT ?constituency (COUNT (distinct ?woman) AS ?women_elected) WHERE {
+      ?constituency wdt:P31 wd:Q27971968 . 
+      ?woman p:P39 ?positionStatement . ?positionStatement pq:P768 ?constituency . ?positionStatement pq:P580 ?start . 
+      ?woman wdt:P21 wd:Q6581072 . FILTER (?start >= \"1997-05-01T00:00:00Z\"^^xsd:dateTime) . 
+    } GROUP BY ?constituency }
+  # find and count all women elected (optional in case 0), omit any elected before 1997
+  { SELECT ?constituency (COUNT (distinct ?mp) AS ?total) WHERE {
+      ?constituency wdt:P31 wd:Q27971968 . 
+      ?mp p:P39 ?positionStatement . ?positionStatement pq:P768 ?constituency . ?positionStatement pq:P580 ?start . 
+      FILTER (?start >= \"1997-05-01T00:00:00Z\"^^xsd:dateTime) . 
+    } GROUP BY ?constituency }
+  # find and count all people elected, omit any elected before 1997
+ SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}
+ORDER BY ?men_elected ?women_elected""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

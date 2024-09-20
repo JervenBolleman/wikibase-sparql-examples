@@ -1,0 +1,24 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fe76471eb90681b1ad221281f4e08d3a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?authorLabel ?publication ?publicationLabel ?date 
+WHERE {
+      { ?author wdt:P108 wd:Q34433 } # Listed as employees of the university
+UNION { {?college wdt:P31 wd:Q2581649 } UNION { ?college wdt:P31 wd:Q3338504 }.
+        ?author wdt:P108 ?college } # Listed as employees of a college or hall
+        MINUS{ ?author wdt:P570 ?date } # No death date
+        ?publication wdt:P50 ?author 
+	OPTIONAL { ?publication wdt:P577 ?date }
+  
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\" }
+} ORDER BY DESC(?date)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

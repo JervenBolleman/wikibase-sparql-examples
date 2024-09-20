@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f824ee60fa0d805485df1232876cd142> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?label ?output4 WHERE {
+  ?item skos:altLabel ?label .
+  ?item wdt:P31 wd:Q5.
+  	# beroep = fotograaf of onderliggend
+  ?item (wdt:P106/wdt:P279*) wd:Q3391743.
+  	# nationality = Kingdom of the Netherlands
+  {?item wdt:P27 wd:Q29999}
+   	# OR place of birth within Netherlands
+	UNION  {?item wdt:P19 ?pob .
+  ?pob wdt:P17 wd:Q55}
+   	# OR work location within Netherlands
+	UNION  {?item wdt:P937 ?pow .
+  ?pow wdt:P17 wd:Q55}
+   	# OR residency within Netherlands
+	UNION  {?item wdt:P551 ?por .
+  ?por wdt:P17 wd:Q55}
+   	# OR place of death within Netherlands
+	UNION  {?item wdt:P20 ?pod .
+  ?pod wdt:P17 wd:Q55}
+  BIND(replace(?label,\"([A-Z])[a-z\\u0080-\\uFFFF]+ (?:([A-Z])[a-z\\u0080-\\uFFFF]+ )?(?:([A-Z])[a-z\\u0080-\\uFFFF]+ )?(?:([A-Z])[a-z\\u0080-\\uFFFF]+ )?(.*)([A-Z][a-z\\u0080-\\uFFFF]+)$\",\"$1.$2.$3.$4. $5$6\") AS ?output) .
+  BIND(replace(?output,\"[\\\\.]+\",\".\") AS ?output2) .
+  BIND(replace(?output2,\"([A-Z])\\\\.? ?([A-Z])\\\\.?(?: ?([A-Z])\\\\.?)? \",\"$1.$2.$3. \") AS ?output3) .
+  BIND(replace(?output3,\"[\\\\.]+\",\".\") AS ?output4) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"nl, en\". }
+  FILTER((LANG(?label)) = \"nl\")
+  FILTER(REGEX(?label, \"^[A-z]{3,}\"))
+  FILTER(!REGEX(?label, \"\\\\(\"))#geen altnamen met haakjes
+  FILTER NOT EXISTS {
+  ?item skos:altLabel ?alt .
+    FILTER(REGEX(?alt, ?output4))#bestaat al
+    }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:CopyClear/monitor/shorten_full_name>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,58 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fc41701c4e5a29e15666ea4c24b61725> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# members of the 10th Legislative Yuan, Taiwan
+# querying qualifiers (in comparison, adding parliamentary_term/start_time/end_time/replaces/replaced_by to elected_in/parliamentary_group/electoral_district)
+# viewed as map of electoral districts, layered by parliamentary group (also viewable as table)
+#defaultView:Map{\"layer\":\"?parliamentary_groupLabel\"}
+SELECT ?member ?memberLabel ?genderLabel ?birth_date ?image ?start_time ?elected_inLabel ?parliamentary_groupLabel ?electoral_districtLabel ?coord ?replacesLabel ?end_time ?replaced_byLabel
+WHERE {
+  # ?member's \"position held\" (P39) statement is ?x
+  ?member p:P39 ?x.
+  # ?x's value is ?y
+  ?x ps:P39 ?y.
+  # ?y is any subclass of (P279) member of the Legislative Yuan (Q6310593)
+  ?y wdt:P279* wd:Q6310593.
+  # the value of ?x's qualifier \"parliamentary term\" (P2937) is 10th Legislative Yuan (Q25186942)
+  ?x pq:P2937 wd:Q25186942
+  # optional: show ?member's gender (P21) as ?gender
+  OPTIONAL {?member wdt:P21 ?gender}
+  # optional: show ?member's birth date (P569) as ?birth_date
+  OPTIONAL {?member wdt:P569 ?birth_date}
+  # optional: show ?member's image (P18) as ?image
+  OPTIONAL {?member wdt:P18 ?image}
+  # optional: show ?x's qualifier \"elected in\" (P2715) as ?elected_in
+  ### Note: besides the 2020 Taiwanese legislative election, may also be elected in by-elections in the future
+  OPTIONAL {?x pq:P2715 ?elected_in}
+  # optional: show ?x's qualifier \"start time\" (P580) as ?start_time
+  OPTIONAL {?x pq:P580 ?start_time}
+  # optional: show ?x's qualifier \"end time\" (P582) as ?end_time
+  OPTIONAL {?x pq:P582 ?end_time}
+  # optional: show ?x's qualifier \"replaces\" (P1365) as ?replaces
+  ### Note: 1. member from regional district replaces/replaced_by the one of the previous/next parliamentary term (or same parliamentary term for by-election) from the same regional district
+  ### 2. member from party list, if applicable, replaces/replaced_by the one of the same parliamentary term from the same party list
+  OPTIONAL {?x pq:P1365 ?replaces}
+  # optional: show ?x's qualifier \"replaced by\" (P1366) as ?replaced_by
+  OPTIONAL {?x pq:P1366 ?replaced_by}
+  # optional: show ?x's qualifier \"parliamentary group\" (P4100) as ?parliamentary_group
+  OPTIONAL {?x pq:P4100 ?parliamentary_group}
+  # optional: show ?x's qualifier \"electoral district\" (P768) as ?electoral_district
+  OPTIONAL {?x pq:P768 ?electoral_district
+            # optional: show ?electoral_district's coordinate location (P625) as ?coord
+            OPTIONAL {?electoral_district wdt:P625 ?coord}
+            }
+  # show label in simplified Chinese (zh-hans) as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"zh-hans,en\". } 
+}
+# order layer by ?parliamentary_groupLabel
+order by ?parliamentary_groupLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

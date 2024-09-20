@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fcaa1aeee98aa70fb05e21b4fa0eca58> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?human ?humanLabel ?sl
+(GROUP_CONCAT(DISTINCT ?dateOfBirth) AS ?dateOfBirths)
+(GROUP_CONCAT(DISTINCT ?dateOfDeath) AS ?dateOfDeaths)
+(GROUP_CONCAT(DISTINCT ?bblid) AS ?bblids) 
+(GROUP_CONCAT(DISTINCT (replace(?isni, \" \", \"\")); SEPARATOR = \",\") AS ?isnis)
+(GROUP_CONCAT(DISTINCT ?viaf) AS ?viafs) 
+(GROUP_CONCAT(DISTINCT ?gnd) AS ?gnds) 
+(GROUP_CONCAT(DISTINCT ?geni) AS ?genis)
+(COUNT(?isni) AS ?isniCount)
+WHERE {
+    ?human wdt:P31 wd:Q5 .      
+    ?human wdt:P2580 ?bblid .
+    ?human wikibase:sitelinks ?sl.
+    OPTIONAL{?human wdt:P569 ?dateOfBirth .}
+    OPTIONAL{?human wdt:P570 ?dateOfDeath .}
+    {?human wdt:P213 ?isni .}
+    OPTIONAL{?human wdt:P214 ?viaf .}
+    optional{?human wdt:P227 ?gnd .}
+    OPTIONAL{?human wdt:P2600 ?geni .}
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+GROUP BY ?human ?humanLabel ?sl
+ORDER BY DESC(?isniCount) DESC(?sl) ?dateOfBirths ?dateOfDeaths""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

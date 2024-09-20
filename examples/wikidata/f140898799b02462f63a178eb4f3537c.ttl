@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f140898799b02462f63a178eb4f3537c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Male tennis players who were born before 1950 without an atp id
+#Draft
+
+SELECT ?player ?date ?cause ?player_label ?atp_id
+WHERE 
+{
+	?player wdt:P106 wd:Q10833314 .    # find items that have \"occupation (P106): tennis player (Q10833314)\"
+  	?player wdt:P569 ?date .       # with a P569 (date of birth) claim
+	?player wdt:P21 wd:Q6581097 .       # with a P21 (sex or gender) \"sex or gender (P21): male (Q6581097)\" 
+  	?player wdt:P536 ?atp_id .
+
+  
+ FILTER (?date < \"1950-01-01T00:00:00Z\"^^xsd:dateTime)
+ FILTER isBLANK(?atp_id) .
+	  
+	OPTIONAL {?player rdfs:label ?player_label filter (lang(?player_label) = \"en\") .} 
+	OPTIONAL {?cause rdfs:label ?cause_of_death_label filter (lang(?cause_of_death_label) = \"en\").}
+}
+ORDER BY ASC (?player)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

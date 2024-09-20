@@ -1,0 +1,80 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f47c7ae8343fe5022af2f162c621d7e2> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?date ?age ?president ?presidentLabel
+WITH
+{
+  # persons who is/were president of USA
+  SELECT ?president ?president_enddate ?president_birthdate ?president_deathdate
+  WHERE
+  {
+    ?president wdt:P31 wd:Q5.
+    ?president p:P39 ?president_statement.
+    ?president_statement ps:P39 wd:Q11696.
+    ?president_statement pq:P582 ?president_enddate.
+    ?president wdt:P569 ?president_birthdate.
+    OPTIONAL { ?president wdt:P570 ?president_deathdate. }
+  }
+} AS %presidents
+WITH
+{
+  # Dates where who is oldest living expresident can change
+  SELECT DISTINCT ?date
+  WHERE
+  {
+    {
+      INCLUDE %presidents
+      BIND(?president_enddate + \"P1D\"^^xsd:duration AS ?date)
+    }
+    UNION
+    {
+      INCLUDE %presidents
+      BIND(?president_deathdate + \"P1D\"^^xsd:duration AS ?date)
+    }
+  }
+} AS %dates
+WITH
+{
+  # Find the age for all living expresidents for each value of ?date
+  SELECT ?date ?age ?president
+  WHERE
+  {
+    INCLUDE %dates
+    INCLUDE %presidents
+    FILTER (?president_enddate < ?date) # Must have become expresident
+    FILTER IF(BOUND(?president_deathdate), ?president_deathdate >= ?date, true) # Must still be living
+    BIND (?date - ?president_birthdate AS ?age)
+  }
+} AS %ages
+WITH
+{
+  # Find the oldest age for a living exprrsident for each value of ?date
+  SELECT ?date (MAX(?age) AS ?oldest)
+  WHERE
+  {
+    INCLUDE %ages
+  }
+  GROUP BY ?date
+} AS %oldest
+WHERE
+{
+  INCLUDE %dates
+  OPTIONAL
+  {
+    INCLUDE %ages
+    INCLUDE %oldest
+    FILTER (?age = ?oldest)
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?date""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

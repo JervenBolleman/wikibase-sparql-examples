@@ -1,0 +1,46 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f33525b67abcfc5d9fe4f19d1d20e47b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX schema: <http://schema.org/>
+#defaultView:Map
+SELECT DISTINCT ?item ?itemLabel ?image 
+   ?commons2 ?coordinate ?status ?rgb
+WHERE {
+{
+   ?item wdt:P31 wd:Q79007 .                                # Innerortsstraße 
+   {?item wdt:P131 wd:Q1731.}                               # ... liegt in der Verwaltungseinheit Dresden ...
+          UNION                                                       # ... oder     (eigentlich ein \"und\")
+  {?item wdt:P131 wd:Q2795.}                               # ... liegt in der Verwaltungseinheit Chemnitz ...
+          UNION                                                       # ... oder     (eigentlich ein \"und\")
+   {?item wdt:P131 ?Stadtteil . ?Stadtteil wdt:P131 wd:Q2795. }     # ... in einer Unter-Verwaltungseinheit von Chemnitz
+}
+  OPTIONAL { ?item wdt:P373 ?commons. } 
+  OPTIONAL { ?item wdt:P18 ?image. }                                 
+  OPTIONAL { ?item wdt:P625 ?coordinate. }                          
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+   
+  BIND(BOUND(?commons) && strlen(?commons)>0 as ?check_cat)          
+  BIND(BOUND(?image) as ?check_img)                                  
+   
+  BIND(  IF( ?check_img , \"image\",
+         IF( ?check_cat , \"category\",   
+            \"no cat\")) AS ?status).
+
+  BIND(  IF( ?check_img && ?check_cat, \"7FFF00\",     # 7FFF00 hellgrün:    mit Koordinaten, Bild und Commons-Kategorie bei Wikidata hinterlegt
+         IF( ?check_img , \"00008B\",                  # 00008b blau:        nur mit Koordinaten und Bild bei Wikidata, aber ohne Commons-Kategorie
+         IF( ?check_cat , \"009500\",                  # 009500 dunkelgrün:  nur mit Koordinaten bei Wikidata und Commons-Kategorie, ohne Bild bei Wikidata
+            \"#ff0000\"))) AS ?rgb).                   # ff0000 rot:         andernfalls, also nur Koordinaten bei Wikidata, aber ohne Bild und ohne Commons-Kategorie  
+  OPTIONAL {?commons2 	schema:about ?item ;
+           schema:isPartOf <https://commons.wikimedia.org/> .
+  } 
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Kleeblatt187/Streets>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

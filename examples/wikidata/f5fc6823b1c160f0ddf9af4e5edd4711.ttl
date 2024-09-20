@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f5fc6823b1c160f0ddf9af4e5edd4711> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Presidents with identified mythical ancestors
+
+SELECT distinct ?person ?personLabel ?ancestor ?ancestorLabel ?born ?died ?typeLabel WHERE {
+ 
+  ?person p:P39 ?positionStatement .
+  ?positionStatement ps:P39 wd:Q11696 .  # this person was President of the USA
+  { ?person (wdt:P25|wdt:P22)* ?ancestor . } # their mother or father, or their mother or father, and so on
+  filter not exists { ?ancestor wdt:P31 wd:Q5 } . # the ancestor is not \"a human\"
+  ?ancestor wdt:P31 ?type .
+  ?person wdt:P31 wd:Q5 . # the original person must be a human, ie not fictional
+  OPTIONAL { ?ancestor wdt:P569 ?born } .
+  OPTIONAL { ?ancestor wdt:P570 ?died } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Charles_Matthews/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

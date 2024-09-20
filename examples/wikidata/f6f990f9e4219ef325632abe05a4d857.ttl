@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f6f990f9e4219ef325632abe05a4d857> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Odisha Sahitya Akademi awardees, 243 items @16JUL2020
+SELECT ?item ?linkcount ?itemLabel ?itemDescription ?awardyear ?viaf ?ol WHERE {
+ ?item wdt:P31 wd:Q5.                   # <<<<<< Item = Human
+ ?item p:P166 ?award.
+ ?award ps:P166 ?awardval.
+  { ?award ps:P166 wd:Q6596243. }         # <<<<<< Award = Odisha Sahitya Akademi
+OPTIONAL { ?item wikibase:sitelinks ?linkcount. } # <<<<<< Link count&nbsp;
+OPTIONAL { ?award pq:P585 ?time. }# <<<<<< Award has a time statement&nbsp;
+BIND(YEAR(?time) AS ?awardyear)
+# filter(year(?time)=2016)# <<<<<< Filter for Award time = 2016&nbsp;&nbsp;
+OPTIONAL { ?item wdt:P214 ?viaf1. }
+  OPTIONAL { ?item wdt:P648 ?ol1. }
+  BIND(IF(BOUND(?ol1), ?ol1, \"no OL identifier\") AS ?ol)
+  BIND(IF(BOUND(?viaf1), ?viaf1, \"no VIAF identifier\") AS ?viaf)
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ ORDER BY DESC(?time)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MKar/Query>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f0d06238999755ff413818cfb8c79abe> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?property ?propertyLabel ?type  ?sproperty ?spropertyLabel ?value ?valueLabel WITH {
+  SELECT ?statement ?type ?property ?sproperty ?value WHERE 
+  {
+    ?statement ?predicate wd:Q5885.
+    hint:Prior hint:runFirst true.
+
+    {?property wikibase:statementProperty ?predicate. 
+    BIND(\"statement\" as ?type) }
+    UNION
+    {?property wikibase:qualifier ?predicate. 
+    filter not exists {wd:P407 wikibase:qualifier ?predicate. } 
+    BIND(\"qualifier\" as ?type)
+    ?statement ?predicate3 ?value .
+    ?sproperty wikibase:statementProperty ?predicate3 .
+    }
+    UNION
+    {?property wikibase:reference ?predicate. 
+    filter not exists {wd:P407 wikibase:reference ?predicate. } 
+    BIND(\"reference\" as ?type) 
+    ?statement ?predicate3 ?value .
+    ?sproperty wikibase:statementProperty ?predicate3 .
+    }
+  } 
+}  as %i
+WHERE
+{
+  INCLUDE %i  
+  ?item ?predicate2 ?statement .
+  ?property2 wikibase:claim ?predicate2. 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,ta\". } 
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/11>,
+    <https://www.wikidata.org//wiki/User:Sriveenkat/notes>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

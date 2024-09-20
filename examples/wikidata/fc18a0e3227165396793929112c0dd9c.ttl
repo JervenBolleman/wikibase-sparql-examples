@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fc18a0e3227165396793929112c0dd9c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?property ?propertyLabel ?value ?valueLabel ?statement
+WHERE 
+{
+  ?item ?ppp ?statement .               # there is a triple
+   ?property a wikibase:Property ;      # there is a property
+     wikibase:claim ?ppp .              # which has a predicate in the form p:Pnnn
+                                        # so the variable ?ppp is a p:Pnnn predicate and ?statement is a property statement
+  
+  ?statement ?qqq ?value.               # The ?statement from the last set of clauses is in a triple
+   ?property2 a wikibase:Property ;     # there is a property
+     wikibase:statementProperty  ?qqq . # which has a predicate in the form of ps:Pnnn
+                                        # so the variable ?qqq is a ps:Pnnn predicate and ?value is the value for this property statement 
+  
+  ?statement prov:wasDerivedFrom ?autre_statement. #d'après la source ...   # and as you know, the property statement has at least one reference 
+  ?autre_statement pr:P248 wd:Q100443909 .                                  # and the reference is 'stated in' 'Q100443909'
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

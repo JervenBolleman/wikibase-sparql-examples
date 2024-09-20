@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f16f5a90c0cd3a39b3bd8c44d2f35d35> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#fehlende HOVs (Ortsteile) mit Geokoordinate
+#defaultView:Map
+SELECT ?item ?itemLabel ?what ?whatLabel ?coord ?hov
+WHERE 
+{
+  optional {
+    ?item wdt:P7046 ?hov.
+  }
+  ?item wdt:P31 wd:Q253019;
+           p:P625 [
+           psv:P625 [
+             wikibase:geoLatitude ?lat ;
+             wikibase:geoLongitude ?lon ;
+           ] ;
+           ps:P625 ?coord;
+         ]
+  FILTER( ?lon >=11.9 && ?lon <= 15.1 && ?lat >= 50.18 && ?lat <= 51.67 )
+  MINUS {
+    ?item wdt:P7046 []
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Erfurth/HOV>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

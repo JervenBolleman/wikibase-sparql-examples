@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f46f6a30ae55e5a8e3388d70fe3febf3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+
+SELECT ?pageview ?date ?death WHERE {
+  wd:Q86886544 p:P1603 [ps:P1603 ?pageview;
+                        pq:P585 ?pointintime;
+                        ].
+  OPTIONAL {
+      wd:Q86886544 p:P1120 [ps:P1120 ?death;
+                        pq:P585 ?pointintime;
+                        ].
+}
+  
+   BIND(YEAR(?pointintime) AS ?da_nac) #a
+   BIND(MONTH(?pointintime) AS ?m_nac) #m
+   BIND(DAY(?pointintime) AS ?a_nac) #da
+   BIND(CONCAT(IF((STRLEN(STR(?da_nac))) = 1, CONCAT(\"0\", STR(?da_nac)), STR(?da_nac)), \"-\", 
+                IF((STRLEN(STR(?m_nac))) = 1, CONCAT(\"0\", STR(?m_nac)), STR(?m_nac)), \"-\", 
+                STR(?a_nac)) AS ?date)
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Premeditated/sandbox>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

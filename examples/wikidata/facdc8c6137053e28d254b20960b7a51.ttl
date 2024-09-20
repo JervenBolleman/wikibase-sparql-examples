@@ -1,0 +1,56 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-facdc8c6137053e28d254b20960b7a51> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel 
+WHERE {
+  {
+  SELECT ?item
+    WHERE {
+      ?item wdt:P21 wd:Q6581072 .
+      ?item wdt:P735 wd:Q20155725 . # Marian (female)
+      {
+        # articles in plwiki only
+        ?item wikibase:sitelinks ?linkcount .
+        FILTER(?linkcount = 1)
+        ?link schema:about ?item ; schema:inLanguage \"pl\" .
+      }
+      UNION
+      {
+        # combined with a second Polish male given name
+        ?item wdt:P735 ?given .
+        ?given wdt:P31 wd:Q12308941 .
+        ?given wdt:P407 wd:Q809 .
+      }
+      UNION
+      {
+        # combined with a Polish family name
+        ?item wdt:P734 ?family .
+        ?family wdt:P407 wd:Q809 .
+      }
+      UNION
+      {
+        # combined with a Polish birth place
+        ?item wdt:P19 ?birthPlace .
+        ?birthPlace wdt:P17 wd:Q36 .
+      }
+      UNION
+      {
+        # combined with Polish citizenship
+        ?item wdt:P27 wd:Q36 .
+      }
+  }
+  LIMIT 50
+  }
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MarioGom>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

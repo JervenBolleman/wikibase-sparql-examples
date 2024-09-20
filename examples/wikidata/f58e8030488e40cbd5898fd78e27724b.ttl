@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f58e8030488e40cbd5898fd78e27724b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Parlamentari e ministri 50-80enni
+SELECT DISTINCT ?item ?itemLabel (COUNT(DISTINCT ?position_statement) AS ?ministerCount)
+WHERE 
+{
+  ?item wdt:P31 wd:Q5.
+  ?item wdt:P27 wd:Q38.
+  ?item wdt:P569 ?birth.
+  filter (?birth > \"1941-01-01\"^^xsd:dateTime).
+  filter (?birth < \"1972-01-24\"^^xsd:dateTime).
+  MINUS { ?item wdt:P570 ?death. }.
+  # Ex parlamentari
+  ?item wdt:P39/wdt:P361/wdt:P361 wd:Q1117578.
+  MINUS {  ?item wdt:P39/wdt:P361/wdt:P361 wd:Q1117578 ; 
+                 pq:P580 ?start FILTER (?start >= \"2018-01-01T00:00:00Z\"^^xsd:dateTime) . }
+  # Ministri
+  ?item p:P39 ?position_statement .
+  ?position_statement ps:P39/wdt:P361 wd:Q3687318.
+  # Ma non ministri recenti
+  MINUS { ?item p:P39 ?position_recent .
+         ?position_recent ps:P39/wdt:P361 wd:Q3687318.
+         ?position_recent pq:P582 ?position_end
+                   FILTER (?position_end >= \"2014-01-01T00:00:00Z\"^^xsd:dateTime). }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],it\". }
+}
+GROUP BY ?item ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Nemo_bis/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

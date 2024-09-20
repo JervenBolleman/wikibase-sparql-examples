@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f47ed0ac3ff8af1d49f1d972dafbd637> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?title ?begin ?begin2 WHERE {
+  BIND(wd:Q42 AS ?item)
+  ?item wdt:P18 ?image.
+  #BIND(STRAFTER(wikibase:decodeUri(STR(?image)), \"http://commons.wikimedia.org/wiki/Special:FilePath/\") AS ?fileTitle)
+  ?article schema:isPartOf <https://fr.wikipedia.org/> ;
+           schema:about ?item ;
+           schema:name ?title. 
+  bind (substr(?content, 1, 2000) as ?begin)
+  bind (strbefore(?content, \". \") as ?begin2)
+  
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:endpoint \"fr.wikipedia.org\";
+                    wikibase:api \"Generator\";
+                    wikibase:limit \"once\";
+                    mwapi:generator \"allpages\";
+                    mwapi:gapfrom ?title;
+                    # mwapi:gapnamespace 6; # NS_FILE
+                    mwapi:gaplimit 1;
+                    mwapi:prop \"revisions\";
+                    mwapi:rvprop \"content\".
+    #?contentmodel wikibase:apiOutput 'revisions/rev/@contentmodel'.
+    #?contentformat wikibase:apiOutput 'revisions/rev/@contentformat'.
+    ?content wikibase:apiOutput 'revisions/rev/text()' .
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f6e39a9f0abc0d47db59ea3d5e4f13cd> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?property ?propertyLabel ?count WITH {
+SELECT ?property (COUNT(?ppp) AS ?count)  # use a named subquery first to do the count
+WHERE 
+{
+  hint:Query hint:optimizer \"Runtime\" . 
+  hint:Query hint:maxParallel 50 .       # use a big hammer
+  ?item p:P580 [?ppp [] ].               # P580 statement with a qualifier or reference
+  ?property wikibase:qualifier ?ppp.     # it's a qualifier & we get the property name
+        } GROUP BY ?property } AS %i     # group this subquery to get a count
+WHERE
+{
+  INCLUDE %i                             # get the label for the property here once we have a list of properties and counts
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],es,en\". }
+} ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

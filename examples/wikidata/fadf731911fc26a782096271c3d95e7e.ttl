@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fadf731911fc26a782096271c3d95e7e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+      (group_concat(distinct     ?dateYear ; separator = \", \") AS     ?dateYears)
+      (group_concat(distinct  ?gameENLabel ; separator = \", \") AS  ?gameENLabels)
+      (group_concat(distinct     ?typeOfStatementNode ; separator = \", \") AS     ?typeOfStatementNodes)
+      WHERE {
+        VALUES ?game {
+          wd:Q4850488
+          wd:Q4931588
+          wd:Q5315330
+        }
+        ?game rdfs:label ?gameENLabel.
+        FILTER(LANG(?gameENLabel) = \"en\").
+        OPTIONAL {
+          ?game wdt:P577 ?date.
+#          BIND(YEAR(?date) AS ?dateYear).
+        }
+        ?game ?boogie ?whaat.
+        optional {
+          ?whaat rdf:type ?typeOfStatementNode.
+        }
+        BIND(IF(isBlank(?whaat), \"unknown value\", IF(?typeOfStatementNode = IRI(\"http://www.wikidata.org/prop/novalue/P577\"), \"no value\", YEAR(?date))) as ?dateYear).
+        SERVICE wikibase:label {
+          bd:serviceParam wikibase:language \"en\".
+       }
+      }
+    GROUP BY $game
+order by desc(?dateYears)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

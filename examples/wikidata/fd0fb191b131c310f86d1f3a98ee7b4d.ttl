@@ -1,0 +1,91 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fd0fb191b131c310f86d1f3a98ee7b4d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Arquitecte i estil i més enllaçats
+SELECT DISTINCT ?item ?itemLabel ?detall ?arqEtiq ?arqLink ?arqNet ?estilEtiq ?estilLink ?estilNet WHERE {
+  ?item wdt:P17 wd:Q29.
+  ?item wdt:P131+ wd:Q1765582.
+
+  OPTIONAL {
+  ?item wdt:P84 ?arq.
+  ?arq rdfs:label ?arqEtiq.
+  FILTER(LANG(?arqEtiq)=\"ca\")
+    OPTIONAL {  
+      ?arqLink schema:isPartOf <https://ca.wikipedia.org/>;
+      schema:about ?arq.
+      BIND (REPLACE(REPLACE(wikibase:decodeUri(STR(?arqLink)), \"https://ca.wikipedia.org/wiki/\", \"\", \"i\"), \"_\", \" \") as ?arqEnll)
+      BIND (CONCAT(\"[[\",str(?arqEnll),\"]]\") as ?arqWiki)   
+    }
+    BIND(COALESCE(?arqWiki, ?arqEtiq) as ?arqNet)
+  }
+
+  OPTIONAL {
+  ?item wdt:P149 ?estil.
+  ?estil rdfs:label ?estilEtiq.
+  FILTER(LANG(?estilEtiq)=\"ca\")
+    OPTIONAL {  
+      ?estilLink schema:isPartOf <https://ca.wikipedia.org/>;
+      schema:about ?estil.
+      BIND (REPLACE(REPLACE(wikibase:decodeUri(STR(?estilLink)), \"https://ca.wikipedia.org/wiki/\", \"\", \"i\"), \"_\", \" \") as ?estilEnll)
+      BIND (CONCAT(\"[[\",str(?estilEnll),\"]]\") as ?estilWiki)   
+    }
+    BIND(COALESCE(?estilWiki, ?estilEtiq) as ?estilNet)
+  }
+
+  OPTIONAL {
+  ?item wdt:P170 ?creador.
+  ?creador rdfs:label ?creadorEtiq.
+  FILTER(LANG(?creadorEtiq)=\"ca\")
+    OPTIONAL {  
+      ?creadorLink schema:isPartOf <https://ca.wikipedia.org/>;
+      schema:about ?creador.
+      BIND (REPLACE(REPLACE(wikibase:decodeUri(STR(?creadorLink)), \"https://ca.wikipedia.org/wiki/\", \"\", \"i\"), \"_\", \" \") as ?creadorEnll)
+      BIND (CONCAT(\"[[\",str(?creadorEnll),\"]]\") as ?creadorWiki)   
+    }
+    BIND(COALESCE(?creadorWiki, ?creadorEtiq) as ?creadorNet)
+  }
+
+  OPTIONAL {
+  ?item wdt:P10241 ?taxon.
+  ?taxon rdfs:label ?taxonEtiq.
+  FILTER(LANG(?taxonEtiq)=\"ca\")
+    OPTIONAL {  
+      ?taxonLink schema:isPartOf <https://ca.wikipedia.org/>;
+      schema:about ?taxon.
+      BIND (REPLACE(REPLACE(wikibase:decodeUri(STR(?taxonLink)), \"https://ca.wikipedia.org/wiki/\", \"\", \"i\"), \"_\", \" \") as ?taxonEnll)
+      BIND (CONCAT(\"[[\",str(?taxonEnll),\"]]\") as ?taxonWiki)   
+    }
+    BIND(COALESCE(?taxonWiki, ?taxonEtiq) as ?taxonNet)
+  }
+
+  OPTIONAL {
+  ?item wdt:P5816 ?cons.
+  ?cons rdfs:label ?consEtiq.
+  FILTER(LANG(?consEtiq)=\"ca\")
+    OPTIONAL {  
+      ?consLink schema:isPartOf <https://ca.wikipedia.org/>;
+      schema:about ?cons.
+      BIND (REPLACE(REPLACE(wikibase:decodeUri(STR(?consLink)), \"https://ca.wikipedia.org/wiki/\", \"\", \"i\"), \"_\", \" \") as ?consEnll)
+      BIND (CONCAT(\"[[\",str(?consEnll),\"]]\") as ?consWiki)   
+    }
+    BIND(COALESCE(?consWiki, ?consEtiq) as ?consNet)
+  }
+
+  BIND(CONCAT(IF(BOUND(?taxonEtiq),CONCAT(\"Tàxon: \",?taxonNet,\"</br>\"),\"\"), 
+              IF(BOUND(?creadorEtiq),CONCAT(\"Creador: \",?creadorNet,\"</br>\"),\"\"), 
+              IF(BOUND(?arqEtiq),CONCAT(\"Arquitecte: \",?arqNet,\"</br>\"),\"\"), 
+              IF(BOUND(?estilEtiq),CONCAT(\"Estil: \",?estilNet,\"</br>\"),\"\"), 
+              IF(BOUND(?consEtiq),CONCAT(\"Estat: \",?consNet),\"\")) as ?detall)
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"ca,en\" .}
+}
+ORDER BY ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Pere_prlpz>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

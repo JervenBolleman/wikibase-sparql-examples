@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fe4b65d7402754fc6fb4bc20ba3be8be> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# SPARQL code to find items in an arbitrary administrative unit, called Q800000000,
+# using the proposed qualifier, called P8000
+SELECT ?item
+WHERE
+{
+  VALUES ?searched_unit { wd:Q800000000 }
+  {
+    ?item wdt:P131* ?searched_unit .                 # located in the searched unit 
+  }
+  MINUS
+  {
+    ?item wdt:P131*/p:P131/pq:P8000 ?other_unit .    # unless next level in hierarchy is a unit
+    ?other_unit wdt:P131/^wdt:P131 ?searched_unit .  # at same level in the hierarchy
+    FILTER (?other_unit != ?searched_unit)           # and different from the sought unit
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Property_proposal/hierarchy_switch>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

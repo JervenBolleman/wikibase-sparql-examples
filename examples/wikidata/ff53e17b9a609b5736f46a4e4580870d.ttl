@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ff53e17b9a609b5736f46a4e4580870d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# by-elections in the 1979-83 Parliament
+# this query finds all MPs who had another MP sit for the same seat in the same Parliament
+# if they started after the first one's term ended, it guesses they were matched
+# it then puts them in the correct order, counts the gap in days
+# and checks for a couple of false-positive risks (split terms and suspensions)
+SELECT DISTINCT ?previousMPLabel ?constituencyLabel ?end ?causeLabel ?days ?electionLabel ?start ?newMPLabel
+ {
+ ?newMP p:P39 ?positionStatement .
+ ?positionStatement ps:P39 wd:Q41582619 . 
+ ?positionStatement pq:P768 ?constituency .
+ ?positionStatement pq:P580 ?start .
+ ?positionStatement pq:P2715 ?election . # this makes sure a by-election happened and not just a change of affiliation, etc
+ 
+ ?previousMP p:P39 ?positionStatement2 .
+ ?positionStatement2 ps:P39 wd:Q41582619 . 
+ ?positionStatement2 pq:P768 ?constituency . # restricts it to the same seat  
+ ?positionStatement2 pq:P582 ?end . 
+ OPTIONAL { ?positionStatement2 pq:P1534 ?cause . } # in case cause not stated
+ 
+ FILTER (?start > ?end) . # make sure they're in the right order!
+ bind((?start-?end) as ?days) . # find how long the gap was
+ 
+ SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}
+ORDER BY ?constituencyLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

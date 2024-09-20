@@ -1,0 +1,39 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f0ea07fbc3840cbf7e850be35bf1d84b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Current ministers of Iceland (should be 12)
+SELECT ?item ?itemLabel ?currentMinister ?currentMinisterLabel ?startTime {
+  ?item wdt:P31 wd:Q294414 .
+  ?item wdt:P279* wd:Q83307 .
+  ?item wdt:P361 wd:Q12351757 .
+  ?item wdt:P17/wdt:P1001* wd:Q189 .
+
+  MINUS { ?item wdt:P576 [] }
+
+  # Get ministers and their start times
+  ?item p:P1308 ?statement .
+  ?statement ps:P1308 ?currentMinister .
+  ?statement pq:P580 ?startTime .
+  ?currentMinister rdfs:label ?currentMinisterLabel .
+  FILTER(LANG(?currentMinisterLabel) = \"en\")
+
+  # Current ministers are the ones that have the most recent start time
+  FILTER NOT EXISTS {
+    ?item p:P1308 ?otherStatement .
+    ?otherStatement ps:P1308 ?otherMinister .
+    ?otherStatement pq:P580 ?otherStartTime .
+    FILTER (?otherStartTime > ?startTime)
+  }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Government/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

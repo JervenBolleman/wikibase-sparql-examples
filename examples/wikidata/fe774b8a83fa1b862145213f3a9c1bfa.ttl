@@ -1,0 +1,49 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fe774b8a83fa1b862145213f3a9c1bfa> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Revenue village in tewiki for updating with Infobox India AP Village
+SELECT DISTINCT ?village ?page_titleTE   WHERE {
+  hint:Query hint:optimizer \"None\".
+  {
+  ?village (wdt:P131*) wd:Q1159;
+    wdt:P131 ?mandal;
+    (wdt:P31/(wdt:P279*)) wd:Q56061;
+    wdt:P5578 ?2011censuscode.
+  OPTIONAL { ?village wdt:P18 ?prefimgfilename. }
+  OPTIONAL {
+    ?village p:P18 ?imgst.
+    ?imgst ps:P18 ?imgfilename;
+      pq:P2096 ?imglegend.
+    FILTER((LANG(?imglegend)) = \"te\")
+  }
+  ?tewikilink schema:about ?village;
+    schema:isPartOf <https://te.wikipedia.org/>;
+    schema:name ?page_titleTE.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"te\". }
+  FILTER((?2011censuscode > \"579012\") && (?2011censuscode < \"597114\"))
+  FILTER(BOUND(?prefimgfilename))
+  FILTER(!(BOUND(?imglegend)))      
+  } MINUS 
+  {
+    SELECT ?village  WHERE {
+     SERVICE wikibase:mwapi {
+          bd:serviceParam wikibase:api \"Generator\".
+          bd:serviceParam wikibase:endpoint \"te.wikipedia.org\".
+          bd:serviceParam mwapi:generator \"transcludedin\".
+          bd:serviceParam mwapi:titles  \"Template:Infobox India AP Village\".
+          ?village wikibase:apiOutputItem mwapi:item.
+      }
+   } LIMIT 2000
+  }  
+}
+ORDER BY  (?page_titleTE)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Arjunaraoc/AP_Revenue_villages_for_updating_with_Infobox_India_AP_Village_needing_telugu_captions>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

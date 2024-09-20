@@ -1,0 +1,96 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f7431d388e68affda91cb96d6d3d44ca> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/L1265531>
+
+SELECT 
+  ?score
+
+  ?lexeme 
+  (?lemma AS ?lexemeLabel)
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?lexeme), 32)) AS ?lexemeUrl)
+
+  ?features 
+  ?language ?languageLabel
+
+  ?lexical_category ?lexical_categoryLabel
+WITH {
+  SELECT 
+    (SUM(?score_) AS ?score__)
+    ?lexeme
+    (GROUP_CONCAT(DISTINCT ?feature; separator=\", \") AS ?features_)
+  WHERE {
+    {
+      BIND(\"explicit synonym\" AS ?feature)
+      target: ontolex:sense / wdt:P5973 / ^ontolex:sense ?lexeme .
+      BIND(10 AS ?score_)
+    }
+    UNION
+    {
+      BIND(\"explicit hyponym\" AS ?feature)
+      target: ontolex:sense / ^wdt:P6593 / ^ontolex:sense ?lexeme .
+      BIND(7 AS ?score_)
+    }
+    UNION
+    {
+      BIND(\"implicit synonym\" AS ?feature)
+      target: ontolex:sense / wdt:P5137 / ^wdt:P5137 / ^ontolex:sense ?lexeme .
+      target: dct:language / ^dct:language ?lexeme .
+      BIND(8 AS ?score_)
+    }
+    UNION
+    {
+      BIND(\"derived to\" AS ?feature)
+      target: wdt:P5191 ?lexeme .
+      BIND(5 AS ?score_)
+    }
+    UNION
+    {
+      BIND(\"derived from\" AS ?feature)
+      ?lexeme wdt:P5191 target: .
+      BIND(4 AS ?score_)
+    }
+    UNION
+    {
+      BIND(\"same descriptor\" AS ?feature)
+      target: wdt:P1343 / ^wdt:P1343 ?lexeme .
+      BIND(2 AS ?score_)
+    }
+    UNION
+    {
+      BIND(\"same attestor\" AS ?feature)
+      target: wdt:P5323 / ^wdt:P5323 ?lexeme .
+      BIND(3 AS ?score_)
+    }
+    UNION
+    {
+      BIND(\"part in\" AS ?feature)
+      target: wdt:P5238 ?lexeme .
+      BIND(5 AS ?score_)
+    }
+    UNION
+    {
+      BIND(\"part in part in\" AS ?feature)
+      target: wdt:P5238 / wdt:P5238 ?lexeme .
+      BIND(2 AS ?score_)
+    }
+    UNION
+    {
+      BIND(\"is compound\" AS ?feature)
+      ?lexeme wdt:P5238 target: .
+      BIND(5 AS ?score_)
+    }
+    UNION
+    {
+      BIND(\"homophone form\" AS ?feature)
+      ?lexeme ontolex:lexicalForm / (wdt:P10822""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:lexeme>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

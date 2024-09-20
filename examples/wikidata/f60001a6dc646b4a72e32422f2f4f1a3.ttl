@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f60001a6dc646b4a72e32422f2f4f1a3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?month (count(?item) as ?total)
+{
+ ?item wdt:P31 wd:Q5 ; p:P39 ?ps . ?ps ps:P39 ?term .
+ ?term wdt:P279* wd:Q16707842 .     # all UK MPs
+ ?item wdt:P569 ?born .             # with a known birthday
+ BIND( MONTH(?born) AS ?month )     # identify the month of birth
+ BIND( YEAR(?born) AS ?year )       # identify the year of birth
+ FILTER (?year > 1945 ) 
+ ?item p:P569/psv:P569 ?date_node .
+ ?date_node wikibase:timePrecision \"11\"^^xsd:integer .  # filter only day-precision records
+ SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}
+GROUP BY ?month
+ORDER BY ?month
+#defaultView:LineChart""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

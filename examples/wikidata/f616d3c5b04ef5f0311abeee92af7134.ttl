@@ -1,0 +1,91 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f616d3c5b04ef5f0311abeee92af7134> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Classe ELECCIONS amb P580, mostrant P582 i P585
+SELECT distinct ?eleccions ?eleccionsLabel ?igual_1
+?p585_edited ?p585pr
+?p580_edited ?p580pr
+?p582_edited ?p582pr ?igual_2
+ WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?eleccions (wdt:P31/(wdt:P279*)) wd:Q18669875;
+    wdt:P580 ?data_d_inici.
+ 
+ OPTIONAL { ?eleccions p:P585 ?p585_statement .
+  ?p585_statement psv:P585 ?p585_value .
+  ?p585_value wikibase:timeValue ?p585 .
+  ?p585_value wikibase:timePrecision ?p585_precision .
+  BIND (COALESCE(
+    IF(?p585_precision = 11, CONCAT(STR(DAY(?p585)), \"-\", STR(MONTH(?p585)), \"-\", STR(YEAR(?p585))), 1/0),
+    IF(?p585_precision = 10, CONCAT(STR(MONTH(?p585)), \"-\", STR(YEAR(?p585))), 1/0),
+    IF(?p585_precision =  9, STR(YEAR(?p585)), 1/0),
+    IF(?p585_precision =  8, CONCAT(STR(FLOOR(YEAR(?p585)/10)*10), \"s\"), 1/0),
+    IF(?p585_precision =  7, CONCAT(STR(FLOOR((YEAR(?p585)+99)/100)), \" century\"), 1/0),
+    IF(?p585_precision =  6, CONCAT(STR(FLOOR((YEAR(?p585)+999)/1000)), \" milleium\"), 1/0),
+    \"Unhandled precision\"
+    ) AS ?p585_edited)
+            BIND (
+IF(?p585_precision = 11,
+ \"\",\"prec\"
+    ) AS ?p585pr)
+
+            }
+
+ OPTIONAL { ?eleccions p:P582 ?p582_statement .
+  ?p582_statement psv:P582 ?p582_value .
+  ?p582_value wikibase:timeValue ?p582 .
+  ?p582_value wikibase:timePrecision ?p582_precision .
+  BIND (COALESCE(
+    IF(?p582_precision = 11, CONCAT(STR(DAY(?p582)), \"-\", STR(MONTH(?p582)), \"-\", STR(YEAR(?p582))), 1/0),
+    IF(?p582_precision = 10, CONCAT(STR(MONTH(?p582)), \"-\", STR(YEAR(?p582))), 1/0),
+    IF(?p582_precision =  9, STR(YEAR(?p582)), 1/0),
+    IF(?p582_precision =  8, CONCAT(STR(FLOOR(YEAR(?p582)/10)*10), \"s\"), 1/0),
+    IF(?p582_precision =  7, CONCAT(STR(FLOOR((YEAR(?p582)+99)/100)), \" century\"), 1/0),
+    IF(?p582_precision =  6, CONCAT(STR(FLOOR((YEAR(?p582)+999)/1000)), \" milleium\"), 1/0),
+    \"Unhandled precision\"
+    ) AS ?p582_edited)
+            BIND (
+IF(?p582_precision = 11,
+ \"\",\"prec\"
+    ) AS ?p582pr)
+
+            }
+   ?eleccions p:P580 ?p580_statement .
+  ?p580_statement psv:P580 ?p580_value .
+  ?p580_value wikibase:timeValue ?p580 .
+  ?p580_value wikibase:timePrecision ?p580_precision .
+  BIND (COALESCE(
+    IF(?p580_precision = 11, CONCAT(STR(DAY(?p580)), \"-\", STR(MONTH(?p580)), \"-\", STR(YEAR(?p580))), 1/0),
+    IF(?p580_precision = 10, CONCAT(STR(MONTH(?p580)), \"-\", STR(YEAR(?p580))), 1/0),
+    IF(?p580_precision =  9, STR(YEAR(?p580)), 1/0),
+    IF(?p580_precision =  8, CONCAT(STR(FLOOR(YEAR(?p580)/10)*10), \"s\"), 1/0),
+    IF(?p580_precision =  7, CONCAT(STR(FLOOR((YEAR(?p580)+99)/100)), \" century\"), 1/0),
+    IF(?p580_precision =  6, CONCAT(STR(FLOOR((YEAR(?p580)+999)/1000)), \" milleium\"), 1/0),
+    \"Unhandled precision\"
+    ) AS ?p580_edited)
+BIND (
+IF(?p580_precision = 11,
+ \"\",\"prec\"
+    ) AS ?p580pr)
+ 
+BIND (
+IF(?p580_edited = ?p585_edited, \"data=inici\",
+IF(?p582_edited = ?p585_edited, \"data=final\",\"\"
+    )) AS ?igual_1)
+BIND (
+IF(?p580_edited = ?p582_edited,
+ \"inici=final\",\"\"
+    ) AS ?igual_2)
+
+}
+LIMIT 900""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Amadalvarez/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

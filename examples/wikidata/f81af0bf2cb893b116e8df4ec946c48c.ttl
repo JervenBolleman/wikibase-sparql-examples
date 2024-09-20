@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f81af0bf2cb893b116e8df4ec946c48c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#EditCloud for Travel to Vaxholm mit Images und coloring
+#defaultView:Map
+SELECT DISTINCT ?poi ?poiLabel ?coord ?layer ?line
+WHERE
+{ BIND(wd:Q127510225 AS ?item) . 
+ 
+  ?item wdt:P921 ?poi.
+  ?item p:P921 ?statement .            
+  ?statement ps:P921 ?poi .
+  ?statement pq:P585 ?layer .
+ optional {
+    ?statement pq:P156 ?poi2 .
+    ?poi2 p:P625 [psv:P625 [ wikibase:geoLongitude ?lon2; wikibase:geoLatitude ?lat2; ] ] .
+   }
+  ?poi wdt:P625 ?coord.
+  ?poi p:P625 [psv:P625 [ wikibase:geoLongitude ?lon1; wikibase:geoLatitude ?lat1; ] ] .
+
+  
+  BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2),')') AS ?str) .
+  BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Erfurth/Vaxholm>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

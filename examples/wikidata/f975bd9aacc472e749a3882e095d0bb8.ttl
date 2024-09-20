@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f975bd9aacc472e749a3882e095d0bb8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:BubbleChart
+SELECT ?lang (COUNT(DISTINCT ?item) AS ?count) WHERE {
+    ?item wdt:P31 wd:Q7889.
+  {
+    ?article schema:about ?item.
+    FILTER((SUBSTR(STR(?article), 11 , 15 )) = \".wikipedia.org/\")
+    ?article schema:inLanguage ?lang.
+    ?item wikibase:sitelinks ?sitelinks.
+    FILTER(?sitelinks = 1 )
+  }
+  UNION
+  {
+    BIND(\"None\" as ?lang).
+    MINUS { ?article schema:about ?item. }
+  }
+}
+GROUP BY ?lang
+ORDER BY DESC (?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jean-Fr%C3%A9d%C3%A9ric/Leipzig_workshop>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

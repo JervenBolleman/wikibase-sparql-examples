@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fb2fe51937f024f1e82b5f0772b3ecdf> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#People born on Independence day
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX schema: <http://schema.org/>
+
+SELECT ?personItem ?wikis ?person ?personDescription ?date ?Occupation ?Gender ?image  
+(IF(BOUND(?personDescription), CONCAT(?person, \" (\", ?personDescription, \")\"), ?person) AS ?title) 
+WHERE {
+  {
+    SELECT ?personItem ?date ?occupationItem ?genderItem (SAMPLE(?image) AS ?image) (COUNT(DISTINCT ?article) AS ?wikis) 
+      WHERE {
+      ?personItem wdt:P569 ?date.
+      ?personItem wdt:P18 ?image.
+      ?personItem wdt:P21 ?genderItem.
+      ?personItem wdt:P106 ?occupationItem.
+      ?personItem wdt:P27 wd:Q668 .
+      OPTIONAL {
+        ?article schema:about ?personItem.
+        FILTER((SUBSTR(STR(?article), 12, 19)) = \"wikipedia.org/wiki/\")
+      }
+      FILTER(((DATATYPE(?date)) = xsd:dateTime) && ((MONTH(?date)) = 8) && ((DAY(?date)) = 15))
+    }
+    GROUP BY ?personItem ?date ?occupationItem ?genderItem
+  }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?personItem schema:description ?personDescription.
+    ?personItem rdfs:label ?person.
+    ?occupationItem rdfs:label ?Occupation.
+    ?genderItem rdfs:label ?Gender.
+  }
+}
+ORDER BY DESC(?rank)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MKar/Query>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

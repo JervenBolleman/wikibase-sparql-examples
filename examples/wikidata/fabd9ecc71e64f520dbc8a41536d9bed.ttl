@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fabd9ecc71e64f520dbc8a41536d9bed> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX v: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+
+SELECT (SAMPLE(?matchNR) AS ?matchNR) ?match ?matchLabel (SAMPLE(?pit) AS ?day) (CONCAT(?teamNameA,\" vs. \",?teamNameB) AS ?teams) (CONCAT(STR(SAMPLE(?scoreA)),\":\",STR(SAMPLE(?scoreB))) AS ?score) (SUBSTR(SAMPLE(?stage),16,100) AS ?stage) (SAMPLE(?winnerName) AS ?winner) ?refereeLabel WHERE {
+  ?match wdt:P361 ?partof . ?partof rdfs:label ?stage . FILTER(lang(?stage) = \"en\")
+  ?match p:P179 ?matchSeries . ?matchSeries v:P179 wd:Q189571 . ?matchSeries pq:P1545 ?matchNR .
+  OPTIONAL{?match wdt:P585 ?pit}
+  OPTIONAL{?match wdt:P1346 ?winner . ?winner wdt:P1532 ?wCountry . ?wCountry rdfs:label ?winnerName . FILTER(lang(?winnerName) = \"en\")}
+  OPTIONAL{?match wdt:P1652 ?referee}
+  OPTIONAL{
+    ?match p:P1923 ?teamAStatement . ?teamAStatement v:P1923 ?teamA . ?teamAStatement pq:P794 wd:Q24633211 . OPTIONAL{?teamAStatement pq:P1351 ?scoreA} . ?teamA wdt:P1532 ?CountryA . ?CountryA rdfs:label ?teamNameA . FILTER(lang(?teamNameA) = \"en\") .
+    ?match p:P1923 ?teamBStatement . ?teamBStatement v:P1923 ?teamB . ?teamBStatement pq:P794 wd:Q24633216 . OPTIONAL{?teamBStatement pq:P1351 ?scoreB} . ?teamB wdt:P1532 ?CountryB . ?CountryB rdfs:label ?teamNameB . FILTER(lang(?teamNameB) = \"en\") .
+  }
+  SERVICE wikibase:label{bd:serviceParam wikibase:language \"en,de\"}
+}
+GROUP BY ?match ?matchLabel ?teamNameA ?teamNameB ?referee ?refereeLabel
+ORDER BY ASC(xsd:integer(?matchNR))""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jobu0101/API>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

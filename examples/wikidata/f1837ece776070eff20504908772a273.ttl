@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f1837ece776070eff20504908772a273> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?prop ?parent
+
+{
+  {
+	?property p:P1628/ps:P1628 <http://schema.org/actor>
+  } UNION {
+	?property p:P1628/ps:P1628 <https://schema.org/actor>
+  }
+  ?property wikibase:propertyType wikibase:WikibaseItem .
+  ?subproperty wdt:P1647 * ?property .
+  OPTIONAL { ?subproperty p:P1628 [ wikibase:rank ?rank ] }
+  BIND (REPLACE(STR(?subproperty), 'http://www.wikidata.org/entity/', '') AS ?prop)
+  BIND (IF(?property = ?subproperty, \"\", REPLACE(STR(?property), 'http://www.wikidata.org/entity/', '')) AS ?parent)  
+  BIND (IF(?rank = wikibase:PreferredRank, 1, IF(?rank = wikibase:NormalRank, 2, 3)) AS ?order) 
+}
+ORDER BY ?order""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

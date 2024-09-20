@@ -1,0 +1,59 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fa455b4f1e557bebc0315e2888ed8d40> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  ?nacionalidad
+  ?nacionalidadLabel
+  ?conteo
+WITH {
+  SELECT DISTINCT ?universidad {
+    ?universidad wdt:P31/wdt:P279* wd:Q3918.
+  }
+} AS %0
+WITH {
+  SELECT DISTINCT ?universidad {
+    ?universidad wdt:P131* wd:Q419.
+  }
+} AS %1
+# Por alguna razón, conseguir las universidades y luego verificar que
+# se encuentran en Perú toma más tiempo que hacer una intersección
+# entre los dos conjuntos de universidades.
+WITH {
+  SELECT ?universidad {
+    INCLUDE %0.
+    INCLUDE %1.
+  }
+} AS %2
+WITH {
+  SELECT DISTINCT ?nacionalidad ?persona ?universidad {
+    INCLUDE %2.
+    ?persona 
+      wdt:P31 wd:Q5;
+      wdt:P69 ?universidad;
+      wdt:P27 ?nacionalidad.
+  }
+} AS %3
+WITH {
+  SELECT ?nacionalidad (COUNT(*) AS ?conteo) {
+    INCLUDE %3.
+  }
+  GROUP BY ?nacionalidad
+} AS %4
+{
+  INCLUDE %4.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"es,qu,en\"}.
+}
+ORDER BY DESC(?conteo)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/de>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

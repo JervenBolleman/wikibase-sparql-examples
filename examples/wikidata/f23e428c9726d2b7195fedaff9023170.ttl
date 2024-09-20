@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f23e428c9726d2b7195fedaff9023170> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?p ?pLabel ?instance (GROUP_CONCAT(DISTINCT ?native_name; separator=\",　\") AS ?nativenames) (GROUP_CONCAT(DISTINCT ?birth_name; separator=\",　\") AS ?birthnames) 
+ WHERE {
+  SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:endpoint \"ja.wikipedia.org\"; #エンドポイントを設定
+                     wikibase:api \"Generator\";
+                     mwapi:generator \"categorymembers\";
+                     mwapi:gcmtitle \"Category:人物名目録（日本）\";. #対象カテゴリ
+     ?item wikibase:apiOutputItem mwapi:item.
+  } 
+  FILTER BOUND (?item)      # 入れないと下位カテゴリ(?)も含まれる為
+  # ?item wdt:P301 ?p.                                 
+  OPTIONAL {?item wdt:P301 ?p.}
+  BIND(IF(BOUND(?p),?p,\"P301が未リンク\") AS ?p).
+  OPTIONAL { ?p wdt:P31 ?instance }   # 分類
+  OPTIONAL { ?p wdt:P1559 ?native_name }   #母語表記
+  OPTIONAL { ?p wdt:P1477 ?birth_name. }   #出生名
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"ja,en\". }
+}
+GROUP BY ?item ?itemLabel ?p ?pLabel ?instance
+LIMIT 5000""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:%E4%BA%95%E6%88%B8%E7%AB%AF/Archive/2022>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

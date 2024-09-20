@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fe88e072649cab72f3dc2a446a5b7938> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: UK Health Ministers and their occupations on Wikidata
+SELECT ?x ?xLabel ?start (GROUP_CONCAT(?occLabel ;separator=\"; \") as ?occupations)  WITH {
+  
+SELECT DISTINCT ?x (SAMPLE(?start) AS ?start) WHERE {  # Using sample as ministers may have held the position multiple times but we're only interested in one
+  ?x wdt:P31 wd:Q5 .
+  ?x p:P39 ?node .
+  ?node ps:P39 ?position ;
+        pq:P580 ?start .
+  ?position wdt:P361 wd:Q112014 .   # member of the UK Cabinet
+  ?position wdt:P279 wd:Q3273722 .  # health minister
+} GROUP BY ?x } AS %health_ministers
+WHERE {
+  INCLUDE %health_ministers
+  OPTIONAL {?x wdt:P106 ?occ . ?occ rdfs:label ?occLabel.   FILTER (LANG(?occLabel) = \"en\") }
+  BIND(COALESCE(?occLabel, \"None\") AS ?occLabel )
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?x ?xLabel ?start
+ORDER BY DESC (?start)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Module:Sandbox/Azertus/SPARQLMentions/doc>,
+    <https://www.wikidata.org//wiki/Module:Sandbox/Azertus/SPARQLMentions>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

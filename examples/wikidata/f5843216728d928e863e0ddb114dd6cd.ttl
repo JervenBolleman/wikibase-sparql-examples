@@ -1,0 +1,43 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f5843216728d928e863e0ddb114dd6cd> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target1: <http://www.wikidata.org/entity/Q9035>
+PREFIX target2: <http://www.wikidata.org/entity/Q9027>
+
+SELECT 
+  ?derived_lexeme ?derived_lexemeLabel
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?derived_lexeme), 32)) AS ?derived_lexemeUrl)
+
+  ?derived_language ?derived_languageLabel
+  (CONCAT(\"#language/\", SUBSTR(STR(?derived_language), 32)) AS ?derived_languageUrl)
+
+  ?originating_lexeme ?originating_lexemeLabel
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?originating_lexeme), 32)) AS ?originating_lexemeUrl)
+
+  ?originating_language ?originating_languageLabel
+  (CONCAT(\"#language/\", SUBSTR(STR(?originating_language), 32)) AS ?originating_languageUrl)
+WHERE {
+  BIND(target1: AS ?derived_language)
+  BIND(target2: AS ?originating_language)
+  
+  ?derived_lexeme dct:language ?derived_language ;
+                  wdt:P5191+ ?originating_lexeme .
+  ?originating_lexeme dct:language target2: .
+
+  ?derived_lexeme wikibase:lemma ?derived_lexemeLabel .
+  ?originating_lexeme wikibase:lemma ?originating_lexemeLabel .
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+
+}
+ORDER BY ?derived_lexemeLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:language-language>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

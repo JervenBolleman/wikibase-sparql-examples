@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f245c6c3075d1b2ff04879159ab73479> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?itemLabel ?itemDescription ( COUNT ( DISTINCT ?wikisource ) as ?wikisourceFullWork ) ( COUNT ( DISTINCT ?iaID ) as ?iaDownloads ) ( COUNT ( DISTINCT ?download ) as ?otherDownloads ) 
+WHERE 
+{  
+  { SELECT DISTINCT ?item 
+   WHERE
+     { 
+       VALUES ?languages { \"en\" \"es\" }.                                                                                                           
+       ?item ( wdt:P170 | wdt:P50 | wdt:P57 | wdt:P58 | wdt:P84 | wdt:P86 | wdt:P87 | wdt:P110 | wdt:P676 | wdt:P943 ) wd:Q734054 . 
+       ?item rdfs:label ?itemLabel .
+       FILTER ( lang ( ?itemLabel ) = ?languages ) . 
+       MINUS { 
+         VALUES ?typeOfItem { wd:Q3658341 wd:Q187931 wd:Q3375722 } 
+         ?item wdt:P31 ?typeOfItem . } 
+     } 
+  }   
+  OPTIONAL { ?item wdt:P724 ?iaID . }
+  OPTIONAL { ?item wdt:P953 ?download . }
+  OPTIONAL {
+  ?wikisource schema:about ?item .
+  ?wikisource schema:isPartOf <https://en.wikisource.org/> . }  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en, es\" . }
+} 
+GROUP BY ?item ?itemLabel ?itemDescription
+ORDER BY ASC ( ?itemLabel )""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Pepe_piton/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

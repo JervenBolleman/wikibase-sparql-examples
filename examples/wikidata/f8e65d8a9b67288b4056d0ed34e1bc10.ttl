@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f8e65d8a9b67288b4056d0ed34e1bc10> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?who ?whoLabel ?mspLabel ?msp_start ?msp_end ?mp_start ?mp_end {
+  ?msp wdt:P279* wd:Q1711695 .
+  ?who p:P39 ?posn1 .
+  ?who p:P39 ?posn2 .
+
+  ?posn1 ps:P39 ?msp ; pq:P580 ?msp_start .
+  OPTIONAL { ?posn1 pq:P582 ?msp_end }
+  BIND(if(BOUND(?msp_end), ?msp_end, NOW()) as ?msp_end)
+
+  ?posn2 ps:P39 wd:Q16707842 ; pq:P580 ?mp_start .
+  OPTIONAL { ?posn2 pq:P582 ?mp_end }
+  BIND(if(BOUND(?mp_end), ?mp_end, NOW()) as ?msp_end)
+
+  FILTER( (?mp_start < ?msp_end) && (?mp_end > ?msp_start) )
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}
+ORDER BY ?whoLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Oravrattas/daynotes/2017-06-29>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f04637d65321f6992cb1dd4079703c7b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX v: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+
+SELECT ?cineplex ?film ?filmLabel (GROUP_CONCAT(DISTINCT ?country) AS ?countries) (MIN(?release) AS ?releasez) (MIN(?grelease) AS ?greleasez) WHERE {
+  ?film wdt:P3077 ?cineplex .
+  ?film p:P577 ?release_statement . ?release_statement psv:P577/wikibase:timePrecision \"11\"^^xsd:integer . ?release_statement v:P577 ?release .
+  ?film p:P577 ?grelease_statement . ?grelease_statement psv:P577/wikibase:timePrecision \"11\"^^xsd:integer . ?grelease_statement v:P577 ?grelease . ?grelease_statement pq:P291 wd:Q183 .
+  OPTIONAL{?film wdt:P495 ?country} .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" }
+}
+GROUP BY ?cineplex ?film ?filmLabel 
+HAVING(year(?greleasez)>=1949 && year(?greleasez)<=1999)
+ORDER BY ?filmLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

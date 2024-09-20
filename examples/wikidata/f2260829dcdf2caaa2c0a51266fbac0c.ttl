@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f2260829dcdf2caaa2c0a51266fbac0c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?preferredVersion ?preferredVersionDate ?normalVersion ?normalVersionDate WHERE {
+  ?item p:P348 ?version1stmt .
+  ?version1stmt ps:P348 ?preferredVersion; pq:P577 ?preferredVersionDate; wikibase:rank wikibase:PreferredRank .
+  MINUS { 
+    VALUES ?devVersion { wd:Q2122918 wd:Q3295609 wd:Q1072356 }
+    ?version1stmt pq:P548 ?devVersion .
+  }
+  ?item p:P348 ?version2stmt .
+  ?version2stmt ps:P348 ?normalVersion; pq:P577 ?normalVersionDate; wikibase:rank wikibase:NormalRank .
+  MINUS { 
+    VALUES ?devVersion { wd:Q2122918 wd:Q3295609 wd:Q1072356 }
+    ?version2stmt pq:P548 ?devVersion .
+  }
+  FILTER(?preferredVersion != ?normalVersion) .
+  FILTER(?normalVersionDate > ?preferredVersionDate) .
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Forum/Archiv/2017/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

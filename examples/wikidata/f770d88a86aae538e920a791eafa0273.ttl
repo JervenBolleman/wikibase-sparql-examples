@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f770d88a86aae538e920a791eafa0273> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Liste des 302 installations comprenant un bowling en France
+SELECT ?installation ?installationLabel ?numéro ?nominstallation
+(GROUP_CONCAT(?typeéquipementLabel; separator=\", \") AS ?typeéquipements) # liste des types d'équipements de l'installation, séparés par des virgules
+(GROUP_CONCAT(?noméquipement; separator=\", \") AS ?nomséquipements) # iste des noms des équipements, séparés par des virgules
+WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\".
+                          ?installation rdfs:label ?installationLabel .
+                          wd:Q27106471 rdfs:label ?typeéquipementLabel .
+  }
+  ?installation p:P11840 [ps:P11840 ?numéro; # numéro de l'installation dans le Recensement des équipements sportifs
+                        pq:P1810 ?nominstallation; # nom de l'installation dans le Recensement des équipements sportifs
+                        prov:wasDerivedFrom [ pr:P248 wd:Q115755558; pr:P5017 ?miseàjour ] # date de mise à jour dans le Recensement des équipements sportifs
+                ].  
+  ?installation p:P912 [ps:P912 wd:Q27106471; # présence d'un bowling   
+                                pq:P2561 ?noméquipement; # nom de l'équipement
+                ].
+
+}GROUP BY ?installation ?installationLabel ?numéro ?nominstallation
+ORDER BY ?installationLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_France/Sport>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

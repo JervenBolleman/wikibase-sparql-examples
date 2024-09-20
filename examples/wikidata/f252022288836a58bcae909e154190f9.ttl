@@ -1,0 +1,56 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f252022288836a58bcae909e154190f9> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel
+       ?rank1 (GROUP_CONCAT(DISTINCT ?qual1; SEPARATOR=\", \") AS ?qualifiers1)
+       ?rank2 (GROUP_CONCAT(DISTINCT ?qual2; SEPARATOR=\", \") AS ?qualifiers2)
+WITH
+{
+  SELECT ?item
+  WHERE
+  {
+    ?item p:P227 [].
+  }
+  GROUP BY ?item
+  HAVING (COUNT(?item) > 1)
+} AS %multiple_GND1
+WITH
+{
+  SELECT ?item ?GND_statement1 ?GND_statement2
+  WHERE
+  {
+    INCLUDE %multiple_GND1
+    ?item p:P227 ?GND_statement1.
+    ?item p:P227 ?GND_statement2.
+    FILTER (?GND_statement1 != ?GND_statement2)
+    FILTER (STR(?GND_statement1) < STR(?GND_statement2))
+  }
+} AS %multiple_GND2
+WHERE
+{
+  INCLUDE %multiple_GND2
+  ?sitelink schema:about ?item.
+  ?sitelink schema:isPartOf <https://de.wikipedia.org/>.
+  ?GND_statement1 wikibase:rank ?rank1.
+  ?GND_statement2 wikibase:rank ?rank2.
+  OPTIONAL { ?GND_statement1 ?qualifier1 []. ?qualifierproperty1 wikibase:qualifier ?qualifier1. }
+  OPTIONAL { ?GND_statement2 ?qualifier2 []. ?qualifierproperty2 wikibase:qualifier ?qualifier2. }
+  SERVICE wikibase:label
+  {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de\".
+    ?item rdfs:label ?itemLabel.
+    ?qualifierproperty1 rdfs:label ?qual1.
+    ?qualifierproperty2 rdfs:label ?qual2.
+  }
+}
+GROUP BY ?item ?itemLabel ?GND_statement1 ?GND_statement2 ?rank1 ?rank2""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

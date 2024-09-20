@@ -1,0 +1,25 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f0f807434668fd1bfc1dc42e5009026d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Timeline 
+SELECT DISTINCT ?eventStart ?event ?eventLabel ?whatField  WHERE {
+
+  { ?event wdt:P31 wd:Q72823. } UNION { ?event wdt:P361 wd:Q72823. } #documenta instance
+  ?event rdfs:label ?eventLabel. FILTER((LANG(?eventLabel)) = \"en\").
+  ?event wdt:P580 ?eventStart.
+  ?event wdt:P710 ?artist. #participating artist
+  optional { ?artist wdt:P135 ?mvt. ?mvt rdfs:label ?mvtLabel. FILTER((LANG(?mvtLabel)) = \"en\")}. 
+  optional { ?artist wdt:P136 ?agenre. ?agenre rdfs:label ?genreLabel. FILTER((LANG(?genreLabel)) = \"en\")}.
+  BIND(IF(BOUND(?mvtLabel),?mvtLabel,?genreLabel) AS ?whatField).
+}
+ORDER BY ?eventStart ?whatField""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:AllyD/ArtistsActivities>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

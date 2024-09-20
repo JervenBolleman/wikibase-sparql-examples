@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f7aaa09939b6238834c135dc2f5b96a1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# extreure P9984 claims sense P11686. (inclou values per fer proves)
+SELECT ?item ?itemLabel ?inspected ?anomenat ?ref ?pr ?rval 
+WHERE
+{
+  values ?item {
+ wd:Q750403
+ wd:Q1200925
+  }
+
+  ?item p:P9984 ?statement .
+  ?statement ps:P9984 ?inspected.
+  OPTIONAL { ?statement pq:P1810 ?anomenat } .
+  OPTIONAL {
+    ?statement prov:wasDerivedFrom ?ref .
+    ?ref ?pr ?rval .
+    [] wikibase:reference ?pr
+  }  .
+  FILTER NOT EXISTS {?item wdt:P11686 ?inspected}
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } .
+}
+order by asc(?item)
+limit  500""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Amadalvarez/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

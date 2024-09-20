@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fe35039a25b6319ad604a52c1924f23e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Archivi in Toscana con più di un indirizzo
+SELECT ?i ?iLabel ?iDescription ?coord ?inst ?instLabel (count(?ind) AS ?num) ?pea
+WHERE {
+  ?i wdt:P31 wd:Q166118 .
+  ?i (wdt:P131)* wd:Q1273 . 
+  ?i wdt:P131 ?inst .
+  #?inst wdt:P625 ?instcoord .
+  ?i wdt:P7764 ?pea .
+  OPTIONAL { ?i wdt:P6375 ?ind . }
+  OPTIONAL { ?i wdt:P625 ?coord . }
+  BIND(IF(BOUND(?coord),'archiv','comune') AS ?layer)
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],it,en\". }
+}
+GROUP BY ?i ?iLabel ?iDescription ?coord ?inst ?instLabel ?pea
+HAVING(?num > 1)
+ORDER BY(?pea)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Sistema_Cultura/Raffinamento>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

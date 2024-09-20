@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f01389ef6afeef4701be2af266723f00> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?country ?countryLabel 
+   (COUNT(?item) AS ?NombreHumains)
+
+WHERE {
+
+   ?item wdt:P31 wd:Q5; #give me a human
+        wdt:P21 ?genre; #give me a person
+         wdt:P27 ?country. #and who has a country of citizenship (P27)
+         ?country wdt:P30 wd:Q15. #and that country of citizenship is in the continent (P30) Africa
+         ?article schema:about ?item ;
+  	schema:isPartOf [ wikibase:wikiGroup \"wikipedia\" ] .                 # A un article dans wikipedia
+        	#	  schema:isPartOf <https://en.wikipedia.org/> . 
+  
+   VALUES ?genre {
+       wd:Q8441            # Homme
+       wd:Q6581072}.      # Femme
+   
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+
+}
+  GROUP BY  ?country ?countryLabel # groupe par label du pays de naissance""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Anthere/Divers>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .
