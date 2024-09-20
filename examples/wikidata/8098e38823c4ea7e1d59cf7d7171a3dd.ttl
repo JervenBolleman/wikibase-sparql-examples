@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8098e38823c4ea7e1d59cf7d7171a3dd> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Table
+
+SELECT ?item ?itemLabel ?countryLabel ?localityLabel
+WHERE
+{
+  {?item wdt:P31 wd:Q131734}           # Is a brewery
+  UNION
+  {?item wdt:P31 wd:Q5487333}          # or a microbrewery
+  
+  ?item skos:altLabel ?alias.          # Get the alias (also known as)
+  OPTIONAL {?item wdt:P17 ?country}.   # Get the country
+  OPTIONAL {?item wdt:P131 ?locality}. # Get the locality
+
+  FILTER(CONTAINS(?alias, \"ABC\"@en))   # Check that the alias is 'ABC'
+    SERVICE wikibase:label {
+      bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\"
+    }
+}
+
+ORDER BY ?countryLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Aluxosm/Scratchpad>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8155860f836c09ba40f22406f8ad543e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  ?item
+  ?itemLabel
+  ?instanceLabel
+  (GROUP_CONCAT(DISTINCT ?strecke; SEPARATOR = \", \") AS ?strecke_)
+  ?parentLabel
+  ?ownerLabel
+  ?operatorLabel
+WHERE 
+{
+  hint:Query hint:optimizer \"None\".
+  
+  ?item wdt:P17 wd:Q183.
+  ?item wdt:P31/wdt:P279* wd:Q728937.
+  FILTER EXISTS { ?item wdt:P131 wd:Q1197. }
+  
+  ?item wdt:P31 ?instance.
+
+  OPTIONAL { ?item wdt:P1671 ?strecke. }
+  OPTIONAL { ?item wdt:P127 ?owner. }
+  OPTIONAL { ?item wdt:P137 ?operator. }
+  OPTIONAL { ?item wdt:P361 ?parent. }
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,nl\". }
+}
+GROUP BY ?item ?itemLabel ?instanceLabel ?ownerLabel ?operatorLabel ?parentLabel
+ORDER BY ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Hofoen/QA>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

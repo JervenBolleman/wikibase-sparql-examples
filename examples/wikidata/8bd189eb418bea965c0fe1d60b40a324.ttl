@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8bd189eb418bea965c0fe1d60b40a324> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT (IRI(concat(\"https://commons.wikimedia.org/wiki/\", ?category)) as ?categoryLink) ?categoryName 
+  (IF(BOUND(?sortkey),?sortkey,?categoryName) as ?sortValue) (IRI(CONCAT(STR(wd:), ?sitelinkQ)) as ?catSitelinkItem) 
+  ?commonsCatItem ?commonsCatItemLabel {
+  SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:api \"Generator\" .
+     bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+     bd:serviceParam mwapi:gcmtitle \"Category:Pages using authority control without Wikidata link\" .
+     bd:serviceParam mwapi:generator \"categorymembers\" .
+     bd:serviceParam mwapi:gcmtype \"subcat\" .
+     bd:serviceParam mwapi:gcmlimit \"max\" .
+     bd:serviceParam mwapi:gcmsort \"sortkey\" .
+     bd:serviceParam mwapi:gcmdir \"ascending\" .
+     bd:serviceParam mwapi:gcmstartsortkeyprefix \"A\" .
+     bd:serviceParam mwapi:prop \"pageprops\" .
+     bd:serviceParam mwapi:ppprop \"defaultsort|wikibase_item\" .
+     ?category wikibase:apiOutput mwapi:title  .
+     ?sortkey wikibase:apiOutput \"pageprops/@defaultsort\" .
+     ?sitelinkQ wikibase:apiOutput \"pageprops/@wikibase_item\" .
+  }
+  BIND(substr(?category,10) as ?categoryName) .
+  OPTIONAL { 
+    ?commonsCatItem wdt:P373 ?categoryName .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+  }
+  FILTER ( BOUND(?commonsCatItem) || BOUND(?sitelinkQ) ) .
+}
+ORDER BY ?sortValue""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Jarekt>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-82bd6105522d2728f70813450170e5c6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Table
+SELECT DISTINCT ?p ?pLabel ?role ?roleLabel ?w ?wLabel ?ORCID
+# ?p:consortium, ?w:person
+WHERE
+{
+  ?p wdt:P31 wd:Q98270496 ;
+  p:P710 ?statement .
+  ?statement ps:P710 ?w .
+
+  # type of role
+  OPTIONAL { ?statement pq:P2868 ?role }
+  # ORCID
+  OPTIONAL { ?w wdt:P496 ?ORCID }
+
+  FILTER EXISTS { ?statement pq:P2868 ?role }
+  FILTER NOT EXISTS { ?w wdt:P496 ?ORCID }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,[AUTO_LANGUAGE]\" }
+} ORDER BY (?pLabel) (?roleLabel) (?wLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stovariste>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

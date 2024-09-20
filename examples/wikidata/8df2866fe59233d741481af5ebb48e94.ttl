@@ -1,0 +1,57 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8df2866fe59233d741481af5ebb48e94> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+?file
+?title
+(GROUP_CONCAT(DISTINCT ?en_label; separator=\", \") as ?labels_en)
+(GROUP_CONCAT(DISTINCT ?mi_label; separator=\", \") as ?labels_mi)
+?content
+
+WITH {
+  SELECT * WHERE {
+    BIND (URI(CONCAT('https://commons.wikimedia.org/entity/M', ?pageid)) AS ?file)
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:api \"Generator\";
+                      wikibase:endpoint \"commons.wikimedia.org\";
+                      mwapi:gcmtitle \"Category:1930s photographs in Auckland Museum\";
+                      mwapi:generator \"categorymembers\";
+                      mwapi:gcmtype \"file\";
+                      mwapi:gcmlimit \"50\";
+                      mwapi:prop \"revisions\";
+                      mwapi:rvslots \"main\";
+                      mwapi:rvprop \"content\";
+                      wikibase:limit \"once\".
+      ?title wikibase:apiOutput mwapi:title.
+      ?pageid wikibase:apiOutput mwapi:pageid.
+      ?content wikibase:apiOutput 'revisions/rev/slots/slot/text()'.
+    }
+  }
+} AS %files
+
+WITH {
+  SELECT * WHERE {
+    INCLUDE %files .
+    ?file wdt:P180 ?depicts .
+  }
+} AS %depictions
+
+WHERE {
+  INCLUDE %depictions .
+  SERVICE <https://query.wikidata.org/sparql> {
+    OPTIONAL {?depicts rdfs:label ?mi_label . filter(lang(?mi_label) = \"mi\")}
+    OPTIONAL {?depicts rdfs:label ?en_label . filter(lang(?en_label) = \"en\")}
+  }
+}
+
+GROUP BY ?file ?title ?content""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

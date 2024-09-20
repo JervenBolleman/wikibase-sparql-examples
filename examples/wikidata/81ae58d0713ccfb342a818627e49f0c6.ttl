@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-81ae58d0713ccfb342a818627e49f0c6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?institution ?institutionLabel (COUNT(distinct ?item) AS ?total) (GROUP_CONCAT(DISTINCT(?LieuLabel); separator=\", \") as ?Lieux) 
+WHERE 
+{
+  ?institution wdt:P31/wdt:P279* wd:Q166118;
+               wdt:P17 wd:Q142.
+  OPTIONAL {?institution wdt:P131 ?Lieu.
+    OPTIONAL {?Lieu rdfs:label ??LieuLabel. filter(lang(?LieuLabel)=\"fr\") }       
+           }
+  OPTIONAL {
+      ?item wdt:P485 ?institution .
+           }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,en\".}        
+} 
+group by ?institution ?institutionLabel
+HAVING (?total < 5)
+ORDER BY DESC (?total) ?institutionLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:Events/AAFSaint%C3%8919>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

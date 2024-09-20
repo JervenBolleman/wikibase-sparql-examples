@@ -1,0 +1,43 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8b0c9788c730b3b878b478bbe345eb64> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Graph
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+
+select 
+  ?owner ?ownerLabel ?owned ?ownedLabel
+where {
+  { 
+    select
+      ?owner1 ?owned1
+    where {
+      service gas:service {
+        gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\" ;
+                gas:in wd:Q12300043, wd:Q861295 ;           	   
+                gas:traversalDirection \"Undirected\" ;
+                gas:out ?owned1 ;
+                gas:out1 ?depth ;
+                gas:out2 ?owner1 ;
+                gas:linkType wdt:P1830 ;
+                gas:maxIterations 5;
+                gas:maxVisited 200 .
+      }
+    }
+  }
+  ?owner wdt:P1830 ?owned .
+  filter (?owner = ?owner1  || ?owner = ?owned1 || ?owned = ?owner1 || ?owned = ?owned1)  
+ 
+  service wikibase:label { bd:serviceParam wikibase:language \"da,en\" .  } 
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Fnielsen/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

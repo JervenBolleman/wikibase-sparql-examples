@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-846cb3268917144329701b514491250f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?alcaldessa ?alcaldessaLabel ?carrec ?carrecLabel ?municipiLabel ?comarcaLabel ?inici ?fi ?inici_precision ?fi_precision
+    WHERE {
+      ?alcaldessa wdt:P31 wd:Q5.
+      ?alcaldessa wdt:P21 wd:Q6581072.
+      ?alcaldessa p:P39 ?st . ?st ps:P39 ?carrec.
+      ?carrec wdt:P279 wd:Q5663900.
+      ?carrec wdt:P1001 ?municipi.
+      ?municipi wdt:P31 wd:Q33146843.
+      ?municipi wdt:P131 ?comarca.
+      VALUES ?comarquesiaran {wd:Q937876 wd:Q19920968}
+      ?comarca wdt:P31 ?comarquesiaran.
+      OPTIONAL {
+        ?st pqv:P580 ?inici_value.
+        ?inici_value wikibase:timeValue ?inici.
+        ?inici_value  wikibase:timePrecision ?inici_precision.
+      }
+      OPTIONAL {
+        ?st pqv:P582 ?fi_value.
+        ?fi_value wikibase:timeValue ?fi.
+        ?fi_value  wikibase:timePrecision ?fi_precision.
+      }
+      FILTER ( !BOUND(?inici) ||
+               ?inici_precision = 11 && ?inici < \"2019-06-15\"^^xsd:dateTime ||
+               ?inici_precision = 9  && ?inici < \"2020-00-00\"^^xsd:dateTime)
+      FILTER ( !BOUND(?fi) ||
+               ?fi_precision = 11 && ?fi >  \"2015-06-13\"^^xsd:dateTime ||
+               ?fi_precision = 9  && ?fi >= \"2015-00-00\"^^xsd:dateTime)
+      SERVICE wikibase:label {
+        bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],ca,en\" .
+      }
+    }
+ORDER BY ?comarcaLabel ?municipiLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

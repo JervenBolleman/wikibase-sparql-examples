@@ -1,0 +1,79 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-85ca226d5c66a43573d070f87b12d617> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:BarChart
+SELECT ?label ?itemCount ?wiki WHERE {
+  {
+    SELECT ?label ?wiki (COUNT(DISTINCT ?item) AS ?itemCount) WHERE {
+      ?item wdt:P31 wd:Q5;
+        wdt:P7842 ?wgwID.
+      ?wikiPage schema:about ?item;
+        schema:isPartOf ?wikiUrl;
+        schema:inLanguage ?inLang;
+        schema:name ?pageTitle.
+      BIND(\"withWP\" AS ?label)
+      BIND(\"WienGeschichteWiki\" AS ?wiki)
+      FILTER(CONTAINS(STR(?wikiUrl), \"wikipedia.org\"))
+    }
+    GROUP BY ?label ?wiki
+  }
+  UNION
+  {
+    SELECT ?label ?wiki (COUNT(DISTINCT ?item) AS ?itemCount) WHERE {
+      ?item wdt:P31 wd:Q5;
+        wdt:P7842 ?wgwID.
+      FILTER(NOT EXISTS {
+        ?wikiPage schema:about ?item;
+          schema:isPartOf ?wikiUrl;
+          schema:inLanguage ?inLang;
+          schema:name ?pageTitle.
+        FILTER(CONTAINS(STR(?wikiUrl), \"wikipedia.org\"))
+      })
+      BIND(\"noWP\" AS ?label)
+      BIND(\"WienGeschichteWiki\" AS ?wiki)
+    }
+    GROUP BY ?label ?wiki
+  }
+  UNION
+  {
+    SELECT ?label ?wiki (COUNT(DISTINCT ?item) AS ?itemCount) WHERE {
+      ?item wdt:P31 wd:Q5;
+        wdt:P6228 ?wgwID.
+      ?wikiPage schema:about ?item;
+        schema:isPartOf ?wikiUrl;
+        schema:inLanguage ?inLang;
+        schema:name ?pageTitle.
+      BIND(\"withWP\" AS ?label)
+      BIND(\"RegiowikiAt\" AS ?wiki)
+      FILTER(CONTAINS(STR(?wikiUrl), \"wikipedia.org\"))
+    }
+    GROUP BY ?label ?wiki
+  }
+  UNION
+  {
+    SELECT ?label ?wiki (COUNT(DISTINCT ?item) AS ?itemCount) WHERE {
+      ?item wdt:P31 wd:Q5;
+        wdt:P6228 ?wgwID.
+      FILTER(NOT EXISTS {
+        ?wikiPage schema:about ?item;
+          schema:isPartOf ?wikiUrl;
+          schema:inLanguage ?inLang;
+          schema:name ?pageTitle.
+        FILTER(CONTAINS(STR(?wikiUrl), \"wikipedia.org\"))
+      })
+      BIND(\"noWP\" AS ?label)
+      BIND(\"RegiowikiAt\" AS ?wiki)
+    }
+    GROUP BY ?label ?wiki
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Austria/WikipediaCoverage_WGW_RWAT>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

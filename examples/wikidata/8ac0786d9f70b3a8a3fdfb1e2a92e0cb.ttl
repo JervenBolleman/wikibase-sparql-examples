@@ -1,0 +1,56 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8ac0786d9f70b3a8a3fdfb1e2a92e0cb> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Companies with largest net profit in USD (Q4917)
+SELECT ?item ?revenue ?unit ?revenue_USD ?date WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q4830453;
+        p:P2295 ?statement .
+  OPTIONAL { ?item wdt:P159 ?hq } .
+  ?statement wikibase:rank ?rank .
+  FILTER( ?rank != wikibase:DeprecatedRank ) .
+  OPTIONAL {
+    FILTER( ?rank != wikibase:PreferredRank ) .
+    ?item p:P2295 ?statement1 .
+    ?statement1 wikibase:rank wikibase:PreferredRank .
+    FILTER( ?statement1 != ?statement ) .
+  } .
+  FILTER( !BOUND( ?statement1 ) ) .
+  OPTIONAL { ?statement pq:P585 ?date } .
+  {
+    ?statement psv:P2295 [
+      wikibase:quantityAmount ?revenue; wikibase:quantityUnit wd:Q4917
+    ] .
+    BIND( wd:Q4917 AS ?unit ) .
+    BIND( ?revenue AS ?revenue_USD ) .
+  } UNION {
+    ?statement psv:P2295 [
+      wikibase:quantityAmount ?revenue; wikibase:quantityUnit ?unit
+    ] .
+    FILTER( ?unit != wd:Q4917 ) .
+    ?unit p:P2284 ?unit_statement .
+    ?unit_statement wikibase:rank ?unit_rank;
+                    psv:P2284 [ wikibase:quantityUnit wd:Q4917; wikibase:quantityAmount ?usd ] .
+    FILTER( ?unit_rank != wikibase:DeprecatedRank ) .
+    OPTIONAL {
+      FILTER( ?unit_rank != wikibase:PreferredRank ) .
+      ?unit p:P2284 ?unit_statement1 .
+      ?unit_statement1 psv:P2284/wikibase:quantityUnit wd:Q4917;
+                       wikibase:rank wikibase:PreferredRank .
+      FILTER( ?unit_statement1 != ?unit_statement ) .
+    } .
+    FILTER( !BOUND( ?unit_statement1 ) ) .
+    BIND( ?revenue * ?usd AS ?revenue_USD ) .
+  } .
+}
+ORDER BY DESC(?revenue_USD)
+LIMIT 10""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rjlabs/WikiData_Company_Data_Project>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

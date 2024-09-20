@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-84571de337e72e70d1941c9de708947c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:BarChart
+SELECT ?year ?number_of_works ?author_label WHERE {
+  {
+    SELECT ?year ?number_of_works ?author ?author_label_
+    WHERE {
+      {
+        SELECT ?author ?year (COUNT(?work) AS ?number_of_works) WHERE {
+          hint:Query hint:optimizer \"None\".
+          VALUES ?author {    wd:Q4484888  wd:Q63809637  wd:Q63808847  wd:Q63759170  }
+          ?work wdt:P50 ?author .
+          ?work wdt:P577 ?publication_date .
+          BIND(STR(YEAR(?publication_date)) AS ?year)
+        }
+        GROUP BY ?author ?year 
+      } 
+      ?author rdfs:label ?author_label_ .
+      FILTER (LANG(?author_label_) = 'en')
+    }
+  }
+  # Represent the author by name and Q identifier
+  BIND (CONCAT(?author_label_, \" (\", SUBSTR(STR(?author), 32), \")\") AS ?author_label)
+}
+ORDER BY ?year""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Julia.athen>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8aa79be372e7c43f90553571d1f3b223> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?itemID ?Property ?Value ?Reference ?trwiki WHERE {
+    ?Category wdt:P31 wd:Q4167836.
+     ?Category wdt:P4224 wd:Q17051044.
+       ?Category p:P4224 ?P4224_p.
+           ?P4224_p pq:P131 ?P131.
+  ?link schema:about ?Category; schema:isPartOf <https://tr.wikipedia.org/>; schema:name ?title.
+  SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:api \"Generator\".
+     bd:serviceParam wikibase:endpoint \"tr.wikipedia.org\".
+     bd:serviceParam mwapi:gcmtitle ?title.
+     bd:serviceParam mwapi:generator \"categorymembers\".
+     bd:serviceParam mwapi:gcmprop \"title\".
+     bd:serviceParam mwapi:gcmlimit \"max\".
+     ?member wikibase:apiOutput mwapi:title.
+     ?ns wikibase:apiOutput \"@ns\".
+     ?item wikibase:apiOutputItem mwapi:item.
+  }
+        FILTER (?ns = \"0\")
+        ?item wdt:P31 wd:Q17051044.
+           FILTER(NOT EXISTS { ?item wdt:P131 _:b0. })
+     BIND(REPLACE(STR(?item), \"http://www.wikidata.org/entity/\", \"\") AS ?itemID)
+     BIND(REPLACE(STR(?P131), \"http://www.wikidata.org/entity/\", \"\") AS ?Value)
+     BIND(CONCAT(\"P131\") AS ?Property)
+     BIND(CONCAT(\"S143\") AS ?Reference)
+     BIND(CONCAT(\"Q58255\") AS ?trwiki)
+}
+LIMIT 50""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:SR5/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

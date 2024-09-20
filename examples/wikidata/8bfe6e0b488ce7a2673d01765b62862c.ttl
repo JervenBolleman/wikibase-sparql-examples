@@ -1,0 +1,71 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8bfe6e0b488ce7a2673d01765b62862c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# tool: scholia
+PREFIX target: <http://www.wikidata.org/entity/Q21045365> # Initial Sequencing of the human genome
+
+SELECT
+(COUNT(?work) AS ?count) 
+?string 
+(CONCAT(\"https://author-disambiguator.toolforge.org/names_oauth.php?doit=Look+for+author&name=\", 
+        ENCODE_FOR_URI(?string)) AS ?author_resolver_url) 
+WITH {
+  SELECT DISTINCT ?authorstring WHERE {
+    target: wdt:P50 ?authorQID .    
+    { target: wdt:P2093 ?authorstring . }
+    UNION
+    {
+      { ?authorQID skos:altLabel ?author_. }
+      UNION
+      { ?authorQID rdfs:label ?author_. }
+      BIND(STR(?author_) AS ?authorstring)
+    }
+    UNION
+    {
+      ?author_statement ps:P50 ?authorQID ;
+                        pq:P1932 ?authorstring.
+    }
+  }
+  LIMIT 10000
+} AS %rawstrings
+WITH
+# This part is due to Dipsacus fullonum, as per https://w.wiki/5Brk
+{
+  # Calculate capitalization variants of these raw strings
+  SELECT DISTINCT ?string
+  WHERE
+  {
+    {
+      INCLUDE %rawstrings
+      BIND(STR(?authorstring) AS ?string) # the raw strings
+    }
+    UNION
+    {
+      INCLUDE %rawstrings
+      BIND(UCASE(STR(?authorstring)) AS ?string) # uppercased versions of the raw strings
+    }
+    UNION
+    {
+      INCLUDE %rawstrings
+      BIND(LCASE(STR(?authorstring)) AS ?string) # lowercased versions of the raw strings
+    }
+  }
+} AS %normalizedstrings
+WHERE {
+  # Find works that have \"author name string\" values equal to these normalized strings
+  INCLUDE %normalizedstrings
+  ?work wdt:P2093 ?string. 
+}
+GROUP BY ?string
+ORDER BY DESC (?count)
+LIMIT 200""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Daniel_Mietchen>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

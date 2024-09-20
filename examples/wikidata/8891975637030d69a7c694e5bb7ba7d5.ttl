@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8891975637030d69a7c694e5bb7ba7d5> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+SELECT ?item ?country ?coord {
+ VALUES ?country { wd:Q4115189 } .                             #select a country here, works also with any item having east, west, south and north bounds
+ ?country p:P1332 [ ps:P1332 ?north; psv:P1332 ?nValue ];
+          p:P1333 [ ps:P1333 ?south; psv:P1333 ?sValue ];
+          p:P1334 [ ps:P1334 ?east;  psv:P1334 ?eValue ];
+          p:P1335 [ ps:P1335 ?west;  psv:P1335 ?wValue ].
+ ?nValue wikibase:geoLatitude  ?nLat . hint:Prior hint:rangeSafe true .
+ ?sValue wikibase:geoLatitude  ?sLat . hint:Prior hint:rangeSafe true .
+ ?eValue wikibase:geoLongitude ?eLon . hint:Prior hint:rangeSafe true .
+ ?wValue wikibase:geoLongitude ?wLon . hint:Prior hint:rangeSafe true .
+ ?item p:P625 [ a wikibase:BestRank; ps:P625 ?coord; psv:P625 ?cValue ] .
+ ?cValue wikibase:geoLatitude  ?lat  . hint:Prior hint:rangeSafe true .
+ ?cValue wikibase:geoLongitude ?lon  . hint:Prior hint:rangeSafe true .
+ ?cValue  wikibase:geoGlobe ?globe . hint:Prior hint:rangeSafe true .
+BIND(COALESCE(?globe,wd:Q2) as ?Globe)
+FILTER (?Globe =wd:Q2)                                    #select only Earth-like coordinates
+MINUS { ?item wdt:P17 [] } .                              #has the item any P17 value ?
+MINUS { ?item (wdt:P31/wdt:P279*) wd:Q4830453. }          # exclude ENTREPRISES
+MINUS { ?item (wdt:P31/wdt:P279*) wd:Q15893266. }         # exclude old entities
+MINUS { ?item wdt:P576 _:b2. }                            # remove items with P576 (dissolved, abolished or demolished) as a main property
+FILTER( ?sLat < ?lat && ?lat < ?nLat ) . #modify here to 
+FILTER( ?wLon < ?lon && ?lon < ?eLon ) .
+} limit 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

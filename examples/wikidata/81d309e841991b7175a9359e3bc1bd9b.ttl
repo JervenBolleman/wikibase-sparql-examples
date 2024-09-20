@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-81d309e841991b7175a9359e3bc1bd9b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Abfrage von Finn Årup Nielsen, die nach Personen mit Nachnamen sucht, die der Vergangenheitsform eines dänischen Verbs entsprechen.
+SELECT 
+  (COUNT(?person) AS ?count)
+  ?lexeme ?lemma ?surname
+  (SAMPLE(?person) AS ?example_person)
+  (GROUP_CONCAT(?person_labels; separator=\", \") AS ?names)
+WHERE {
+  hint:Query hint:optimizer \"None\".     
+
+  ?lexeme dct:language wd:Q9035 .
+  ?lexeme ontolex:lexicalForm ?form .
+  ?form wikibase:grammaticalFeature wd:Q52434448 .
+  ?lexeme wikibase:lemma ?lemma .
+  ?form ontolex:representation ?word .
+  BIND(STRLANG(CONCAT(UCASE(SUBSTR(STR(?word), 1, 1)), SUBSTR(STR(?word), 2)), \"en\") AS ?surname)
+  ?surname_item rdfs:label ?surname .
+  ?person wdt:P734 ?surname_item  .
+  ?person rdfs:label ?person_labels . FILTER(LANG(?person_labels) = \"en\")
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?lexeme ?lemma ?surname
+ORDER BY DESC(?count) 
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stefan_K%C3%BChn/Abfragen>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

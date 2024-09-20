@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-89048152c1669cc385ffa8e9d3203019> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#created by Mahir256, with help from CamelCaseNick
+#defaultView:LineChart
+select ?total (?totalCases - ?oldTotal as ?deltaCases) ?stateLabel {
+  {
+    wd:Q84055514 wdt:P527 ?statecases.
+    ?statecases wdt:P276 ?state; p:P1603 ?a,?b.
+    ?a ps:P1603 ?oldTotal; pq:P585 ?oldDate.
+    ?b ps:P1603 ?totalCases; pq:P585 ?date.
+    filter(?date - ?oldDate = 1.0)
+    service wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  } union {
+     { select (max(?cases_) as ?mc) {
+       wd:Q84055514 wdt:P527/wdt:P1603 ?cases_
+     } }
+    [] wdt:P31 wd:Q21199 ; wdt:P1181 ?totalCases.
+    filter(?totalCases <= xsd:integer(?mc))
+    bind(\"(scale)\" AS ?stateLabel)
+    bind(?totalCases as ?oldTotal)
+  }
+  bind(str(?totalCases) as ?t)
+  bind(concat(substr(\"0000\", strlen(?t) + 1), ?t) as ?total)
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_India/COVID-19_task_force/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

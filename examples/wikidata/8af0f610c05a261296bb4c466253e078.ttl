@@ -1,0 +1,97 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8af0f610c05a261296bb4c466253e078> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Comuni d'Italia con coordinate, codice ISTAT e codice Wikidata
+# Author: Valerio Bozzolan
+# Date: 6 novembre 2018
+# Query license: public domain
+# Original query: https://gist.github.com/valerio-bozzolan/b12b0625619f257b58dabefa1474b7f4
+#defaultView:Map
+SELECT
+  ( SAMPLE( ?regioneLabel   ) AS ?regioneLabel   )
+  ( SAMPLE( ?provinciaLabel ) AS ?provinciaLabel )
+  ( SAMPLE( ?comuneLabel    ) AS ?comuneLabel    )
+
+  ( SAMPLE( ?position       ) AS ?position       )
+
+  ( SAMPLE( ?regione        ) AS ?regione        )
+  ( SAMPLE( ?provincia      ) AS ?provincia      )
+            ?comune
+
+  ( SAMPLE( ?regioneIstat   ) AS ?regioneIstat   )
+  ( SAMPLE( ?provinciaIstat ) AS ?provinciaIstat )
+  ( SAMPLE( ?comuneIstat    ) AS ?comuneIstat    )
+WHERE
+{
+
+  {
+    # i comuni italiani
+    ?comune wdt:P31 wd:Q747074.
+  } UNION {
+    # ed in comuni \"sparsi\" (WTF? asd)
+    ?comune wdt:P31 wd:Q954172.
+  }
+
+  # solo i comuni con codice ISTAT e posizione
+  ?comune wdt:P635 ?comuneIstat;
+          wdt:P625 ?position.
+
+  # non voglio i comuni defunti
+  MINUS { ?comune pq:P582 ?comuneAsd }
+
+  {
+    # il comune e' nell'unita' amministrativa provincia
+    ?comune    wdt:P131 ?provincia.
+    ?provincia wdt:P635 ?provinciaIstat;
+               wdt:P31  wd:Q15089;
+               wdt:P131 ?regione.
+
+    # non voglio provincie defunte
+    MINUS { ?provincia pq:P582 ?provinciaAsd1 }
+
+    ?provincia rdfs:label ?provinciaLabel.
+    FILTER( LANG( ?provinciaLabel ) = \"it\" ).
+  } UNION {
+  	# oppure il comune e' nell'unita' amministrativa citta' metropolitana
+  	?comune    wdt:P131 ?provincia.
+  	?provincia wdt:P635 ?provinciaIstat;
+  	           wdt:P31  wd:Q15110;
+  	           wdt:P131 ?regione;
+
+    # non voglio provincie defunte
+    MINUS { ?provincia pq:P582 ?provinciaAsd2 }
+
+    ?provincia rdfs:label ?provinciaLabel.
+    FILTER( LANG( ?provinciaLabel ) = \"it\" ).
+  } UNION {
+    # oppure il comune e' direttamente nell'unita' amministrativa regione
+    ?comune wdt:P131 ?regione
+  }
+
+  ?regione wdt:P635 ?regioneIstat.
+
+  # regione / regione a statuto speciale
+  {
+    ?regione wdt:P31 wd:Q16110.
+  } UNION {
+    ?regione wdt:P31 wd:Q1710033.
+  }
+
+  # il SERVICE di Wikidata mi fa paura. asd
+  ?comune  rdfs:label ?comuneLabel.
+  ?regione rdfs:label ?regioneLabel.
+  FILTER( LANG( ?comuneLabel  ) = \"it\" ).
+  FILTER( LANG( ?regioneLabel ) = \"it\" ).
+}
+GROUP BY ?comune
+ORDER BY ?regioneLabel ?provinciaLabel ?comuneLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

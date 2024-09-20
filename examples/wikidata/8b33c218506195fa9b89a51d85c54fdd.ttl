@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8b33c218506195fa9b89a51d85c54fdd> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT distinct ?item ?itemLabel ?name ?runame ?shortnumLabel ?longnumLabel ?number
+WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q63116 .
+  OPTIONAL{?item p:P31 [ ps:P31 wd:Q50705; 
+                wikibase:rank ?rank ;
+                pq:P642 ?sq2 ] .}
+  ?item wdt:P1705 ?name .
+  OPTIONAL {?item p:P1705 [ps:P1705 ?runame]
+                  FILTER (lang(?runame) = \"ru\")}
+  OPTIONAL {?item p:P1269 [ ps:P1269 ?shortnum ;
+                  pq:P3005 wd:Q19202120 ].}
+  OPTIONAL {?item p:P1269 [ ps:P1269 ?longnum ;
+                  pq:P3005 wd:Q19202121 ].}
+  OPTIONAL { ?item wdt:P1181 ?number.}
+#  FILTER (?name!=?runame) #uncomment to throw off non-systematical
+  FILTER (?item!=wd:Q199)
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"ru\" . 
+  }
+  
+OPTIONAL { ?item wdt:P18 ?_image. }
+}
+ORDER BY ASC(?number)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infovarius/numbers>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

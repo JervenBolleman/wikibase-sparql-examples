@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-812292357a5ad3733a4b541a98d5532e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  ?lexemes
+  (CONCAT(\"#lexicalcategory/\", SUBSTR(STR(?lexical_category), 32), \"/cor\") AS ?lexemesUrl)
+
+  ?lexical_category ?lexical_categoryLabel
+  (CONCAT(\"#lexicalcategory/\", SUBSTR(STR(?lexical_category), 32)) AS ?lexical_categoryUrl)
+  ?lexical_categoryDescription
+WITH {
+  SELECT 
+    (COUNT(?lexeme) AS ?lexemes)
+    ?lexical_category
+  WHERE {
+    ?lexeme wikibase:lexicalCategory ?lexical_category ;
+            wdt:P10831 ?cor_lemma .
+  }
+  GROUP BY ?lexical_category
+} AS %lexical_categories
+WHERE {
+  INCLUDE %lexical_categories
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?lexemes)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:cor-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

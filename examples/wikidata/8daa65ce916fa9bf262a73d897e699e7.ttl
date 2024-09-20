@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8daa65ce916fa9bf262a73d897e699e7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT (GROUP_CONCAT(?authLabel; separator=\"; \") AS ?author_labels)
+       (GROUP_CONCAT(?authstr; separator=\"; \") AS ?author_strings)
+       ?ord (COUNT(?ord) AS ?count)
+WHERE
+{
+  {
+    VALUES ?item { wd:Q56742969 }
+    ?item p:P50 ?auth_st .
+    ?auth_st ps:P50 ?auth .
+    ?auth_st pq:P1545 ?ord .
+  }
+  UNION
+  {
+    VALUES ?item { wd:Q56742969 }
+    ?item p:P2093 ?authstr_st .
+    ?authstr_st ps:P2093 ?authstr .
+    ?authstr_st pq:P1545 ?ord .
+  }
+  SERVICE wikibase:label
+  {
+    bd:serviceParam wikibase:language \"en\" .
+    ?auth rdfs:label ?authLabel . 
+  }
+}
+GROUP BY ?ord
+HAVING (?count > 1)
+ORDER BY xsd:integer(?ord)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

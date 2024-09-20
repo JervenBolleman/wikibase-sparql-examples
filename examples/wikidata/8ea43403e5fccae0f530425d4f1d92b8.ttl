@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8ea43403e5fccae0f530425d4f1d92b8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?itemLabel ?Meteoritical_Bulletin_Database_ID ?instanceofLabel
+WHERE 
+{
+  { ?item wdt:P279*/wdt:P31 wd:Q60186 } UNION { ?item wdt:P824 [] }   #both
+  # ?item wdt:P279*/wdt:P31 wd:Q60186                                 #only Q60186 and subclasses
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,en\". }
+  OPTIONAL {
+    ?item wdt:P824 ?Meteoritical_Bulletin_Database_ID.
+    BIND(REPLACE(?Meteoritical_Bulletin_Database_ID, \"^([0-9]+).*$\", \"$1\") AS ?number)
+    BIND(STRAFTER(?Meteoritical_Bulletin_Database_ID, ?number) AS ?after)
+  }
+  OPTIONAL { ?item wdt:P31 ?instanceof }
+}
+ORDER BY (xsd:integer(?number)) (?after)
+LIMIT 1000""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

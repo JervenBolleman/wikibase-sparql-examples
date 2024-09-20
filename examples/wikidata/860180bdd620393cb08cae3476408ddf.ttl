@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-860180bdd620393cb08cae3476408ddf> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# count of games published in ROM format per platform per year, 1995-1997
+#defaultView:BarChart
+SELECT DISTINCT
+?platformLabel
+(COUNT(*) AS ?game_count) (STR(?pubYear_) AS ?pubYear) # turn back pubYear_ YEAR into STR for the bar chart x-axis to look good
+WHERE { 
+  ?game wdt:P31 wd:Q7889. # instance of video game
+  ?game wdt:P437 wd:Q633454. # distribution format is ROM cartridge
+  ?game wdt:P577 ?pubDate.
+  ?game wdt:P400 ?platform.
+
+  BIND (YEAR(?pubDate) AS ?pubYear_) # cast pubDate as YEAR for filtering
+  
+  FILTER (?pubYear_ >= 1995 && ?pubYear_ <= 1997)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?pubYear_ ?platformLabel
+ORDER BY ASC(?platformLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

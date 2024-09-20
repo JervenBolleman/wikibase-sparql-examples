@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-802890247e518ea7e7543a38a7f3cf6e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?wikisource
+WHERE
+{
+  ?item wdt:P31 wd:Q5. # ?item is human
+
+  ?item p:P18 ?image_statement_1 .
+  ?item p:P18 ?image_statement_2 .
+  FILTER (?image_statement_1 != ?image_statement_2) # First filter: Comparing the IRIs is fastest
+  FILTER (STR(?image_statement_1) < STR(?image_statement_2)) # Second filter: Convert to string to the halve the result set
+  ?image_statement_1 wikibase:rank ?rank1.
+  ?image_statement_2 wikibase:rank ?rank2.
+  FILTER (?rank1 != wikibase:PreferredRank)
+  FILTER (?rank2 != wikibase:PreferredRank)
+
+  ?wikisource schema:about ?item.
+  ?wikisource schema:isPartOf <https://en.wikisource.org/>.
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

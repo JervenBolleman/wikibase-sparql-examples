@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8a399a98f1cb2b6d88c6dc8b9bf24a71> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select 
+  ?item ?itemLabel 
+  (SAMPLE(?coor) as ?coor)
+  (group_concat(DISTINCT ?natureLabel) as ?NATURE) 
+  (group_concat(DISTINCT ?paysLabel; separator=\", \") as ?PAYS) 
+  (group_concat(DISTINCT ?partiedeLabel; separator=\" // \") AS ?partiedeL)
+WHERE
+{  
+  {  SELECT ?item ?itemLabel ?nature ?natureLabel ?coor ?pays ?paysLabel ?partiede ?partiedeLabel 
+     WHERE
+     {
+      ?item wdt:P31/wdt:P279* wd:Q25296884 .
+  MINUS { ?item (wdt:P31/wdt:P279*) wd:Q4366834. } # exclude cours d'eau
+  MINUS { ?item (wdt:P31/wdt:P279*) wd:Q218719. } # exclude contr^le frontalier
+  MINUS { ?item wdt:P361 wd:Q3089219. } #Remove maritime borders
+  MINUS { ?item (wdt:P31/wdt:P279*) wd:Q1402443. } # exclude railway station border
+  MINUS { ?item wdt:P361 wd:Q1292279. } #Remove political borders (not international)
+  MINUS { ?item wdt:P361 wd:Q67457910. } #Remove municipal borders 
+  MINUS { ?item wdt:P361 wd:Q67218438. } #Remove air borders
+  MINUS { ?item wdt:P576 _:b2. }
+  MINUS { ?item p:P361 [ps:P361 wd:Q1292279 ; pq:P576 ?P576 ] . }
+      ?item wdt:P31 ?nature.
+      ?item wdt:P17 ?pays.
+      OPTIONAL { ?item wdt:P361 ?partiede }
+      OPTIONAL { ?item wdt:P625 ?coor }
+       BIND(COALESCE(?partiede,\"vide\") AS ?variable).
+       filter(?variable=\"vide\")
+      SERVICE wikibase:label {       bd:serviceParam wikibase:language \"fr,en\"   }
+     } #
+  } #
+} group by ?item ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Bouzinac/Fronti%C3%A8res>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

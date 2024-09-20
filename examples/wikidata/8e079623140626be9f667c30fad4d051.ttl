@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8e079623140626be9f667c30fad4d051> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Count of items related to places in Odisha (Q22048 )
+SELECT ?p ?pLabel  (COUNT(DISTINCT ?item) as ?ct) (SAMPLE(?item) as ?sample)  (SAMPLE(?itemLabel) as ?sampleLabel)
+WITH
+{
+    SELECT ?place { ?place wdt:P131* wd:Q22048 }
+} as %inc
+WHERE
+{
+  INCLUDE %inc 
+  hint:Query hint:optimizer \"None\".          
+  ?item ?wdt ?place .
+  ?p wikibase:directClaim ?wdt .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". ?p rdfs:label ?pLabel }
+}
+GROUP BY ?p ?pLabel
+ORDER BY DESC(?ct)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MKar/Query>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

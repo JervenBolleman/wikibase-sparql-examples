@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-874cbebe90f93e9c31097c1342dde0f8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?constituency ?constituencyLabel ?country ?countryLabel ?inception ?dissolvedTime ?countryStart ?EndTime WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?constituency wdt:P31 wd:Q28007428.
+  ?constituency wdt:P17 ?country.
+  ?constituency wdt:P571 ?inception.
+  OPTIONAL{?constituency wdt:P576 ?dissolved.}
+  
+  ?country wdt:P571 ?countryStart.
+  OPTIONAL{?country wdt:P576 ?countryEnd.}
+  
+  BIND( if(bound(?dissolved), ?dissolved, now()) as ?dissolvedTime)
+  BIND( if(bound(?countryEnd), ?countryEnd, now()) as ?EndTime)
+
+  FILTER( ?inception < ?countryStart|| ?dissolvedTime > ?EndTime || ?inception > ?EndTime|| ?dissolvedTime < ?countryStart) 
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_every_politician/Ireland>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

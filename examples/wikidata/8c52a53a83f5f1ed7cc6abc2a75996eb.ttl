@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8c52a53a83f5f1ed7cc6abc2a75996eb> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map{\"hide\":\"?rgb\"}
+SELECT ?_s ?_sLabel ?_sDescription (GROUP_CONCAT(DISTINCT ?woBezeichnung; separator=', ') AS ?woLabels) (SAMPLE(?image) AS ?image) ?coord ?rgb ?layer WHERE {
+  ?_s wdt:P17 wd:Q40 .
+  ?_s wdt:P131*/wdt:P279* wd:Q40 .
+  ?_s wdt:P31 wd:Q8502 .
+  ?_s wdt:P625 ?coord .
+  ?_s wdt:P131 ?wo .
+  
+  OPTIONAL {
+    ?wo rdfs:label ?woLiteral .
+    FILTER(LANG(?woLiteral) = 'de') .
+  }
+  BIND(IF(BOUND(?woLiteral), ?woLiteral, STRAFTER(STR(?wo), 'entity/')) AS ?woBezeichnung) .
+  
+  OPTIONAL { ?_s wdt:P18 ?image . }
+  BIND(IF(BOUND(?image),'0000ff','ff0000') AS ?rgb)
+  BIND(IF(BOUND(?image),'With image','Without image') AS ?layer)
+  
+#  MINUS { ?_s wdt:P18 [] }
+  MINUS { ?_s wdt:P373 [] }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE,de,en]' }
+} GROUP BY ?_s ?_sLabel ?_sDescription ?coord ?rgb ?layer ORDER BY ASC(?_sLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

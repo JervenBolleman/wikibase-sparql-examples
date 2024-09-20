@@ -1,0 +1,43 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-830a6e1153544b3857181bae20114879> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX schema: <http://schema.org/>
+# Malayalam women (by birth / language) without an article on Malayalam Wikipedia
+SELECT ?item ?itemLabel ?birth ?pobLabel ?death ?podLabel WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  BIND(xsd:integer(STRAFTER(STR(?item), \"Q\")) AS ?qid)
+  ?item wdt:P31 wd:Q5.
+  ?item wdt:P21 wd:Q6581072.
+  { ?item wdt:P19 wd:Q1186. }
+  UNION
+  {
+    ?item wdt:P19 ?pob.
+    ?pob wdt:P131* wd:Q1186.
+  }
+  UNION
+  { ?item wdt:P103 wd:Q36236. }
+  UNION
+  { ?item wdt:P1412 wd:Q36236. }
+  OPTIONAL { ?item wdt:P569 ?birth. }
+  OPTIONAL { ?item wdt:P19 ?pob. }
+  OPTIONAL { ?item wdt:P570 ?death. }
+  OPTIONAL { ?item wdt:P20 ?pod. }
+  OPTIONAL {
+    ?sitelink schema:about ?item.
+    ?sitelink schema:inLanguage \"ml\".
+  }
+  FILTER(!BOUND(?sitelink))
+}
+GROUP BY ?item ?itemLabel ?birth ?pobLabel ?death ?podLabel
+ORDER BY DESC(?statements)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Kerala/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

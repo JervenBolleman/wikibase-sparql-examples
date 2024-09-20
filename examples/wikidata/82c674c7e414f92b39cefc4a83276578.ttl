@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-82c674c7e414f92b39cefc4a83276578> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title:Kulturdenkmale einer Straße in Dresden mit altesdresden-Property (real und guessing)
+SELECT ?houseLabel ?qs
+WHERE 
+{
+  ?street wdt:P8710 \"08102\". #Dresden Street ID
+  ?house wdt:P669 ?street.
+  ?house p:P669 [  pq:P670 ?housenumber ].
+  optional {
+    ?house wdt:P11855 ?id  
+ }
+  ?street rdfs:label ?label_de.
+  filter (lang(?label_de) = \"de\").
+  FILTER( strlen( ?housenumber ) =2)
+  BIND(concat(SUBSTR(STR(?house),32,12),'##P11855##\"baut0',STR(?housenumber),'\"##P1480##Q18122778') as ?qs)
+  MINUS {
+    ?house wdt:P11855 []
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY ?qs""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Erfurth/Dresden>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

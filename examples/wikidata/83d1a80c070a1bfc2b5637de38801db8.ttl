@@ -1,0 +1,48 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-83d1a80c070a1bfc2b5637de38801db8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# title of the query
+#title: line chart of death numbers or average death age of CAS/CAE members by year
+### Note: CAS = Chinese Academy of Sciences; CAE = Chinese Academy of Engineering.
+# viewed as line chart (also viewable as table, bar chart, area chart, and bubble chart)
+#defaultView:LineChart
+### Note: (COUNT(DISTINCT ?death) AS ?death_count) can be replaced with (AVG(?death_age) AS ?AVG_death_age).
+SELECT DISTINCT ?yearLabel (COUNT(DISTINCT ?death) AS ?death_count)
+WHERE {
+  # ?death is instance of (P31) human (Q5)
+  ?death wdt:P31 wd:Q5;
+         # ?death's place of death (P20)'s country (P17) is People's Republic of China (Q148);
+         # ?death's manner of death (P1196) is natural causes (Q3739104)
+         ### Note: The purpose of adding this line is to find the possible impact of the COVID-19 pandemic in China.
+         wdt:P20/wdt:P17 wd:Q148; wdt:P1196 wd:Q3739104;
+         # ?death's date of death (P570) is ?death_date
+         wdt:P570 ?death_date;
+         # ?death's date of birth (P569) is ?birth_date
+         wdt:P569 ?birth_date
+  # ?death's award received (P166) is subclass of (P279) [ZeroOrMorePath (*)] CAS Member (Q9384263)
+  {?death wdt:P166/wdt:P279* wd:Q9384263}
+  # OR ?death's award recived (P166) is subclass of (P279) [ZeroOrMorePath (*)] CAE Member (Q10873733)
+  UNION {?death wdt:P166/wdt:P279* wd:Q10873733}
+  # bind ?death_date's year as ?year
+  BIND(YEAR(?death_date) as ?year)
+  # ?death_date's month is December
+  ### Note: This line can be removed.
+  FILTER(MONTH(?death_date)=12)
+  # use IF to calculate the age of death, and bind the age as ?death_age
+  BIND(IF(MONTH(?death_date)>MONTH(?birth_date) || (MONTH(?death_date)=MONTH(?birth_date) && DAY(?death_date)>=DAY(?birth_date)),
+       YEAR(?death_date)-YEAR(?birth_date), YEAR(?death_date)-YEAR(?birth_date)-1) AS ?death_age)
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+# group COUNT by ?yearLabel
+GROUP BY ?yearLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1.1>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

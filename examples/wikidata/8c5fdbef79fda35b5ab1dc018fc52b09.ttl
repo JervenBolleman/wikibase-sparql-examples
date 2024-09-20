@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8c5fdbef79fda35b5ab1dc018fc52b09> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?person ?personLabel ?personDescription ?language ?death (URI(CONCAT(\"https://www.gutenberg.org/ebooks/author/\", ?gutenberg)) AS ?gberglink) WHERE {
+  ?person wdt:P1938 ?gutenberg;
+    wdt:P570 ?death. # Dead people only
+  FILTER (?death <= \"1946-01-01T00:00:00Z\"^^xsd:dateTime)
+  MINUS {
+    ?enws schema:about ?person;
+      schema:isPartOf <https://en.wikisource.org/>
+  }
+  OPTIONAL {?person wdt:P1412 ?lang}.
+  FILTER (!BOUND(?lang) || ?lang = wd:Q1860) # Language: English or absent
+  BIND(IF(BOUND(?lang),\"English\",\"Not specified\") AS ?language
+)
+  SERVICE wikibase:label {
+       bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\"
+    }
+}
+ORDER BY ?death""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Vislupus>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

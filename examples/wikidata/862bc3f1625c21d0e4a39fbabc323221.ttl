@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-862bc3f1625c21d0e4a39fbabc323221> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# by Realworldobject, 2019-12-04
+# Short tail works that have been translated into English
+SELECT DISTINCT ?original (SAMPLE(?originalTitle) AS ?originalTitle) (GROUP_CONCAT(DISTINCT ?authorLabel) AS ?authors) (GROUP_CONCAT(DISTINCT ?originalLangLabel) AS ?originalLangs) ?translation ?translationTitle ?translationLangLabel ?translatorLabel ?sitelinks
+WHERE {
+  VALUES ?translationLang {
+    wd:Q1860  # English
+  }
+  ?original wdt:P747 ?translation ;
+            wdt:P407 ?originalLang ;
+            wdt:P1476 ?originalTitle ;
+            wdt:P50 ?author ;
+            wikibase:sitelinks ?sitelinks .
+  ?translation wdt:P655 ?translator ;
+               wdt:P407 ?translationLang ;
+               wdt:P1476 ?translationTitle;
+               wdt:P655 ?translator .
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". ?author rdfs:label ?authorLabel .?originalLang rdfs:label ?originalLangLabel}
+}
+GROUP BY ?original ?translation ?translationTitle ?translationLangLabel ?translatorLabel ?sitelinks
+ORDER BY DESC(?sitelinks)
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Realworldobject/ShowTell>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

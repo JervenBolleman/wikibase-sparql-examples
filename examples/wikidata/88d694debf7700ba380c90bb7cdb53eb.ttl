@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-88d694debf7700ba380c90bb7cdb53eb> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  ?wdt
+  ?count
+WITH {
+  SELECT ?wdt (COUNT(*) AS ?count) {
+    [] ?wdt [].
+  }
+  GROUP BY ?wdt
+} AS %0
+WITH {
+  SELECT ?wdt ?count {
+    INCLUDE %0.
+    MINUS {[] wikibase:directClaim ?wdt} # wdt:
+    MINUS {[] wikibase:reference ?wdt} # pr:
+    MINUS {[] wikibase:qualifier ?wdt} # pq:
+    MINUS {[] wikibase:statementProperty ?wdt} # ps:
+    MINUS {[] wikibase:statementValue ?wdt} # psv:
+    MINUS {[] wikibase:referenceValue ?wdt} # prv:
+    MINUS {[] wikibase:claim ?wdt} # p:
+    MINUS {[] wikibase:qualifierValue ?wdt} # pqv:
+    MINUS {[] wikibase:referenceValue ?wdt} # prv:
+    MINUS {[] wikibase:statementValueNormalized ?wdt} # psn:
+    MINUS {[] wikibase:qualifierValueNormalized ?wdt} # pqn:
+    MINUS {[] wikibase:referenceValueNormalized ?wdt} # prn:
+    MINUS {[] wikibase:directClaimNormalized ?wdt} # wdtn:
+  }
+} AS %1
+{
+  INCLUDE %1.
+}
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/1/25>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

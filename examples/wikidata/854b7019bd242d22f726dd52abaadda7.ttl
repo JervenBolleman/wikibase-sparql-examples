@@ -1,0 +1,24 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-854b7019bd242d22f726dd52abaadda7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?reference ?referenceItem ?referenceItemLabel ?quality_step_c
+WHERE 
+{
+  wds:q106471-515C1587-101A-48A6-AF11-61EE615B90FE prov:wasDerivedFrom ?reference. # the statement is https://www.wikidata.org/wiki/Q106471#P569
+  ?reference pr:P248|pr:P143 ?referenceItem.
+  BIND(0 AS ?quality_step_a)
+  BIND(IF(EXISTS{?reference pr:P143 [].},?quality_step_a - 1,?quality_step_a) AS ?quality_step_b) # the reference has a property P143 (imported from Wikimedia project)
+  BIND(IF(EXISTS{?referenceItem wdt:P629 [].},?quality_step_b + 1,?quality_step_b) AS ?quality_step_c) # the referenceItem has a property P629 (edition or translation of)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?quality_step_c)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Project_chat/Archive/2018/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

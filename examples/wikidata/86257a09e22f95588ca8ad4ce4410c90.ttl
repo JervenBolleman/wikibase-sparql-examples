@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-86257a09e22f95588ca8ad4ce4410c90> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?any_number
+WITH
+{
+  SELECT ?item (SAMPLE(?number) AS ?any_number)
+  WHERE
+  {
+    ?item wdt:P31/wdt:P279* wd:Q1248784.
+    ?item p:P3872 ?statement.
+    ?statement pq:P585 ?time.
+    ?statement ps:P3872 ?number.
+    BIND (YEAR(?time) AS ?year)
+    FILTER (YEAR(?time) = 2017)
+  }
+  GROUP BY ?item
+} AS %get_items
+WHERE
+{
+  INCLUDE %get_items
+  FILTER NOT EXISTS
+  {
+    ?article schema:about ?item .
+    ?article schema:isPartOf <https://fr.wikipedia.org/> . #Targeting Wikipedia language where subjects has no article.
+  }
+}
+ORDER BY DESC(?any_number)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

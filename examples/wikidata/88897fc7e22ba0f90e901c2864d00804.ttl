@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-88897fc7e22ba0f90e901c2864d00804> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Authors from a country who died 100 or more years ago and expired copyright status is not set
+SELECT DISTINCT ?item ?itemLabel ( GROUP_CONCAT(DISTINCT ?occupationLabel; SEPARATOR=\", \") AS ?occupations )  # Concatenate occupations
+WHERE {  
+    ?item wdt:P31 wd:Q5 .            # Instance of human being...
+  VALUES  ?occupation { wd:Q36180 wd:Q1028181 wd:Q1281618 wd:Q49757 wd:Q1930187 wd:Q639669 wd:Q36834 }.  # List of occupations
+  ?item wdt:P106 ?occupation .  # The person has those occupations
+  { ?item wdt:P19/wdt:P131* wd:Q77 . }  # The person was born in Uruguay or in a place located in the administrative territorial entity of Uruguay...
+  UNION                                 # ...or...
+  { ?item wdt:P27 wd:Q77 . }            # ...their country of citizenship is Uruguay.
+  ?item wdt:P570 ?death .               # The person died...
+  FILTER ( ?death < \"1924-01-01\"^^xsd:dateTime )  # ...before a certain date.
+  MINUS { ?item wdt:P7763 ?copyrightStatus. }  # The item of the person has not a certain property.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+                          ?item rdfs:label ?itemLabel.               # Necessary to concatenate occupations
+                          ?occupation rdfs:label ?occupationLabel.   # Necessary to concatenate occupations
+                         }
+}
+GROUP BY ?item ?itemLabel  # Group results for the same person.""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Pepe_piton/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

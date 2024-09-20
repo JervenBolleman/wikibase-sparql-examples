@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8653da5dfea46328956bc066fd9c87bd> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# find Jesus's Y-chromosomal relatives, i.e., those males who share a Y-chromosomal common ancestor with Jesus
+### Note: In comparison with the previous query \"Graph of Y chromosome descendants of a common ancestor (paternal relatives): Jesus\",
+### this query removes \"wd:Q302 (wdt:P22|wdt:P40)* ?Y\" (unnecessarily defining ?Y as Jesus (Q302)'s any father (P22) or child (P40)'s father or child's...)
+### and has a structure more similar to that in the parent section \"Graph of blood relatives: Jia Baoyu\".
+#defaultView:Graph
+SELECT DISTINCT ?Y ?YLabel ?birthdate ?image ?father ?fatherLabel ?edgeLabel
+WHERE {
+  # define ?Adam as Jesus (Q302)'s any father (P22)'s father's...
+  wd:Q302 wdt:P22* ?Adam.
+  # define ?Y as one whose any father (P22)'s father's... is ?Adam
+  ?Y wdt:P22* ?Adam.
+  # limit ?Y's gender (P21) to male (Q6581097)
+  ?Y wdt:P21 wd:Q6581097
+  # optional: define ?Y's father (P22) as ?father
+  OPTIONAL {?Y wdt:P22 ?father.
+            # get P22 (father)'s property label and allow it to appear on graph edge
+            ?edge wikibase:directClaim wdt:P22;
+               a wikibase:Property}
+  # optional: show ?Y's birthdate (P569), which only appears in table, not graph
+  OPTIONAL {?Y wdt:P569 ?birthdate}
+  # optional: show ?Y's image (P18), which appears directly in graph, and as link in table
+  OPTIONAL {?Y wdt:P18 ?image}
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8e7397ec80a79fcab76e723fba1e0b1c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  ?item ?itemLabel
+  ?bi_date ?bi_precision ?bi_rank ?bi_earliest ?bi_earliest_precision ?bi_latest ?bi_latest_precision ?bi_circaLabel ?bi_refineLabel
+WHERE
+{
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+
+  ?item wdt:P31 wd:Q5.
+  VALUES ?item { wd:Q10261 }
+
+  # date of birth
+  OPTIONAL {
+    ?item p:P569 ?bi.
+    ?bi a wikibase:BestRank.
+    ?bi ps:P569 ?bi_date.
+    ?bi wikibase:rank ?bi_rank.
+    ?bi psv:P569 [ wikibase:timePrecision ?bi_precision ].
+    OPTIONAL { ?bi pq:P1319 ?bi_earliest.
+              ?bi pqv:P1319 [ wikibase:timePrecision ?bi_earliest_precision ].
+             }
+    OPTIONAL { ?bi pq:P1326 ?bi_latest.
+              ?bi pqv:P1326 [ wikibase:timePrecision ?bi_latest_precision ].
+             }
+    OPTIONAL { ?bi pq:P1480 ?bi_circa. }
+    OPTIONAL { ?bi pq:P4241 ?bi_refine. }
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

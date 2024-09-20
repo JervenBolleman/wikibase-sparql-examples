@@ -1,0 +1,42 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-842f180ae30c8013ab4c2240a7c3a3fa> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+SELECT ?item ?itemLabel (substr(str(?link),31,500) as ?link) ?itemAltLabel ?itemDescription ?linkTo (GROUP_CONCAT(?instanceOfLabel; separator='; ') as ?instanceOf) ?depth WHERE
+{
+  SERVICE gas:service {
+    gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.SSSP\" ;
+                gas:in wd:Q145 ;
+                gas:traversalDirection \"Reverse\" ;
+                gas:out ?item ;
+                gas:out1 ?depth ;
+                gas:out2 ?linkTo ;
+                gas:maxIterations 2 ;
+                gas:linkType wdt:P131 .
+  }
+  FILTER EXISTS { ?item wdt:P31/wdt:P279* wd:Q56061 }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+    ?instanceOf rdfs:label ?instanceOfLabel .
+	?item rdfs:label ?itemLabel ;
+          skos:altLabel ?itemAltLabel ;
+          schema:description ?itemDescription .
+  }
+  OPTIONAL { ?item wdt:P31 ?instanceOf . }
+  OPTIONAL {
+    ?link schema:about ?item .
+    ?link schema:isPartOf <https://en.wikipedia.org/> .
+  }
+}
+GROUP BY ?item ?itemLabel ?itemAltLabel ?itemDescription ?linkTo ?depth ?link
+ORDER BY ?depth""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Yurik/Admin_regions>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

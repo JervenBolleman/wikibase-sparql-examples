@@ -1,0 +1,66 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-866a1a48aab523ab55db21018ba60cf4> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Admiral list for the Royal Navy
+SELECT DISTINCT ?timeAdmiral ?person ?personLabel ?timeBirth ?timeDeath ?fleet ?threeID
+{ 
+  # allow the report to work for different years
+  BIND (\"1707-01-01\"^^xsd:dateTime AS ?timeReport) .
+  
+  # person in Royal Navy
+  ?person wdt:P241 wd:Q172771 .
+  
+  # human instead of fictional
+  ?person wdt:P31 wd:Q5 .
+  
+  # ?person wdt:P410 ?rank .
+  # ?rank wdt:P279 wd:Q977459 .
+  # admiral of the fleet (of the Royal Navy) subclass of admiral of the fleet Q842486
+  # ?person wdt:P410 wd:Q2501631 .
+  # use P279 to pick up the subclass
+  
+  # military rank -- should have a start time
+  # admiral of the fleet wd:Q842486 .
+  # admiral of the fleet (Royal Navy) wd:Q2501631
+  # admiral wd:Q132851
+  # admiral (Royal Navy) wd:Q2916006
+  
+  # get statements about the person's rank
+  optional {
+      ?person p:P410 ?stmtFleet .
+      ?stmtFleet ps:P410 wd:Q2501631 .
+      BIND(1 AS ?fleet) .
+    }
+  
+  ?person p:P410 ?stmtAdmiral .
+  ?stmtAdmiral ps:P410 wd:Q2916006 .
+  optional {
+    ?stmtAdmiral pq:P580 ?timeAdmiral .
+  }
+  
+  optional {
+    ?person wdt:P7389 ?threeID .
+    } .
+  
+  # get time  of death (some have multiple death dates)
+  ?person wdt:P570 ?timeDeath .
+  ?person wdt:P569 ?timeBirth .
+
+  filter ( ?timeReport < ?timeDeath) .
+  
+  filter ( ?timeBirth < \"1800-01-01\"^^xsd:dateTime ).
+
+  SERVICE wikibase:label {
+     bd:serviceParam wikibase:language \"en\" .} .
+  
+} ORDER BY ?timeAdmiral ?timeDeath""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Glrx>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8807c4fce79ba349ab302b18870e30dc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX schema: <http://schema.org/>
+#-------------------------------------------------------------------------------
+# Verkehrsobjekte in Dresden ohne physische Verbindung zu zweiter Straße
+#-------------------------------------------------------------------------------
+#defaultView:Map
+SELECT  distinct ?itemA ?itemALabel ?itemB  ?itemBLabel ?coordinate
+WHERE {
+    ?itemA wdt:P131 wd:Q1731.
+    VALUES ?instance_of { 
+      wd:Q34442      # Straße
+      wd:Q79007      # Innerortstraße
+      wd:Q21000333   # Einkaufsstraße 
+      wd:Q174782     # Platz
+      wd:Q537127     # Straßenbrücke
+      wd:Q3397519    # Spannbetonbrücke 
+      wd:Q1055465    # Balkenbrücke  
+    } 
+    ?itemA wdt:P31 ?instance_of.                       # Straße A ist Verkehrsobjekt
+    ?itemA wdt:P2789 ?itemB.                           # Straße A ist verbunden mit Straße B
+    
+    FILTER NOT EXISTS { ?itemB wdt:P2789 ?itemA }      # Straße B ist nicht verbunden mit Straße A 
+    OPTIONAL{ ?itemB wdt:P2789 ?strassen. }            # Straße B hat Eigenschaft \"physisch verbunden\"
+    FILTER(BOUND(?strassen))                           # Straße B hat Eigenschaft \"physisch verbunden\" ist nicht leer
+    OPTIONAL { ?itemA wdt:P625 ?coordinate. }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\". }
+}
+order by ?itemALabel ?itemBLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stefan_K%C3%BChn/Dresden>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

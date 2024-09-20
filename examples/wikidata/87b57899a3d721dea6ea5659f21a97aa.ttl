@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-87b57899a3d721dea6ea5659f21a97aa> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT distinct ?person ?personLabel ?age
+WHERE 
+{
+  {                                              # find events and winners
+  ?event wdt:P31 wd:Q46190676 .                  # tennis event 
+  ?event wdt:P361/wdt:P31/wdt:P361 wd:Q102113 .  # part of grans slam
+  ?event wdt:P1346 ?person .                     # winner
+  ?event wdt:P2094 wd:Q16893072 .                # competition class - mens singles
+  }
+UNION
+  {                                              # find people who won stuff
+  ?person wdt:2522 ?won .                        # we have a winner 
+  ?won wdt:P361/wdt:P31/wdt:P361 wd:Q102113 .    # part of grans slam
+  ?won wdt:P2094 wd:Q16893072 .                   # competition class - mens singles
+  }
+  ?person wdt:P569 ?birth .                      #dob
+  MINUS { ?person wdt:P570 [] } .                #not dead
+  BIND(YEAR(now())-YEAR(?birth) as ?age) .       #calculate age in years
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} order by desc(?age)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8e705e855dc55c7f536029c18ad971c9> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?label ?labelgen ?sitelinks (COUNT(DISTINCT ?article) as ?lang_wiki_sitelinks) WHERE {
+
+ #hint:Query hint:optimizer \"None\".
+ VALUES ?type {wd:Q571 wd:Q7725634 wd:Q47461344 }
+ ?item wdt:P31 ?type .
+ ?item wdt:P136 ?genre.
+ ?genre rdfs:label ?labelgen filter (lang(?labelgen) = \"it\"). # <<<<<<<<<<<<<<<<<<<<<<<<
+ ?item wdt:P577 ?date . hint:Prior hint:rangeSafe \"true\" .
+ ?item wdt:P50 ?author .
+ OPTIONAL {?author wdt:P1559 ?authorlabel . filter(lang(?authorlabel) = \"en\")}
+ OPTIONAL {?author rdfs:label ?authorlabel2 . filter(lang(?authorlabel2) = \"en\")}
+ FILTER (?date > \"1979-01-01T00:00:00Z\"^^xsd:dateTime) .
+ ?item rdfs:label ?label filter (lang(?label) = \"it\")
+ ?item wdt:P407 wd:Q652.
+ ?article schema:about ?item ;
+          schema:isPartOf ?partof .
+ ?partof wikibase:wikiGroup \"wikipedia\" . hint:Prior hint:runLast true.
+ ?item wikibase:sitelinks ?sitelinks.
+} group by ?item ?label ?labelgen ?sitelinks HAVING (?lang_wiki_sitelinks >1)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

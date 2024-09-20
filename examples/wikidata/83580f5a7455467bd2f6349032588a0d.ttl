@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-83580f5a7455467bd2f6349032588a0d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# All recently deceased MPs (ie this calendar year)
+# giving date of birth, last constituency, last date in Parliament, and reason for leaving
+SELECT DISTINCT ?item ?itemLabel ?wikipedia ?born ?constituencyLabel ?left ?died
+{
+ ?membership wdt:P279 wd:Q16707842 .  # find all MP positions
+ ?item p:P39 ?positionStatement . ?positionStatement ps:P39 ?membership .  # and people who held such a position
+ OPTIONAL { ?positionStatement pq:P768 ?constituency . } # constituency if known
+ OPTIONAL { ?positionStatement pq:P4100 ?party . } # party if known
+ ?positionStatement pq:P580 ?start . # all members who have a start date (need to block out any without full dates)
+ optional { ?positionStatement pq:P582 ?left . }
+ ?positionStatement pq:P1534 ?cause .
+ FILTER NOT EXISTS {
+ ?membership2 wdt:P279 wd:Q16707842 .
+ ?item p:P39 ?positionStatement2 . 
+ ?positionStatement2 ps:P39 ?membership2 . 
+ ?positionStatement2 pq:P580 ?start2 .
+ FILTER (?start2 >= ?left) .  } 
+ # filter out any where they came back to office at a later date
+ ?item wdt:P570 ?died . 
+ # find all MPs who have died
+ BIND(YEAR(NOW()) AS ?now) . FILTER (YEAR(?died) = ?now ) . 
+ # find all MPs who died this year
+ # \"BIND(YEAR(NOW())-1 AS ?now)\" for last year, etc
+ optional { ?item wdt:P569 ?born } . 
+ optional { ?wikipedia schema:about ?item . ?wikipedia schema:isPartOf <https://en.wikipedia.org/>. } .
+ SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+} order by desc(?died)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

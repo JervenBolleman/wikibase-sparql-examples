@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8201a2daebf38af9947110c8e0eab8f6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  ?item ?itemLabel
+  ?acronym_mb 
+  (GROUP_CONCAT(DISTINCT str(?acronym); separator = \", \") as ?other_acronyms)
+  (GROUP_CONCAT(DISTINCT str(?acronym_old); separator = \", \") as ?old_acronyms)
+WHERE 
+{
+  ?item wdt:P1343 wd:Q96192978.
+  OPTIONAL { ?item p:P1813 ?st0  . 
+      ?st0 pq:P1535 wd:Q96192978 ; ps:P1813 ?acronym_mb . 
+      FILTER NOT EXISTS { ?st0 pq:P582 [] }
+           }
+  OPTIONAL { ?item p:P1813 ?st1 . ?st1 ps:P1813 ?acronym . 
+             FILTER NOT EXISTS { ?st1 pq:P1535 wd:Q96192978 } 
+             FILTER NOT EXISTS { ?st1 pq:P582 [] }
+           }
+  OPTIONAL { ?item p:P1813 ?st2 . ?st2 ps:P1813 ?acronym_old . 
+             FILTER EXISTS { ?st2 pq:P582 [] }
+           }  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr,de,it\". }
+}
+GROUP BY ?item ?itemLabel ?acronym_mb""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-866f8689026b567fdd2c526af81ec826> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?smallerCityLabel ?smallerPopulation ?mayorLabel ?largerCityLabel ?largerPopulation
+WITH {
+  SELECT DISTINCT ?smallerCity ?smallerPopulation ?mayor ?largerCity ?largerPopulation WHERE {
+    ?smallerCity wdt:P31/wdt:P279* wd:Q515;
+                 wdt:P1082 ?smallerPopulation;
+                 wdt:P6 ?mayor.
+    ?mayor wdt:P31 wd:Q5;
+           wdt:P735 ?givenName.
+    ?givenName rdfs:label ?label.
+    ?largerCity rdfs:label ?label;
+                wdt:P31/wdt:P279* wd:Q515;
+                wdt:P1082 ?largerPopulation.
+    FILTER(?largerPopulation > ?smallerPopulation)
+  }
+} AS %results
+WHERE {
+  INCLUDE %results.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?smallerPopulation)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/cities_whose_mayor_shares_the_name_of_an_even_bigger_city>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8375615e25af9e2667b13ae2ebb5815f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# See https://m.wikidata.org/wiki/User:PAC2/Gender_neutral_labels
+#title: Items of class position with label, male form, female form and aliases 
+SELECT ?item ?itemLabel ?maleform ?femaleform (GROUP_CONCAT(?alias; SEPARATOR = \", \") AS ?aliases) WHERE {
+  wd:Q4164871 (^(wdt:P279*)/^wdt:P31) ?item.
+  ?item rdfs:label ?itemLabel.
+  BIND(LANG(?itemLabel) AS ?lang)
+  FILTER((LANG(?itemLabel)) = \"fr\")
+  OPTIONAL {
+    ?item wdt:P2521 ?femaleform.
+    FILTER((LANG(?femaleform)) = ?lang)
+  }
+  OPTIONAL {
+    ?item wdt:P3321 ?maleform.
+    FILTER((LANG(?maleform)) = ?lang)
+  }
+  OPTIONAL {
+    ?item skos:altLabel ?alias.
+    FILTER((LANG(?alias)) = ?lang)
+  }
+}
+GROUP BY ?item ?itemLabel ?maleform ?femaleform
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Requests_for_comment/Gender_neutral_labels_for_occupations_and_positions_in_French>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

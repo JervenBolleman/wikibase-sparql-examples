@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8baa8d0cc34f33ae26e6b2f63a0ca9dc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map{\"hide\":[\"?coordN\", \"?coordD\", \"?line\", \"?layer\"]}
+SELECT * WHERE {
+  ?person wdt:P27 wd:Q31 ; wdt:P19 ?lieuN ; wdt:P20 ?lieuD .
+  BIND ( ?lieuN AS ?layer )
+  ?lieuN wdt:P625 ?coordN .
+  ?lieuD wdt:P625 ?coordD .
+  ?lieuN p:P625/psv:P625/wikibase:geoLatitude ?latN .
+  ?lieuN p:P625 / psv:P625 / wikibase:geoLongitude ?lonN .
+  ?lieuD p:P625 / psv:P625 / wikibase:geoLatitude ?latD .
+  ?lieuD p:P625 / psv:P625 / wikibase:geoLongitude ?lonD .
+  BIND(CONCAT('LINESTRING (', STR(?lonN), ' ', STR(?latN), ',', STR(?lonD), ' ', STR(?latD), ')') AS ?str) .
+  BIND(STRDT(?str, geo:wktLiteral) AS ?line)
+  BIND(geof:distance(?coordN, ?coordD) AS ?dist)
+  FILTER ( ?dist > 1000 )
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Events/Faisons_des_%C3%A9tincelles_avec_SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

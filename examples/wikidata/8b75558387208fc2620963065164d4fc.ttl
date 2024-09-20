@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8b75558387208fc2620963065164d4fc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Map of files authored by a Wikimedia Commons user
+#TEMPLATE={\"template\":\"Map of files authored by ?username\",\"variables\":{\"?username\":{\"query\":\" SELECT DISTINCT ?username WHERE { [] p:P170/pq:P4174 ?username .} LIMIT 100\"} } }
+#defaultView:Map
+SELECT ?file ?image ?coordinates (?date AS ?layer)  (wikibase:decodeUri(CONCAT(\"File:\", substr(str(?url),53))) AS ?filename)
+WHERE {
+BIND(\"Lutzto\" AS ?username)
+?file (p:P170/pq:P4174) ?username;
+OPTIONAL {?file  wdt:P625|wdt:P1259 ?coordinates. }
+OPTIONAL { ?file wdt:P571 ?date. }
+# convert file into image
+?file schema:contentUrl ?url .
+bind(iri(concat(\"http://commons.wikimedia.org/wiki/Special:FilePath/\", wikibase:decodeUri(substr(str(?url),53)))) AS ?image)
+}
+LIMIT 10000""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Lutzto>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

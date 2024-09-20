@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8ddab8dd3cb303278c6eb315fd1f4f5e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?givenName ?givenNameLabel ?firstDate WITH {
+  SELECT ?givenName (MIN(?date) AS ?firstDate) WHERE {
+    { ?term wdt:P279* wd:Q16707842. } UNION
+    { ?term wdt:P279* wd:Q18015642. } UNION
+    { ?term wdt:P279* wd:Q18018860. }
+    ?mp p:P39 ?mpStatement . ?mpStatement ps:P39 ?term .
+    optional { ?mpStatement pq:P580 ?start.  FILTER (!wikibase:isSomeValue(?start)) }
+    ?mp wdt:P735 ?givenName.
+    ?term wdt:P571 ?termstart .
+  bind(COALESCE(?start, ?termstart) as ?date ) . 
+  # use qualifier dates; if not known use term dates
+  }
+  GROUP BY ?givenName
+} AS %givenNames WHERE {
+  INCLUDE %givenNames.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?firstDate ?givenNameLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

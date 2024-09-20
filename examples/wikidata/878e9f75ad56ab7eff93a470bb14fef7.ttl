@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-878e9f75ad56ab7eff93a470bb14fef7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: How many compounds are structurally similar to compounds labeled as antibiotics? Results are grouped by the parent taxon of the organism they were found in.
+PREFIX sachem: <http://bioinfo.uochb.cas.cz/rdf/v1.0/sachem#> # prefixes needed for structural similarity search
+PREFIX idsm: <https://idsm.elixir-czech.cz/sparql/endpoint/>
+SELECT ?parent_taxon ?parent_taxon_name (COUNT(DISTINCT ?compound) AS ?count) WHERE {
+  SERVICE idsm:wikidata {
+    VALUES ?CUTOFF {
+      \"0.9\"^^xsd:double
+    }
+    SERVICE <https://query.wikidata.org/bigdata/namespace/wdq/sparql> {
+      VALUES ?MESH {
+        \"D000900\"
+      }
+      ?antibiotic ((wdt:P279*)/wdt:P2868/wdt:P486) ?MESH;
+        wdt:P233 ?smiles.
+    }
+    ?compound sachem:similarCompoundSearch _:b40.
+    _:b40 sachem:query ?smiles;
+      sachem:cutoff ?CUTOFF.
+  }
+  hint:Prior hint:runFirst \"true\"^^xsd:boolean.
+  ?compound wdt:P703/wdt:P171 ?parent_taxon.
+  ?parent_taxon wdt:P225 ?parent_taxon_name.
+}
+GROUP BY ?parent_taxon ?parent_taxon_name
+ORDER BY DESC (?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/de>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/it>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/ru>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/en>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

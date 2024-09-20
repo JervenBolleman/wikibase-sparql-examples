@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-800286640ab12e6f451f07134484640a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#first line for testing, second for bar chart
+#SELECT ?item ?itemLabel ?typeLabel ?year_ ?locationLabel Where {
+SELECT (str(SAMPLE(?year_)) AS ?year ) (COUNT( ?item) as ?count) ?typeLabel WHERE {
+  VALUES ?type {wd:Q11424 wd:Q7889 wd:Q15416}
+  ?item wdt:P31/wdt:P279* ?type.
+  ?item wdt:P840 ?location.
+  ?location wdt:P131* wd:Q5083.
+  ?item wikibase:sitelinks ?linkcount.
+  ?item wdt:P577 ?releaseDate.
+  BIND(YEAR(?releaseDate) as ?year_).           
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de,es,ar,fr\" }
+  FILTER( ?year_ > 1900)
+}
+#first line for testing, second for bar chart
+#GROUP BY ?item ?itemLabel ?typeLabel ?year_ ?locationLabel
+GROUP BY ?year_ ?count ?typeLabel
+ORDER BY ASC(?year_)
+#defaultView:BarChart""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Hdevine825/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

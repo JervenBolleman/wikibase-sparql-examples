@@ -1,0 +1,39 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-867bfa9429c5bae5bd02fed7452ac302> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT 
+ ?item
+ ?itemLabel 
+ (MAX(?pref_pop_date) as ?max_date_with_preferred_rank)
+ (MAX(?norm_pop_date) as ?max_date_with_normal_rank)
+WHERE 
+{
+ ?item p:P31 [ps:P31 wd:Q6256] # Select all countries
+
+OPTIONAL { # Select population dates with preferred rank
+ ?item p:P1082 ?pref_pop. 
+ ?pref_pop wikibase:rank wikibase:PreferredRank.
+ ?pref_pop pq:P585 ?pref_pop_date.
+}
+OPTIONAL { # Select population dates with normal rank
+ ?item p:P1082 ?norm_pop. 
+ ?norm_pop wikibase:rank wikibase:NormalRank.
+ ?norm_pop pq:P585 ?norm_pop_date.
+}
+SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\".}
+}
+GROUP BY ?item ?itemLabel
+HAVING (
+  (MAX(?pref_pop_date) < MAX(?norm_pop_date)) # There's data with normal rank available with a point in time later than the one with preferred rank
+  || ((COUNT(?norm_pop_date) > 1) && !(BOUND(?max_date_with_preferred_rank)))) # There's more than one point in time, but none is flagged as preferred 
+ORDER BY ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:PreferentialBot>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

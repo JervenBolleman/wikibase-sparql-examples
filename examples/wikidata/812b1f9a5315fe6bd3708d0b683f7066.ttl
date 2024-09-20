@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-812b1f9a5315fe6bd3708d0b683f7066> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel WHERE 
+{
+  SERVICE bd:slice {
+    ?article schema:isPartOf <https://de.wikipedia.org/> .       
+    bd:serviceParam bd:slice.offset 0 . # Start at item number (not to be confused with QID)
+    bd:serviceParam bd:slice.limit 70000 . # List this many items
+  }
+   ?article schema:about ?item .
+   optional {?item rdfs:label ?itemLabel . filter(lang(?itemLabel)=\"de\") }
+   FILTER NOT EXISTS {?item schema:description ?itemDescription . filter(lang(?itemDescription)=\"de\") }
+   FILTER NOT EXISTS { ?item wdt:P31/wdt:P279* wd:Q4167836 . hint:Prior hint:gearing \"forward\". }
+   FILTER NOT EXISTS { ?item wdt:P31 wd:Q11266439 .}
+   FILTER NOT EXISTS { ?item wdt:P31 wd:Q15184295 .}
+   FILTER NOT EXISTS { ?item wdt:P31 wd:Q11753321 .}
+   FILTER NOT EXISTS { ?item wdt:P31 wd:Q17633526 .}
+   FILTER NOT EXISTS { ?item wdt:P31 wd:Q19887878 .}
+}
+ORDER BY ASC(?itemLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Crazy1880>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .
