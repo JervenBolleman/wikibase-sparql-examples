@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-7c3a02da8610a235d4aace641ff10e30> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q294647>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:actor>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q294647>
 
 SELECT
   (xsd:date(?release_datetime) AS ?release_date)
@@ -30,9 +39,58 @@ WHERE {
   INCLUDE %films
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?release_date)""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q294647>
+
+SELECT
+  (xsd:date(?release_datetime) AS ?release_date)
+
+  ?film ?filmLabel
+  (CONCAT(\"#film/\", SUBSTR(STR(?film), 32)) AS ?filmUrl)
+  ?filmDescription
+
+WHERE {
+  {
+  SELECT
+    (MIN(?release_datetimes) AS ?release_datetime)
+    ?film
+  WHERE {
+    ?film wdt:P161 target: .
+    OPTIONAL {
+      ?film wdt:P577 ?release_datetimes .
+    }
+  }
+  GROUP BY ?film
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?release_date)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:actor>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q294647>
+
+SELECT
+  (xsd:date(?release_datetime) AS ?release_date)
+
+  ?film ?filmLabel
+  (CONCAT(\"#film/\", SUBSTR(STR(?film), 32)) AS ?filmUrl)
+  ?filmDescription
+WITH {
+  SELECT
+    (MIN(?release_datetimes) AS ?release_datetime)
+    ?film
+  WHERE {
+    ?film wdt:P161 target: .
+    OPTIONAL {
+      ?film wdt:P577 ?release_datetimes .
+    }
+  }
+  GROUP BY ?film
+} AS %films
+WHERE {
+  INCLUDE %films
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?release_date)""" .

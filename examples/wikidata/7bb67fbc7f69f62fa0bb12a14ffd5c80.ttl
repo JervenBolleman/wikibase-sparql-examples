@@ -6,7 +6,19 @@
 
 <https://www.wikidata.org/#query-7bb67fbc7f69f62fa0bb12a14ffd5c80> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?country ?countryLabel (GROUP_CONCAT(DISTINCT ?lang; separator=', ') AS ?langs) (GROUP_CONCAT(DISTINCT ?scriptL; separator=', ') AS ?scripts) (COUNT(DISTINCT ?item) AS ?cnt) WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/rowing/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?country ?countryLabel (GROUP_CONCAT(DISTINCT ?lang; separator=', ') AS ?langs) (GROUP_CONCAT(DISTINCT ?scriptL; separator=', ') AS ?scripts) (COUNT(DISTINCT ?item) AS ?cnt) WITH {
   SELECT DISTINCT ?item WHERE {
     ?item p:P106/ps:P106/wdt:P279* wd:Q26270618
   }
@@ -24,9 +36,49 @@
     }
   }
   SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+} GROUP BY ?country ?countryLabel ORDER BY DESC(?cnt)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?country ?countryLabel (GROUP_CONCAT(DISTINCT ?lang; separator=', ') AS ?langs) (GROUP_CONCAT(DISTINCT ?scriptL; separator=', ') AS ?scripts) (COUNT(DISTINCT ?item) AS ?cnt)  WHERE {
+  {
+  SELECT DISTINCT ?item WHERE {
+    ?item p:P106/ps:P106/wdt:P279* wd:Q26270618
+  }
+} .
+  ?item wdt:P27 ?country .
+  OPTIONAL {
+    ?country wdt:P37 ?language .
+    ?language rdfs:label ?lang .
+    FILTER(LANG(?lang) = 'en') .
+    OPTIONAL {
+      ?language wdt:P282 ?script .
+      ?script rdfs:label ?scriptL .
+      FILTER(LANG(?scriptL) = 'en') .
+    }
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
 } GROUP BY ?country ?countryLabel ORDER BY DESC(?cnt)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/rowing/queries>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?country ?countryLabel (GROUP_CONCAT(DISTINCT ?lang; separator=', ') AS ?langs) (GROUP_CONCAT(DISTINCT ?scriptL; separator=', ') AS ?scripts) (COUNT(DISTINCT ?item) AS ?cnt) WITH {
+  SELECT DISTINCT ?item WHERE {
+    ?item p:P106/ps:P106/wdt:P279* wd:Q26270618
+  }
+} AS %s WHERE {
+  INCLUDE %s .
+  ?item wdt:P27 ?country .
+  OPTIONAL {
+    ?country wdt:P37 ?language .
+    ?language rdfs:label ?lang .
+    FILTER(LANG(?lang) = 'en') .
+    OPTIONAL {
+      ?language wdt:P282 ?script .
+      ?script rdfs:label ?scriptL .
+      FILTER(LANG(?scriptL) = 'en') .
+    }
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+} GROUP BY ?country ?countryLabel ORDER BY DESC(?cnt)""" .

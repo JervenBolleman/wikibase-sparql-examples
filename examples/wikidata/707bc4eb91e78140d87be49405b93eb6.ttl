@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-707bc4eb91e78140d87be49405b93eb6> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT *
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+SELECT *
 WITH
 {
   SELECT DISTINCT ?item
@@ -26,9 +34,47 @@ WHERE
   ?commons schema:name ?commons_title .
   FILTER STRSTARTS (?commons_title, \"Category:\")
 }
+limit 110000""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+SELECT *
+
+WHERE
+{
+  {
+  SELECT DISTINCT ?item
+  WHERE
+  {
+    ?item wdt:P18 ?image .
+    ?item wdt:P31 wd:Q5 .
+  }
+  limit 180000
+}
+  ?commons schema:about ?item .
+  ?commons schema:isPartOf <https://commons.wikimedia.org/> .
+  ?commons schema:name ?commons_title .
+  FILTER STRSTARTS (?commons_title, \"Category:\")
+}
 limit 110000""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/02>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT *
+WITH
+{
+  SELECT DISTINCT ?item
+  WHERE
+  {
+    ?item wdt:P18 ?image .
+    ?item wdt:P31 wd:Q5 .
+  }
+  limit 180000
+}
+AS %humans_with_image
+WHERE
+{
+  INCLUDE %humans_with_image
+  ?commons schema:about ?item .
+  ?commons schema:isPartOf <https://commons.wikimedia.org/> .
+  ?commons schema:name ?commons_title .
+  FILTER STRSTARTS (?commons_title, \"Category:\")
+}
+limit 110000""" .

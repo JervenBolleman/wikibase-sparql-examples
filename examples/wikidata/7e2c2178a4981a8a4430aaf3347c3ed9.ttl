@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-7e2c2178a4981a8a4430aaf3347c3ed9> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:lexeme-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
   ?count
   ?identifier ?identifierLabel ?identifierDescription
 WITH {
@@ -24,9 +33,46 @@ WHERE {
   ?identifier wikibase:directClaim ?property .
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
+  ?count
+  ?identifier ?identifierLabel ?identifierDescription
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(*) AS ?count)
+    ?property 
+  WHERE {
+    ?property ^wikibase:directClaim / wdt:P31 wd:Q56216056 .
+    [] ?property [] .
+  }
+  GROUP BY ?property
+}
+  ?identifier wikibase:directClaim ?property .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:lexeme-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT
+  ?count
+  ?identifier ?identifierLabel ?identifierDescription
+WITH {
+  SELECT 
+    (COUNT(*) AS ?count)
+    ?property 
+  WHERE {
+    ?property ^wikibase:directClaim / wdt:P31 wd:Q56216056 .
+    [] ?property [] .
+  }
+  GROUP BY ?property
+} AS %properties
+WHERE {
+  INCLUDE %properties
+  ?identifier wikibase:directClaim ?property .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?count)""" .

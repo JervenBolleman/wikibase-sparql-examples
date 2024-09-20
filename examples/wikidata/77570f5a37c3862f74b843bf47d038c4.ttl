@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-77570f5a37c3862f74b843bf47d038c4> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?item ?itemLabel ?country ?countryLabel ?population
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?country ?countryLabel ?population
 WITH {SELECT DISTINCT ?item ?country  (MAX(?pop) as ?population)
 WHERE 
 {
@@ -25,8 +35,22 @@ WHERE
            ?country wdt:P463 wd:Q1065 .}
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],he,en\". }
 } ORDER BY ?countryLabel ?itemLabel""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/09>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?itemLabel ?country ?countryLabel ?population
+WITH {SELECT DISTINCT ?item ?country  (MAX(?pop) as ?population)
+WHERE 
+{
+  ?item wdt:P31/wdt:P279* wd:Q515.
+  ?item wdt:P1082 ?pop.
+  filter (?pop > 300000)
+  } GROUP BY ?item  ?country  } as %i
+WHERE
+{
+  INCLUDE %i
+  FILTER NOT EXISTS {
+  ?article schema:about ?item ;
+  schema:isPartOf <https://he.wikivoyage.org/> . }
+
+  OPTIONAL {?item wdt:P17 ?country . 
+           ?country wdt:P463 wd:Q1065 .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],he,en\". }
+} ORDER BY ?countryLabel ?itemLabel""" .

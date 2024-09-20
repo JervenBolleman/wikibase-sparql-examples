@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-72c977ff02c8ee7f7e636fd9c7cec1fd> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?property ?propertyLabel ?count ?avg WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Heritage_institutions/Data_structure>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?property ?propertyLabel ?count ?avg WITH {
   SELECT ?property (COUNT(DISTINCT ?item) AS ?count) (COUNT(DISTINCT ?statement)/COUNT(DISTINCT ?item) AS ?avg) WHERE {
     ?item wdt:P31/wdt:P279* wd:Q7075;
           ?p ?statement.
@@ -19,9 +28,36 @@
   INCLUDE %results.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,en-US,de\". }
 }
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?property ?propertyLabel ?count ?avg  WHERE {
+  {
+  SELECT ?property (COUNT(DISTINCT ?item) AS ?count) (COUNT(DISTINCT ?statement)/COUNT(DISTINCT ?item) AS ?avg) WHERE {
+    ?item wdt:P31/wdt:P279* wd:Q7075;
+          ?p ?statement.
+    ?property a wikibase:Property;
+              wikibase:claim ?p.
+  }
+  GROUP BY ?property
+  ORDER BY DESC(?count)
+}.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,en-US,de\". }
+}
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Heritage_institutions/Data_structure>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?property ?propertyLabel ?count ?avg WITH {
+  SELECT ?property (COUNT(DISTINCT ?item) AS ?count) (COUNT(DISTINCT ?statement)/COUNT(DISTINCT ?item) AS ?avg) WHERE {
+    ?item wdt:P31/wdt:P279* wd:Q7075;
+          ?p ?statement.
+    ?property a wikibase:Property;
+              wikibase:claim ?p.
+  }
+  GROUP BY ?property
+  ORDER BY DESC(?count)
+} AS %results WHERE {
+  INCLUDE %results.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,en-US,de\". }
+}
+ORDER BY DESC(?count)""" .

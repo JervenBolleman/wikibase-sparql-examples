@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-782b9d47abce7597efc12fad45819ae2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# most common class combinations of items linked via “different from” statements
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/most_common_class_combinations_of_items_linked_via_%E2%80%9Cdifferent_from%E2%80%9D_statements>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# most common class combinations of items linked via “different from” statements
 SELECT ?class1 ?class2 ?class1Label ?class2Label ?count WITH {
   SELECT ?class1 ?class2 (COUNT(*) AS ?count) WHERE {
     ?item1 wdt:P1889 ?item2.
@@ -21,9 +29,39 @@ SELECT ?class1 ?class2 ?class1Label ?class2Label ?count WITH {
   INCLUDE %results.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# most common class combinations of items linked via “different from” statements
+SELECT ?class1 ?class2 ?class1Label ?class2Label ?count  WHERE {
+  {
+  SELECT ?class1 ?class2 (COUNT(*) AS ?count) WHERE {
+    ?item1 wdt:P1889 ?item2.
+    OPTIONAL { ?item1 wdt:P31 ?class1. }
+    OPTIONAL { ?item2 wdt:P31 ?class2. }
+    FILTER(!BOUND(?class1) || !BOUND(?class2) || STR(?class1) <= STR(?class2))
+  }
+  GROUP BY ?class1 ?class2
+  ORDER BY DESC(?count)
+  LIMIT 50
+}.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/most_common_class_combinations_of_items_linked_via_%E2%80%9Cdifferent_from%E2%80%9D_statements>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """# most common class combinations of items linked via “different from” statements
+SELECT ?class1 ?class2 ?class1Label ?class2Label ?count WITH {
+  SELECT ?class1 ?class2 (COUNT(*) AS ?count) WHERE {
+    ?item1 wdt:P1889 ?item2.
+    OPTIONAL { ?item1 wdt:P31 ?class1. }
+    OPTIONAL { ?item2 wdt:P31 ?class2. }
+    FILTER(!BOUND(?class1) || !BOUND(?class2) || STR(?class1) <= STR(?class2))
+  }
+  GROUP BY ?class1 ?class2
+  ORDER BY DESC(?count)
+  LIMIT 50
+} AS %results WHERE {
+  INCLUDE %results.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?count)""" .

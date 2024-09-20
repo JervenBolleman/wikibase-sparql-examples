@@ -6,7 +6,22 @@
 
 <https://www.wikidata.org/#query-7b7acbf9e9204ad20a4bf2a3cfafc004> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?year ?item ?itemLabel (MAX(?number) AS ?passengers)
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?year ?item ?itemLabel (MAX(?number) AS ?passengers)
   (SAMPLE(COALESCE(?reference_URL, ?monthly_reference_URL)) AS ?sample_reference_URL)
 WITH
 {
@@ -53,9 +68,130 @@ WHERE
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
 }
 GROUP BY ?item ?itemLabel ?year
+ORDER BY ?item DESC (?year)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?year ?item ?itemLabel (MAX(?number) AS ?passengers)
+  (SAMPLE(COALESCE(?reference_URL, ?monthly_reference_URL)) AS ?sample_reference_URL)
+
+WHERE
+{
+  {
+    SELECT ?item ?year (SUM(?numberperperiod) AS ?number) (SAMPLE(?reference_URL) AS ?monthly_reference_URL)
+    WHERE
+    {
+      {
+  SELECT ?item ?statement ?year ?timevalue ?numberperperiod ?reference_URL
+  WHERE
+  {
+    ?item wdt:P238 ?IATA.
+    VALUES ?IATA 
+    {
+      \"SOF\" \"VAR\" \"BOJ\" \"EPU\"
+    }
+    ?item p:P3872 ?statement.
+    ?statement pqv:P585 ?timevalue;
+               ps:P3872 ?numberperperiod.
+    ?timevalue wikibase:timeValue ?date.
+    OPTIONAL { ?statement pq:P518 ?applies. }
+    OPTIONAL { ?statement prov:wasDerivedFrom / (pr:P854|pr:P4656) ?reference_URL. }
+    FILTER (BOUND(?applies)=false || ?applies = wd:Q2165236 )
+    MINUS { ?statement wikibase:rank wikibase:DeprecatedRank }
+    BIND (YEAR(?date) AS ?year)
+    FILTER (?year > 2010)
+    FILTER (?year < YEAR(NOW()))
+  }
+}
+      ?timevalue wikibase:timePrecision ?prec.
+      FILTER (?prec > 9)
+    }
+    GROUP BY ?item ?year
+  }
+  UNION
+  {
+    ?timevalue wikibase:timePrecision 9 .
+    BIND (?numberperperiod AS ?number)
+    BIND (?reference_URL AS ?sample_reference_URL)
+    {
+  SELECT ?item ?statement ?year ?timevalue ?numberperperiod ?reference_URL
+  WHERE
+  {
+    ?item wdt:P238 ?IATA.
+    VALUES ?IATA 
+    {
+      \"SOF\" \"VAR\" \"BOJ\" \"EPU\"
+    }
+    ?item p:P3872 ?statement.
+    ?statement pqv:P585 ?timevalue;
+               ps:P3872 ?numberperperiod.
+    ?timevalue wikibase:timeValue ?date.
+    OPTIONAL { ?statement pq:P518 ?applies. }
+    OPTIONAL { ?statement prov:wasDerivedFrom / (pr:P854|pr:P4656) ?reference_URL. }
+    FILTER (BOUND(?applies)=false || ?applies = wd:Q2165236 )
+    MINUS { ?statement wikibase:rank wikibase:DeprecatedRank }
+    BIND (YEAR(?date) AS ?year)
+    FILTER (?year > 2010)
+    FILTER (?year < YEAR(NOW()))
+  }
+}
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+}
+GROUP BY ?item ?itemLabel ?year
 ORDER BY ?item DESC (?year)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/12>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?year ?item ?itemLabel (MAX(?number) AS ?passengers)
+  (SAMPLE(COALESCE(?reference_URL, ?monthly_reference_URL)) AS ?sample_reference_URL)
+WITH
+{
+  SELECT ?item ?statement ?year ?timevalue ?numberperperiod ?reference_URL
+  WHERE
+  {
+    ?item wdt:P238 ?IATA.
+    VALUES ?IATA 
+    {
+      \"SOF\" \"VAR\" \"BOJ\" \"EPU\"
+    }
+    ?item p:P3872 ?statement.
+    ?statement pqv:P585 ?timevalue;
+               ps:P3872 ?numberperperiod.
+    ?timevalue wikibase:timeValue ?date.
+    OPTIONAL { ?statement pq:P518 ?applies. }
+    OPTIONAL { ?statement prov:wasDerivedFrom / (pr:P854|pr:P4656) ?reference_URL. }
+    FILTER (BOUND(?applies)=false || ?applies = wd:Q2165236 )
+    MINUS { ?statement wikibase:rank wikibase:DeprecatedRank }
+    BIND (YEAR(?date) AS ?year)
+    FILTER (?year > 2010)
+    FILTER (?year < YEAR(NOW()))
+  }
+} AS %airport
+WHERE
+{
+  {
+    SELECT ?item ?year (SUM(?numberperperiod) AS ?number) (SAMPLE(?reference_URL) AS ?monthly_reference_URL)
+    WHERE
+    {
+      INCLUDE %airport
+      ?timevalue wikibase:timePrecision ?prec.
+      FILTER (?prec > 9)
+    }
+    GROUP BY ?item ?year
+  }
+  UNION
+  {
+    ?timevalue wikibase:timePrecision 9 .
+    BIND (?numberperperiod AS ?number)
+    BIND (?reference_URL AS ?sample_reference_URL)
+    INCLUDE %airport
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+}
+GROUP BY ?item ?itemLabel ?year
+ORDER BY ?item DESC (?year)""" .

@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-7c53633b950dd38a26858699ef945886> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#title:External identifiers used for sculptures
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Sculpture>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#title:External identifiers used for sculptures
 SELECT ?id ?idLabel ?statedLabel (COUNT(?value) AS ?count) WITH {
   SELECT DISTINCT ?item WHERE {
      ?item wdt:P31/wdt:P279? wd:Q860861.
@@ -18,9 +28,35 @@ SELECT ?id ?idLabel ?statedLabel (COUNT(?value) AS ?count) WITH {
 #  ?id rdfs:label ?idlabel FILTER (lang(?idlabel) = \"en\").
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }
 } GROUP BY ?id ?idLabel ?statedLabel
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#title:External identifiers used for sculptures
+SELECT ?id ?idLabel ?statedLabel (COUNT(?value) AS ?count)  WHERE {
+  {
+  SELECT DISTINCT ?item WHERE {
+     ?item wdt:P31/wdt:P279? wd:Q860861.
+  }
+} .
+  ?id wikibase:propertyType wikibase:ExternalId; wikibase:claim ?p; wikibase:statementProperty ?ps.
+  ?item ?p [ ?ps ?value ] . OPTIONAL {?id wdt:P9073 ?stated}
+#  ?id rdfs:label ?idlabel FILTER (lang(?idlabel) = \"en\").
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }
+} GROUP BY ?id ?idLabel ?statedLabel
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Sculpture>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#title:External identifiers used for sculptures
+SELECT ?id ?idLabel ?statedLabel (COUNT(?value) AS ?count) WITH {
+  SELECT DISTINCT ?item WHERE {
+     ?item wdt:P31/wdt:P279? wd:Q860861.
+  }
+} AS %subquery WHERE {
+  INCLUDE %subquery .
+  ?id wikibase:propertyType wikibase:ExternalId; wikibase:claim ?p; wikibase:statementProperty ?ps.
+  ?item ?p [ ?ps ?value ] . OPTIONAL {?id wdt:P9073 ?stated}
+#  ?id rdfs:label ?idlabel FILTER (lang(?idlabel) = \"en\").
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }
+} GROUP BY ?id ?idLabel ?statedLabel
+ORDER BY DESC(?count)""" .

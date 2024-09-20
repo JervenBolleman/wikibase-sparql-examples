@@ -6,7 +6,21 @@
 
 <https://www.wikidata.org/#query-7a2efd3b910e12bb2a1a00aca86950e0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?film ?filmLabel ?filmDescription (COUNT(DISTINCT ?headOfGovernmentLabel) AS ?count) (GROUP_CONCAT(DISTINCT CONCAT(?headOfGovernmentLabel, \", \"@en, ?description); separator = \"; \") AS ?headsOfGovernment)
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/films_starring_more_than_one_future_head_of_government>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?film ?filmLabel ?filmDescription (COUNT(DISTINCT ?headOfGovernmentLabel) AS ?count) (GROUP_CONCAT(DISTINCT CONCAT(?headOfGovernmentLabel, \", \"@en, ?description); separator = \"; \") AS ?headsOfGovernment)
 WITH {
   SELECT ?headOfGovernment ?position (MIN(?startTime) AS ?earliestStartTime) WHERE {
     ?headOfGovernment wdt:P31 wd:Q5;
@@ -45,9 +59,93 @@ WHERE {
 }
 GROUP BY ?film ?filmLabel ?filmDescription
 HAVING(?count > 1)
+ORDER BY DESC(?count) ASC(MIN(?publicationDate))""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?film ?filmLabel ?filmDescription (COUNT(DISTINCT ?headOfGovernmentLabel) AS ?count) (GROUP_CONCAT(DISTINCT CONCAT(?headOfGovernmentLabel, \", \"@en, ?description); separator = \"; \") AS ?headsOfGovernment)
+
+WHERE {
+  {
+  SELECT ?headOfGovernment ?position (MIN(?startTime) AS ?earliestStartTime) WHERE {
+    ?headOfGovernment wdt:P31 wd:Q5;
+                      p:P39 [
+                        ps:P39 ?position;
+                        pq:P580 ?startTime
+                      ].
+    ?position wdt:P279+ wd:Q2285706.
+  }
+  GROUP BY ?headOfGovernment ?position
+}.
+  ?film wdt:P31/wdt:P279* wd:Q11424;
+        wdt:P577 ?publicationDate;
+        p:P161 ?headOfGovernmentStatement.
+  ?headOfGovernmentStatement ps:P161 ?headOfGovernment.
+  OPTIONAL { ?headOfGovernmentStatement pq:P453 ?character. ?character rdfs:label ?characterLabel. FILTER(LANG(?characterLabel) = \"en\") } # label service doesn’t work for this one for some reason – perhaps the query optimizer is being stupid and moving the label service before this optional block, so that ?character isn’t bound yet when the label service runs
+  FILTER(?earliestStartTime > ?publicationDate) # *future* head of government
+  FILTER NOT EXISTS {
+    ?headOfGovernment p:P39 [
+      ps:P39 ?otherPosition;
+      pq:P580 ?otherStartTime
+    ].
+    ?otherPosition wdt:P279+ wd:Q2285706.
+    FILTER(?otherStartTime < ?publicationDate) # not already a head of government (some people held multiple “head of government” offices, or the same one multiple times)
+  }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?film rdfs:label ?filmLabel;
+          schema:description ?filmDescription.
+    ?headOfGovernment rdfs:label ?headOfGovernmentLabel.
+    ?position rdfs:label ?positionLabel.
+  } hint:Prior hint:runLast false.
+  BIND(IF(BOUND(?characterLabel), CONCAT(?characterLabel, \" / \"@en, ?positionLabel), ?positionLabel) AS ?description)
+}
+GROUP BY ?film ?filmLabel ?filmDescription
+HAVING(?count > 1)
 ORDER BY DESC(?count) ASC(MIN(?publicationDate))""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/films_starring_more_than_one_future_head_of_government>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?film ?filmLabel ?filmDescription (COUNT(DISTINCT ?headOfGovernmentLabel) AS ?count) (GROUP_CONCAT(DISTINCT CONCAT(?headOfGovernmentLabel, \", \"@en, ?description); separator = \"; \") AS ?headsOfGovernment)
+WITH {
+  SELECT ?headOfGovernment ?position (MIN(?startTime) AS ?earliestStartTime) WHERE {
+    ?headOfGovernment wdt:P31 wd:Q5;
+                      p:P39 [
+                        ps:P39 ?position;
+                        pq:P580 ?startTime
+                      ].
+    ?position wdt:P279+ wd:Q2285706.
+  }
+  GROUP BY ?headOfGovernment ?position
+} AS %headsOfGovernment
+WHERE {
+  INCLUDE %headsOfGovernment.
+  ?film wdt:P31/wdt:P279* wd:Q11424;
+        wdt:P577 ?publicationDate;
+        p:P161 ?headOfGovernmentStatement.
+  ?headOfGovernmentStatement ps:P161 ?headOfGovernment.
+  OPTIONAL { ?headOfGovernmentStatement pq:P453 ?character. ?character rdfs:label ?characterLabel. FILTER(LANG(?characterLabel) = \"en\") } # label service doesn’t work for this one for some reason – perhaps the query optimizer is being stupid and moving the label service before this optional block, so that ?character isn’t bound yet when the label service runs
+  FILTER(?earliestStartTime > ?publicationDate) # *future* head of government
+  FILTER NOT EXISTS {
+    ?headOfGovernment p:P39 [
+      ps:P39 ?otherPosition;
+      pq:P580 ?otherStartTime
+    ].
+    ?otherPosition wdt:P279+ wd:Q2285706.
+    FILTER(?otherStartTime < ?publicationDate) # not already a head of government (some people held multiple “head of government” offices, or the same one multiple times)
+  }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?film rdfs:label ?filmLabel;
+          schema:description ?filmDescription.
+    ?headOfGovernment rdfs:label ?headOfGovernmentLabel.
+    ?position rdfs:label ?positionLabel.
+  } hint:Prior hint:runLast false.
+  BIND(IF(BOUND(?characterLabel), CONCAT(?characterLabel, \" / \"@en, ?positionLabel), ?positionLabel) AS ?description)
+}
+GROUP BY ?film ?filmLabel ?filmDescription
+HAVING(?count > 1)
+ORDER BY DESC(?count) ASC(MIN(?publicationDate))""" .
