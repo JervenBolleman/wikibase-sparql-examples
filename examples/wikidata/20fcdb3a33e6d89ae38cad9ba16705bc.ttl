@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-20fcdb3a33e6d89ae38cad9ba16705bc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?all ?names
+WITH
+{
+SELECT ?other ?nl (COUNT(DISTINCT ?p ) as ?count)
+WHERE 
+{
+    hint:Query hint:optimizer \"None\".
+    ?p wdt:P27 wd:Q20 ; wdt:P21 wd:Q6581072 ; wdt:P734 ?item . 
+    ?item wdt:P1705 ?nl . 
+    { ?item wdt:P460* ?other } UNION { ?other wdt:P460* ?item } .
+} 
+GROUP BY ?other ?nl
+ORDER BY ?nl
+} as %a
+WHERE
+{
+  SELECT ?other (sum(?count) as ?all) (GROUP_CONCAT(DISTINCT CONCAT(?nl, \" (\",str(?count),\"), \")  ) as ?names)
+  { INCLUDE %a }
+  GROUP bY ?other  
+}
+ORDER BY DESC(?all)
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2d330ef10200bd2e16489aee539e8d18> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Toutes les stations du SMC
+SELECT ?item ?itemLabel ?coord ?daily ?d_start ?d_end ?monthly ?m_start ?m_end WHERE {
+  ?item (wdt:P31/wdt:P279*) wd:Q190107.
+  ?item wdt:P127 wd:Q349450.
+  ?item wdt:P6242 ?MSCID
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  OPTIONAL { ?item wdt:P625 ?coord. }
+  OPTIONAL { ?item p:P6339 ?d_statement .          # there is a P6339 property
+             ?d_statement ps:P6339 wd:Q59657036 .  # and it's a daily
+             ?d_statement ps:P6339 ?daily .        # and we get its value, in case there are no dates
+             OPTIONAL { ?d_statement pq:P580 ?d_start .} # might be a start date
+             OPTIONAL { ?d_statement pq:P582 ?d_end .}   # might be an end date
+           }
+  OPTIONAL { ?item p:P6339 ?m_statement .          # Note we change to ?m_statement from ?d_statement
+             ?m_statement ps:P6339 wd:Q59657037 .  # same for monthly
+             ?m_statement ps:P6339 ?monthly .     
+             OPTIONAL { ?m_statement pq:P580 ?m_start .}
+             OPTIONAL { ?m_statement pq:P582 ?m_end .}
+           }
+}
+ORDER BY(?MSCID)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,54 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2aaeb8fbc4c3974d5128c257a85ac9c3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Tree
+SELECT
+  ?continent
+  ?continentLabel
+  ?continentLocatorMapImage
+  ?country
+  ?countryLabel
+  ?countryFlag
+  ?instanceOf
+  ?instanceOfLabel
+  ?software
+  ?softwareLabel
+  ?maintainerOrDeveloper
+  ?maintainerOrDeveloperLabel
+WITH {
+  SELECT DISTINCT ?license {
+    ?license wdt:P629*/wdt:P31/wdt:P279* wd:Q3943414.
+  }
+} AS %0
+WITH {
+  SELECT DISTINCT ?software {
+    INCLUDE %0.
+    {?software wdt:P31/wdt:P279* wd:Q341}
+    UNION
+    {?software wdt:P275 ?license}
+  }
+} AS %1
+{
+  INCLUDE %1
+  ?software
+    wdt:P126|wdt:P178 ?maintainerOrDeveloper;
+    wdt:P31 ?instanceOf.
+  ?maintainerOrDeveloper
+    wdt:P31 wd:Q5;
+    wdt:P27|wdt:P17 ?country.
+  ?country wdt:P41 ?countryFlag.
+  ?country wdt:P30 ?continent.
+  ?continent wdt:P242 ?continentLocatorMapImage.
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/3/14>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

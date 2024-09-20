@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2c730dd0abf6e1a154a7228e11a1b3e8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?itemDescription ?isteinLabel ?urheberLabel ?liegtInLabel ?ortLabel ?materLabel ?vanderk ?pic ?loc 
+WHERE {
+  VALUES ?woSuchenWir { wd:Q1635 wd:Q3469 wd:Q3485 wd:Q3489 wd:Q3500 wd:Q3504 wd:Q3507 wd:Q3530 wd:Q3533 wd:Q3534 wd:Q3537 wd:Q3456 wd:Q3463 wd:Q3475 wd:Q3496 wd:Q3512 wd:Q3518 wd:Q3525 }
+  ?item wdt:P276 ?woSuchenWir. # Ort: Bezirk Harburg oder eine Untereinheit (Stadtteil)
+  VALUES ?wasSuchenWir { wd:Q838948 wd:Q860861 wd:Q179700 wd:Q483453 wd:Q2293362 wd:Q4989906 wd:Q17489160 wd:Q659396 wd:Q245117 }
+  # Kunstwerk, Skulptur, Statue, Zierbrunnen, Skulpturengruppe, Denkmal, Büste, Reiterstandbild, Relief
+  ?item wdt:P31 ?wasSuchenWir.   # Suche nach Skulptur oder Unterklasse /wdt:P279? führt zu Timeout bzw SEHR vielen Doppelzeilen
+  ?item wdt:P31 ?istein.
+  OPTIONAL { ?item wdt:P131  ?liegtIn }
+  OPTIONAL { ?item wdt:P170  ?urheber }
+  OPTIONAL { ?item wdt:P625  ?loc }
+  OPTIONAL { ?item wdt:P18   ?pic }  # gibt Mehrfachtreffer wenn mehrere Bilder vorhanden
+  OPTIONAL { ?item wdt:P186  ?mater }
+  OPTIONAL { ?item wdt:P276  ?ort }
+  OPTIONAL { ?item wdt:P3711 ?vanderk }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\". }
+} ORDER BY ?itemLabel
+LIMIT 1000   # Anzahl: 132 (Juni 2024)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Gerd_Fahrenhorst/KunstNachOrt>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

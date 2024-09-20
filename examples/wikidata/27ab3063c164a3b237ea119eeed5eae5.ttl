@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-27ab3063c164a3b237ea119eeed5eae5> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?person ?personLabel ?dod WITH {
+  SELECT DISTINCT ?item ?person ?dod WHERE {
+  ?person wdt:P570 ?dod .
+  BIND(xsd:dateTime(?dod + \"P96Y\"^^xsd:duration) as ?date)
+  BIND(xsd:dateTime(concat(str(year(now())),\"-01-01T00:00:00Z\")) as ?now) 
+  BIND(xsd:dateTime(concat(str(year(now()+\"P1Y\"^^xsd:duration)),\"-01-01T00:00:00Z\")) as ?then) 
+  FILTER( ?date >= ?now && ?date < ?then )
+  ?item wdt:P50 ?person .
+    }  } as %i
+WHERE
+{
+  INCLUDE %i
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

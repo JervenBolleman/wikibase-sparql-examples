@@ -1,0 +1,77 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2e07ef52c30834652250d18739c376fe> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
+SELECT DISTINCT ?coordinates ?line ?item ?itemLabel ?connectLabel ?rgb #?image
+
+WITH {
+  SELECT ?item (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?lat1) AS ?lat1) (SAMPLE(?lon1) AS ?lon1) WHERE { #(SAMPLE(?image) AS ?image)
+    {?item (wdt:P361|wdt:P16) wd:Q20075} #Underground / OK
+      UNION 
+    {?item (wdt:P361|wdt:P16) wd:Q746021} #London Overground / OK
+      UNION 
+    {?item (wdt:P361|wdt:P16) wd:Q216360} #Dockland Light railway  / OK
+      UNION 
+    {?item (wdt:P361|wdt:P16) wd:Q732649} #Crossrail / OK
+      UNION 
+    {?item (wdt:P361|wdt:P16) wd:Q786032} . #Tramlink / OK    
+    ?item wdt:P625 ?coordinates  .
+    ?item p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 .
+    ?item p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
+    OPTIONAL { ?item wdt:P18 ?image }.
+  } GROUP BY ?item
+} AS %stations
+
+WITH {
+  SELECT ?nextstation (SAMPLE(?lat2) AS ?lat2) (SAMPLE(?lon2) AS ?lon2) WHERE {
+    {?nextstation (wdt:P361|wdt:P16) wd:Q20075} #Underground / OK
+      UNION 
+    {?nextstation (wdt:P361|wdt:P16) wd:Q746021} #London Overground / OK
+      UNION 
+    {?nextstation (wdt:P361|wdt:P16) wd:Q216360} #Dockland Light railway  / OK
+      UNION 
+    {?nextstation (wdt:P361|wdt:P16) wd:Q732649} #Crossrail / OK
+      UNION 
+    {?nextstation (wdt:P361|wdt:P16) wd:Q786032} . #Tramlink / PK
+    ?nextstation p:P625 / psv:P625 / wikibase:geoLatitude ?lat2 .
+    ?nextstation p:P625 / psv:P625 / wikibase:geoLongitude ?lon2 .
+  } GROUP BY ?nextstation
+} AS %nextstations
+
+WITH {
+  SELECT ?line ?connect ?rgb WHERE {
+    INCLUDE %stations .
+    INCLUDE %nextstations .
+    ?item p:P197 ?nextstationstatement .
+    ?nextstationstatement ps:P197 ?nextstation .
+    {?nextstationstatement (pq:P81|pq:P1192) ?connect . ?connect (wdt:P361|wdt:P16) wd:Q20075} #Underground / OK
+      UNION    
+    {?nextstationstatement (pq:P81|pq:P1192) ?connect . ?connect (wdt:P361|wdt:P16) wd:Q746021} #London Overground / OK
+      UNION
+    {?nextstationstatement (pq:P81|pq:P1192) ?connect . ?connect (wdt:P361|wdt:P16) wd:Q216360} #Dockland Light railway / OK
+      UNION
+    {?nextstationstatement (pq:P81|pq:P1192) ?connect . ?connect (wdt:P361|wdt:P16) wd:Q732649} #Crossrail / OK
+      UNION
+    {?nextstationstatement (pq:P81|pq:P1192) ?connect . ?connect (wdt:P361|wdt:P16) wd:Q786032} . #Tramlink / partly OK 
+    #TIMEOUT
+    ?connect wdt:P465 ?rgb .
+    FILTER(STR(?item) < STR(?nextstation)) .    
+    BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
+    BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
+  }
+} AS %lines 
+ 
+WHERE {
+  { INCLUDE %stations }  UNION { INCLUDE %lines  } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:GodeNehler/London_Over-_and_Underground>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

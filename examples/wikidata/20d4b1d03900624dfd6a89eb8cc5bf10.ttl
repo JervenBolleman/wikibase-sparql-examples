@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-20d4b1d03900624dfd6a89eb8cc5bf10> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+SELECT DISTINCT ?airport ?airportLabel ?pays ?paysLabel (SAMPLE(?coord) AS ?coord) ?ICAO ?IATA (SAMPLE(?Local_Code) AS ?Local_Code) WHERE {
+  ?airport (wdt:P31/wdt:P279*) wd:Q62447.
+   ?airport wdt:P576 _:b2.                                 # remove items with P576 (dissolved, abolished or demolished) as a main property
+  MINUS { ?airport (wdt:P31/wdt:P279*) wd:Q695850. }               # exclude military airports
+  MINUS { ?airport (wdt:P31/wdt:P279*) wd:Q1311670. }              # exclude railways stations
+  MINUS { ?airport (wdt:P31/wdt:P279*) wd:Q7373622. }              # exclude Royal Air Force
+  MINUS { ?airport (wdt:P31/wdt:P279*) wd:Q502074. }               # exclude héliports
+  MINUS { ?airport wdt:P31/wdt:P279* wd:Q2265915.}                 # exclude vol à voile/gliders
+  MINUS { ?airport (wdt:P31/wdt:P279*) wd:Q44665966. }             # exclude  airports being build
+  MINUS { ?airport (wdt:P31/wdt:P279*) wd:Q782667. }               # exclude motorways where plane can land
+  MINUS { ?airport a wdno:P17.}                                    # exclude airports that aren't physically based in a country
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,fr,[AUTO_LANGUAGE]\". }
+  OPTIONAL { ?airport wdt:P625  ?coord. }
+  OPTIONAL { ?airport wdt:P239  ?ICAO. }
+  OPTIONAL { ?airport wdt:P238  ?IATA. }
+  optional { ?airport wdt:P17   ?pays.}
+  OPTIONAL { ?airport wdt:P240  ?Local_Code. }
+  OPTIONAL { ?airport wdt:P5699 ?Local_Code. }
+  OPTIONAL { ?airport wdt:P5746 ?Local_Code. }
+  OPTIONAL { ?airport wdt:P5851 ?Local_Code. }
+  OPTIONAL { ?airport wdt:P6120 ?Local_Code. }
+}
+GROUP BY ?airport ?airportLabel ?ICAO ?IATA ?pays ?paysLabel
+ORDER BY ?paysLabel ?coord}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Project_chat/Archive/2019/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

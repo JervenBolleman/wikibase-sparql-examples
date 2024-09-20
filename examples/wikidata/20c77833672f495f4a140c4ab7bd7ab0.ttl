@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-20c77833672f495f4a140c4ab7bd7ab0> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select ?MP ?MPLabel ?districtLabel ?partyLabel ?assumedOffice ?endTime (sample(?image) as ?image) ?legislatureLabel ?pgroupLabel where {
+
+ # Get all senators
+ ?MP p:P39 ?posheld; # With position held
+          p:P102 ?partystatement. # And with a certain party
+ 
+ # Get the party
+ ?partystatement ps:P102 ?party.
+ #minus { ?partystatement pq:P582 ?partyEnd. } # but minus the ones the senator is no longer a member of
+ #minus { ?party wdt:P361 ?partOf. } # and the 'Minnesota Democratic–Farmer–Labor Party' and such
+ 
+ # Check on the position in the CD
+ ?posheld ps:P39 wd:Q18171345; # Position held is in the CD
+          pq:P768 ?district;
+          pq:P580 ?assumedOffice; # And should have a starttime
+          pq:P582 ?endTime .
+  OPTIONAL { ?posheld pq:P2937 ?legislature . }
+  OPTIONAL { ?posheld pq:P4100 ?pgroup . }
+ 
+ #minus { ?posheld pq:P582 ?endTime. } # But not an endtime 
+ 
+ # Add an image
+ #optional { ?senator wdt:P18 ?image. }
+        
+ service wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+
+} group by ?MP ?MPLabel ?districtLabel ?partyLabel ?assumedOffice ?endTime  ?legislatureLabel ?pgroupLabel order by ?deputy""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

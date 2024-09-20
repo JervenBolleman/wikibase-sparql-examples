@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2d85d10c8cb0386ad6266400d250eeaf> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?human ?humanLabel ?date_of_birth ?date_of_death (ROUND((?date_of_death - ?date_of_birth) / \"365.2425\"^^xsd:decimal) AS ?age) ?country_of_citizenship ?country_of_citizenshipLabel ?occupation ?occupationLabel WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?human wdt:P31 wd:Q5.
+  ?human wdt:P106 ?occupation.
+  ?occupation wdt:P279* wd:Q901.
+  ?human wdt:P569 ?born.
+  OPTIONAL { ?human wdt:P569 ?date_of_birth. }
+  OPTIONAL { ?human wdt:P570 ?date_of_death. }
+  OPTIONAL { ?human wdt:P27 ?country_of_citizenship. }
+  FILTER((?born >= \"1500-01-01T00:00:00Z\"^^xsd:dateTime) && (?born <= \"1700-01-01T00:00:00Z\"^^xsd:dateTime))
+  OPTIONAL { ?human wdt:P106 ?occupation. }
+}
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Netha_Hussain/Query_list>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

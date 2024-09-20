@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2425e182514018aeae52dd5f6dc2610c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Authors of works that use software
+SELECT DISTINCT ?author ?authorLabel  ?count
+WITH {
+  SELECT DISTINCT ?work WHERE {
+    ?work wdt:P4510 ?use .  
+    ?use wdt:P1324 [] .
+  }
+}
+AS %papers
+WITH {
+  SELECT ?author (COUNT(DISTINCT ?work) AS ?count)  WHERE {
+    INCLUDE %papers
+    ?work wdt:P50 ?author .
+  }
+  GROUP BY ?author
+  HAVING ( ?count > 10)
+}
+AS %authors
+WHERE {
+  INCLUDE %authors 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?author ?authorLabel ?count
+ORDER BY DESC(?count)
+LIMIT 200""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Informatics/Software/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

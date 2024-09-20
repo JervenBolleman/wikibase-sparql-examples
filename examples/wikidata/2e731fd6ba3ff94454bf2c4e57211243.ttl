@@ -1,0 +1,52 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2e731fd6ba3ff94454bf2c4e57211243> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT  ?item ?itemLabel
+  (SAMPLE(?ms1_) AS ?ms1) (SAMPLE(?ms1_Label) AS ?ms1Label)
+  (SAMPLE(?ms2_) AS ?ms2) (SAMPLE(?ms2_Label) AS ?ms2Label)
+  (SAMPLE(?ms3_) AS ?ms3) (SAMPLE(?ms3_Label) AS ?ms3Label)
+WHERE 
+{
+  OPTIONAL {
+    {
+      SELECT ?item ?ms (COUNT(?lt) AS ?number)
+      WHERE
+      {
+        VALUES ?item {
+          wd:Q99536927   # 3 P921s
+          wd:Q99689936   # 2 P921s
+          wd:Q99927619   # 1 P921
+          wd:Q100144327  # 0 P921s
+        }
+        OPTIONAL
+        {
+          ?item wdt:P921 ?ms .
+          ?item wdt:P921 ?lt .
+          FILTER (STR(?lt) <= STR(?ms))
+        }
+      }
+      GROUP by ?item ?ms
+    }
+  }
+  BIND (IF (?number = 1, ?ms, ?unbound) AS ?ms1_)
+  BIND (IF (?number = 2, ?ms, ?unbound) AS ?ms2_)
+  BIND (IF (?number = 3, ?ms, ?unbound) AS ?ms3_)
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+    ?item rdfs:label ?itemLabel .
+    ?ms1_ rdfs:label ?ms1_Label .
+    ?ms2_ rdfs:label ?ms2_Label .
+    ?ms3_ rdfs:label ?ms3_Label .
+  }
+}
+GROUP BY ?item ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

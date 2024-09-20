@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2bf79bffe9b6bc5dcfcb69a2d28bf5e1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?person ?personLabel (URI(CONCAT(\"http://emlo.bodleian.ox.ac.uk/profile/person/\",?emlo)) AS ?emlolink) ?birthyear (IF(isBLANK(?pob),\"unknown\",?pobLabel) AS ?birthplace) ?deathyear (IF(isBLANK(?pod),\"unknown\",?podLabel) AS ?deathplace)
+WHERE {
+   ?person wdt:P1802 ?emlo;
+ OPTIONAL { ?person wdt:P569 ?dob }
+ OPTIONAL { ?person wdt:P570 ?dod }
+ OPTIONAL { ?person wdt:P19 ?pob }
+ OPTIONAL { ?person wdt:P20 ?pod }
+BIND(YEAR(?dob) as ?birthyear)
+BIND(YEAR(?dod) as ?deathyear)
+  SERVICE wikibase:label { 
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr,de,nl,es,pl\".
+  ?pob rdfs:label ?pobLabel.
+  ?pod rdfs:label ?podLabel.
+  ?person rdfs:label ?personLabel
+  }
+} ORDER BY DESC(?birthyear)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/ee>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

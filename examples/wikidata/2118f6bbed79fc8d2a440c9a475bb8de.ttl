@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2118f6bbed79fc8d2a440c9a475bb8de> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Case-insensitive search for scientific articles by DOI number
+SELECT ?item ?itemLabel ?doival (xsd:dateTime(?timestamp) AS ?displayDate)
+WHERE 
+{
+  VALUES ?doival {
+     \"10.1002/14651858.CD015017.PUB2\"
+     \"10.1002/14651858.CD013600.pub4\"
+  }
+  BIND(CONCAT(\"haswbstatement:P356=\", ?doival) AS ?searchstr)
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+      wikibase:endpoint \"www.wikidata.org\";
+      wikibase:limit \"once\";
+      mwapi:srsearch ?searchstr;
+      mwapi:srprop \"size|wordcount|timestamp\".
+    ?item wikibase:apiOutputItem mwapi:title .
+    ?timestamp wikibase:apiOutput \"@timestamp\" .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infrastruktur/Sandbox2>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

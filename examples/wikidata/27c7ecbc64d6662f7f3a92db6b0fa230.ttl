@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-27c7ecbc64d6662f7f3a92db6b0fa230> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Participant·e·s au Prix de Lausanne qui ont une entrée dans Wikidata, avec l'année de participation, la distinction reçue et la nationalité
+
+SELECT DISTINCT ?dancer ?Personne ?Nom ?Prénom ?Année ?Distinction ?Pays ?article #(GROUP_CONCAT(DISTINCT(?distinctionLabel); separator=\", \") as ?Distinctions)
+    WHERE {
+    ?dancer wdt:P31 wd:Q5 .  # ajouter instance of human
+      { ?dancer wdt:P1344 wd:Q673014 . } # participant à Prix de Lausanne
+    UNION
+      { ?dancer wdt:P2522 wd:Q673014 . } # victoire à Prix de Lausanne
+   OPTIONAL {?dancer p:P1344 ?participation.} # Les éléments qui ont participé
+   OPTIONAL {?participation pq:P585 ?Année.} # cherche la date de participation si elle existe
+   OPTIONAL {?participation pq:P166 ?distinction.} # cherche la distinction reçue si elle existe
+   OPTIONAL { ?dancer wdt:P27 ?citizenship } .   # quelle que soit la nationalité, si pas d'Optional, ne s'affiche que si la nationalité est remplie
+   OPTIONAL {?dancer wdt:P734 ?nom } . # nom de famille
+   OPTIONAL {?dancer wdt:P735 ?prenom } . # prénom
+   OPTIONAL { ?article schema:about ?dancer . ?article schema:isPartOf <https://fr.wikipedia.org/> . }
+      
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"fr,en,es,ja,de,[AUTO_LANGUAGE]\".
+    ?dancer rdfs:label ?Personne.
+    ?nom rdfs:label ?Nom.
+    ?prenom rdfs:label ?Prénom.
+    ?distinction rdfs:label ?Distinction.
+    ?citizenship rdfs:label ?Pays.   } #résultats d'abord en français, autrement en anglais, puis espagnol, ...
+}
+ORDER BY ?Année""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Gilliane/Tipps/SPARQL-PrixdeLausanne>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

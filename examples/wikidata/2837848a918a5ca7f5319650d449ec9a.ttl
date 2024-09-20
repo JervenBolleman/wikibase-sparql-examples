@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2837848a918a5ca7f5319650d449ec9a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?wpi ?port ?portLabel ?countryLabel (GROUP_CONCAT(DISTINCT ?unlocode;separator=\", \") AS ?unlocodes) ?mt (GROUP_CONCAT(DISTINCT ?website;separator=\", \") AS ?websites) (GROUP_CONCAT(DISTINCT ?typeLabel;separator=\", \") AS ?types) ?coordinates
+  WHERE {
+    ?port wdt:P31 wd:Q44782 .
+    OPTIONAL { ?port wdt:P17 ?country } .
+    OPTIONAL { ?port wdt:P7625 ?wpi } .
+    #?port rdf:type wdno:P7625 .
+    OPTIONAL { ?port wdt:P1937 ?unlocode } .
+    OPTIONAL { ?port wdt:P856 ?website } .
+    OPTIONAL { ?port wdt:P625 ?coordinates } .
+    OPTIONAL { ?port wdt:P1624 ?mt } .
+    FILTER NOT EXISTS {
+      ?port p:P31 ?instance_of_statement .
+      ?instance_of_statement ps:P31 wd:Q44782 .
+      ?instance_of_statement ?qualifier ?value .
+      ?prop wikibase:qualifier ?qualifier
+    }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de,fr\".
+                           ?port rdfs:label ?portLabel .
+                           ?type rdfs:label ?typeLabel .
+                           ?country rdfs:label ?countryLabel .
+                           }
+}
+GROUP BY ?wpi ?port ?portLabel ?countryLabel ?coordinates ?mt
+ORDER BY ASC(?countryLabel) ASC(?portLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Kq-hit>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

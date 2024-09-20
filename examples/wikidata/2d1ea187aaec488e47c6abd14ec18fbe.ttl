@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2d1ea187aaec488e47c6abd14ec18fbe> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q35>
+
+SELECT
+  ?works
+  (CONCAT(\"#country/\", SUBSTR(STR(target:), 32), \"/topic/\", SUBSTR(STR(?topic), 32)) AS ?worksUrl)
+
+  ?topic ?topicLabel
+  (CONCAT(\"#topic/\", SUBSTR(STR(?topic), 32)) AS ?topicUrl)
+  ?topicDescription
+WITH {
+  SELECT DISTINCT ?author WHERE {
+    ?author wdt:P27| (( wdt:P1416 | wdt:P108 ) / wdt:P17) target: .
+  }
+} AS %authors
+WITH {
+  SELECT
+    (COUNT(DISTINCT ?work) AS ?works)
+    ?topic
+  WHERE {
+    INCLUDE %authors
+    ?work wdt:P50 ?author ;
+          wdt:P921 ?topic .
+  }
+  GROUP BY ?topic
+  ORDER BY DESC(?works) 
+  LIMIT 500  
+} AS %topics
+WHERE {
+  INCLUDE %topics
+  service wikibase:label { bd:serviceParam wikibase:language \"en\" . } 
+}
+ORDER BY DESC(?works)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:country>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-208c439cefea7209019d350a15cba721> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?title (COUNT(?work) AS ?works)  
+WITH {
+  SELECT ?item ?title  WHERE {
+    ?item wdt:P236 ?issn ;
+          wdt:P1476 ?title .
+    FILTER REGEX (LCASE(?title), \"(\\\\blaw|\\\\blegal|\\\\court)\")
+  }
+}
+AS %journals
+
+WHERE {
+  INCLUDE %journals
+          ?work wdt:P1433 ?item .
+}
+GROUP BY ?item ?title
+ORDER BY DESC(?works)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiCite/Archive_5>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

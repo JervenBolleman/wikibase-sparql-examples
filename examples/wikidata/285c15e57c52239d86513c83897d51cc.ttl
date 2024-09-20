@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-285c15e57c52239d86513c83897d51cc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?actorLabel ?actor_IMBD ?movieLabel ?movie_IMBD ?awardLabel ?movie
+{
+  VALUES ?award {
+    wd:Q106301 # Academy Award for Best Supporting Actress
+    wd:Q103618 # Academy Award for Best Actress
+    # Add more awards here
+  }
+  {
+    # The award statement is normal placed at the actor
+    ?actor p:P166 ?award_statement .
+    ?award_statement ps:P166 ?award .
+    ?award_statement pq:P1686 ?movie . # \"for work\" qualifier
+  }
+  UNION
+  {
+    # The award statement is also sometimes placed at movie
+    ?movie p:P166 ?award_statement .
+    ?award_statement ps:P166 ?award .
+    ?award_statement pq:P1346 ?actor . # \"winner\" qualifier
+  }
+  OPTIONAL { ?movie wdt:P345 ?movie_IMBD . }
+  OPTIONAL { ?actor wdt:P345 ?actor_IMBD . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

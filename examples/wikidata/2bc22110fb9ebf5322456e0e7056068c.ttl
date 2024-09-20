@@ -1,0 +1,42 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2bc22110fb9ebf5322456e0e7056068c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Chemicals associated with the invasion biology literature
+
+SELECT 
+  DISTINCT 
+    ?topic ?topicLabel 
+    ?count 
+    ?SamplePaper ?SamplePaperLabel
+    (CONCAT('https://scholia.toolforge.org/topics/Q42985020,Q183368,', ENCODE_FOR_URI(REPLACE(STR(?topic), \".*Q\", \"Q\"))) AS ?curation_url ) 
+WITH {
+  SELECT 
+  ?topic
+  (COUNT(?paper_) AS ?count)
+  (SAMPLE(?paper_) AS ?SamplePaper)
+  {
+    ?paper_ wdt:P6104 wd:Q56241615 ;
+            wdt:P921 ?topic .
+  }
+  GROUP BY ?topic ?count ?SamplePaper
+}
+AS %topics
+WHERE {
+  INCLUDE %topics
+  { ?topic wdt:P235 ?InChIKey .}
+  UNION
+  { ?topic wdt:P683 ?ChEBI .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?topic ?topicLabel ?count ?SamplePaper ?SamplePaperLabel ?curation_url 
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

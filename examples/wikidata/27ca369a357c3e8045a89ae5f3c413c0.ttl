@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-27ca369a357c3e8045a89ae5f3c413c0> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#by CamelCaseNick
+select (replace(str(?stolperstein), str(wd:), \"\") as ?qid) (\"Dde\" as ?pid) (concat(\"\"\", ?description, \"\"\") as ?vid) ?de where {
+  ?stolperstein wdt:P31 wd:Q26703203;
+                wdt:P131+ wd:Q1055;
+                wdt:P276 ?quarter.
+  filter exists {
+    ?quarter wdt:P31 wd:Q15830667.
+  }
+  ?quarter rdfs:label ?qDe.
+  filter(lang(?qDe) = \"de\")
+  bind(concat(\"Stolperstein in \", if(strstarts(?qDe, \"Hamburg-\"), \"\", \"Hamburg-\"), ?qDe) as ?description)
+  optional {
+    ?stolperstein schema:description ?de.
+    filter(lang(?de) = \"de\")
+  }
+  filter not exists {
+    ?stolperstein schema:description ?de.
+    filter(lang(?de) = \"de\" && (strstarts(?de, ?description) || strstarts(?de, concat(\"ehemaliger \", ?description))))
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:CamelCaseNick/Stolpersteine>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

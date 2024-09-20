@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2a170ec0bf317ec6e9ac1772a87d89bc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+SELECT DISTINCT ?voie ?image ?coord ?lat ?long  ?loc ?locLabel ?layer ?voieLabel WHERE {
+  { ?voie (wdt:P31/(wdt:P279*)) wd:Q79007. }
+  UNION
+  { ?voie (wdt:P31/(wdt:P279*)) wd:Q174782. }
+  UNION
+  { ?voie (wdt:P31/(wdt:P279*)) wd:Q16544740. }
+  UNION
+  { ?voie (wdt:P31/(wdt:P279*)) wd:Q3840711. }
+  UNION
+  { ?voie (wdt:P31/(wdt:P279*)) wd:Q13634881. }
+  MINUS { ?voie wdt:P582 ?dateDeFin. }
+  ?voie wdt:P131 wd:Q3348.
+  OPTIONAL { ?voie wdt:P18 ?image. }
+  BIND(IF(?image = \"\", \"yes\", \"no\") AS ?layer)
+  OPTIONAL { ?voie wdt:P625 ?coord. }
+  OPTIONAL { ?voie p:P625 ?statement. }
+  OPTIONAL { ?statement psv:P625 ?coordinate . }
+  OPTIONAL { ?coordinate wikibase:geoLatitude ?lat . }
+  OPTIONAL { ?coordinate wikibase:geoLongitude ?long .}
+  OPTIONAL { ?voie wdt:P131 ?loc. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+}
+ORDER BY DESC (?voieLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jvillafruela>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

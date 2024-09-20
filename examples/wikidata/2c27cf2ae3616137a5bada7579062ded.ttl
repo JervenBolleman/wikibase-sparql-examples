@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2c27cf2ae3616137a5bada7579062ded> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX schema: <http://schema.org/>
+
+#items without instance of and subclass of
+SELECT ?item ?statements (COUNT(DISTINCT ?sitelink) AS ?sites) ?itemLabel ?itemDescription ?itemAliases WHERE {
+  ?wikilink schema:about ?item.
+  ?wikilink schema:isPartOf <https://bg.wikipedia.org/>.
+  ?item wikibase:sitelinks _:b4.
+  MINUS { ?item (wdt:P31|wdt:P279) _:b5. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],bg,en\". }
+  ?item wikibase:statements ?statements.
+  OPTIONAL {
+    ?sitelink schema:about ?item.
+    ?sitelink schema:inLanguage ?lang.
+  }
+}
+GROUP BY ?item ?statements ?sites ?itemLabel ?itemDescription ?itemAliases
+ORDER BY ?sites""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Vislupus>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

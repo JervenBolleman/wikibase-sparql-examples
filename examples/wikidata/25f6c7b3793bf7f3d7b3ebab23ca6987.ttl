@@ -1,0 +1,43 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-25f6c7b3793bf7f3d7b3ebab23ca6987> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item 
+  (GROUP_CONCAT(DISTINCT ?classlist;    SEPARATOR = \"#\") AS ?classes)
+  WITH {SELECT ?item WHERE {
+VALUES ?item {
+  wd:Q820477   # mine
+}
+    
+} } AS %i
+WHERE {
+  {
+    SELECT DISTINCT ?item ?class ?classLabel WHERE {
+      {
+        SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+        {INCLUDE %i}
+
+        OPTIONAL {
+                {?item wdt:P279 ?class}
+          UNION {?class wdt:P279 ?item.
+            OPTIONAL {?item wdt:P31 ?instance1}
+            OPTIONAL {?class wdt:P31 ?instance2}
+            FILTER (!(BOUND(?instance1) && BOUND(?instance2) && ?instance1 != ?instance2))
+          }
+        }
+      }
+    }
+  }
+  BIND(CONCAT(?classLabel) AS ?classlist)
+}
+GROUP BY ?item
+ORDER BY ASC(?classes)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

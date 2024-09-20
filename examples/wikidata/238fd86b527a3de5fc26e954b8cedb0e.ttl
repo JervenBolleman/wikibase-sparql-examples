@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-238fd86b527a3de5fc26e954b8cedb0e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT 
+ ?personnage_de_fiction ?personnage_de_fictionLabel
+ (GROUP_CONCAT(DISTINCT (?present_dans_l_ouvre); separator=\", \") as ?personnage_de) 
+ (GROUP_CONCAT(DISTINCT (?present_dans_l_ouvreLabel); separator=\", \") as ?personnage_deLabel) 
+
+WHERE {
+ SERVICE wikibase:label {
+   bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+   ?present_dans_l_ouvre rdfs:label ?present_dans_l_ouvreLabel.
+   ?personnage_de_fiction rdfs:label ?personnage_de_fictionLabel.
+ }
+ VALUES ?orientation {
+   wd:Q43200
+   wd:Q271534
+ }
+ ?personnage_de_fiction (wdt:P31/(wdt:P279*)) wd:Q95074;
+   wdt:P91 ?orientation.
+ OPTIONAL { ?personnage_de_fiction wdt:P1441 ?present_dans_l_ouvre. }
+ OPTIONAL { ?personnage_de_fiction wdt:P91 ?orientation_sexuelle. }
+}
+
+GROUP BY ?personnage_de_fiction ?personnage_de_fictionLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

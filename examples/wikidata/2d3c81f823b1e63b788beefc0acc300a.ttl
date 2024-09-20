@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2d3c81f823b1e63b788beefc0acc300a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title:Money, per currency, raised by video games through Kickstarter (crowdfunding)
+#defaultView:BarChart
+SELECT ?currencyLabel (SUM(?money) AS ?totalMoney) (COUNT(?game) AS ?games) WHERE {
+  ?game wdt:P31 wd:Q7889;
+        p:P8019 ?statement. # Get the Kickstarter statement
+  ?statement pq:P2139 ?money. # Get the amount of money
+  
+  ?statement pqv:P2139 ?pqv.
+  ?pqv wikibase:quantityUnit ?currency. # Get the currency
+  
+  # FILTER (?currency != wd:Q39099) # Uncomment this to filter out the renminbi
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?currencyLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Video_games/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

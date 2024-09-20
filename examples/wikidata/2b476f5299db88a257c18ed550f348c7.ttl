@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2b476f5299db88a257c18ed550f348c7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map{\"hide\": [\"?geo\", \"?layer\"]}
+SELECT ?item ?itemLabel ?layer ?geo (year (?date) as ?year) ?image WHERE { 
+  ?item p:P793 ?s .
+  ?s ps:P793 wd:Q2238935. 
+OPTIONAL { ?s pq:P585 ?date }.
+  ?item wdt:P625 ?geo ;
+        wdt:P31 ?type .
+OPTIONAL { ?item wdt:P18 ?image }.
+  FILTER (  ?type !=wd:Q839954 ). #filter archaeological sites from appearing in the layer
+  FILTER (  ?type !=wd:Q17715832 ). #filter castle ruins from appearing in the layer
+    #FILTER ( year (?date) < 1200).  #filter sites slighted after 1200; deactivated by default
+    #FILTER ( year (?date) > 1000).  #filter sites slighted before 1000; deactivated by default
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+                            ?type rdfs:label ?layer . 
+                            ?item rdfs:label ?itemLabel
+}
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Richard_Nevell>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

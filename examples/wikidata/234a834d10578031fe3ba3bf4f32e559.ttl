@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-234a834d10578031fe3ba3bf4f32e559> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?person ?articleTitle ?school ?schoolLabel
+WHERE {
+  ?person wdt:P166/wdt:P31 wd:Q5892712.
+  OPTIONAL
+  {
+    ?person wdt:P69 ?school .
+    ?school wdt:P31 / wdt:P279 * wd:Q38723 .
+  }
+  ?sitelink schema:about ?person .
+  ?sitelink schema:isPartOf <https://en.wikipedia.org/> .
+  ?sitelink schema:name ?articleTitle .
+  OPTIONAL
+  {
+    SERVICE wikibase:mwapi
+    {
+      bd:serviceParam wikibase:api \"Generator\" .
+      bd:serviceParam wikibase:endpoint \"en.wikipedia.org\" .
+      bd:serviceParam wikibase:limit \"once\" .
+      bd:serviceParam mwapi:generator \"allpages\" .
+      bd:serviceParam mwapi:gapfrom ?articleTitle .
+      bd:serviceParam mwapi:gaplimit \"1\" .
+      bd:serviceParam mwapi:prop \"images|pageprops\" .
+      bd:serviceParam mwapi:ppprop \"wikibase_item\" .
+      bd:serviceParam mwapi:imlimit \"1\" .
+      ?item wikibase:apiOutputItem mwapi:item .
+      ?image wikibase:apiOutput \"images/im/@title\" .
+    }
+  }
+  FILTER (! BOUND(?image))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

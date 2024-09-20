@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2849f7bf1c30a688ecae130fafa2f1ca> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+SELECT ?item ?itemLabel ?location ?layerLabel
+WHERE
+{ 
+  wd:Q175665 wdt:P625 ?loc .
+  SERVICE wikibase:around 
+          { 
+           ?item wdt:P625 ?location .
+           bd:serviceParam wikibase:center ?loc .
+           bd:serviceParam wikibase:radius \"80.4672\" . # 50 Miles converted to kilometers here
+          }
+  OPTIONAL {?item wdt:P31 ?instance}
+  BIND(?instance AS ?layer) .
+  BIND(geof:distance(?loc, ?location) as ?dist)
+  FILTER(?instance IN (wd:Q11707)) # Filter out 'instance of' values NOT in this list
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} ORDER BY ASC(?layerLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_PCC_Wikidata_Pilot/UNLV/SPARQL_Examples_and_Concepts>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

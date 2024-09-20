@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-21f81c565dd1372685026d0dab1510b5> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?year ?label (SUM(?count) AS ?total) WITH {
+  SELECT ?name ?date (COUNT(DISTINCT ?human) AS ?count) WHERE {
+    ?human wdt:P31 wd:Q5;
+           wdt:P27 wd:Q183;
+           wdt:P569 ?date;
+           wdt:P735 ?name.
+    MINUS { ?human wdt:P570 ?died. }
+  }
+  GROUP BY ?name ?date
+} AS %humans WHERE {
+  INCLUDE %humans.
+  ?name wdt:P1705 ?label.
+  BIND(YEAR(?date) AS ?year)
+}
+GROUP BY ?year ?label""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

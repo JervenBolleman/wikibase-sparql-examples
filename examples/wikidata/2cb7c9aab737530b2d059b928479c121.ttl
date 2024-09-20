@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2cb7c9aab737530b2d059b928479c121> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel (COUNT(*) AS ?n_wikis)
+WITH {
+  SELECT ?item
+WHERE {
+  ?clase wdt:P279* wd:Q7725634. # Clase Obra literaria
+  ?item wdt:P31 ?clase .
+  #FILTER (!CONTAINS(str(?clase),'Q77725634'))
+  MINUS { ?item wdt:P31 wd:Q7725634 }
+#SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". } 
+}
+LIMIT 50
+      }
+AS %results
+WHERE {
+INCLUDE %results.
+  ?article schema:about ?item .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". } 
+}
+GROUP BY ?item ?itemLabel
+ORDER BY DESC(?n_wikis)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Tsaorin/Obrasliterarias>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

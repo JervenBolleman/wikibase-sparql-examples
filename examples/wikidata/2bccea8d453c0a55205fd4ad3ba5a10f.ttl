@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2bccea8d453c0a55205fd4ad3ba5a10f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?person1 ?person2 ?person1Label ?person1Description ?person2Label ?person2Description WHERE {
+  ?person1 wdt:P31 wd:Q5;
+           wdt:P21 ?gender;
+           wdt:P569 ?dob1;
+           wdt:P26 ?person2.
+  ?person2 wdt:P31 wd:Q5;
+           wdt:P569 ?dob2;
+           wdt:P21 ?gender.
+  MINUS { ?person1 wdt:P91 ?orientation. }
+  MINUS { ?person2 wdt:P91 ?orientation. }
+  # arbitrarily filter out some early results, we’re more likely to find references for recent people
+  FILTER(?dob1 >= \"1950-01-01\"^^xsd:dateTime)
+  FILTER(?dob2 >= \"1950-01-01\"^^xsd:dateTime)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/same-sex_married_couples_where_neither_partner_has_a_sexual_orientation>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

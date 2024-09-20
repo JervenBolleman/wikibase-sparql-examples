@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-235c479c8fd7c8e9e64a73f2049a636d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?pays ?paysLabel ?item ?itemLabel ?itemDescription ?sitelink
+WHERE {
+?item (wdt:P31/wdt:P279*) wd:Q62447.
+ optional{ ?item wdt:P17 ?pays}
+MINUS { ?item wdt:P625 ?coord. }
+    MINUS { ?item wdt:P576 _:b2. }                                # remove items with P576 (dissolved, abolished or demolished) as a main property
+  MINUS { ?item wdt:P582 _:b3. }                                # remove items with P582 (end date) as a main property
+  MINUS { ?item (wdt:P31/wdt:P279*) wd:Q695850. }               # exclude military airports
+  MINUS { ?item (wdt:P31/wdt:P279*) wd:Q1311670. }              # exclude railways stations
+  MINUS { ?item (wdt:P31/wdt:P279*) wd:Q7373622. }              # exclude Royal Air Force
+  MINUS { ?item (wdt:P31/wdt:P279*) wd:Q502074. }               # exclude héliports
+  MINUS { ?item wdt:P31/wdt:P279* wd:Q2265915.}                 # exclude vol à voile/gliders
+  MINUS { ?item (wdt:P31/wdt:P279*) wd:Q44665966. }             # exclude  airports being build
+  MINUS { ?item (wdt:P31/wdt:P279*) wd:Q782667. }               # exclude motorways where plane can land
+  MINUS { ?item a wdno:P17.}                                    # exclude airports that aren't physically based in a country
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,ms\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Bouzinac/Data_quality>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

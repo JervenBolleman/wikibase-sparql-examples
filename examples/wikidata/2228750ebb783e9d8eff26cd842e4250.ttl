@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2228750ebb783e9d8eff26cd842e4250> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:LineChart
+SELECT  ?year (COUNT(?human) AS ?TotalYearlyPrizeNumberByCountry) ?countryLabel  
+#SELECT  ?year ?human ?countryLabel  
+WITH
+{
+  SELECT * WHERE {
+    ?human (p:P166) ?awardStatement.
+    ?awardStatement ps:P166/wdt:P279* wd:Q7191.
+          ?awardStatement pq:P585 ?date.
+    ?human  wdt:P27 ?country.
+          bind(str(YEAR(?date)) AS ?year)
+                    #SERVICE wikibase:label { bd:serviceParam wikibase:language \"zh,[AUTO_LANGUAGE],\". }
+    }
+  LIMIT 10000
+} AS %results
+WHERE
+{
+    INCLUDE %results.
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?year ?countryLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/10>,
+    <https://www.wikidata.org//wiki/User:Bangbang.S>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

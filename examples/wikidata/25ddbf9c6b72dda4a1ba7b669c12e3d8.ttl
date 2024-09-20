@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-25ddbf9c6b72dda4a1ba7b669c12e3d8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?normal ?deprecated ?diff ?unitLabel WHERE {
+  ?item p:P2044 ?statement.
+  ?statement psn:P2044 ?statement_psn .
+  ?statement_psn wikibase:quantityAmount ?normal .
+  ?statement_psn wikibase:quantityUnit ?unit .
+  ?statement wikibase:rank wikibase:NormalRank .
+  {?statement prov:wasDerivedFrom ?statement0 .
+  ?statement0 pr:P143 ?normal_ref . 
+  filter (?normal_ref!=wd:Q837615) }
+  UNION
+  { filter not exists {  ?statement prov:wasDerivedFrom ?statement0 . } } 
+  ?item p:P2044 ?statement1 .
+  ?statement1 psn:P2044 ?statement1_psn .
+  ?statement1_psn  wikibase:quantityAmount ?deprecated .
+  ?statement1 wikibase:rank wikibase:DeprecatedRank .
+  ?statement1 prov:wasDerivedFrom ?statement2 .
+  ?statement2 pr:P143 wd:Q837615 .
+  bind(?normal - ?deprecated as ?diff)
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-21670cb3af5ef26a4efd67e0097727b8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT
+?person ?personLabel ?sexgenderLabel (SAMPLE(?sportLabel_) as ?sportLabel) ?citizenshipLabel
+
+WITH
+{ SELECT DISTINCT ?person 
+    WHERE { ?person wdt:P3171 ?value . 
+            ?person wikibase:statements ?statements .
+            FILTER (?statements > 50) . }
+} as %athletes
+
+WITH
+{ SELECT DISTINCT ?person ?sexgender ?sport (GROUP_CONCAT(?citizenshipLabel_;separator=\"; \") as ?citizenshipLabel)
+         WHERE { INCLUDE %athletes 
+                 { ?person wdt:P21 ?sexgender . }
+                 { ?person wdt:P2416 ?sport . }
+                 { ?person wdt:P27 ?citizenship . ?citizenship rdfs:label ?citizenshipLabel_ . filter(lang(?citizenshipLabel_)=\"en\") }
+} GROUP BY ?person ?sexgender ?sport } as %athletes2
+
+WHERE
+ { INCLUDE %athletes2
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . 
+                          ?person rdfs:label ?personLabel . 
+                          ?sexgender rdfs:label ?sexgenderLabel .
+                          ?sport rdfs:label ?sportLabel_ . }
+} GROUP BY ?person ?personLabel ?sexgenderLabel  ?citizenshipLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

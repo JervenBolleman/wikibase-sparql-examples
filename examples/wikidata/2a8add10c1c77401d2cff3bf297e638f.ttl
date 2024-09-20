@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2a8add10c1c77401d2cff3bf297e638f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#-------------------------------------------------------------------------------
+# Bauwerke-Typen in Dresden (Bubble Chart)
+#-------------------------------------------------------------------------------
+#defaultView:BubbleChart; Table; 
+select ?bautyp ?bautypLabel  (COUNT(?bautyp) AS ?anzahl)
+where {
+
+      SELECT distinct ?item ?itemLabel ?bautyp ?bautypLabel 
+                        WHERE {
+                          ?item wdt:P31 ?bautyp.
+                          ?item (wdt:P131/wdt:P279*) wd:Q1731 .
+                          ?item (wdt:P31/wdt:P279*) wd:Q811979.
+
+                          SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en,[AUTO_LANGUAGE]\". }
+                        } 
+}
+group by ?bautyp ?bautypLabel
+                 
+order by desc(?anzahl)
+#order by  ?bautypLabel ?item
+limit 50""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stefan_K%C3%BChn/Dresden>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

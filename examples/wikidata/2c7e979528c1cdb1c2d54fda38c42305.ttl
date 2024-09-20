@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2c7e979528c1cdb1c2d54fda38c42305> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+#title:UK rivers that enter the sea
+SELECT DISTINCT ?river ?riverLabel ?sea ?seaLabel ?coord WHERE 
+{
+  ?another_river wdt:P17 wd:Q145.          # ?another_river is in the UK
+  ?another_river wdt:P403|wdt:P201 ?sea .  # has a mouth of a watercourse or lake outflow 
+                                           # at this point ?sea could still be another watercourse
+  
+                                                                                             # DESIGN PATTERN
+                                                                                             # define a ?sea as a sea by...
+  FILTER NOT EXISTS {?sea wdt:P31/wdt:P279* wd:Q355304 . hint:Prior hint:gearing \"forward\".  # excluding watercourses
+                    FILTER NOT EXISTS {?sea wdt:P31 wd:Q47053. }                               # except when they're an estuary
+                    FILTER NOT EXISTS {?sea wdt:P31 wd:Q1210950. }                             # or a channel
+                                                                                            # by nesting FILTER NOT EXIST clauses 
+                                                                                            # within a FILTER NOT EXIST clause
+                    }
+
+  FILTER NOT EXISTS {?sea wdt:P31/wdt:P279* wd:Q23397 . hint:Prior hint:gearing \"forward\". } # Exclude lakes
+  
+  ?sea ^wdt:P403|^wdt:P201 ?river. # ?sea is at the mouth/outflow of the ?river
+  ?river wdt:P17 wd:Q145.          # ?river is in the UK
+  ?river wdt:P625 ?coord.          # get ?river coordinates
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Tagishsimon/junk>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

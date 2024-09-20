@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2f46d3f113692f2fb91f73184dd043c8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map{\"hide\":[\"?geographische_Koordinaten\", \"?layer\", \"?StadttafelOrdnungsnummer\"]}
+#---------------------------
+# Erhaltene Stadttafeln in Hannover mit und ohne Bild
+#---------------------------
+SELECT ?Stadttafel ?StadttafelLabel ?StadttafelOrdnungsnummer ?geographische_Koordinaten ?Bild ?layer
+WHERE {
+  ?Stadttafel wdt:P31 wd:Q721747;
+              wdt:P361 wd:Q67506051;
+              wdt:P5816 wd:Q56557591.
+  OPTIONAL {
+    ?Stadttafel wdt:P625 ?geographische_Koordinaten;
+    MINUS {?Stadttafel wdt:P18 ?Bild}
+    BIND (\"Kein Bild vorhanden/No picture available\" AS ?layer)
+  }
+  OPTIONAL {
+    ?Stadttafel wdt:P18 ?Bild;
+                wdt:P625 ?geographische_Koordinaten.
+    BIND (\"Bild vorhanden/Picture available\" AS ?layer)
+    }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\"  }
+  }
+ORDER BY ?StadttafelOrdnungsnummer""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Nortix08/Stadttafeln_Hannover>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

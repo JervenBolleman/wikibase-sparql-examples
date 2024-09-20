@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-28a7950c5ddb0e581382b23cd6bcf7c6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+SELECT ?item ?country ?coord ?dist {
+  hint:Query hint:optimizer \"None\" .
+  VALUES ?country { wd:Q40 } .
+  OPTIONAL{?country wdt:P5140 ?centerGeog .}
+  OPTIONAL{?country wdt:P625 ?Coords .}
+   BIND(COALESCE(?centerGeog,?Coords) as ?center)
+  SERVICE wikibase:around {
+    ?item wdt:P625 ?coord .
+    bd:serviceParam wikibase:center ?center .
+    bd:serviceParam wikibase:radius \"50\" .
+    bd:serviceParam wikibase:distance ?dist .
+    bd:serviceParam wikibase:geoGlobe ?globe . 
+  } .
+  BIND(COALESCE(?globe,wd:Q2) as ?Globe)
+  FILTER (?Globe =wd:Q2)
+  MINUS { ?item wdt:P17 [] } .
+MINUS { ?item (wdt:P31/wdt:P279*) wd:Q4830453. }              # exclude ENTREPRISES
+MINUS { ?item (wdt:P31/wdt:P279*) wd:Q15893266. }              # exclude old entities
+MINUS { ?item wdt:P576 _:b2. } # remove items with P576 (dissolved, abolished or demolished) as a main property
+} ORDER BY ?dist""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Bouzinac/Recherches_g%C3%A9ographiques>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

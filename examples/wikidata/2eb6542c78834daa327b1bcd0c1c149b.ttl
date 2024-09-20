@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2eb6542c78834daa327b1bcd0c1c149b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT 
+  ?senses
+  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32), \"/lexemesense\") AS ?sensesUrl)
+
+  ?language ?languageLabel
+  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32)) AS ?languageUrl)
+  ?languageDescription  
+
+  ?example_sense
+WITH {
+  SELECT 
+    (COUNT(?sense) AS ?senses)
+    ?language
+    (SAMPLE(?sense) AS ?example_sense)
+  WHERE {
+    [] dct:language ?language ;
+       ontolex:sense ?sense .
+  }
+  GROUP BY ?language
+} AS %languages
+WHERE {
+  INCLUDE %languages
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?senses)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:lexemesense-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

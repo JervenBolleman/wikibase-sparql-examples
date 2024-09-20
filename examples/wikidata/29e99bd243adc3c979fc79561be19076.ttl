@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-29e99bd243adc3c979fc79561be19076> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?wikidata_id ?name ?url ?start ?end WHERE {
+    BIND (wd:Q55465119 as ?legislature) .
+    ?member wdt:P361 ?legislature ;
+    MINUS {?member wdt:P576 [] }
+    MINUS { ?legislature wdt:P576 [] }
+    ?node ps:P39 ?member .
+    OPTIONAL { ?node pq:P580 ?start }
+    OPTIONAL { ?node pq:P582 ?end }
+    ?node ps:P39 ?position .
+    ?position wdt:P31 ?positiontype .
+    ?wikidata_id p:P39 ?node .
+    OPTIONAL {
+        ?wikidata_id p:P973 ?describedAt .
+        ?describedAt ps:P973 ?url .
+        OPTIONAL {
+            ?describedAt pq:P1810 ?name .
+        }
+        FILTER(CONTAINS(LCASE(STR(?url)), \"democracy.leeds.gov.uk/\"))
+    }
+}
+ORDER BY ?wikidata_id""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jacksonj04/Leeds/Prompt/All>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

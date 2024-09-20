@@ -1,0 +1,55 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-27ee12134081cfc12aad6a135c2d1659> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
+# Adapted from https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2018/10#Good_example_query_with_LINESTRING
+SELECT DISTINCT ?coordinates ?line ?item ?itemLabel ?connectLabel ?image ?code ?rgb
+
+WITH {
+  SELECT ?item (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) (sample(?lat1) as ?lat1) (sample(?lon1) as ?lon1) (sample(?code) as ?code) WHERE {
+    ?item wdt:P31 wd:Q55488.
+    ?item wdt:P17 wd:Q668 .
+    ?item wdt:P625 ?coordinates  .
+    ?item p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 .
+    ?item p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
+    OPTIONAL { ?item wdt:P18 ?image }.
+    OPTIONAL { ?item wdt:P5696 ?code }.
+  } GROUP BY ?item
+} AS %stations
+
+WITH {
+  SELECT ?nextstation (sample(?lat2) as ?lat2) (sample(?lon2) as ?lon2) WHERE {
+    ?nextstation wdt:P31 wd:Q55488 .
+    ?nextstation wdt:P17 wd:Q668 .
+    ?nextstation p:P625 / psv:P625 / wikibase:geoLatitude ?lat2 .
+    ?nextstation p:P625 / psv:P625 / wikibase:geoLongitude ?lon2 .
+  } GROUP BY ?nextstation
+} AS %nextstations
+
+WITH {
+  SELECT ?line ?connect (\"9B0058\" as ?rgb) WHERE {
+    INCLUDE %stations .
+    INCLUDE %nextstations .
+    ?item p:P197 ?nextstationstatement .
+    ?nextstationstatement ps:P197 ?nextstation .
+    ?nextstationstatement pq:P81 ?connect . ?connect wdt:P127 wd:Q819425  . 
+    FILTER(STR(?item) < STR(?nextstation)) .    
+    BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
+    BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
+  }
+} AS %lines 
+ 
+WHERE {
+  { INCLUDE %stations }  UNION { INCLUDE %lines  } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Looniverse/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

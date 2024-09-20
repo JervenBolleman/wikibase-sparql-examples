@@ -1,0 +1,42 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-22de46e8821f12e2e164e32c80abac8a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Deportistas hispanoamericanas con artículos en español pero no en francés
+# Hispanic American sportswomen with pages in Spanish but not in French
+
+PREFIX schema: <http://schema.org/>
+
+SELECT ?item ?itemLabel ?countryLabel ?linkcount WHERE {
+    ?item wdt:P31 wd:Q5 .
+    ?item wdt:P21 wd:Q6581072 .
+    ?item wdt:P27 ?nacionalidad .
+    ?item wdt:P106 wd:Q2066131 .
+    ?item wikibase:sitelinks ?linkcount .
+    ?article_ schema:about ?item .
+    ?article_ schema:inLanguage \"es\" .
+    ?article_ schema:isPartOf <https://es.wikipedia.org/> .
+  VALUES ?country {wd:Q77 wd:Q96 wd:Q155 wd:Q717 wd:Q733 wd:Q736
+                        wd:Q739 wd:Q241 wd:Q298 wd:Q414 wd:Q419 wd:Q750
+                        wd:Q774 wd:Q783 wd:Q786 wd:Q790 wd:Q792 wd:Q800
+                        wd:Q804 wd:Q811}
+    
+  FILTER (?linkcount >= 1) .
+  FILTER NOT EXISTS {
+    ?article schema:about ?item .
+    ?article schema:inLanguage \"fr\" .
+    ?article schema:isPartOf <https://fr.wikipedia.org/> 
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es, fr\" }
+}
+GROUP BY ?item ?itemLabel ?countryLabel ?linkcount
+ORDER BY DESC(?countryLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ivanhercaz/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

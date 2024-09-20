@@ -1,0 +1,47 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2412f6f724d7f8c37e7cbe00cc8b9f45> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?qid  ?WP ?article ?sitelink ?thecode (GROUP_CONCAT (DISTINCT ?ich; separator= \",\") AS ?ichid) (GROUP_CONCAT (DISTINCT ?inventory; separator= \",\") AS ?inventories) (GROUP_CONCAT (DISTINCT ?type; separator= \",\") AS ?types) (GROUP_CONCAT(DISTINCT ?region; SEPARATOR = \",\") AS ?regions) (SAMPLE(?image) AS ?image)  WHERE {
+  {
+    { ?item wdt:P6104 wd:Q112898263. }
+  UNION
+    { ?item wdt:P3259 ?ichstatus. }
+  }
+  ?item wdt:P17|wdt:P495|wdt:P183|wdt:P2596|wdt:P3259/wdt:P17|wdt:P2541|wdt:P2341 wd:Q33 .
+  MINUS { ?item (wdt:P31/wdt:P279*) wd:Q116056897. }
+  MINUS { ?item wdt:P31 wd:Q13406463 . }
+  BIND(SUBSTR(STR(?item), 32) AS ?qid)
+  OPTIONAL { ?item wdt:P17|wdt:P495|wdt:P183|wdt:P2596|wdt:P3259/wdt:P17|wdt:P2541|wdt:P2341 ?reg. }
+  OPTIONAL { ?item wdt:P10221 ?ich. }
+  BIND(SUBSTR(STR(?reg), 32 ) AS ?region)
+  OPTIONAL { ?item wdt:P18 ?img. 
+      BIND(CONCAT('File:',wikibase:decodeUri(SUBSTR(STR(?img), 52))) AS ?image)
+  }
+  OPTIONAL { ?item wdt:P31 ?P31. 
+      BIND(SUBSTR(STR(?P31), 32) AS ?type)
+  }
+  OPTIONAL { ?item wdt:P3259 ?inv.
+      BIND(SUBSTR(STR(?inv), 32) AS ?inventory)
+  }
+  OPTIONAL { ?article schema:about ?item;
+    schema:inLanguage ?thecode;
+    schema:name ?sitelink;
+    schema:isPartOf ?WP.
+    ?WP wikibase:wikiGroup \"wikipedia\" .            
+  OPTIONAL {
+    ?sitelink wikibase:badge ?badge.
+    }
+  }
+}
+GROUP BY ?item ?qid ?article ?sitelink ?thecode ?WP
+ORDER BY DESC (?image)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

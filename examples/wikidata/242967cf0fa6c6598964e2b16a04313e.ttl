@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-242967cf0fa6c6598964e2b16a04313e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Home Secretaries, by how far through their career they were when appointed
+# cutoff in 2010 as this means they've all now retired
+# calculation does not take account of breaks in service
+
+select distinct ?person ?personLabel ?appointed ?first_MP ?last_MP
+(?last_MP - ?first_MP as ?career_in_days)
+(?appointed - ?first_MP as ?experience_when_appointed)
+(round((?experience_when_appointed / ?career_in_days)*100) as ?percent_career)
+where
+{
+  { select ?person ?appointed where 
+    { ?person p:P39 ?hs . ?hs ps:P39 wd:Q2484309 . ?hs pq:P580 ?appointed . 
+     filter (?appointed > \"1860-01-01T00:00:00Z\"^^xsd:dateTime) . filter (?appointed < \"2010-01-01T00:00:00Z\"^^xsd:dateTime) }
+   }  
+  { select ?person (min(?s) as ?first_MP) (max(?e) as ?last_MP) where 
+    { ?person p:P39 ?ps . ?ps ps:P39 ?term . ?term wdt:P279 wd:Q16707842 . 
+      ?ps pq:P580 ?s . ?ps pq:P582 ?e } group by ?person
+   } 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} order by (?percent_career)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

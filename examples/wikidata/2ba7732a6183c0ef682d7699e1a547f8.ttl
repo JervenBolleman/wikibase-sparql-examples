@@ -1,0 +1,42 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2ba7732a6183c0ef682d7699e1a547f8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  ?peruano
+  ?peruanoLabel
+  ?crimen
+  ?crimenLabel
+WITH {
+  SELECT DISTINCT ?peruano {
+    {?peruano wdt:P27 wd:Q419 }
+    UNION
+    {?peruano wdt:P19/wdt:P131* wd:Q419 }
+    UNION
+    {?peruano wdt:P1532 wd:Q419}
+  }
+} AS %peruano
+WITH {
+  SELECT DISTINCT ?peruano ?crimen {
+    INCLUDE %peruano.
+    ?peruano wdt:P1399 ?crimen.
+  }
+} AS %crimen
+{
+  INCLUDE %crimen.
+  ?peruano wdt:P106/wdt:P279* wd:Q82955.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"es\"}.
+}
+ORDER BY ASC(?peruanoLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/de>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2248e2b79dc0df5f2ff74159a1fce04c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?authorabbrv ?itemLabelDe (SUBSTR(?birthdate1, 1, 10) as ?birthdate) (SUBSTR(?deathdate1, 1, 10) as ?deathdate) WHERE {
+  ?item wdt:P428 ?authorabbrv .
+  OPTIONAL {?item wdt:P569 ?birthdate1} .
+  OPTIONAL {?item wdt:P570 ?deathdate1} .
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"de\" .
+    ?item rdfs:label ?itemLabelDe .
+  }
+  {
+  SELECT ?authorabbrv (COUNT(?authorabbrv) AS ?no_authorabbrv) WHERE { 
+     ?item wdt:P428 ?authorabbrv .
+     OPTIONAL {?item wdt:P569 ?birthdate} .
+     OPTIONAL {?item wdt:P570 ?deathdate} .  
+  }
+  GROUP BY ?authorabbrv
+  HAVING(?no_authorabbrv > 1)         
+  }
+}
+ORDER BY ASC(?authorabbrv)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Succu/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

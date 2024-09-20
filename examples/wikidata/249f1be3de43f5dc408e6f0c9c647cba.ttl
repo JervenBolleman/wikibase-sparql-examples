@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-249f1be3de43f5dc408e6f0c9c647cba> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Objekte mit ObjektID und optional HERIS-ID
+SELECT DISTINCT ?oldid ?oldidNr ?herisIdNr ?item ?itemLabel ?itemDescription (GROUP_CONCAT(DISTINCT ?whereLabel; SEPARATOR=', ') AS ?whereLabels) WHERE {
+   ?item wdt:P2951 ?oldid .
+   ?item wdt:P17 wd:Q40 . # österreich
+  OPTIONAL {
+    ?item wdt:P131 ?where .
+    OPTIONAL {
+      ?where rdfs:label ?whereLiteral .
+      FILTER(LANG(?whereLiteral) = 'de') .
+    }
+  }
+     optional {?item wdt:P9154 ?herisId .
+     Bind (xsd:integer(?herisId) as ?herisIdNr)
+   }
+  BIND(IF(BOUND(?where), IF(BOUND(?whereLiteral), ?whereLiteral, STRAFTER(STR(?where), 'entity/')), 'no P131') AS ?whereLabel) .
+  Bind (xsd:integer(?oldid) as ?oldidNr)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE]' }
+} GROUP BY ?oldid ?oldidNr ?herisIdNr ?item ?itemLabel ?itemDescription ?whereLabels ORDER BY ASC(?oldidNr)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Herzi_Pinki/Sparql>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

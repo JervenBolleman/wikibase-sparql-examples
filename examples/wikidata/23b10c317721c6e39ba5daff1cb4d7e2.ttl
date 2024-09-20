@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-23b10c317721c6e39ba5daff1cb4d7e2> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?title ?item ?article_it
+WHERE
+{
+  hint:Query hint:optimizer \"None\".
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:api \"Search\" .
+    bd:serviceParam wikibase:endpoint \"it.wikipedia.org\" .
+    bd:serviceParam mwapi:srnamespace \"0\" .
+    bd:serviceParam mwapi:srsearch 'deepcat:\"Cantanti lirici italiani\"' .
+    ?title wikibase:apiOutput mwapi:title .
+  }
+  BIND (STRLANG(?title, \"it\") AS ?title_it)
+  ?article_it schema:name ?title_it .
+  ?article_it schema:about ?item .
+  ?article_it schema:isPartOf <https://it.wikipedia.org/> .
+  ?item wdt:P31 wd:Q5 .
+  MINUS { ?item wdt:P106 [] } 
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

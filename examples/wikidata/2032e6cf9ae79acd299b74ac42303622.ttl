@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2032e6cf9ae79acd299b74ac42303622> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?parent_taxonLabel ?taxon_name  ?item  ?year_described (group_concat(distinct ?QI;separator=\"; \") as ?QId) (group_concat(?taxon_authorLabel;separator=\"; \") as ?author) ?nomencaturalstatus ?nomencaturalstatusLabel ?inaturalist_ID  WHERE {
+  ?item wdt:P171 wd:Q1757472;
+    p:P225 ?stat.
+  ?stat ps:P225 ?taxon_name.
+  OPTIONAL { ?item wdt:P171 ?parent_taxon. }
+  OPTIONAL { ?stat pq:P574 ?year_of_taxon_name_publication. }
+  OPTIONAL { ?stat pq:P405 ?taxon_author. 
+             bind(replace(str(?taxon_author),\"http://www.wikidata.org/entity/\",\"\") as ?QI)
+           }
+  OPTIONAL { ?stat pq:P1135 ?nomencaturalstatus. }
+  OPTIONAL { ?item wdt:P3151 ?inaturalist_ID. }
+  BIND(str(YEAR(?year_of_taxon_name_publication)) AS ?year_described).
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".     
+                          ?taxon_author rdfs:label ?taxon_authorLabel .
+                          ?nomencaturalstatus rdfs:label ?nomencaturalstatusLabel .
+                          ?parent_taxon rdfs:label ?parent_taxonLabel
+                         }
+} GROUP BY ?parent_taxonLabel ?taxon_name ?item ?year_described ?nomencaturalstatus ?nomencaturalstatusLabel ?inaturalist_ID
+ORDER BY DESC (?year_described)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

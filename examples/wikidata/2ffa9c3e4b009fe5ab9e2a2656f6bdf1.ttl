@@ -1,0 +1,39 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2ffa9c3e4b009fe5ab9e2a2656f6bdf1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# List for complete episods
+SELECT DISTINCT ?item ?itemLabel ?itemDescription ?series ?seriesLabel ?NmberOfSeason ?season ?seasonLabel ?NumberInTheSeries ?NumberInTheSeason ?pre ?suc ?imdb WHERE {
+  VALUES ?istanza { wd:Q21191270 wd:Q653916 wd:Q73622 } 
+
+  ?item wdt:P31 ?istanza .
+  ?item wdt:P179 wd:Q438406. #Change here for the series
+  
+  ?item wdt:P179 ?series.  
+  ?item p:P179 ?statement .
+  ?statement pq:P1545 ?NumberInTheSeries .
+  
+  ?item wdt:P4908 ?season.
+  ?item p:P4908 ?statement2 .
+  ?statement2 pq:P1545 ?NumberInTheSeason .
+  
+  OPTIONAL {?item wdt:P155 ?pre.}
+  optional{?item wdt:P156 ?suc.}
+  
+  OPTIONAL {?season p:P179 ?statement3 .}
+  OPTIONAL {?statement3 pq:P1545 ?NmberOfSeason .}
+  
+  OPTIONAL { ?item wdt:P345 ?imdb.}
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"it\". }
+}
+ORDER BY  ?series xsd:integer(?NumberInTheSeries)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:ValterVB/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

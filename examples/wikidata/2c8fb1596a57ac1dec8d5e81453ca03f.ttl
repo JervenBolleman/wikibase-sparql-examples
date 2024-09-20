@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2c8fb1596a57ac1dec8d5e81453ca03f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Join Swedish and Norway recipients
+SELECT ?year_received ?swedish_recipients ?norway_recipients
+WHERE {
+{
+  SELECT DISTINCT ?year_received (GROUP_CONCAT(DISTINCT ?itemLabel; SEPARATOR = \", \") AS ?swedish_recipients) 
+  WHERE {
+    ?item wdt:P27 wd:Q34; p:P166 ?prize.
+    ?prize ps:P166 wd:Q1233326; pq:P585 ?date_received.
+    BIND(YEAR(?date_received) AS ?year_received)
+    SERVICE wikibase:label { 
+      bd:serviceParam wikibase:language \"fr,en,de,es\". 
+      ?item rdfs:label ?itemLabel.
+    }
+  }
+  GROUP BY ?year_received
+}
+{
+  SELECT DISTINCT ?year_received (GROUP_CONCAT(DISTINCT ?itemLabel; SEPARATOR = \", \") AS ?norway_recipients) 
+  WHERE {
+    ?item wdt:P27 wd:Q20; p:P166 ?prize.
+    ?prize ps:P166 wd:Q1233326; pq:P585 ?date_received.
+    BIND(YEAR(?date_received) AS ?year_received)
+    SERVICE wikibase:label { 
+      bd:serviceParam wikibase:language \"fr,en,de,es\". 
+      ?item rdfs:label ?itemLabel.
+    }
+  }
+  GROUP BY ?year_received
+}
+}
+ORDER BY (?year_received)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Deansfa/SPARQL>, <https://www.wikidata.org//wiki/User:Deansfa>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

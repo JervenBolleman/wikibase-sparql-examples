@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-215cf805f3b81b566666a756f51d4db5> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?itemDescription ?ordinal (COUNT(DISTINCT ?languagelink) AS ?linkcount) WHERE {
+#     ?item wdt:P31 wd:Q5 .
+    ?item p:P39 ?statement. 
+    ?statement ps:P39 wd:Q545206 .
+    OPTIONAL { ?statement pq:P1545 ?ord .
+      BIND(xsd:integer(?ord) as ?ordinal)
+    }
+    ?languagelink schema:about ?item;
+    schema:inLanguage ?lang;
+    schema:isPartOf ?partOf.
+    
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"he\" }
+  FILTER(CONTAINS(STR(?partOf), \"wikipedia.org\"))
+}
+GROUP BY ?item ?itemLabel ?linkcount ?itemDescription ?ordinal
+ORDER BY DESC(?linkcount)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2dccaf1ad9df554e6b43fe80c8e6282f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?genderLabel ?itemDescription ?awardLabel (YEAR(?date) AS ?year) (GROUP_CONCAT(DISTINCT ?language; separator=\", \") AS ?languages) {
+  VALUES ?award { wd:Q3404296 wd:Q2365303 wd:Q28869834 wd:Q3404842 wd:Q3404891 wd:Q3404993 
+                  wd:Q3405049 wd:Q24928963 wd:Q3405011 wd:Q21658579 wd:Q3405354 } . #award: 10 Acfas awards
+  ?item wdt:P31 wd:Q5;
+        wdt:P21 ?gender;
+        p:P166 ?awardStatement.
+  ?awardStatement ps:P166 ?award.
+  OPTIONAL { ?awardStatement pq:P585 ?date. }
+  OPTIONAL {
+    ?article a schema:Article;
+               schema:about ?item;
+               schema:inLanguage ?language.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+}
+GROUP BY ?item ?itemLabel ?genderLabel ?itemDescription ?award ?awardLabel ?date
+ORDER BY ?genderLabel ?awardLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Thekidpossum>, <https://www.wikidata.org//wiki/User:Brochon99/M%C3%A9moire>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

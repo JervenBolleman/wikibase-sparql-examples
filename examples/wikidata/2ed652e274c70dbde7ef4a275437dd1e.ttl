@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2ed652e274c70dbde7ef4a275437dd1e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?itemLabel (count (?memberOf) AS ?cG) (count (?memberOfPP) AS ?cP) (count (?source) AS ?cR) WHERE {
+  {
+    VALUES ?memberOf { a bunch of wd:Q… }.
+    ?item wdt:P463 ?memberOf.
+  }
+  UNION
+  {
+    VALUES ?memberOfPP { another bunch of wd:Q… }.
+    ?item wdt:P102 ?memberOfPP.
+  }
+  UNION
+  {
+    SELECT DISTINCT ?source ?item WHERE {
+      {
+        VALUES ?memberOf { a bunch of wd:Q… again }.
+        ?source wdt:P463 ?memberOf.
+      }
+      UNION
+      {
+        VALUES ?memberOfPP { another bunch of wd:Q… again }.
+        ?source wdt:P102 ?memberOfPP.
+      }
+      ?item ^(wdt:P22|wdt:P25|wdt:P26|wdt:P40|wdt:P451|wdt:P1038|wdt:P3373|wdt:P3448) ?source.
+    }
+  }
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"fr,en\". }
+} GROUP BY ?item ?itemLabel ?cR""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

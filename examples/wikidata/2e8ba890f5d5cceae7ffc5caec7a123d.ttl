@@ -1,0 +1,46 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2e8ba890f5d5cceae7ffc5caec7a123d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT 
+?president ?presidentLabel 
+?termStart ?termEnd
+?spouse 
+?relationshipStart ?relationshipEnd 
+WHERE {
+   
+   ?president wdt:P31 wd:Q5 .
+
+   ?president                p:P39     ?position_held_statement .
+   ?position_held_statement ps:P39   wd:Q11696 .
+   ?position_held_statement pq:P580    ?termStart .
+   
+   # current presiden will always miss it
+   OPTIONAL {   
+     ?position_held_statement pq:P582  ?termEnd
+   } 
+   
+   # spouse is optional
+   OPTIONAL {
+      ?president             p:P26     ?spouseStatement .
+      ?spouseStatement      ps:P26     ?spouse .
+      ?spouseStatement      pq:P580    ?relationshipStart .
+
+      # current spouse will always miss it
+      OPTIONAL {   
+        ?spouseStatement    pq:P582    ?relationshipEnd
+      }
+   }
+   
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+
+ } ORDER BY ?termStart ?relationshipStart""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:D1gggg/Wikidata_model_and_SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-219cc19182402a719792d24c3da91df5> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?modified ?floss ?label WHERE {
+  {
+   ?floss p:P31/ps:P31/wdt:P279* wd:Q506883.
+  } Union {
+   ?floss p:P31/ps:P31/wdt:P279* wd:Q341.
+  } Union {
+   ?floss p:P31/ps:P31/wdt:P279* wd:Q1130645.
+  } Union {
+   ?floss p:P31/ps:P31/wdt:P279* wd:Q19652.
+   ?floss p:P31/ps:P31/wdt:P279* wd:Q7397.
+  } Union {
+    ?floss p:P31/ps:P31/wdt:P279* wd:Q7397.
+    ?floss wdt:P275 ?licens.  
+    ?licens p:P31/ps:P31/(wdt:P31|wdt:P279)* ?kind.
+    VALUES ?kind { wd:Q196294 wd:Q1156659 }.
+  }
+  FILTER NOT EXISTS { ?floss wdt:P31+ wd:Q9135 } # exclude GNU Linux operating systems
+  FILTER NOT EXISTS { ?floss wdt:P31+ wd:Q10876391 } # exclude Wikipedia editions
+  FILTER NOT EXISTS { ?floss wdt:P31+ wd:Q6805426 } # exclude MediaWiki extensions
+  FILTER NOT EXISTS { ?floss p:P1324 ?repository }
+  ?floss schema:dateModified ?modified
+  OPTIONAL { ?floss rdfs:label ?label filter (lang(?label) = \"en\") .}
+ } ORDER BY DESC(?modified)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Informatics/FLOSS>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

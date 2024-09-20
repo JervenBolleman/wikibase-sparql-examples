@@ -1,0 +1,46 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2b3d80508103e199b6132ba5b918462e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#TEMPLATE={\"template\":\"Information about the ?series video games series\",\"variables\":{\"?series\":{\"query\":\" SELECT ?id WHERE { ?id wdt:P31 wd:Q7058673. }\"} } }
+SELECT ?series ?seriesLabel ?first_gameLabel ?first_game_date ?latest_gameLabel 
+  (GROUP_CONCAT(DISTINCT ?genreLabel; SEPARATOR = \", \") AS ?genres)
+  (GROUP_CONCAT(DISTINCT ?platformLabel; SEPARATOR = \", \") AS ?platforms) (GROUP_CONCAT(DISTINCT ?developerLabel; SEPARATOR = \", \") AS ?developers)
+WHERE {
+  BIND(wd:Q289129 AS ?series)
+  OPTIONAL {
+    ?series wdt:P136 ?genre.
+    ?genre rdfs:label ?genreLabel.
+    FILTER((LANG(?genreLabel)) = \"en\")
+  }
+  ?games wdt:P179 ?series;
+    wdt:P400 ?platform;
+    wdt:P178 ?developer.
+  OPTIONAL {
+    ?first_game p:P179 ?seriesStatement.
+    ?seriesStatement ps:P179 ?series;
+      rdf:type wdno:P155.
+    ?first_game wdt:P577 ?first_game_date
+  }
+  OPTIONAL {
+    ?latest_game p:P179 ?seriesStatement2.
+    ?seriesStatement2 ps:P179 ?series;
+      rdf:type wdno:P156.
+    ?latest_game wdt:P577 ?latest_game_date
+  }
+  ?platform rdfs:label ?platformLabel.
+  FILTER((LANG(?platformLabel)) = \"en\")
+  ?developer rdfs:label ?developerLabel.
+  FILTER((LANG(?developerLabel)) = \"en\")
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?series ?seriesLabel ?first_gameLabel ?first_game_date ?latest_gameLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Video_games/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .
