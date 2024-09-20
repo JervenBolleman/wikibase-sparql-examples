@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-0ef8a91c1e78a7d6646d7f9e59d922a3> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?research_site ?research_siteLabel ?count
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Clinical_Trials/Query>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?research_site ?research_siteLabel ?count
 WITH {
   SELECT ?research_site (COUNT(?trial) AS ?count)  WHERE {
     ?trial wdt:P31 wd:Q30612 .
@@ -21,9 +30,40 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 GROUP BY ?research_site ?research_siteLabel ?count
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?research_site ?research_siteLabel ?count
+
+WHERE {
+  {
+  SELECT ?research_site (COUNT(?trial) AS ?count)  WHERE {
+    ?trial wdt:P31 wd:Q30612 .
+    { ?trial wdt:P6153 ?research_site . }
+    UNION
+    { ?trial wdt:P6153 [wdt:P749 ?research_site] . }  
+  }
+  GROUP BY ?research_site
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?research_site ?research_siteLabel ?count
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Clinical_Trials/Query>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?research_site ?research_siteLabel ?count
+WITH {
+  SELECT ?research_site (COUNT(?trial) AS ?count)  WHERE {
+    ?trial wdt:P31 wd:Q30612 .
+    { ?trial wdt:P6153 ?research_site . }
+    UNION
+    { ?trial wdt:P6153 [wdt:P749 ?research_site] . }  
+  }
+  GROUP BY ?research_site
+} AS %sites
+WHERE {
+  INCLUDE %sites
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?research_site ?research_siteLabel ?count
+ORDER BY DESC(?count)""" .

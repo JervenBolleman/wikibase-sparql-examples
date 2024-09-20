@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-033217bb9e8542949c62c662dc180f32> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:carmodel-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
   ?carmodels
   ?manufacturer ?manufacturerLabel ?manufacturerDescription
 WITH {
@@ -23,9 +32,44 @@ WHERE {
   INCLUDE %manufacturers
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?carmodels)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
+  ?carmodels
+  ?manufacturer ?manufacturerLabel ?manufacturerDescription
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(?carmodel) AS ?carmodels)
+    ?manufacturer
+  WHERE {
+    ?carmodel wdt:P31 wd:Q3231690 ;
+              wdt:P176 ?manufacturer .
+  } 
+  GROUP BY ?manufacturer
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?carmodels)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:carmodel-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT 
+  ?carmodels
+  ?manufacturer ?manufacturerLabel ?manufacturerDescription
+WITH {
+  SELECT 
+    (COUNT(?carmodel) AS ?carmodels)
+    ?manufacturer
+  WHERE {
+    ?carmodel wdt:P31 wd:Q3231690 ;
+              wdt:P176 ?manufacturer .
+  } 
+  GROUP BY ?manufacturer
+} AS %manufacturers
+WHERE {
+  INCLUDE %manufacturers
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?carmodels)""" .

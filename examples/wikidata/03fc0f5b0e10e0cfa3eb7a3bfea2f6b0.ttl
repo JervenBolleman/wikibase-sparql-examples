@@ -6,7 +6,19 @@
 
 <https://www.wikidata.org/#query-03fc0f5b0e10e0cfa3eb7a3bfea2f6b0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?place ?placeLabel ?elev ?ulabel #?unit
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/fr>, <https://www.wikidata.org//wiki/Wikidata:Request_a_query/en>,
+    <https://www.wikidata.org//wiki/Wikidata:Request_a_query/es>, <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?place ?placeLabel ?elev ?ulabel #?unit
 WITH {
   SELECT ?place (SAMPLE(?elev_st_) AS ?elev_st)
   WHERE {
@@ -24,10 +36,48 @@ WHERE {
   ?elev_st psn:P2044 [ wikibase:quantityAmount ?elev; wikibase:quantityUnit ?unit ] .
   BIND(IF(ABS(?elev) >= 2, \"meter\", \"meter\") AS ?ulabel)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"sv,en\" }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?place ?placeLabel ?elev ?ulabel #?unit
+
+WHERE {
+  {
+  SELECT ?place (SAMPLE(?elev_st_) AS ?elev_st)
+  WHERE {
+    #?place wdt:P17 wd:Q34 . # Reduce the working set.
+    #?place wdt:P31 wd:Q8502 .
+
+    ?place p:P2044 ?elev_st_ .
+    ?elev_st_ a wikibase:BestRank .
+  }
+  GROUP BY ?place
+  LIMIT 100
+}
+  ?elev_st psn:P2044 [ wikibase:quantityAmount ?elev; wikibase:quantityUnit ?unit ] .
+  BIND(IF(ABS(?elev) >= 2, \"meter\", \"meter\") AS ?ulabel)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"sv,en\" }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/fr>, <https://www.wikidata.org//wiki/Wikidata:Request_a_query/en>,
-    <https://www.wikidata.org//wiki/Wikidata:Request_a_query/es>, <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/11>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?place ?placeLabel ?elev ?ulabel #?unit
+WITH {
+  SELECT ?place (SAMPLE(?elev_st_) AS ?elev_st)
+  WHERE {
+    #?place wdt:P17 wd:Q34 . # Reduce the working set.
+    #?place wdt:P31 wd:Q8502 .
+
+    ?place p:P2044 ?elev_st_ .
+    ?elev_st_ a wikibase:BestRank .
+  }
+  GROUP BY ?place
+  LIMIT 100
+} AS %i
+WHERE {
+  INCLUDE %i
+  ?elev_st psn:P2044 [ wikibase:quantityAmount ?elev; wikibase:quantityUnit ?unit ] .
+  BIND(IF(ABS(?elev) >= 2, \"meter\", \"meter\") AS ?ulabel)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"sv,en\" }
+}""" .

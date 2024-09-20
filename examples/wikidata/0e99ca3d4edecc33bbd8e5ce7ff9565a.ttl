@@ -6,7 +6,18 @@
 
 <https://www.wikidata.org/#query-0e99ca3d4edecc33bbd8e5ce7ff9565a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """select distinct ?person ?personLabel ?lacking_gender ?lacking_occ
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/ambassadors>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+select distinct ?person ?personLabel ?lacking_gender ?lacking_occ
 
 with { select ?person where
 {
@@ -33,8 +44,30 @@ where
   {include %no_gender} union {include %no_occupation}
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/ambassadors>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """select distinct ?person ?personLabel ?lacking_gender ?lacking_occ
+
+with { select ?person where
+{
+  { ?position wdt:P31 wd:Q18115939 . } union { ?position wdt:P31 wd:Q56760832 } . # position is UK ambassador or high commissioner
+    ?person p:P39 ?positionStatement . ?positionStatement ps:P39 ?position . # find positions they held
+} } as %persons
+
+with { select ?person  ?lacking_gender where
+{
+  include %persons
+  filter not exists {?person wdt:P21 [].}      #gender
+  bind(\"1\" as ?lacking_gender)
+} } as %no_gender
+
+with { select ?person ?lacking_occ where
+{
+  include %persons
+  filter not exists {?person wdt:P106 wd:Q193391.}  #occupation
+  bind(\"1\" as ?lacking_occ)
+} } as %no_occupation
+
+where
+{
+  {include %no_gender} union {include %no_occupation}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

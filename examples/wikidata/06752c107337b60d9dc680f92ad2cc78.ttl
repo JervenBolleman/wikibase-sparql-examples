@@ -6,7 +6,18 @@
 
 <https://www.wikidata.org/#query-06752c107337b60d9dc680f92ad2cc78> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?a ?b WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?a ?b WITH {
 SELECT ?item ?a ?b {
   ?item wdt:P27 wd:Q142 . #limit to just people from France to avoid timeout
   ?item wdt:P31 wd:Q5; 
@@ -20,9 +31,40 @@ SELECT ?item ?a ?b {
   INCLUDE %i
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?a) ?itemLabel""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?a ?b  WHERE {
+  {
+SELECT ?item ?a ?b {
+  ?item wdt:P27 wd:Q142 . #limit to just people from France to avoid timeout
+  ?item wdt:P31 wd:Q5; 
+        p:P570 [ a wikibase:BestRank; psv:P570 [ wikibase:timeValue ?a; wikibase:timePrecision ?tpa ]]; 
+        p:P570 [ a wikibase:BestRank; psv:P570 [ wikibase:timeValue ?b; wikibase:timePrecision ?tpb ]]. 
+  FILTER(?a < ?b)
+  FILTER(?tpa>=11) #limit to just dates with at least day-precision
+  FILTER(?tpb>=11)
+}
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?a) ?itemLabel""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/02>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?a ?b WITH {
+SELECT ?item ?a ?b {
+  ?item wdt:P27 wd:Q142 . #limit to just people from France to avoid timeout
+  ?item wdt:P31 wd:Q5; 
+        p:P570 [ a wikibase:BestRank; psv:P570 [ wikibase:timeValue ?a; wikibase:timePrecision ?tpa ]]; 
+        p:P570 [ a wikibase:BestRank; psv:P570 [ wikibase:timeValue ?b; wikibase:timePrecision ?tpb ]]. 
+  FILTER(?a < ?b)
+  FILTER(?tpa>=11) #limit to just dates with at least day-precision
+  FILTER(?tpb>=11)
+}
+} AS %i WHERE {
+  INCLUDE %i
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?a) ?itemLabel""" .

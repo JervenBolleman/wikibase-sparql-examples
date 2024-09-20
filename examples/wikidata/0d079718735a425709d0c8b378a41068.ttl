@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-0d079718735a425709d0c8b378a41068> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:podcast-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
   ?count
   (CONCAT(\"#host/\", SUBSTR(STR(?host), 32), \"/podcast\") AS ?countUrl)
 
@@ -31,9 +40,60 @@ WHERE {
   INCLUDE %hosts
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
+  ?count
+  (CONCAT(\"#host/\", SUBSTR(STR(?host), 32), \"/podcast\") AS ?countUrl)
+
+  ?host ?hostLabel
+  (CONCAT(\"#host/\", SUBSTR(STR(?host), 32)) AS ?hostUrl)
+
+  ?example_podcast ?example_podcastLabel
+  (CONCAT(\"#podcast/\", SUBSTR(STR(?example_podcast), 32)) AS ?example_podcastUrl)
+
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(?podcast) AS ?count)
+    ?host
+    (SAMPLE(?podcast) AS ?example_podcast)
+  WHERE {
+    ?podcast wdt:P31 / wdt:P279* wd:Q24634210 ;
+             wdt:P371 ?host . 
+  }
+  GROUP BY ?host
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:podcast-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT
+  ?count
+  (CONCAT(\"#host/\", SUBSTR(STR(?host), 32), \"/podcast\") AS ?countUrl)
+
+  ?host ?hostLabel
+  (CONCAT(\"#host/\", SUBSTR(STR(?host), 32)) AS ?hostUrl)
+
+  ?example_podcast ?example_podcastLabel
+  (CONCAT(\"#podcast/\", SUBSTR(STR(?example_podcast), 32)) AS ?example_podcastUrl)
+
+WITH {
+  SELECT 
+    (COUNT(?podcast) AS ?count)
+    ?host
+    (SAMPLE(?podcast) AS ?example_podcast)
+  WHERE {
+    ?podcast wdt:P31 / wdt:P279* wd:Q24634210 ;
+             wdt:P371 ?host . 
+  }
+  GROUP BY ?host
+} AS %hosts
+WHERE {
+  INCLUDE %hosts
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?count)""" .

@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-08ab6e74bbcd34ce57be0673fd06ab1d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:toponym-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
   ?lexemes 
 
   ?language ?languageLabel
@@ -27,9 +37,53 @@ WHERE {
   INCLUDE %languages
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?lexemes)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
+  ?lexemes 
+
+  ?language ?languageLabel
+  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32)) AS ?languageUrl)
+  ?languageDescription
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(DISTINCT ?lexeme) AS ?lexemes)
+    ?language
+  WHERE {
+    ?lexeme dct:language ?language ;
+            wdt:P31 / wdt:P279* wd:Q7884789 .
+    
+  }
+  GROUP BY ?language
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?lexemes)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:toponym-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT
+  ?lexemes 
+
+  ?language ?languageLabel
+  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32)) AS ?languageUrl)
+  ?languageDescription
+WITH {
+  SELECT 
+    (COUNT(DISTINCT ?lexeme) AS ?lexemes)
+    ?language
+  WHERE {
+    ?lexeme dct:language ?language ;
+            wdt:P31 / wdt:P279* wd:Q7884789 .
+    
+  }
+  GROUP BY ?language
+} AS %languages
+WHERE {
+  INCLUDE %languages
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?lexemes)""" .

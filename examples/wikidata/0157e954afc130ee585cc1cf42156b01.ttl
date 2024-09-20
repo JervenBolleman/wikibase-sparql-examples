@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-0157e954afc130ee585cc1cf42156b01> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q21044790>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:artwork>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q21044790>
 
 SELECT 
   ?score
@@ -67,9 +75,131 @@ WHERE {
   INCLUDE %artworks
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en,cz,da,de,fi,fr,nb,nn,sv\". }
 }
+ORDER BY DESC(?score)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q21044790>
+
+SELECT 
+  ?score
+  ?reasons
+
+  ?artwork ?artworkLabel
+  (CONCAT(\"#artwork/\", SUBSTR(STR(?artwork), 32)) AS ?artworkUrl)
+  ?artworkDescription
+
+
+WHERE {
+  {
+  SELECT 
+    (SUM(?score_) AS ?score)
+    (GROUP_CONCAT(DISTINCT ?reason; separator=\", \") AS ?reasons)
+    ?artwork
+  WHERE {
+    {
+      BIND(1 AS ?score_)
+      BIND(\"collection\" AS ?reason)
+      target: wdt:P195 / ^wdt:P195 ?artwork
+    }
+    UNION
+    {
+      BIND(3 AS ?score_)
+      BIND(\"artist\" AS ?reason)
+      target: wdt:P170 / ^wdt:P170 ?artwork
+    }
+    UNION
+    {
+      BIND(1 AS ?score_)
+      BIND(\"depiction\" AS ?reason)
+      target: wdt:P180 / ^wdt:P180 ?artwork
+    }
+    UNION
+    {
+      BIND(2 AS ?score_)
+      BIND(\"exhibition\" AS ?reason)
+      target: wdt:P608 / ^wdt:P608 ?artwork
+    }
+    UNION
+    {
+      BIND(2 AS ?score_)
+      BIND(\"genre\" AS ?reason)
+      target: wdt:P136 / ^wdt:P136 ?artwork
+    }
+    UNION
+    {
+      BIND(1 AS ?score_)
+      BIND(\"date\" AS ?reason)
+      target: wdt:P571 / ^wdt:P571 ?artwork
+    }
+    FILTER (target: != ?artwork)
+  }
+  GROUP BY ?artwork
+  ORDER BY DESC(?score)
+  LIMIT 500
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en,cz,da,de,fi,fr,nb,nn,sv\". }
+}
 ORDER BY DESC(?score)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:artwork>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q21044790>
+
+SELECT 
+  ?score
+  ?reasons
+
+  ?artwork ?artworkLabel
+  (CONCAT(\"#artwork/\", SUBSTR(STR(?artwork), 32)) AS ?artworkUrl)
+  ?artworkDescription
+
+WITH {
+  SELECT 
+    (SUM(?score_) AS ?score)
+    (GROUP_CONCAT(DISTINCT ?reason; separator=\", \") AS ?reasons)
+    ?artwork
+  WHERE {
+    {
+      BIND(1 AS ?score_)
+      BIND(\"collection\" AS ?reason)
+      target: wdt:P195 / ^wdt:P195 ?artwork
+    }
+    UNION
+    {
+      BIND(3 AS ?score_)
+      BIND(\"artist\" AS ?reason)
+      target: wdt:P170 / ^wdt:P170 ?artwork
+    }
+    UNION
+    {
+      BIND(1 AS ?score_)
+      BIND(\"depiction\" AS ?reason)
+      target: wdt:P180 / ^wdt:P180 ?artwork
+    }
+    UNION
+    {
+      BIND(2 AS ?score_)
+      BIND(\"exhibition\" AS ?reason)
+      target: wdt:P608 / ^wdt:P608 ?artwork
+    }
+    UNION
+    {
+      BIND(2 AS ?score_)
+      BIND(\"genre\" AS ?reason)
+      target: wdt:P136 / ^wdt:P136 ?artwork
+    }
+    UNION
+    {
+      BIND(1 AS ?score_)
+      BIND(\"date\" AS ?reason)
+      target: wdt:P571 / ^wdt:P571 ?artwork
+    }
+    FILTER (target: != ?artwork)
+  }
+  GROUP BY ?artwork
+  ORDER BY DESC(?score)
+  LIMIT 500
+} AS %artworks
+WHERE {
+  INCLUDE %artworks
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en,cz,da,de,fi,fr,nb,nn,sv\". }
+}
+ORDER BY DESC(?score)""" .

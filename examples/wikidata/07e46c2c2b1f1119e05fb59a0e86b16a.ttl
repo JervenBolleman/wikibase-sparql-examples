@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-07e46c2c2b1f1119e05fb59a0e86b16a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# municipis d'Espanya segons el nombre d'ajuntaments
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Pere_prlpz>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# municipis d'Espanya segons el nombre d'ajuntaments
 SELECT DISTINCT ?municipio ?municipioLabel (COUNT(?ayuntamiento) AS ?num_casas_consistoriales) 
 WITH {
   SELECT DISTINCT  ?municipio ?ayuntamiento WHERE {
@@ -21,9 +30,40 @@ WHERE {
 }
 GROUP BY ?municipio ?municipioLabel
 #HAVING ((COUNT(?ayuntamiento)) > 1 )
+ORDER BY DESC (?num_casas_consistoriales)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# municipis d'Espanya segons el nombre d'ajuntaments
+SELECT DISTINCT ?municipio ?municipioLabel (COUNT(?ayuntamiento) AS ?num_casas_consistoriales) 
+
+WHERE {
+  {
+  SELECT DISTINCT  ?municipio ?ayuntamiento WHERE {
+  ?municipio wdt:P31/wdt:P279* wd:Q2074737.
+  ?ayuntamiento wdt:P31 wd:Q112793351;
+    wdt:P131 ?municipio.
+  }
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?municipio ?municipioLabel
+#HAVING ((COUNT(?ayuntamiento)) > 1 )
 ORDER BY DESC (?num_casas_consistoriales)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Pere_prlpz>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """# municipis d'Espanya segons el nombre d'ajuntaments
+SELECT DISTINCT ?municipio ?municipioLabel (COUNT(?ayuntamiento) AS ?num_casas_consistoriales) 
+WITH {
+  SELECT DISTINCT  ?municipio ?ayuntamiento WHERE {
+  ?municipio wdt:P31/wdt:P279* wd:Q2074737.
+  ?ayuntamiento wdt:P31 wd:Q112793351;
+    wdt:P131 ?municipio.
+  }
+}  AS %1
+WHERE {
+  INCLUDE %1
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?municipio ?municipioLabel
+#HAVING ((COUNT(?ayuntamiento)) > 1 )
+ORDER BY DESC (?num_casas_consistoriales)""" .

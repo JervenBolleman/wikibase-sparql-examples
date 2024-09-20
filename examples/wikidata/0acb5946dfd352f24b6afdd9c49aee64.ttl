@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-0acb5946dfd352f24b6afdd9c49aee64> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#Les cinq cent éléments les plus récents pour les films
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Simon_Villeneuve/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+#Les cinq cent éléments les plus récents pour les films
 SELECT ?item ?qid (GROUP_CONCAT( DISTINCT ?sitelink) as ?links)
 (SAMPLE(?ids) as ?ids) (SAMPLE(?sl) as ?sl) (SAMPLE(?st) as ?st)
 WITH
@@ -35,8 +45,32 @@ WHERE
 GROUP BY ?item ?qid 
 ORDER BY DESC(?qid) 
 LIMIT 500""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Simon_Villeneuve/SPARQL>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#Les cinq cent éléments les plus récents pour les films
+SELECT ?item ?qid (GROUP_CONCAT( DISTINCT ?sitelink) as ?links)
+(SAMPLE(?ids) as ?ids) (SAMPLE(?sl) as ?sl) (SAMPLE(?st) as ?st)
+WITH
+{
+    SELECT DISTINCT ?item ?qid
+    {
+        { ?item wdt:P31 wd:Q11424 } 
+        UNION
+        { ?item wdt:P31 wd:Q24862 } 
+        UNION
+        { ?item wdt:P31 wd:Q506240 } 
+        UNION
+        { ?item wdt:P31 wd:Q336144 }
+       BIND (xsd:integer(STRAFTER(str(?item), \"Q\")) AS ?qid) 
+       FILTER (?qid > 65200900) .       
+    }
+    ORDER BY DESC(?qid) 
+    LIMIT 500  
+} as %films    
+WHERE
+{ 
+  INCLUDE %films
+  OPTIONAL { [] schema:about ?item ; schema:inLanguage ?l ; schema:name ?w2  BIND( CONCAT(\"[[:\",?l,\":\",str(?w2),\"|\",?l,\"]]\") as ?sitelink) }   
+  ?item wikibase:statements ?st; wikibase:sitelinks ?sl ; wikibase:identifiers ?ids 
+}
+GROUP BY ?item ?qid 
+ORDER BY DESC(?qid) 
+LIMIT 500""" .

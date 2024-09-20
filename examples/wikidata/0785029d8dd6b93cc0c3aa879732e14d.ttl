@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-0785029d8dd6b93cc0c3aa879732e14d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:Graph
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Japastorsanchez/webdatos-2023-2024/seminario-sparql>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Graph
 SELECT DISTINCT ?personaje_origen ?personaje_origenLabel ?escudo
      ?personaje_destino ?personaje_destinoLabel ?edgeLabel 
 WITH {
@@ -26,9 +35,55 @@ WHERE {
      ?personaje_origen ?relacion ?personaje_destino .
      ?edge wikibase:directClaim ?relacion.
      SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Graph
+SELECT DISTINCT ?personaje_origen ?personaje_origenLabel ?escudo
+     ?personaje_destino ?personaje_destinoLabel ?edgeLabel 
+ 
+WITH {
+     SELECT ?personaje_destino WHERE {
+          ?personaje_destino wdt:P31 wd:Q20086263 .
+     }
+} AS %PERSONAJES2 
+WHERE {
+     {
+     SELECT ?personaje_origen ?escudo WHERE {
+          ?personaje_origen wdt:P31 wd:Q20086263 .
+          OPTIONAL {?personaje_origen wdt:P53/wdt:P94 ?escudo .}
+     }
+}
+     {
+     SELECT ?personaje_origen ?escudo WHERE {
+          ?personaje_origen wdt:P31 wd:Q20086263 .
+          OPTIONAL {?personaje_origen wdt:P53/wdt:P94 ?escudo .}
+     }
+}2
+     ?personaje_origen ?relacion ?personaje_destino .
+     ?edge wikibase:directClaim ?relacion.
+     SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Japastorsanchez/webdatos-2023-2024/seminario-sparql>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#defaultView:Graph
+SELECT DISTINCT ?personaje_origen ?personaje_origenLabel ?escudo
+     ?personaje_destino ?personaje_destinoLabel ?edgeLabel 
+WITH {
+     SELECT ?personaje_origen ?escudo WHERE {
+          ?personaje_origen wdt:P31 wd:Q20086263 .
+          OPTIONAL {?personaje_origen wdt:P53/wdt:P94 ?escudo .}
+     }
+} AS %PERSONAJES 
+WITH {
+     SELECT ?personaje_destino WHERE {
+          ?personaje_destino wdt:P31 wd:Q20086263 .
+     }
+} AS %PERSONAJES2 
+WHERE {
+     INCLUDE %PERSONAJES
+     INCLUDE %PERSONAJES2
+     ?personaje_origen ?relacion ?personaje_destino .
+     ?edge wikibase:directClaim ?relacion.
+     SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}""" .

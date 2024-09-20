@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-0382435154962f8522b69f9045302bc6> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?coworker ?coworkerLabel ?sitelinks
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/05>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?coworker ?coworkerLabel ?sitelinks
   WITH {
     SELECT ?work WHERE {
   {?work wdt:P161 wd:Q220308.}
@@ -21,9 +30,40 @@
      ?coworker wikibase:sitelinks ?sitelinks.
    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],ca,en\" } .
 }
+ORDER BY desc(?sitelinks)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?coworker ?coworkerLabel ?sitelinks
+  
+   WHERE {
+     {
+    SELECT ?work WHERE {
+  {?work wdt:P161 wd:Q220308.}
+  UNION
+  {?work wdt:P725 wd:Q220308.}
+    } }
+     {?work wdt:P161 ?coworker.}
+     UNION
+     {?work wdt:P725 ?coworker.}
+     ?coworker wikibase:sitelinks ?sitelinks.
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],ca,en\" } .
+}
 ORDER BY desc(?sitelinks)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/05>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?coworker ?coworkerLabel ?sitelinks
+  WITH {
+    SELECT ?work WHERE {
+  {?work wdt:P161 wd:Q220308.}
+  UNION
+  {?work wdt:P725 wd:Q220308.}
+    } } AS %1
+   WHERE {
+     INCLUDE %1
+     {?work wdt:P161 ?coworker.}
+     UNION
+     {?work wdt:P725 ?coworker.}
+     ?coworker wikibase:sitelinks ?sitelinks.
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],ca,en\" } .
+}
+ORDER BY desc(?sitelinks)""" .

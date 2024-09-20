@@ -6,7 +6,20 @@
 
 <https://www.wikidata.org/#query-0ec9d6e23920406ca0de696e01637812> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?property ?value ?wikipedia ?wikiurl WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/misc/references>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?item ?property ?value ?wikipedia ?wikiurl WITH {
   SELECT DISTINCT ?item WHERE {
     ?item p:P106/ps:P106/wdt:P279* wd:Q26270618 .
   }
@@ -21,9 +34,44 @@
     ?sitelink schema:about ?item; schema:isPartOf ?wikiurl .
   }
   FILTER(!BOUND(?sitelink)) .
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?item ?property ?value ?wikipedia ?wikiurl  WHERE {
+  {
+  SELECT DISTINCT ?item WHERE {
+    ?item p:P106/ps:P106/wdt:P279* wd:Q26270618 .
+  }
+} .
+  ?property wikibase:claim ?claim; wikibase:statementProperty ?ps .
+  ?item ?claim [ ?ps ?value; prov:wasDerivedFrom [ pr:P143 ?wikipedia ] ] .
+  OPTIONAL {
+    ?wikipedia wdt:P856 ?wikiurl .
+  }
+  OPTIONAL {
+    ?sitelink schema:about ?item; schema:isPartOf ?wikiurl .
+  }
+  FILTER(!BOUND(?sitelink)) .
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/misc/references>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?property ?value ?wikipedia ?wikiurl WITH {
+  SELECT DISTINCT ?item WHERE {
+    ?item p:P106/ps:P106/wdt:P279* wd:Q26270618 .
+  }
+} AS %subquery WHERE {
+  INCLUDE %subquery .
+  ?property wikibase:claim ?claim; wikibase:statementProperty ?ps .
+  ?item ?claim [ ?ps ?value; prov:wasDerivedFrom [ pr:P143 ?wikipedia ] ] .
+  OPTIONAL {
+    ?wikipedia wdt:P856 ?wikiurl .
+  }
+  OPTIONAL {
+    ?sitelink schema:about ?item; schema:isPartOf ?wikiurl .
+  }
+  FILTER(!BOUND(?sitelink)) .
+}""" .

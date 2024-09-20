@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-09ed12285a797cce1d4575468c2bc1eb> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q1093499>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:typeface>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q1093499>
 
 SELECT 
   ?works
@@ -28,9 +36,53 @@ WHERE {
   INCLUDE %publishers
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
 }
+ORDER BY DESC(?works)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q1093499>
+
+SELECT 
+  ?works
+
+  ?publisher ?publisherLabel
+  (CONCAT(\"#publisher/\", SUBSTR(STR(?publisher), 32)) AS ?publisherUrl)
+  ?publisherDescription
+ 
+WHERE {
+  {
+  SELECT 
+    (COUNT(?work) AS ?works)
+    ?publisher
+  WHERE {
+    ?work wdt:P2739 target: ;
+          wdt:P123 ?publisher .
+  }
+  GROUP BY ?publisher
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
 ORDER BY DESC(?works)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:typeface>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q1093499>
+
+SELECT 
+  ?works
+
+  ?publisher ?publisherLabel
+  (CONCAT(\"#publisher/\", SUBSTR(STR(?publisher), 32)) AS ?publisherUrl)
+  ?publisherDescription
+WITH {
+  SELECT 
+    (COUNT(?work) AS ?works)
+    ?publisher
+  WHERE {
+    ?work wdt:P2739 target: ;
+          wdt:P123 ?publisher .
+  }
+  GROUP BY ?publisher
+} AS %publishers 
+WHERE {
+  INCLUDE %publishers
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
+ORDER BY DESC(?works)""" .

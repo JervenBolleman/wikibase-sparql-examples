@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-012278de17927fc7f4ef17ab3d42a8a2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q2005>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:topic>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q2005>
 
 SELECT DISTINCT
   ?works
@@ -34,9 +42,65 @@ WHERE {
   INCLUDE %languages
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?works)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q2005>
+
+SELECT DISTINCT
+  ?works
+  (CONCAT(\"#topic/\", SUBSTR(STR(target:), 32), \"/language/\", SUBSTR(STR(?language), 32)) AS ?worksUrl)
+
+  ?language ?languageLabel 
+  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32)) AS ?languageUrl)
+  ?languageDescription
+
+  ?example_work ?example_workLabel 
+  (CONCAT(\"#work/\", SUBSTR(STR(?example_work), 32)) AS ?example_workUrl)
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(?work) AS ?works)
+    ?language 
+    (SAMPLE(?work) AS ?example_work)
+  WHERE {
+    ?work wdt:P921 / (wdt:P31| wdt:P279 | wdt:P361 | wdt:P1269)? # Expensive: *
+              target: ;
+          wdt:P407 ?language .
+  }
+  GROUP BY ?language
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?works)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:topic>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q2005>
+
+SELECT DISTINCT
+  ?works
+  (CONCAT(\"#topic/\", SUBSTR(STR(target:), 32), \"/language/\", SUBSTR(STR(?language), 32)) AS ?worksUrl)
+
+  ?language ?languageLabel 
+  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32)) AS ?languageUrl)
+  ?languageDescription
+
+  ?example_work ?example_workLabel 
+  (CONCAT(\"#work/\", SUBSTR(STR(?example_work), 32)) AS ?example_workUrl)
+WITH {
+  SELECT 
+    (COUNT(?work) AS ?works)
+    ?language 
+    (SAMPLE(?work) AS ?example_work)
+  WHERE {
+    ?work wdt:P921 / (wdt:P31| wdt:P279 | wdt:P361 | wdt:P1269)? # Expensive: *
+              target: ;
+          wdt:P407 ?language .
+  }
+  GROUP BY ?language
+} AS %languages
+WHERE {
+  INCLUDE %languages
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?works)""" .
