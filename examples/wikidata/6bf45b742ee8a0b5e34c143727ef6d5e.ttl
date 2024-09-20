@@ -6,7 +6,25 @@
 
 <https://www.wikidata.org/#query-6bf45b742ee8a0b5e34c143727ef6d5e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# Get OpenStreetMap nodes with inarisami label in wikipedia but without inarisami label in OSM
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+# Get OpenStreetMap nodes with inarisami label in wikipedia but without inarisami label in OSM
 
 PREFIX osmt: <https://wiki.openstreetmap.org/wiki/Key:>
 PREFIX osmm: <https://www.openstreetmap.org/meta/>
@@ -34,18 +52,31 @@ WHERE
   } 
 } 
 LIMIT 12001""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """# Get OpenStreetMap nodes with inarisami label in wikipedia but without inarisami label in OSM
+
+PREFIX osmt: <https://wiki.openstreetmap.org/wiki/Key:>
+PREFIX osmm: <https://www.openstreetmap.org/meta/>
+
+SELECT DISTINCT ?item_smn (?Label_fi as ?wd_label_fi) ?osm_name_fi ?Label_smn ?osm WITH {
+SELECT ?item_smn ?Label_smn ?coord_smn WHERE {
+ ?item_smn rdfs:label ?Label_smn filter (lang(?Label_smn) = \"smn\") .
+ ?item_smn wdt:P17 wd:Q33 .
+ ?item_smn wdt:P625 ?coord_smn .
+}
+} as %smn
+WHERE
+{
+ INCLUDE %smn . 
+ ?item_smn rdfs:label ?Label_fi filter (lang(?Label_fi) = \"fi\") .
+ ?item_smn wdt:P17 wd:Q33 .
+ ?item_smn wdt:P625 ?coord_smn .
+ FILTER(str(?Label_fi)!=str(?Label_smn))
+  
+ SERVICE <https://sophox.org/sparql> { 
+    ?osm osmt:wikidata ?item_smn .
+    ?osm osmm:type \"n\".
+    ?osm osmt:name ?osm_name_fi .
+    FILTER NOT EXISTS { ?osm osmt:name:smn ?osm_name_smn }   
+  } 
+} 
+LIMIT 12001""" .

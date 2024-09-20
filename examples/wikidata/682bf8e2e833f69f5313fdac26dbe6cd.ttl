@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-682bf8e2e833f69f5313fdac26dbe6cd> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# Most cited authors
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Will_(Wiki_Ed)/APS_Project_Page/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Most cited authors
 
 PREFIX target: <http://www.wikidata.org/entity/Q3382012>
 
@@ -40,9 +48,77 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . } 
 }
 ORDER BY DESC(?count)
+LIMIT 50""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Most cited authors
+
+PREFIX target: <http://www.wikidata.org/entity/Q3382012>
+
+SELECT
+  ?count
+  ?author ?authorLabel
+  ?orcid
+  ?example_cited_work ?example_cited_workLabel
+  ?example_citing_work ?example_citing_workLabel
+
+WHERE {
+  {
+  # Count the number of citations
+  SELECT
+    ?author
+    (COUNT(?cited_work) AS ?count)
+    (SAMPLE(?cited_work) AS ?example_cited_work)
+    (SAMPLE(?citing_work) AS ?example_citing_work)
+  WHERE {
+    ?cited_work wdt:P1433 target: .
+    ?citing_work wdt:P2860 ?cited_work .
+    ?cited_work wdt:P50 ?author .
+  }
+  GROUP BY ?author
+} 
+          
+  # Include optional ORCID iD
+  OPTIONAL { ?author wdt:P496 ?orcid . }
+  
+  # Label the results
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . } 
+}
+ORDER BY DESC(?count)
 LIMIT 50""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Will_(Wiki_Ed)/APS_Project_Page/Queries>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """# Most cited authors
+
+PREFIX target: <http://www.wikidata.org/entity/Q3382012>
+
+SELECT
+  ?count
+  ?author ?authorLabel
+  ?orcid
+  ?example_cited_work ?example_cited_workLabel
+  ?example_citing_work ?example_citing_workLabel
+WITH {
+  # Count the number of citations
+  SELECT
+    ?author
+    (COUNT(?cited_work) AS ?count)
+    (SAMPLE(?cited_work) AS ?example_cited_work)
+    (SAMPLE(?citing_work) AS ?example_citing_work)
+  WHERE {
+    ?cited_work wdt:P1433 target: .
+    ?citing_work wdt:P2860 ?cited_work .
+    ?cited_work wdt:P50 ?author .
+  }
+  GROUP BY ?author
+} AS %result
+WHERE {
+  INCLUDE %result 
+          
+  # Include optional ORCID iD
+  OPTIONAL { ?author wdt:P496 ?orcid . }
+  
+  # Label the results
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . } 
+}
+ORDER BY DESC(?count)
+LIMIT 50""" .

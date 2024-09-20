@@ -6,7 +6,19 @@
 
 <https://www.wikidata.org/#query-6044da04b668d0db52d44d6488600c60> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?item ?itemLabel ?count ?sample1  ?sample2  ?exception
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Korg/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?count ?sample1  ?sample2  ?exception
 WITH {
 	SELECT ?formatter WHERE {
 		OPTIONAL { wd:P428 wdt:P1630 ?formatter }
@@ -30,8 +42,27 @@ WHERE
 	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
 }
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Korg/queries>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?itemLabel ?count ?sample1  ?sample2  ?exception
+WITH {
+	SELECT ?formatter WHERE {
+		OPTIONAL { wd:P428 wdt:P1630 ?formatter }
+	} LIMIT 1
+} AS %formatter
+WHERE
+{
+	{
+		SELECT ?item (COUNT(?value) AS ?count) (MIN(?value) AS ?sample1) (MAX(?value) AS ?sample2) {
+			?item p:P428 [ ps:P428 ?val; wikibase:rank ?rank ] .
+			FILTER( ?rank != wikibase:DeprecatedRank ) .
+			INCLUDE %formatter .
+			BIND( IF( BOUND( ?formatter ), URI( REPLACE( ?formatter, '\\\\$1', ?val ) ), ?val ) AS ?value ) .
+		} GROUP BY ?item HAVING ( ?count > 1 )
+	} .
+	OPTIONAL {
+		wd:P428 p:P2302 [ ps:P2302 wd:Q19474404; pq:P2303 ?exc ] .
+		FILTER( ?exc = ?item ) .
+	} .
+	BIND( BOUND( ?exc ) AS ?exception ) .
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+}
+ORDER BY DESC(?count)""" .

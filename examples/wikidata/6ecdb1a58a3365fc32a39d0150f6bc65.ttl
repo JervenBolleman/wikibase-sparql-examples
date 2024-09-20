@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-6ecdb1a58a3365fc32a39d0150f6bc65> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# Co-author graph
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Will_(Wiki_Ed)/APS_Project_Page/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Co-author graph
 
 PREFIX target: <http://www.wikidata.org/entity/Q2779854>
 
@@ -49,8 +58,46 @@ WHERE {
     bd:serviceParam wikibase:language \"en,fr,de,ru,es,zh,jp\".
   }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Will_(Wiki_Ed)/APS_Project_Page/Queries>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """# Co-author graph
+
+PREFIX target: <http://www.wikidata.org/entity/Q2779854>
+
+#defaultView:Graph
+SELECT ?author1 ?author1Label ?rgb ?author2 ?author2Label
+WITH {
+  # Find works published in the given venue
+  SELECT ?work WHERE {
+    ?work wdt:P1433 target: .
+  }
+} AS %works
+WITH {
+  # Limit the number of authors
+  SELECT (COUNT(?work) AS ?count1) ?author1 WHERE {
+    INCLUDE %works
+    ?work wdt:P50 ?author1 .
+  }
+  GROUP BY ?author1
+  ORDER BY DESC(?count1)
+  LIMIT 15
+} AS %authors1
+WITH {
+  # Limit the number of coauthors
+  SELECT DISTINCT ?author2 ?author1  (COUNT(?work) AS ?count2)  WHERE {
+    INCLUDE %works
+    INCLUDE %authors1
+    ?work wdt:P50 ?author1 , ?author2 .
+    FILTER (?author1 != ?author2) 
+  }
+  GROUP BY ?author2 ?author1 
+  ORDER BY DESC(?count2)
+  LIMIT 150
+} AS %authors2
+WHERE {
+#  INCLUDE %authors1
+  INCLUDE %authors2
+  OPTIONAL { ?author1 wdt:P21 ?gender1 . }
+  BIND( IF(?gender1 = wd:Q6581097, \"3182BD\", \"E6550D\") AS ?rgb)
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en,fr,de,ru,es,zh,jp\".
+  }
+}""" .

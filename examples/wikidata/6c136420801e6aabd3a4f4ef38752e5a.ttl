@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-6c136420801e6aabd3a4f4ef38752e5a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?sitelinks WITH {SELECT ?sitelinks
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?sitelinks WITH {SELECT ?sitelinks
 WHERE 
 {
   ?number wdt:P31 wd:Q21199 . 
@@ -26,8 +36,23 @@ WHERE
   FILTER NOT EXISTS {?item wdt:P31/wdt:P279* wd:Q6256 . hint:Prior hint:gearing \"forward\".}
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
   } ORDER BY DESC(?sitelinks)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/12>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?sitelinks WITH {SELECT ?sitelinks
+WHERE 
+{
+  ?number wdt:P31 wd:Q21199 . 
+  ?number wdt:P1181 ?num .
+  bind(xsd:integer(?num) as ?sitelinks)
+  filter (?sitelinks >300) 
+  filter (?sitelinks <402) 
+  } } as %i
+WHERE
+{
+  INCLUDE %i
+  ?item wikibase:sitelinks ?sitelinks .
+  FILTER NOT EXISTS {?item wdt:P31 wd:Q5 .}
+  FILTER NOT EXISTS {?item wdt:P8419 [] .}
+  FILTER NOT EXISTS {?item wdt:P31/wdt:P279* wd:Q17442446 . hint:Prior hint:gearing \"forward\".}
+  FILTER NOT EXISTS {?item wdt:P31/wdt:P279* wd:Q17334923 . hint:Prior hint:gearing \"forward\".}
+  FILTER NOT EXISTS {?item wdt:P31/wdt:P279* wd:Q6256 . hint:Prior hint:gearing \"forward\".}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  } ORDER BY DESC(?sitelinks)""" .

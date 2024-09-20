@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-629f30cca8fdf48461a0343e61c32040> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?river ?riverLabel ?count WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?river ?riverLabel ?count WITH {
   SELECT ?river WHERE {
    ?river wdt:P131/wdt:P131 wd:Q22 . 
     } } as %i
@@ -22,8 +31,19 @@ WHERE
   INCLUDE %j
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
 } ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/03>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?river ?riverLabel ?count WITH {
+  SELECT ?river WHERE {
+   ?river wdt:P131/wdt:P131 wd:Q22 . 
+    } } as %i
+WITH {
+  SELECT ?river (count(distinct ?item) as ?count) WHERE {
+    INCLUDE %i
+    ?river wdt:P31/wdt:P279* wd:Q55659167. hint:Prior hint:gearing \"forward\".
+    ?item ?predicate ?river .
+    ?property wikibase:directClaim ?predicate . 
+    } group by ?river } as %j
+WHERE
+{
+  INCLUDE %j
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+} ORDER BY DESC(?count)""" .

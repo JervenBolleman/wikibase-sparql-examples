@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-69c8bcee6ea73a13c2d17820f41bb2ec> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?database ?databaseLabel ?links ?linksLabel
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jean-Fr%C3%A9d%C3%A9ric/Random_queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?database ?databaseLabel ?links ?linksLabel
 WITH {
   SELECT DISTINCT ?property
   WHERE {
@@ -33,8 +42,30 @@ WHERE {
   INCLUDE %databases.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
  }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jean-Fr%C3%A9d%C3%A9ric/Random_queries>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?database ?databaseLabel ?links ?linksLabel
+WITH {
+  SELECT DISTINCT ?property
+  WHERE {
+    VALUES ?type {
+      wikibase:ExternalId
+      wikibase:Url
+    }
+    ?property wikibase:propertyType ?type;
+      (wdt:P31/(wdt:P279*)) wd:Q28147643.
+  }
+} AS %properties
+WITH {
+  SELECT DISTINCT ?database ?links
+  WHERE {
+    INCLUDE %properties.
+    ?property wdt:P1629 ?database.
+    MINUS { ?database wdt:P31 wd:Q11266439 }
+    OPTIONAL {
+      ?database wdt:P10568 ?links.
+      }
+  }
+} AS %databases
+WHERE {
+  INCLUDE %databases.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+ }""" .

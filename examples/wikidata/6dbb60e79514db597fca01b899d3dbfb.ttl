@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-6dbb60e79514db597fca01b899d3dbfb> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q9035>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:language-composer-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q9035>
 
 SELECT 
   ?musical_works
@@ -30,9 +38,57 @@ WHERE {
   INCLUDE %composers
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?musical_works)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q9035>
+
+SELECT 
+  ?musical_works
+  ?composer ?composerLabel
+  (CONCAT(\"#composer/\", SUBSTR(STR(?composer), 32)) AS ?composerUrl)
+  ?composerDescription
+
+  ?example_musical_work ?example_musical_workLabel
+
+WHERE {
+  {
+  SELECT
+    (COUNT(?musical_work) AS ?musical_works)
+    ?composer
+    (SAMPLE(?musical_work) AS ?example_musical_work)
+  WHERE {
+    ?musical_work wdt:P86 ?composer ;
+                  wdt:P407 target: .
+  }
+  GROUP BY ?composer
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?musical_works)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:language-composer-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q9035>
+
+SELECT 
+  ?musical_works
+  ?composer ?composerLabel
+  (CONCAT(\"#composer/\", SUBSTR(STR(?composer), 32)) AS ?composerUrl)
+  ?composerDescription
+
+  ?example_musical_work ?example_musical_workLabel
+WITH {
+  SELECT
+    (COUNT(?musical_work) AS ?musical_works)
+    ?composer
+    (SAMPLE(?musical_work) AS ?example_musical_work)
+  WHERE {
+    ?musical_work wdt:P86 ?composer ;
+                  wdt:P407 target: .
+  }
+  GROUP BY ?composer
+} AS %composers
+WHERE {
+  INCLUDE %composers
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?musical_works)""" .

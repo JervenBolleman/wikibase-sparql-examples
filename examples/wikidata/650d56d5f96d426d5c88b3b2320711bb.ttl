@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-650d56d5f96d426d5c88b3b2320711bb> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# defaultView:Map
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# defaultView:Map
 SELECT DISTINCT ?url ?item ?itemLabel ?itemDescription ?coords
 
 WITH {
@@ -28,9 +37,54 @@ WHERE {
   # BIND(IRI(REPLACE(?id, '(^.*$)', ?fmt)) AS ?url) .
    
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# defaultView:Map
+SELECT DISTINCT ?url ?item ?itemLabel ?itemDescription ?coords
+
+
+  
+WHERE {
+  hint:SubQuery hint:optimizer \"None\".
+  {
+  SELECT ?item ?id WHERE {
+    ?item wdt:P1343 wd:Q105770461 .
+#    ?item wdt:P31 wd:Q2116450 .
+    ?item wdt:P3029 ?id 
+  }
+} .  
+  ?item (wdt:P276|wdt:P131)/wdt:P625 ?coords.
+  
+  BIND(IRI(CONCAT(\"https://discovery.nationalarchives.gov.uk/details/c/\", ?id)) AS ?url)
+  # wd:P3029 wdt:P1630 ?fmt .
+  # BIND(IRI(REPLACE(?fmt, \"\\\\$1\", ?id)) AS ?url)
+  # BIND(IRI(REPLACE(?id, '(^.*$)', ?fmt)) AS ?url) .
+   
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/03>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """# defaultView:Map
+SELECT DISTINCT ?url ?item ?itemLabel ?itemDescription ?coords
+
+WITH {
+  SELECT ?item ?id WHERE {
+    ?item wdt:P1343 wd:Q105770461 .
+#    ?item wdt:P31 wd:Q2116450 .
+    ?item wdt:P3029 ?id 
+  }
+} AS %items
+  
+WHERE {
+  hint:SubQuery hint:optimizer \"None\".
+  INCLUDE %items .  
+  ?item (wdt:P276|wdt:P131)/wdt:P625 ?coords.
+  
+  BIND(IRI(CONCAT(\"https://discovery.nationalarchives.gov.uk/details/c/\", ?id)) AS ?url)
+  # wd:P3029 wdt:P1630 ?fmt .
+  # BIND(IRI(REPLACE(?fmt, \"\\\\$1\", ?id)) AS ?url)
+  # BIND(IRI(REPLACE(?id, '(^.*$)', ?fmt)) AS ?url) .
+   
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

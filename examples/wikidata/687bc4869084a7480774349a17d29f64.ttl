@@ -6,7 +6,18 @@
 
 <https://www.wikidata.org/#query-687bc4869084a7480774349a17d29f64> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?property ?propertyLabel ?amount ?min ?max WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/misc/quantity_data_type>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?property ?propertyLabel ?amount ?min ?max WITH {
   SELECT ?property ?propertyLabel ?p ?psv ?pqv ?prv ?min ?max WHERE {
     ?property wikibase:propertyType wikibase:Quantity; wikibase:claim ?p; wikibase:statementValue ?psv; wikibase:qualifierValue ?pqv; wikibase:referenceValue ?prv .
     ?property p:P2302 [ ps:P2302 wd:Q21510860; pq:P2313 ?min; pq:P2312 ?max ] .
@@ -18,9 +29,36 @@
   ?item ?p [ ?psv [ wikibase:quantityAmount ?amount ] ] .
   FILTER(?amount < ?min|| ?amount > ?max) .
   FILTER(?item NOT IN (wd:Q4115189)) .
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?property ?propertyLabel ?amount ?min ?max  WHERE {
+  {
+  SELECT ?property ?propertyLabel ?p ?psv ?pqv ?prv ?min ?max WHERE {
+    ?property wikibase:propertyType wikibase:Quantity; wikibase:claim ?p; wikibase:statementValue ?psv; wikibase:qualifierValue ?pqv; wikibase:referenceValue ?prv .
+    ?property p:P2302 [ ps:P2302 wd:Q21510860; pq:P2313 ?min; pq:P2312 ?max ] .
+    FILTER(?property NOT IN (wd:P1106)) .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+  }
+} .
+  ?item ?p [ ?psv [ wikibase:quantityAmount ?amount ] ] .
+  FILTER(?amount < ?min|| ?amount > ?max) .
+  FILTER(?item NOT IN (wd:Q4115189)) .
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/misc/quantity_data_type>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?property ?propertyLabel ?amount ?min ?max WITH {
+  SELECT ?property ?propertyLabel ?p ?psv ?pqv ?prv ?min ?max WHERE {
+    ?property wikibase:propertyType wikibase:Quantity; wikibase:claim ?p; wikibase:statementValue ?psv; wikibase:qualifierValue ?pqv; wikibase:referenceValue ?prv .
+    ?property p:P2302 [ ps:P2302 wd:Q21510860; pq:P2313 ?min; pq:P2312 ?max ] .
+    FILTER(?property NOT IN (wd:P1106)) .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+  }
+} AS %subquery WHERE {
+  INCLUDE %subquery .
+  ?item ?p [ ?psv [ wikibase:quantityAmount ?amount ] ] .
+  FILTER(?amount < ?min|| ?amount > ?max) .
+  FILTER(?item NOT IN (wd:Q4115189)) .
+}""" .

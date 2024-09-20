@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-60e2e8bd0608e80ed63a35ab5f3ec794> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?NBIC WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?NBIC WITH {
   SELECT ?item ?NBIC WHERE 
 {
   SERVICE bd:slice {
@@ -27,8 +36,24 @@ WHERE
   INCLUDE %j
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/09>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?NBIC WITH {
+  SELECT ?item ?NBIC WHERE 
+{
+  SERVICE bd:slice {
+    ?item wdt:P8707 ?NBIC.
+    bd:serviceParam bd:slice.offset 0 . # Start at item number (not to be confused with QID)
+    bd:serviceParam bd:slice.limit 65000 . # List this many items
+  }
+} } as %i
+WITH { 
+  SELECT ?item ?NBIC WHERE
+{
+  INCLUDE %i
+  ?item wdt:P31 wd:Q16521. 
+  FILTER NOT EXISTS {?item wdt:P1843 ?tcn . FILTER(LANG(?tcn)=\"no\") }  
+} } as %j
+WHERE
+{
+  INCLUDE %j
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+}""" .

@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-62025d2160a257727f157d05701d6403> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/1/21>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
   ?item
   ?itemLabel
   ?itemDescription
@@ -38,8 +46,35 @@ WITH {
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"qu,es,en\"}.
 }
 ORDER BY ASC(LCASE(?itemLabel))""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/1/21>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT
+  ?item
+  ?itemLabel
+  ?itemDescription
+WITH {
+  SELECT DISTINCT ?item {
+    []
+    schema:about ?item;
+    schema:isPartOf <https://qu.wikipedia.org/>.
+  }
+  LIMIT 10000
+} AS %0
+WITH {
+  SELECT ?item (COUNT(*) AS ?count) {
+    INCLUDE %0.
+    []
+      schema:about ?item;
+      schema:isPartOf/wikibase:wikiGroup \"wikipedia\".
+  }
+  GROUP BY ?item
+} AS %1
+WITH {
+  SELECT ?item {
+    INCLUDE %1.
+    FILTER(?count = 1)
+  }
+} AS %2
+{
+  INCLUDE %2.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"qu,es,en\"}.
+}
+ORDER BY ASC(LCASE(?itemLabel))""" .

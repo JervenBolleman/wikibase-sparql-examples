@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-6bfd40cc97343df9af22ea0cc7912949> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#title: Works not tagged as being within scope of the WikiProject but citing AND cited from works that are
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#title: Works not tagged as being within scope of the WikiProject but citing AND cited from works that are
 PREFIX target: <http://www.wikidata.org/entity/Q56241615>
 
 SELECT DISTINCT
@@ -35,9 +44,68 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" . } 
 }
 ORDER BY DESC(?count)
+LIMIT 200""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#title: Works not tagged as being within scope of the WikiProject but citing AND cited from works that are
+PREFIX target: <http://www.wikidata.org/entity/Q56241615>
+
+SELECT DISTINCT
+  ?cited_work ?title ?count
+  (REPLACE(STR(?cited_work), \".*Q\", \"Q\") AS ?qid) 
+  (\"P6104\" AS ?property)
+  (REPLACE(STR(target:), \".*Q\", \"Q\") AS ?target) 
+  (\"S887\" AS ?heuristic)
+  (\"Q69652283\" AS ?deduced)
+
+
+WHERE {
+  {
+  SELECT (count(?work) as ?count) ?cited_work WHERE {
+    ?work wdt:P6104 target: .
+    ?work wdt:P2860 ?cited_work .
+  }
+  GROUP BY ?cited_work
+  ORDER BY DESC(?count)
+  LIMIT 20000
+}
+  FILTER (?count > 20)
+  FILTER NOT EXISTS {?cited_work wdt:P6104 target: }
+  ?cited_work wdt:P1476 ?title .
+  ?cited_work wdt:P2860 [wdt:P6104 wd:Q56241615 ] .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" . } 
+}
+ORDER BY DESC(?count)
 LIMIT 200""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#title: Works not tagged as being within scope of the WikiProject but citing AND cited from works that are
+PREFIX target: <http://www.wikidata.org/entity/Q56241615>
+
+SELECT DISTINCT
+  ?cited_work ?title ?count
+  (REPLACE(STR(?cited_work), \".*Q\", \"Q\") AS ?qid) 
+  (\"P6104\" AS ?property)
+  (REPLACE(STR(target:), \".*Q\", \"Q\") AS ?target) 
+  (\"S887\" AS ?heuristic)
+  (\"Q69652283\" AS ?deduced)
+
+WITH {
+  SELECT (count(?work) as ?count) ?cited_work WHERE {
+    ?work wdt:P6104 target: .
+    ?work wdt:P2860 ?cited_work .
+  }
+  GROUP BY ?cited_work
+  ORDER BY DESC(?count)
+  LIMIT 20000
+} AS %result
+WHERE {
+  INCLUDE %result
+  FILTER (?count > 20)
+  FILTER NOT EXISTS {?cited_work wdt:P6104 target: }
+  ?cited_work wdt:P1476 ?title .
+  ?cited_work wdt:P2860 [wdt:P6104 wd:Q56241615 ] .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" . } 
+}
+ORDER BY DESC(?count)
+LIMIT 200""" .

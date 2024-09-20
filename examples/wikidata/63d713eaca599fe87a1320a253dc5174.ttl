@@ -6,7 +6,14 @@
 
 <https://www.wikidata.org/#query-63d713eaca599fe87a1320a253dc5174> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/1/25>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
   ?property
   ?propertyLabel
   ?count
@@ -27,8 +34,24 @@ WITH {
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\"}.
 }
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/1/25>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT
+  ?property
+  ?propertyLabel
+  ?count
+WITH {
+  SELECT ?wdt (COUNT(*) AS ?count) {
+    [] ?wdt [].
+  }
+  GROUP BY ?wdt
+} AS %0
+WITH {
+  SELECT ?property ?count {
+    INCLUDE %0.
+    ?property wikibase:qualifier ?wdt.
+  }
+} AS %1
+{
+  INCLUDE %1.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\"}.
+}
+ORDER BY DESC(?count)""" .

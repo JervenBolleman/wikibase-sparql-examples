@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-6ea832a4a1fa782401a76ff5ac2b58f7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# most common properties on senses
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infovarius/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# most common properties on senses
 SELECT ?property ?propertyLabel ?count WITH {
   SELECT ?property (COUNT(?statement) AS ?count) WHERE {
     hint:SubQuery hint:optimizer \"None\".
@@ -19,9 +27,35 @@ SELECT ?property ?propertyLabel ?count WITH {
   INCLUDE %results.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# most common properties on senses
+SELECT ?property ?propertyLabel ?count  WHERE {
+  {
+  SELECT ?property (COUNT(?statement) AS ?count) WHERE {
+    hint:SubQuery hint:optimizer \"None\".
+    ?lexeme ontolex:sense ?sense.
+    ?sense ?p ?statement.
+    ?property wikibase:claim ?p.
+  }
+  GROUP BY ?property
+}.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infovarius/Queries>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """# most common properties on senses
+SELECT ?property ?propertyLabel ?count WITH {
+  SELECT ?property (COUNT(?statement) AS ?count) WHERE {
+    hint:SubQuery hint:optimizer \"None\".
+    ?lexeme ontolex:sense ?sense.
+    ?sense ?p ?statement.
+    ?property wikibase:claim ?p.
+  }
+  GROUP BY ?property
+} AS %results WHERE {
+  INCLUDE %results.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?count)""" .

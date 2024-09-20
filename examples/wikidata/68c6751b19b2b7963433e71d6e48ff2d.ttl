@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-68c6751b19b2b7963433e71d6e48ff2d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?number WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?number WITH {
   SELECT ?number WHERE {
   ?nn wdt:P31 wd:Q21199.
   ?nn wdt:P1181 ?number .
@@ -18,9 +28,35 @@ WHERE {
   ?item wikibase:statements ?b.
   FILTER NOT EXISTS {?item wdt:P31 wd:Q13442814 .}
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} order by desc(?number)""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?number 
+WHERE {
+  {
+  SELECT ?number WHERE {
+  ?nn wdt:P31 wd:Q21199.
+  ?nn wdt:P1181 ?number .
+  FILTER (?number >= 1000 && ?number <= 10000)
+} }
+  BIND(xsd:integer(?number) as ?b)
+  ?item wikibase:statements ?b.
+  FILTER NOT EXISTS {?item wdt:P31 wd:Q13442814 .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 } order by desc(?number)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/08>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?number WITH {
+  SELECT ?number WHERE {
+  ?nn wdt:P31 wd:Q21199.
+  ?nn wdt:P1181 ?number .
+  FILTER (?number >= 1000 && ?number <= 10000)
+} } AS %i
+WHERE {
+  INCLUDE %i
+  BIND(xsd:integer(?number) as ?b)
+  ?item wikibase:statements ?b.
+  FILTER NOT EXISTS {?item wdt:P31 wd:Q13442814 .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} order by desc(?number)""" .

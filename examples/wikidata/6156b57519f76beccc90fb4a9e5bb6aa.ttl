@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-6156b57519f76beccc90fb4a9e5bb6aa> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?property ?propertyLabel ?propertyType ?count WITH { 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?property ?propertyLabel ?propertyType ?count WITH { 
   SELECT ?property (count(distinct ?item) as ?count)  WHERE {
     SERVICE bd:slice {
       ?item wdt:P31 wd:Q3305213.
@@ -23,8 +32,20 @@ WHERE
   ?property wikibase:propertyType ?propertyType .
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
 } order by desc(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/10>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?property ?propertyLabel ?propertyType ?count WITH { 
+  SELECT ?property (count(distinct ?item) as ?count)  WHERE {
+    SERVICE bd:slice {
+      ?item wdt:P31 wd:Q3305213.
+      bd:serviceParam bd:slice.offset 0 . # Start at item number (not to be confused with QID)
+      bd:serviceParam bd:slice.limit 200000 . # List this many items
+    }
+    hint:Prior hint:runFirst true .
+    ?item ?predicate ?value .
+    ?property wikibase:directClaim ?predicate .
+  } group by ?property  } as %i
+WHERE
+{
+  INCLUDE %i
+  ?property wikibase:propertyType ?propertyType .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+} order by desc(?count)""" .

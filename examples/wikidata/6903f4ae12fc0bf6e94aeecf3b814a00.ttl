@@ -6,7 +6,18 @@
 
 <https://www.wikidata.org/#query-6903f4ae12fc0bf6e94aeecf3b814a00> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?itemLabel_bn WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:ZI_Jony/Querys>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?itemLabel_bn WITH {
   SELECT ?item WHERE {
     ?item wdt:P31 wd:Q5 .
     ?item wdt:P27 wd:Q902 .
@@ -16,9 +27,32 @@
   INCLUDE %RESULTS
   optional {?item schema:description ?itemLabel_bn . filter(lang(?itemLabel_bn)=\"bn\")}
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?itemLabel_bn  {
+  {
+  SELECT ?item WHERE {
+    ?item wdt:P31 wd:Q5 .
+    ?item wdt:P27 wd:Q902 .
+    filter not exists { ?item rdfs:label ?itemLabel_bn . filter(lang(?itemLabel_bn)=\"bn\") }
+  } LIMIT 200
+}
+  optional {?item schema:description ?itemLabel_bn . filter(lang(?itemLabel_bn)=\"bn\")}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:ZI_Jony/Querys>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?itemLabel_bn WITH {
+  SELECT ?item WHERE {
+    ?item wdt:P31 wd:Q5 .
+    ?item wdt:P27 wd:Q902 .
+    filter not exists { ?item rdfs:label ?itemLabel_bn . filter(lang(?itemLabel_bn)=\"bn\") }
+  } LIMIT 200
+} AS %RESULTS {
+  INCLUDE %RESULTS
+  optional {?item schema:description ?itemLabel_bn . filter(lang(?itemLabel_bn)=\"bn\")}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .
