@@ -1,0 +1,66 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-09c7a01267979259d8a20c6c7bb3e3e2> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Title: Find statements with references containing external links to bksh.al
+# Description: Find item statements with references containing external links to bksh.al using http and https protocols
+SELECT ?item ?itemLabel ?property ?propertyLabel ?value ?valueLabel ?reference_URL
+WITH
+{
+  SELECT DISTINCT ?item
+  WHERE
+  {
+    {
+      # Find items with https URLs
+      SERVICE wikibase:mwapi
+      {
+        bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+        bd:serviceParam wikibase:api \"Generator\" .
+        bd:serviceParam mwapi:generator \"exturlusage\" .
+        bd:serviceParam mwapi:geuprop \"title\" .
+        bd:serviceParam mwapi:geunamespace \"0\" .
+        bd:serviceParam mwapi:geuprotocol \"https\" .
+        bd:serviceParam mwapi:geuquery \"*.bksh.al\" .
+        bd:serviceParam mwapi:geulimit \"max\" .
+        ?item wikibase:apiOutputItem mwapi:title .
+      }
+    }
+    UNION
+    {
+      # Find items with http URLs
+      SERVICE wikibase:mwapi
+      {
+        bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+        bd:serviceParam wikibase:api \"Generator\" .
+        bd:serviceParam mwapi:generator \"exturlusage\" .
+        bd:serviceParam mwapi:geuprop \"title\" .
+        bd:serviceParam mwapi:geunamespace \"0\" .
+        bd:serviceParam mwapi:geuprotocol \"http\" .
+        bd:serviceParam mwapi:geuquery \"*.bksh.al\" .
+        bd:serviceParam mwapi:geulimit \"max\" .
+        ?item wikibase:apiOutputItem mwapi:title .
+      }
+    }
+  }
+} AS %get_items
+WHERE
+{
+  INCLUDE %get_items
+  ?item ?prop ?statement .
+  ?property wikibase:claim ?prop .
+  ?property wikibase:statementProperty ?ps .
+  ?statement ?ps ?value .
+  ?statement prov:wasDerivedFrom ?reference .
+  ?reference ?refprop ?reference_URL .
+  FILTER CONTAINS(STR(?reference_URL), \"bksh.al/\")
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Albania/National_Library_of_Albania/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

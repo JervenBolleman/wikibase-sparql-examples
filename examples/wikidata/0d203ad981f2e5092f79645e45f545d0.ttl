@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0d203ad981f2e5092f79645e45f545d0> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?revenue ?hq ?date ?profit (ROUND(?profmar*1000)/100 AS ?profmar_rounded) ?unit
+WHERE
+{
+    ?item wdt:P31 wd:Q4830453 .
+    ?item wdt:P159 ?hq . 
+    ?hq wdt:P17 wd:Q213 .
+    ?item p:P2139 ?revenueSt .
+    ?revenueSt a wikibase:BestRank; ps:P2139 ?revenue .
+    OPTIONAL { ?revenueSt psv:P2139 ?psv .
+              ?psv wikibase:quantityUnit ?unit }. 
+    OPTIONAL { ?revenueSt pq:P585 ?date } .
+    ?item p:P2295 ?profSt .
+    ?profSt a wikibase:BestRank; ps:P2295 ?profit .
+    BIND(?revenue / ?profit AS ?profmar) .
+    FILTER(?profmar>0)
+    FILTER( ?item not in (wd:Q100707321,wd:Q12021780))
+}
+ORDER BY ASC(?profmar)
+LIMIT 20""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,53 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0e70669a78249bb6af2d87a8b540a878> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# map of residence cities
+# also viewable as table, timeline, and image grid
+#defaultView:Map
+SELECT DISTINCT ?residence ?residenceLabel ?countryLabel ?image ?coord ?start ?end
+WHERE {
+  # define \"?residence, ?starttime, ?endtime\" as:
+  VALUES (?residence ?starttime ?endtime)
+         # Nanchang (Q171943), 4 February 1975 (Q69292163), 1979 (Q2484)
+         {(wd:Q171943 wd:Q69292163 wd:Q2484)
+          # Zhengzhou (Q30340), 1979 (Q2484), September 1993 (Q3478983)
+          (wd:Q30340 wd:Q2484 wd:Q3478983)
+          # Beijing (Q956), September 1993 (Q3478983), September 1999 (Q1150759)
+          (wd:Q956 wd:Q3478983 wd:Q1150759)
+          # Aix-en-Provence (Q47465), September 1999 (Q1150759), March 2000 (Q1616972)
+          (wd:Q47465 wd:Q1150759 wd:Q1616972)
+          # Beijing (Q956), March 2000 (Q1616972), 24 August 2001 (Q69304006)
+          (wd:Q956 wd:Q1616972 wd:Q69304006)
+          # New Haven (Q49145), 24 August 2001 (Q69304006), 24 February 2006 (Q22663364)
+          (wd:Q49145 wd:Q69304006 wd:Q22663364)
+          # Beijing (Q956), 1 March 2006 (Q22663369), 31 August 2023 (Q69306908)
+          (wd:Q956 wd:Q22663369 wd:Q69306908)
+          # Haikou, Hainan (Q189823), 18 September 2023 (Q69306926), \"today\"
+          (wd:Q189823 wd:Q69306926 \"today\")}
+  # optional: show ?residence's country (P17) as ?country
+  OPTIONAL {?residence wdt:P17 ?country}
+  # optional: show ?residence's image (P18) as ?image
+  OPTIONAL {?residence wdt:P18 ?image}
+  # optional: show ?residence's coordinate location (P625) as ?coord
+  OPTIONAL {?residence wdt:P625 ?coord}
+  # optional: show ?starttime's point in time (P585) as ?start
+  OPTIONAL {?starttime wdt:P585 ?start}
+   # optional: if ?endtime has \"point in time\" (P585), the value is ?x
+  OPTIONAL {?endtime wdt:P585 ?x}
+  # use IF to define ?end as:
+  # if ?endtime is \"today\", today (NOW); otherwise (?endtime has \"point in time\" (P585)), ?x
+  ### Note: If ?endtime is not \"today\", and does not have \"point in time\" (P585), ?end will have no value.
+  BIND (IF(?endtime=\"today\", NOW(), ?x) AS ?end)
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".}
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query/2>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

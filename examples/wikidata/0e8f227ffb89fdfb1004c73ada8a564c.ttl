@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0e8f227ffb89fdfb1004c73ada8a564c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?mdod with 
+{ select DISTINCT ?item WHERE 
+  {
+    # look for items of type \"work\" or \"data\" (or children)
+    ?item wdt:P31/wdt:P279* ?pq . 
+    VALUES ?pq { wd:Q386724  wd:Q42848 } 
+    # get date of publication and make sure is before 1924
+    ?item wdt:P577 ?dop . 
+    hint:Prior hint:rangeSafe true .
+    FILTER (?dop < \"1924-01-01T00:00:01\"^^xsd:dateTime)
+    FILTER NOT EXISTS { ?item wdt:P6216 [] }  # item does not have P6216 yet
+  } } as %i with {
+select ?item (max(?dod) as ?mdod) where  
+{ # look through all the authors and other creators of the work and look up their date of death, than find the latest
+  include %i  
+  ?item wdt:P50|wdt:P170|wdt:P655|wdt:P84|wdt:P110|wdt:P287|wdt:P87|wdt:P98 ?creator .
+  ?creator wdt:P570 ?dod .
+} group by ?item  } as %j
+where
+{
+  include %j
+  hint:Prior hint:rangeSafe true .
+  FILTER(?mdod < \"1918-01-01T00:00:01\"^^xsd:dateTime) . # make sure last creator date of death is before 1918
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jarekt/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,42 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-05ecfb7c80ac6e6910349bbb623ff5e8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+SELECT DISTINCT (?compyrLabel AS ?layer) ?teamLabel ?teamplace ?tgrstart ?tgrend ?tcompstart ?tcompout ?clow ?ctop  ?team  WHERE { 
+  ?team wdt:P31 wd:Q476028.
+  optional { ?team wdt:P571 ?tbegan. }
+  optional { ?team wdt:P576 ?tdisband. } BIND(COALESCE(?tdisband, now()) AS ?tgrend).
+  ?team p:P118 ?tcomp.
+  ?tcomp ps:P118 ?wcomp.
+  optional {?tcomp pq:P580 ?tcompstart.} optional {?tcomp pq:P582 ?tcompout.}
+  ?wcomp wdt:P2541 wd:Q22.
+    optional { ?wcomp rdfs:label ?compLabel. FILTER(LANG(?compLabel) = \"en\").}
+    optional { ?wcomp wdt:P571 ?compbegan. }
+    BIND (COALESCE(?tcompstart, ?compbegan) AS ?tcompstart). 
+    BIND(year(?tcompstart) AS ?joinedcompyr).
+  optional { ?team wdt:P625 ?teamloc. }
+  ?team rdfs:label ?teamLabel. FILTER(LANG(?teamLabel) = \"en\").
+  ?team p:P115 ?tpark.
+    ?tpark ps:P115 ?teampark.
+    optional {?teampark wdt:P625 ?teamparkloc.}.  
+    optional {?tpark pq:P580 ?tgrst1. ?tpark pq:P582 ?tgrend1. FILTER (?tgrend1 > ?tcompstart && ?tgrst1 < ?tcompout ).} .
+    BIND(COALESCE(?tgrst1,?tbegan) AS ?tgrst1). BIND(COALESCE(?tgrend,?tdisband) AS ?tgrend).
+    BIND(COALESCE(?teamparkloc,?teamloc) AS ?teamplace).
+  FILTER (?joinedcompyr < 1950 )
+  BIND ( IF (?wcomp = wd:Q2261276, 
+            IF(?joinedcompyr>1922,\"1923\",
+               IF(?joinedcompyr>1892,\"1893\",\"1890\")), 
+         STR(year(?compbegan))) AS ?compband).
+  BIND(IF(BOUND(?compband),(CONCAT (?compLabel, \"  from \", ?compband) ), ?compLabel ) AS ?compyrLabel).
+}
+ORDER BY ?teamLabel ?compyrLabel ?tcompstart ?layeryr""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:AllyD/sandbox>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0a9806e6cdde912d18e1ff03a6f5fc9c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?essai_nucl_aire ?essai_nucl_aireLabel ?date ?op_rateur ?op_rateurLabel ?_quivalent_d__nergie_explosive
+WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?essai_nucl_aire wdt:P31 wd:Q210112.
+  OPTIONAL { ?essai_nucl_aire wdt:P585 ?date. }
+  OPTIONAL { ?essai_nucl_aire wdt:P137 ?op_rateur. }
+  OPTIONAL {
+    ?essai_nucl_aire p:P2145 ?yield_statement.
+    ?yield_statement a wikibase:BestRank. # Use only best rank, like if using the wdt:P2145 predicate
+    ?yield_statement psn:P2145 / wikibase:quantityAmount ?joule. # Yield in joule (normalized quantity) 
+    BIND (?joule / 4184000000 AS ?_quivalent_d__nergie_explosive) # Convert joule to Q98391507 (tonne de TNT)
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

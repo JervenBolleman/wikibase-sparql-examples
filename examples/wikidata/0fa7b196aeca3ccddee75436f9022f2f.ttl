@@ -1,0 +1,121 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0fa7b196aeca3ccddee75436f9022f2f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?itemName
+                ?item ?dob1dispStr ?dod1dispStr ?occ1
+                ?item2 ?dob2dispStr ?dod2dispStr ?occ2
+                ?dobdiff ?doddiff ?meandiff ?meanPrec with 
+{
+SELECT DISTINCT ?item ?item2 ?itemName ?occ1 ?occ2 WHERE {
+  ?item wdt:P106 ?occ1 .
+  ?occ1 wdt:P279* wd:Q3391743 .
+  { ?item rdfs:label ?itemName. } UNION { ?item skos:altLabel ?itemName. }
+  ?item2 wdt:P106 ?occ2 .
+  ?occ2 wdt:P279* wd:Q3391743 .
+  { ?item2 rdfs:label ?itemName. } UNION { ?item2 skos:altLabel ?itemName. }
+  FILTER((LANG(?itemName)) = \"en\")
+  FILTER((STR(?item)) < (STR(?item2)))
+}
+LIMIT 100000
+} as %items
+where {
+include %items
+  MINUS { ?item wdt:P1889 \\u007C wdt:P460 \\u007C wdt:P3373 ?item2. }
+  MINUS { ?item2 wdt:P1889 \\u007C wdt:P460 \\u007C wdt:P3373 ?item. }
+  
+  OPTIONAL {
+    ?item p:P569/psv:P569 [
+      wikibase:timeValue ?dob1Val;
+      wikibase:timePrecision ?dob1Prec ] .
+    BIND(STR(?dob1Val) AS ?dob1fullStr)
+    BIND(IF(?dob1Prec <= 10, 3, 0) AS ?dob1insigDayChars)
+    BIND(IF(?dob1Prec <= 9, 3, 0) AS ?dob1insigMonthChars)
+    BIND(IF(?dob1Prec <= 8, 9-?dob1Prec, 0) AS ?dob1insigYearChars)
+    BIND(?dob1insigDayChars + ?dob1insigMonthChars + ?dob1insigYearChars AS ?dob1insigDateChars)
+    BIND(SUBSTR(?dob1fullStr, 1, STRLEN(?dob1fullStr) - 10 - ?dob1insigDateChars) AS ?dob1SignStr)
+    BIND(CONCAT(?dob1SignStr, SUBSTR(\"0000000000000000\", 1, ?dob1insigYearChars)) AS ?dob1dispStr)
+    }
+
+  OPTIONAL {
+    ?item2 p:P569/psv:P569 [
+      wikibase:timeValue ?dob2Val;
+      wikibase:timePrecision ?dob2Prec ] .
+    BIND(STR(?dob2Val) AS ?dob2fullStr)
+    BIND(IF(?dob2Prec <= 10, 3, 0) AS ?dob2insigDayChars)
+    BIND(IF(?dob2Prec <= 9, 3, 0) AS ?dob2insigMonthChars)
+    BIND(IF(?dob2Prec <= 8, 9-?dob2Prec, 0) AS ?dob2insigYearChars)
+    BIND(?dob2insigDayChars + ?dob2insigMonthChars + ?dob2insigYearChars AS ?dob2insigDateChars)
+    BIND(SUBSTR(?dob2fullStr, 1, STRLEN(?dob2fullStr) - 10 - ?dob2insigDateChars) AS ?dob2SignStr)
+    BIND(CONCAT(?dob2SignStr, SUBSTR(\"0000000000000000\", 1, ?dob2insigYearChars)) AS ?dob2dispStr)
+    }
+
+  BIND(IF(?dob1insigDateChars > ?dob2insigDateChars, ?dob1insigDateChars, ?dob2insigDateChars) AS ?dobComInsigDateChars)
+  BIND(SUBSTR(?dob1fullStr, 1, STRLEN(?dob1fullStr) - 10 - ?dobComInsigDateChars) AS ?dob1ComSigStr)
+  BIND(SUBSTR(?dob2fullStr, 1, STRLEN(?dob2fullStr) - 10 - ?dobComInsigDateChars) AS ?dob2ComSigStr)
+  BIND(STRDT(CONCAT(?dob1ComSigStr, SUBSTR(\"0000000000000000-01-01T00:00:00Z\", 23 - ?dobComInsigDateChars)), xsd:dateTime) AS ?dob1ComSig)
+  BIND(STRDT(CONCAT(?dob2ComSigStr, SUBSTR(\"0000000000000000-01-01T00:00:00Z\", 23 - ?dobComInsigDateChars)), xsd:dateTime) AS ?dob2ComSig)
+  BIND((CEIL(ABS((?dob1ComSig - ?dob2ComSig) / 3.652425))) / 100 AS ?dobdiff)
+
+
+  OPTIONAL {
+    ?item p:P570/psv:P570 [
+      wikibase:timeValue ?dod1Val;
+      wikibase:timePrecision ?dod1Prec ] .
+    BIND(STR(?dod1Val) AS ?dod1fullStr)
+    BIND(IF(?dod1Prec <= 10, 3, 0) AS ?dod1insigDayChars)
+    BIND(IF(?dod1Prec <= 9, 3, 0) AS ?dod1insigMonthChars)
+    BIND(IF(?dod1Prec <= 8, 9-?dod1Prec, 0) AS ?dod1insigYearChars)
+    BIND(?dod1insigDayChars + ?dod1insigMonthChars + ?dod1insigYearChars AS ?dod1insigDateChars)
+    BIND(SUBSTR(?dod1fullStr, 1, STRLEN(?dod1fullStr) - 10 - ?dod1insigDateChars) AS ?dod1SignStr)
+    BIND(CONCAT(?dod1SignStr, SUBSTR(\"0000000000000000\", 1, ?dod1insigYearChars)) AS ?dod1dispStr)
+    }
+
+  OPTIONAL {
+    ?item2 p:P570/psv:P570 [
+      wikibase:timeValue ?dod2Val;
+      wikibase:timePrecision ?dod2Prec ] .
+    BIND(STR(?dod2Val) AS ?dod2fullStr)
+    BIND(IF(?dod2Prec <= 10, 3, 0) AS ?dod2insigDayChars)
+    BIND(IF(?dod2Prec <= 9, 3, 0) AS ?dod2insigMonthChars)
+    BIND(IF(?dod2Prec <= 8, 9-?dod2Prec, 0) AS ?dod2insigYearChars)
+    BIND(?dod2insigDayChars + ?dod2insigMonthChars + ?dod2insigYearChars AS ?dod2insigDateChars)
+    BIND(SUBSTR(?dod2fullStr, 1, STRLEN(?dod2fullStr) - 10 - ?dod2insigDateChars) AS ?dod2SignStr)
+    BIND(CONCAT(?dod2SignStr, SUBSTR(\"0000000000000000\", 1, ?dod2insigYearChars)) AS ?dod2dispStr)
+    }
+
+  BIND(IF(?dod1insigDateChars > ?dod2insigDateChars, ?dod1insigDateChars, ?dod2insigDateChars) AS ?dodComInsigDateChars)
+  BIND(SUBSTR(?dod1fullStr, 1, STRLEN(?dod1fullStr) - 10 - ?dodComInsigDateChars) AS ?dod1ComSigStr)
+  BIND(SUBSTR(?dod2fullStr, 1, STRLEN(?dod2fullStr) - 10 - ?dodComInsigDateChars) AS ?dod2ComSigStr)
+  BIND(STRDT(CONCAT(?dod1ComSigStr, SUBSTR(\"0000000000000000-01-01T00:00:00Z\", 23 - ?dodComInsigDateChars)), xsd:dateTime) AS ?dod1ComSig)
+  BIND(STRDT(CONCAT(?dod2ComSigStr, SUBSTR(\"0000000000000000-01-01T00:00:00Z\", 23 - ?dodComInsigDateChars)), xsd:dateTime) AS ?dod2ComSig)
+  BIND((CEIL(ABS((?dod1ComSig - ?dod2ComSig) / 3.652425))) / 100 AS ?doddiff)
+  
+  BIND(BOUND(?dobdiff) AS ?dobdiffbound)
+  BIND(BOUND(?doddiff) AS ?doddiffbound)
+
+  BIND(IF(BOUND(?dobdiff), ?dobdiff, 0) AS ?dobdiffSf)
+  BIND(IF(BOUND(?doddiff), ?doddiff, 0) AS ?doddiffSf)
+  BIND((xsd:integer(?dobdiffbound) + xsd:integer(?doddiffbound)) AS ?numOfDateDiffs)
+  BIND((CEIL((?dobdiffSf + ?doddiffSf) / ?numOfDateDiffs * 100) / 100) AS ?meandiff)
+
+  BIND(IF(?dob1Prec < ?dob2Prec, ?dob1Prec, ?dob2Prec) AS ?dobComPrec)
+  BIND(IF(?dod1Prec < ?dod2Prec, ?dod1Prec, ?dod2Prec) AS ?dodComPrec)
+  BIND(BOUND(?dobComPrec) AS ?dobComPrecBound)
+  BIND(BOUND(?dodComPrec) AS ?dodComPrecBound)
+  BIND(IF(BOUND(?dobComPrec), ?dobComPrec, 0) AS ?dobComPrecSf)
+  BIND(IF(BOUND(?dodComPrec), ?dodComPrec, 0) AS ?dodComPrecSf)
+  BIND((xsd:integer(?dobComPrecBound) + xsd:integer(?dodComPrecBound)) AS ?numOfComPrecBound)
+  BIND((?dobComPrecSf + ?dodComPrecSf) / ?numOfComPrecBound AS ?meanPrec)
+}
+ORDER BY (!(?dobdiffbound) && !(?doddiffbound)) ?meandiff (?numOfDateDiffs * -1) (?meanPrec * -1) ?itemName
+LIMIT 500""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

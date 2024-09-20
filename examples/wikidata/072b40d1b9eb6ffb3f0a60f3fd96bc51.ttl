@@ -1,0 +1,77 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-072b40d1b9eb6ffb3f0a60f3fd96bc51> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?itemDescription ?sitelinks
+WITH
+{
+  SELECT ?item ?sitelinks
+  WHERE
+  {
+    #Minimum sitelinks
+    ?item wikibase:sitelinks ?sitelinks.
+    hint:Prior hint:rangeSafe true.
+    FILTER (?sitelinks > 20 )
+  
+    #Random stuff
+    # BIND(RAND() AS ?random) . # Using this makes it not random
+    BIND(SHA512(CONCAT(STR(RAND()), STR(?item))) AS ?random) 
+  }
+  ORDER BY ?random
+  LIMIT 1000
+} AS %subquery1
+WITH
+{
+  SELECT ?item ?sitelinks
+  WHERE
+  {
+    INCLUDE %subquery1
+
+    #Filters to remove undesired entries (templates, categories, ...)
+    FILTER NOT EXISTS {?item wdt:P31 wd:Q11266439}
+    FILTER NOT EXISTS {?item wdt:P31 wd:Q97950663}
+    FILTER NOT EXISTS {?item wdt:P31 wd:Q4167836}
+    FILTER NOT EXISTS {?item wdt:P31 wd:Q59541917}
+    FILTER NOT EXISTS {?item wdt:P31 wd:Q14204246}
+    FILTER NOT EXISTS {?item wdt:P31 wd:Q19842659}
+    FILTER NOT EXISTS {?item wdt:P373 ?commonsCategory}
+    FILTER NOT EXISTS {?item wdt:P301 ?categoryMainTopic}
+    FILTER NOT EXISTS {?item wdt:P31 wd:Q15184295}
+    FILTER NOT EXISTS {?item wdt:P1423 ?templateHasTopic}
+    FILTER NOT EXISTS {?item wdt:P910 ?topicMainCategory}
+    FILTER NOT EXISTS {?item wdt:P31 wd:Q20010800}
+    FILTER NOT EXISTS {?item wdt:P360 ?isAListOf}
+    FILTER NOT EXISTS {?item wdt:P31 wd:Q108783631}
+    FILTER NOT EXISTS {?item wdt:P31 wd:Q11753321}
+    FILTER NOT EXISTS {?item wdt:P4224 ?categoryContains}
+    FILTER NOT EXISTS {?item wdt:P971 ?categoryCombinesTopics}
+    FILTER NOT EXISTS {?item wdt:P31 wd:Q97303168}
+    FILTER NOT EXISTS {?item wdt:P31 wd:Q59259626}
+    FILTER NOT EXISTS {?item wdt:P31 wd:Q110010043}
+    FILTER NOT EXISTS {?item wdt:P31 wd:Q1474116}
+    FILTER NOT EXISTS {?item wdt:P31 wd:Q15647814}
+    FILTER NOT EXISTS {?item wdt:P31 wd:Q19887878}
+    FILTER NOT EXISTS {?item wdt:P31 wd:Q107344376}
+    FILTER NOT EXISTS {?item wdt:P31 wd:Q36330215}
+    FILTER NOT EXISTS {?item wdt:P31 wd:Q14296}
+    FILTER NOT EXISTS {?item wdt:P31 wd:Q42032}
+    FILTER NOT EXISTS {?item wdt:P2370 ?conversionToSIUnit}
+    FILTER NOT EXISTS {?item wdt:P31 wd:Q4167410}
+    #FILTER NOT EXISTS {?item wdt:P31 wd:aaa}
+  }
+  LIMIT 100
+} AS %subquery2
+WHERE 
+{
+  INCLUDE %subquery2
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

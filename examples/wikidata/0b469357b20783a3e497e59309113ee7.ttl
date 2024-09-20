@@ -1,0 +1,55 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0b469357b20783a3e497e59309113ee7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX      dbpprop:  <http://dbpedia.org/property/>
+PREFIX      foaf:  <http://xmlns.com/foaf/0.1/>
+SELECT ?NobelId ?item ?LaureateNobelUri ?NobelBirth  ?WDBirth ?NobelDeath ?WDDeath ?statedin (?cm AS ?CalendarModel) (?p854 AS ?refURL) (?p143 AS ?ImportedFromWikipedia)
+with
+{SELECT ?NobelId ?item ?LaureateNobelUri ?NobelBirth ?NobelDeath ?WDBirth ?WDDeath ?statedin ?cm ?p854 ?p143{
+  SERVICE <http://data.nobelprize.org/sparql>  {
+      SELECT distinct ?NobelId ?LaureateNobelUri ?NobelBirth ?NobelDeath ?NobelGender WHERE {        
+      ?LaureateNobelUri <http://data.nobelprize.org/terms/laureateAward> ?NobelAwardid.
+      BIND(REPLACE(str(?LaureateNobelUri),\"http://data.nobelprize.org/resource/laureate/\",\"\") AS ?NobelId)
+      OPTIONAL{ ?LaureateNobelUri foaf:birthday ?NobelBirth}
+      OPTIONAL{ ?LaureateNobelUri dbpprop:dateOfDeath ?NobelDeath}
+      }
+   }
+  } 
+ } as %i where
+{
+  include %i
+  ?item wdt:P2888 ?LaureateNobelUri . 
+  OPTIONAL{ ?item wdt:P569 ?birthDate.}
+  OPTIONAL{  ?item p:P569 [ prov:wasDerivedFrom ?ref; psv:P569 [wikibase:timeCalendarModel ?cm ]] . 
+     OPTIONAL { ?ref pr:P248 ?statedin }
+     OPTIONAL { ?ref pr:P143 ?p143 }
+     OPTIONAL { ?ref pr:P854 ?p854 } 
+  }
+  OPTIONAL{ ?item wdt:P570 ?diedDate.}
+  BIND (SUBSTR(CONCAT(\"0\",STR(DAY(?birthDate))),STRLEN(STR(DAY(?birthDate))),2) AS ?birthDay)
+  BIND (SUBSTR(CONCAT(\"0\",STR(MONTH(?birthDate))),STRLEN(STR(MONTH(?birthDate))),2) AS ?birthMonth)
+  BIND (CONCAT(STR(YEAR(?birthDate)),\"-\",?birthMonth,\"-\",?birthDay) AS ?WDBirth)
+  BIND (SUBSTR(CONCAT(\"0\",STR(DAY(?diedDate))),STRLEN(STR(DAY(?diedDate))),2) AS ?diedDay)
+  BIND (SUBSTR(CONCAT(\"0\",STR(MONTH(?diedDate))),STRLEN(STR(MONTH(?diedDate))),2) AS ?diedMonth)
+  BIND (CONCAT(STR(YEAR(?diedDate)),\"-\",?diedMonth,\"-\",?diedDay) AS ?WDDeath)
+  FILTER (!(
+        (BOUND(?NobelBirth) = BOUND(?WDBirth))
+    &&
+        (BOUND(?NobelDeath) = BOUND(?WDDeath))
+    &&
+        (str(?WDBirth) = str(?NobelBirth))
+    &&
+        (str(?WDDeath) = str(?NobelDeath)))
+  )
+}
+ order by desc(xsd:integer(?NobelId))""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Salgo60/ListeriaNobelData3>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,42 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-064dea4274fe98015e1cd6e9abad541c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Graph;Table
+#------------------------------------------------------------------------------------
+# Straßenverbindungen als Graph (über die Eigenschaft \"physisch verbunden mit\")
+#------------------------------------------------------------------------------------
+SELECT distinct
+?item ?itemLabel ?image  ?other ?otherLabel ?image2
+WHERE
+{
+    ?item wdt:P131+ wd:Q1731. # Objekt liegt in Verwaltungseinheit Dresden (oder Subklasse)
+
+    #?instance_of wdt:P279+ wd:Q376799 .   # Verkehrsinfrastuktur
+    VALUES ?instance_of { 
+      wd:Q79007      # Innerortstraße
+      wd:Q21000333   # Einkaufsstraße 
+      wd:Q174782     # Platz
+      wd:Q537127     # Straßenbrücke
+      wd:Q3397519    # Spannbetonbrücke 
+      wd:Q1055465    # Balkenbrücke  
+    } # Innerortstraße oder Platz oder Brücke
+    ?item wdt:P31 ?instance_of.
+	
+    ?item  wdt:P2789    ?other  .   # verbundenes objekt
+    	
+    OPTIONAL {
+      ?item  wdt:P18     ?image  .   # grab image1
+      ?other wdt:P18     ?image2 .   # grab image2
+    }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en,[AUTO_LANGUAGE]\" }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Methodios/Dresden>, <https://www.wikidata.org//wiki/User:Stefan_K%C3%BChn/Dresden>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

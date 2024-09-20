@@ -1,0 +1,46 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-053904522cecb83945e632284a21dea3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# find Chiang Kai-shek's extended nuclear family members, i.e.,
+# nuclear family members' nuclear family members'...
+#defaultView:Graph
+SELECT ?extended_family ?extended_familyLabel ?birthdate ?image ?nuclear_family ?nuclear_familyLabel ?edgeLabel
+WHERE {
+  # define Chiang Kai-shek (Q16574)'s ?extended_family as
+  # any father (P22) or mother (P25) or sibling (P3373) or spouse (P26) or child (P40)'s, i.e., nuclear family member's
+  # father or mother or sibling or spouse or child's..., i.e., nuclear family member's...
+  wd:Q16574 (wdt:P22|wdt:P25|wdt:P3373|wdt:P26|wdt:P40)* ?extended_family
+  ### Note: Persons (vertexes) in a complete graph have stronger connections (edges) than those in noncomplete graph, and
+  ### relations (edges) connecting nuclear family members (vertexes, at least 3: two spouses and one child) form a complete graph.
+  ### A complete graph with at least 3 vertexes is usually a nuclear family or part of nuclear family 
+  ### although it may not always be the case
+  ### (e.g., a husband has two wives who are sisters of each other, or
+  ### a man's wife is his son's daughter).
+  # optional: define ?extended_family's father (P22) or mother (P25) or sibling (P3373) or spouse (P26) or child (P40),
+  # i.e., nuclear family member, as ?nuclear_family
+  optional {?extended_family (wdt:P22|wdt:P25|wdt:P3373|wdt:P26|wdt:P40) ?nuclear_family
+            # To avoid showing any other relation than nuclear-family relation
+            # define ?relation as only father (P22) or mother (P25) or sibling (P3373) or spouse (P26) or child (P40)
+            VALUES ?relation {wdt:P22 wdt:P25 wdt:P3373 wdt:P26 wdt:P40}
+            # ?relation is from ?extended_family to ?nuclear_family
+            ?extended_family ?relation ?nuclear_family.
+            # show ?relation on graph edges
+            ?edge wikibase:directClaim ?relation;
+               a wikibase:Property}
+  # optional: show ?extended_family's birthdate (P569), which only appears in table, not graph 
+  optional {?extended_family wdt:P569 ?birthdate}
+  # optional: show ?extended_family's image (P18), which appears directly in graph, and as link in table
+  optional {?extended_family wdt:P18 ?image}
+  # show label in simplified Chinese (zh-hans) as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"zh-hans,en\". } 
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

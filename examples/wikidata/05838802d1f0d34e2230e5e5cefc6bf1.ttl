@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-05838802d1f0d34e2230e5e5cefc6bf1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#-------------------------------------------------------------------------------
+# Straßen, Plätze und Brücken in Dresden ohne Bild (Umkreissuche)
+#-------------------------------------------------------------------------------
+#defaultView:Map
+SELECT ?item ?itemLabel ?coordinate WHERE {
+  wd:Q21161975 wdt:P625 ?Center. #Objekt im Zentrum für den Umkreis (z.B. Altmarkt Dresden)
+  VALUES ?instance_of { wd:Q79007 wd:Q174782 wd:Q537127}             # Liste von Objekttypen definieren: Innerortstraße oder Platz oder Brücke
+  ?item wdt:P31 ?instance_of                                         # nur Objekte mit passenden Objekttyp  
+  
+  SERVICE wikibase:around {
+    ?item wdt:P625 ?coordinate.
+    bd:serviceParam wikibase:center ?Center.
+    bd:serviceParam wikibase:radius \"0.8\".     # Radius für den Umkreise in Kilometer (z.B. \"0.5\" für 500 Meter)
+  }
+  optional { ?item wdt:P18 ?image. }
+  FILTER(!BOUND(?image)) 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en,[AUTO_LANGUAGE]\". }
+  #FILTER(EXISTS { ?place (wdt:P31/wdt:P279*) wd:Q1248784. })
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stefan_K%C3%BChn/Dresden>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

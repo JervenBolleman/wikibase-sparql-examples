@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-093ed5e8e31942dd84703582e366dbdb> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX schema: <http://schema.org/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?album  ?album_name ?bijdrage ?bijdrage_name ?auteur (GROUP_CONCAT(?desc;SEPARATOR = \" \") as ?bijdrage_beschrijving) ?maakdatum ?maaklocatie ?afbeelding ?bijdrage_nummer WHERE {
+  
+  SERVICE <http://data.bibliotheken.nl/sparql>{
+      ?album schema:name ?album_name .
+      ?bijdrage schema:isPartOf ?album .
+      ?bijdrage schema:description ?desc .
+      ?bijdrage schema:name ?bijdrage_name .
+      ?bijdrage schema:author ?auteur.
+      ?bijdrage schema:dateCreated ?maakdatum.
+      ?bijdrage schema:locationCreated ?maaklocatie.
+      ?bijdrage schema:image [ schema:contentUrl ?afbeelding] .
+      ?bijdrage schema:position ?bijdrage_nummer .
+      FILTER Contains(?album_name,\"Kerwal\")
+}
+}
+GROUP BY ?album ?bijdrage ?afbeelding ?auteur ?maakdatum ?maaklocatie ?album_name ?bijdrage_name ?bijdrage_nummer
+ORDER BY xsd:integer(?bijdrage_nummer)
+limit 1000""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Alba_amicorum_National_Library_of_the_Netherlands/Extract-KB-LOD-AA>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

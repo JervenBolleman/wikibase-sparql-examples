@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0eab316db0b103dd82ab4e80af2c1045> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Tree
+#title:Verwaltungsstruktur Münchens in Deutschland
+SELECT ?item ?itemLabel ?pic ?linkTo ?linkToLabel WHERE {
+  SERVICE gas:service {
+    gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.SSSP\";
+      gas:in wd:Q1726;
+      gas:traversalDirection \"Reverse\";
+      gas:out ?item;
+      gas:out1 ?depth;
+      gas:maxIterations 3 ;
+      gas:linkType wdt:P150.
+  }
+  OPTIONAL { ?item wdt:P150 ?linkTo. }
+  OPTIONAL { ?item wdt:P18 ?pic. }
+  OPTIONAL {
+    ?item p:P150 _:b15.
+    _:b15 pq:P582 ?end.
+  }
+  OPTIONAL { ?item wdt:P576 ?aufgeloest. }
+  FILTER((!(BOUND(?end))) && (!(BOUND(?aufgeloest))))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:No39188>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

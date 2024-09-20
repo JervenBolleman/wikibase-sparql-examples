@@ -1,0 +1,42 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-00e26c50fabb5d3a920f618d033bdca4> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?pseudoOccupation ?realOccupation
+WHERE
+{
+  {
+    SELECT DISTINCT ?pseudoOccupation
+    WHERE
+    {
+      ?someone wdt:P106 ?pseudoOccupation.
+      ?pseudoOccupation wdt:P31 wd:Q4167410.
+    }
+  }
+  ?pseudoOccupation rdfs:label ?label.
+  BIND(CONCAT('inlabel:', ?label) AS ?search)
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint 'www.wikidata.org';
+                    wikibase:api 'Generator';
+                    mwapi:generator 'search';
+                    mwapi:gsrsearch ?search;
+                    mwapi:gsrlimit 'max'.
+    ?realOccupation wikibase:apiOutputItem mwapi:title.
+  }
+  ?realOccupation rdfs:label ?label.
+  FILTER EXISTS
+  {
+    VALUES ?occupation { wd:Q12737077 wd:Q28640 wd:Q4164871 }
+    ?realOccupation wdt:P31 ?occupation.
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

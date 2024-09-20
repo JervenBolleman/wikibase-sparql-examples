@@ -1,0 +1,39 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-07b08bf83aa7bfad5e8fe0cf95331214> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX schema: <http://schema.org/>
+#-------------------------------------------------------------------------------
+# Objekte in Dresden ohne Bild (nur Bilder auf Commons sind erlaubt)
+#-------------------------------------------------------------------------------
+#defaultView:Table;Map
+SELECT DISTINCT ?item ?itemLabel ?itemDescription ?article ?coordinates ?commons  WHERE {
+  ?item wdt:P131 wd:Q1731.                                   # liegt in Dresden
+  optional {                                                 # Artikellink
+    ?article schema:about ?item.
+    ?article schema:isPartOf <https://de.wikipedia.org/>.
+  }
+   
+  optional {                                                 # Commons-Link
+    ?commons schema:about ?item.
+    ?commons schema:isPartOf <https://commons.wikimedia.org/>.
+  } 
+  optional {?item wdt:P31 ?instanceof  }                
+  Filter (?instanceof != wd:Q13406463).                      # ist keine Wikimedia-Liste
+  
+  optional { ?item wdt:P18 ?image. }
+  FILTER(!BOUND(?image)) 
+  optional { ?item wdt:P625 ?coordinates. }
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+}
+order by ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stefan_K%C3%BChn/Dresden>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0c74ea7c809de223fad704e91e29bf46> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#čeští žijící spisovatelé mladší 35 let s přesností data narození alespoň rok (seřazeni od nejmladšího)
+SELECT ?spisovatel ?spisovatelLabel ?datumnarozeni ?vek WHERE {
+  ?spisovatel wdt:P106 wd:Q36180 . #povoláním spisovatel
+  ?spisovatel wdt:P27 wd:Q213 . #české státní občanství
+  ?spisovatel p:P569/psv:P569 ?datumnarozeniuzel. #získat uzel s hodnotou data narození
+  ?datumnarozeniuzel wikibase:timePrecision ?presnost. #získat z uzlu hodnotu přesnosti
+  ?datumnarozeniuzel wikibase:timeValue ?datumnarozeni . #získat z uzlu hodnotu data narození
+  BIND (now() as ?nyni) #vytvořit proměnnou ?nyni s aktuálním datem
+  BIND ( year(?nyni) - year(?datumnarozeni) - if(month(?nyni) < month(?datumnarozeni) || ((month(?nyni) = month(?datumnarozeni) && day(?nyni) < day(?datumnarozeni))),1,0) as ?vek ) #vypočítat věk
+  FILTER (?presnost > \"8\"^^xsd:integer) #vyfiltrovat data s menší přesností, než jsou roky
+  FILTER (?vek < \"35\"^^xsd:integer) #vyfiltrovat spisovatele starší 34 let
+  FILTER NOT EXISTS { ?spisovatel p:P570 ?cokoliv } #nemá vyplněné datum úmrtí
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"cs,en\" .
+  }
+} GROUP BY ?spisovatel ?spisovatelLabel ?datumnarozeni ?vek
+ORDER BY DESC (?datumnarozeni)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Sintakso/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

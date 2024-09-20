@@ -1,0 +1,43 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0efaa866d6ac3b6f9e1ada83f34cdab5> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT distinct ?item ?numCatalogue ?itemLabel  ?creaLabel ?date (CONCAT(STR(?hauteur),\"×\",STR(?largeur),\" cm\") AS ?dimensions)
+(GROUP_CONCAT(distinct ?collLb; separator=\" - \") as ?collection) (GROUP_CONCAT(distinct ?ninv; separator=\" - \") as ?inv) ?img (SAMPLE(?url) as ?URL)
+WHERE 
+{ 
+  ?item wdt:P608 wd:Q28854991 ;
+        wdt:P170 ?crea ;
+        wdt:P18 ?img ;
+        wdt:P195 ?coll ;
+        wdt:P2048 ?hauteur ;
+        wdt:P2049 ?largeur ;
+        p:P528 [ ps:P528 ?numCatalogue ;
+                 pq:P972 wd:Q28940890 ] ;
+        p:P571 ?declarationdate .
+  OPTIONAL { ?item wdt:P217 ?ninv }
+  OPTIONAL { ?item wdt:P973 ?url }
+  OPTIONAL { MINUS {?declarationdate pq:P1319 ?pasavant }
+             MINUS {?declarationdate pq:P1480 wd:Q5727902 }
+             ?declarationdate ps:P571 ?dateunique .
+             BIND (year(?dateunique) AS ?date)}
+  OPTIONAL { MINUS {?declarationdate pq:P1319 ?pasavant }
+             ?declarationdate pq:P1480 wd:Q5727902. 
+             ?declarationdate ps:P571 ?dateunique . 
+             BIND (CONCAT(\"c.\",STR(year(?dateunique))) AS ?date)}
+  OPTIONAL { ?declarationdate pq:P1319 ?pasavant . 
+             ?declarationdate pq:P1326 ?pasapres.
+             BIND (CONCAT(STR(year(?pasavant)),\"-\",STR(year(?pasapres))) AS ?date)}
+  ?coll rdfs:label ?collLb . filter (lang(?collLb) = \"fr\") .
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"fr\"}
+} GROUP BY ?item ?itemLabel ?numCatalogue ?creaLabel ?date ?hauteur ?largeur ?img 
+ORDER BY xsd:integer(?numCatalogue)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Shonagon/Archive_2>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

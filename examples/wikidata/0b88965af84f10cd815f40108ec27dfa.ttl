@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0b88965af84f10cd815f40108ec27dfa> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT 
+ ?item
+ ?itemLabel 
+ (MAX(?ewdate) as ?letzte_aktualisierung_der_einwohnerzahl)
+WHERE 
+{
+ ?item p:P31 [ps:P31 wd:Q6256]. # Finde alle Länder
+ ?item wdt:P6573 ?titel_im_klexikon. # die es im Klexikon gibt
+ ?item p:P1082 ?p_ewzahl. # werte die Einwohnerzahl aus
+ ?p_ewzahl pq:P585 ?ewdate. # und zeige die letzte Aktualisierung
+ 
+ FILTER (
+   # Deutsches Kaiserreich braucht keine Aktualisierung
+   ?item != wd:Q43287
+ ) 
+
+ SERVICE wikibase:label { 
+  bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de\".
+  ?item rdfs:label ?itemLabel.
+ }
+}
+GROUP BY ?item ?itemLabel
+HAVING (MAX(?ewdate) < \"2017-01-01\"^^xsd:dateTime) 
+ORDER BY ?letzte_aktualisierung_der_einwohnerzahl""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Forum/Archiv/2019/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

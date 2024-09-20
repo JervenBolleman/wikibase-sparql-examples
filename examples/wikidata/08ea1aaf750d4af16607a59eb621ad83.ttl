@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-08ea1aaf750d4af16607a59eb621ad83> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Sate simple (non-reședințe) din componența comunelor din Moldova
+SELECT DISTINCT ?item ?itemLabel ?page_title ?raionLabel ?article
+WHERE {?item wdt:P31 ?tip . 
+       ?item wdt:P17 wd:Q217 . 
+       ?item wdt:P131 ?raion . 
+       OPTIONAL {
+       ?article schema:about ?item.
+#       ?item schema:inLanguage \"ro\".
+       ?article schema:isPartOf <https://ro.wikipedia.org/> ; schema:name ?page_title .
+#       BIND(STR(?article) AS ?wikiLink).
+        }
+       FILTER EXISTS { ?item wdt:P31 wd:Q532 } .
+       MINUS { ?item wdt:P31 wd:Q4413925 } . 
+       MINUS {VALUES ?rank { wikibase:DeprecatedRank } ?item p:P31 [ ps:P31 wd:Q4229812; wikibase:rank ?rank ] . }. 
+       SERVICE wikibase:label { bd:serviceParam wikibase:language \"ro\". }
+      }""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:XXN/q>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

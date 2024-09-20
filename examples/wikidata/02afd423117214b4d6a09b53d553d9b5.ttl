@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-02afd423117214b4d6a09b53d553d9b5> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?level ?item ?relation ?linkTo ?itemLabel ?pic
+{
+  hint:Query hint:optimizer \"None\"
+  { BIND(0 AS ?level) BIND(wd:Q7200 AS ?item) } UNION
+  {
+    VALUES ?relation { wdt:P22 wdt:P25 } 
+    { BIND(1 AS ?level) BIND(wd:Q7200 AS ?linkTo) }
+    UNION
+    { BIND(2 AS ?level) ?linkTo wdt:P22|wdt:P25 wd:Q7200 }
+    UNION
+    { BIND(3 AS ?level) ?linkTo (wdt:P22|wdt:P25)/(wdt:P22|wdt:P25) wd:Q7200 }
+    UNION
+    { BIND(4 AS ?level) ?linkTo (wdt:P22|wdt:P25)/(wdt:P22|wdt:P25)/(wdt:P22|wdt:P25) wd:Q7200 }
+    ?item ?relation ?linkTo
+  }
+
+  OPTIONAL { ?item wdt:P18 ?pic }
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\"}
+}
+ORDER BY ?level""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Project_chat/Archive/2017/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

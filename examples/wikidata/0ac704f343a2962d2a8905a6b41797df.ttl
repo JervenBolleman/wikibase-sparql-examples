@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0ac704f343a2962d2a8905a6b41797df> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select
+  ?quantity (sample(?quantityLabel) as ?quantityLabel) (sample(?quantityDesc) as ?quantityDesc)
+  ?unit (sample(?unitLabel) as ?unitLabel) (sample(?unitDesc) as ?unitDesc)
+  (group_concat(?unitSymbol; separator = \"; \") as ?unitSymbols)
+  (sample(?unitStatus) as ?unitStatus)
+where {
+  values ?source { wd:Q68977959 }
+
+  ?quantity wdt:P279+ wd:Q71550118 .
+  optional { ?quantity rdfs:label ?quantityLabel . filter (lang(?quantityLabel) = \"en\") }
+  optional { ?quantity schema:description ?quantityDesc . filter (lang(?quantityDesc) = \"en\") }
+
+  ?quantity p:P8111 ?quantityStatement .
+  ?quantityStatement prov:wasDerivedFrom [ pr:P248 ?source ] ; ps:P8111 ?unit .
+  optional { ?unit rdfs:label ?unitLabel . filter (lang(?unitLabel) = \"en\") }
+  optional { ?unit schema:description ?unitDesc . filter (lang(?unitDesc) = \"en\") }
+  optional {
+    ?unit p:P5061 [ prov:wasDerivedFrom [ pr:P248 ?source ] ; ps:P5061 ?unitSymbol ] .
+    filter (lang(?unitSymbol) = \"en\")
+  }
+
+  optional { ?quantityStatement a ?bestRank . }
+  bind (if(bound(?bestRank) && ?bestRank = wikibase:BestRank, \"<recommended>\", \"<accepted>\") as ?unitStatus)
+} group by ?quantity ?unit""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Toni_001>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

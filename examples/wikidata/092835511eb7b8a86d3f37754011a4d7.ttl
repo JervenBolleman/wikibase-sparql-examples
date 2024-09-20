@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-092835511eb7b8a86d3f37754011a4d7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?municip ?link ?municipLabel ?dateCreation ?superficie ?mrcLabel ?regionLabel  
+WHERE 
+{
+    {?municip wdt:P31*/wdt:P279* wd:Q3327873 } UNION {?municip wdt:P31 wd:Q3518810 }
+    ?municip wdt:P31 ?statut .
+    ?municip wdt:P131 ?mrc .
+    ?mrc wdt:P131 ?region .  
+    ?region wdt:P131 wd:Q176 .
+    Optional {?municip wdt:P3012 ?statscan }
+    Optional {?municip wdt:P571 ?dateCreation }
+    Optional {?municip wdt:P2046 ?superficie }
+    Optional {?municip wdt:P856 ?url }
+    FILTER NOT EXISTS { ?municip wdt:P856 ?statscan }
+    FILTER NOT EXISTS { ?municip wdt:P576 ?dissolu}
+    FILTER NOT EXISTS { ?municip wdt:P582 ?fin }
+    FILTER NOT EXISTS { ?municip p:P31 [ pq:P582 ?pqfin ] }
+    SERVICE wikibase:label {
+		bd:serviceParam wikibase:language \"fr,en\" .
+	}
+    OPTIONAL {
+            ?link schema:about ?municip .
+            ?link schema:isPartOf <https://fr.wikipedia.org/> }
+} 
+ORDER BY ?regionLabel ?mrcLabel ?municipLabel
+LIMIT 2000""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:YanikB>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

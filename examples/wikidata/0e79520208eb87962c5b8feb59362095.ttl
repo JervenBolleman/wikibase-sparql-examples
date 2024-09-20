@@ -1,0 +1,47 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0e79520208eb87962c5b8feb59362095> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Institution partenaires décrites dans Memobase (avec les informations souhaitées)
+SELECT ?item ?label_fr ?label_it ?label_de (GROUP_CONCAT(DISTINCT(?typeLabel); separator=\", \") AS ?types) ?acronym1 ?acronym2 ?adress ?adress_siege ?loc ?locLabel ?loc2 ?loc2Label ?website ?email ?geo ?geoid ?geo_lieu ?portal ?site_portal
+WHERE 
+{
+  ?item wdt:P1343 wd:Q96192978.
+  OPTIONAL {?item wdt:P31 ?type}.
+  OPTIONAL {?type rdfs:label ?typeLabel. filter(lang(?typeLabel)=\"fr\") }. 
+  OPTIONAL {?item p:P1813 ?decl_acronym.?decl_acronym ps:P1813 ?acronym1;pq:P1535 wd:Q96192978; pq:P582 ?end}.
+  OPTIONAL {?item p:P1813 ?decl_acronym2.?decl_acronym2 ps:P1813 ?acronym2;pq:P1535 wd:Q96192978;pq:P580 ?begin}.
+  OPTIONAL {?item wdt:P6375 ?adress.}
+  OPTIONAL {?item p:P159 ?decl_siege.
+    ?decl_siege ps:P159 ?siege.
+    ?decl_siege pq:P6375 ?adress_siege.}
+  OPTIONAL {?item wdt:P131 ?loc. ?loc wdt:P31 wd:Q70208}.
+  OPTIONAL {?item wdt:P131 ?loc. ?loc wdt:P31 wd:Q70208; p:P131 ?decl_loc2. ?decl_loc2 ps:P131 ?loc2.?loc2 wdt:P31 wd:Q23058.
+             FILTER NOT EXISTS{?decl_loc2 ps:P131 ?loc2;pq:P582 ?datefin.}
+            }.
+  OPTIONAL {?item wdt:P856 ?website.}
+  OPTIONAL {?item wdt:P968 ?email.}
+  OPTIONAL {?item wdt:P625 ?geo.}
+  OPTIONAL {?item p:P159 ?decl_siege.
+    ?decl_siege ps:P159 ?siege.
+    ?decl_siege pq:P625 ?geoid.}
+  OPTIONAL {?item p:P276 ?decl_lieu.
+    ?decl_lieu ps:P159 ?lieu.
+    ?lieu pq:P625 ?geo_lieu.}
+  OPTIONAL{?item rdfs:label ?label_fr. FILTER (LANG(?label_fr) = \"fr\")}.
+  OPTIONAL{?item rdfs:label ?label_it. FILTER (LANG(?label_it) = \"it\")}. 
+  OPTIONAL{?item rdfs:label ?label_de. FILTER (LANG(?label_de) = \"de\")}.
+  OPTIONAL{?portal wdt:P31 wd:Q186165; wdt:P137 ?item; wdt:P856 ?site_portal}.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,it,en\". }
+}
+GROUP BY ?item ?label_fr ?label_it ?label_de ?types ?acronym1 ?acronym2 ?adress ?adress_siege ?loc ?locLabel ?loc2 ?loc2Label ?website ?email ?geo ?geoid ?geo_lieu ?portal ?site_portal
+ORDER BY ?item""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Memoriav-bdc/GLAM>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,53 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-01ab4845ccd7203cb2427c5fd61f96df> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Käsesorten
+SELECT DISTINCT ?item ?article ?page_title (GROUP_CONCAT(DISTINCT ?klasse; SEPARATOR = \", \") AS ?ist_ein) (GROUP_CONCAT(DISTINCT ?ursprungsland; SEPARATOR = \", \") AS ?ursprung) WHERE {
+  ?item (wdt:P31/(wdt:P279*)) wd:Q10943.
+  OPTIONAL { ?item wdt:P495 ?land. }
+  OPTIONAL { ?item wdt:P31 ?instance. }
+  OPTIONAL {
+    ?dewiki schema:about ?item;
+      schema:isPartOf <https://de.wikipedia.org/>;
+      schema:name ?de_title.
+  }
+  OPTIONAL {
+    ?frwiki schema:about ?item;
+      schema:isPartOf <https://fr.wikipedia.org/>;
+      schema:name ?fr_title.
+  }
+  OPTIONAL {
+    ?itwiki schema:about ?item;
+      schema:isPartOf <https://it.wikipedia.org/>;
+      schema:name ?it_title.
+  }
+  OPTIONAL {
+    ?eswiki schema:about ?item;
+      schema:isPartOf <https://es.wikipedia.org/>;
+      schema:name ?es_title.
+  }
+  OPTIONAL {
+    ?enwiki schema:about ?item;
+      schema:isPartOf <https://en.wikipedia.org/>;
+      schema:name ?en_title.
+  }
+  BIND(IF(BOUND(?dewiki), ?dewiki, IF(BOUND(?frwiki), ?frwiki, IF(BOUND(?itwiki), ?itwiki, IF(BOUND(?eswiki), ?eswiki, IF(BOUND(?enwiki), ?enwiki, ?item_title))))) AS ?article)
+  BIND(IF(BOUND(?de_title), ?de_title, IF(BOUND(?fr_title), ?fr_title, IF(BOUND(?it_title), ?it_title, IF(BOUND(?es_title), ?es_title, IF(BOUND(?en_title), ?en_title, ?item_title))))) AS ?page_title)
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,da,it,en,nl,sv,fi,es,tr,ast,el,bg\".
+    ?item rdfs:label ?item_title.
+    ?instance rdfs:label ?klasse.
+    ?land rdfs:label ?ursprungsland.
+  }
+}
+GROUP BY ?item ?article ?page_title""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:No39188>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,57 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-074e5f8626756ca8c8f085f380d5a4e3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Direct ScienceSource ingest query
+#With checking of absence of paper from the focus list
+#Checks for publishers found on Beall's list
+#Removes \"no derivatives\" Creative Commons licenses
+
+SELECT DISTINCT ?item ?itemLabel ?pmcid ?journalLabel ?title ?date ?licenseLabel ?mainsubjectLabel
+WHERE {
+         ?item wdt:P31 wd:Q7318358;
+               wdt:P932 ?pmcid;
+               wdt:P1433 ?journal;
+               wdt:P1476 ?title;
+               wdt:P577 ?date;
+               wdt:P275 ?license;
+               wdt:P921 ?mainsubject. 
+         ?mainsubject wdt:P1995 ?spec.
+          ?spec wdt:P361* wd:Q177635.
+           MINUS {?item wdt:P5008 wd:Q55439927}
+  
+       MINUS {?item wdt:P275 wd:Q36795408} #Remove these ND licences
+         MINUS {?item wdt:P275 wd:Q6937225}
+         MINUS {?item wdt:P275 wd:Q19125045}
+         MINUS {?item wdt:P275 wd:Q24082749}
+ 
+         MINUS {?journal wdt:P123 ?publisher.
+         {
+           VALUES ?publisher
+ 
+          {wd:Q52636754 wd:Q52635805 wd:Q4689899 wd:Q52620137 wd:Q4732612 
+           wd:Q43080819 wd:Q30270870 wd:Q30297686 wd:Q52661346 wd:Q52636079 
+           wd:Q52557383 wd:Q54958933 wd:Q2896740 wd:Q18712923 wd:Q52609680 
+           wd:Q52609536 wd:Q52636154 wd:Q52609215 wd:Q80796 wd:Q52636535 
+           wd:Q52633727 wd:Q52636944 wd:Q63254434 wd:Q52637577 wd:Q52665969 wd:Q52660711
+           wd:Q52659576 wd:Q56979398 wd:Q52670242 wd:Q29891111 wd:Q63254475 wd:Q52619294 
+           wd:Q52662151 wd:Q7072722 wd:Q52609375 wd:Q7259709 wd:Q52636843 
+           wd:Q45251004 wd:Q52637573 wd:Q52662489 wd:Q52635330 wd:Q47116994 
+           wd:Q30267116 wd:Q24706265 wd:Q52620720 wd:Q52633876 wd:Q56416796 
+           wd:Q52660351 wd:Q52635690 wd:Q7433770 wd:Q27991304 wd:Q55566796 
+           wd:Q52619286 wd:Q30265175 wd:Q8035326 
+           } 
+          }      
+         }    
+        SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+
+        }""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:ScienceSource_project/NCBI2wikidata_additional>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

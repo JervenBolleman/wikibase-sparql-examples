@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0ee8cc0fcf49e58ac4d2e041115491fe> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?hospitalLabel  ?phoneNumberLabel (GROUP_CONCAT(Distinct ?useLabel; separator= \", \") as ?usedFor) 
+(GROUP_CONCAT(Distinct ?fieldOfWorkLabel; separator= \", \") as ?field)
+WHERE
+{
+  ?hospital wdt:P31/wdt:P279* wd:Q16917; #hospital             
+            wdt:P131 wd:Q1711; #in administrative territory Potsdam
+            p:P1329  ?phoneNumberStatement.
+  
+  ?phoneNumberStatement pq:P366 ?use;
+                        ps:P1329 ?phoneNumber.
+  ?use rdfs:label ?useLabel.
+  #use rfs:label so it can be used with CONCAT aggregate function
+  FILTER(lang(?useLabel) = \"en\"). 
+  
+  #if possible get the field of work
+  OPTIONAL{
+    ?phoneNumberStatement pq:P101 ?fieldOfWork.
+    ?fieldOfWork rdfs:label ?fieldOfWorkLabel.
+    FILTER(lang(?fieldOfWorkLabel) = \"en\").
+  }
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+GROUP BY ?hospitalLabel ?phoneNumberLabel
+ORDER BY ?hospitalLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Hospitals/Report/Potsdam>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

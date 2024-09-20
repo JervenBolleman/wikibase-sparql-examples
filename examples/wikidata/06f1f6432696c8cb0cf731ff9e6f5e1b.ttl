@@ -1,0 +1,47 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-06f1f6432696c8cb0cf731ff9e6f5e1b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# expand the Dream of the Red Chamber Universe ?x to ?x_ by adding family name, then find the relations between entities within ?x_, i.e.,
+# ?x_ is the same size as ?y, and is larger than ?x in size, so that all the entities in ?x_ can have image.
+# in comparison with \"Jia Baoyu's relatives and teachers/students and roommates as well as their family names and residences\", this query 
+# removes relative (P1038, too flexible, hard to define, may generate even stronger connection than nuclear family), and
+# adds member of (P463, for Haitang Poets Society), work location (P937, for servants), location (P276, for Haitang Poets society, events, buildings, etc.), and
+# participant of (P1344) and participant (P710) for events
+#defaultView:Graph
+SELECT DISTINCT ?x_ ?x_Label ?image ?y ?yLabel ?edgeLabel
+WHERE {
+  # define ?x as what is present in work (P1441) Dream of the Red Chamber (Q8265)
+  ?x wdt:P1441 wd:Q8265;
+  # use \"?\" to expand ?x to ?x_, which includes ?x's family name (P734)
+     wdt:P734? ?x_
+  # optional: define ?y as ?x_'s father (P22) or mother (P25) or child (P40) or sibling (P3373) or spouse (P26), i.e., nuclear family member,
+  # or teacher (P1066) or student (P802) or member of (P463) or family name (P734)
+  # or residence (P551) or occupant (P466) or work location (P937) or location (P276) or part of (P361) or has part (P527)
+  # or participant of (P1344) or participant (P710)
+  OPTIONAL {?x_ (wdt:P22|wdt:P25 |wdt:P40 |wdt:P3373 |wdt:P26 |wdt:P1066 |wdt:P802 |wdt:P463 |wdt:P734 |wdt:P551 |wdt:P466 |wdt:P937 |wdt:P276 |wdt:P361 |wdt:P527 |wdt:P1344 |wdt:P710) ?y
+            # To avoid showing any other relation
+            # define ?relation as only father (P22) or mother (P25) or child (P40) or sibling (P3373) or spouse (P26)
+            # or teacher (P1066) or student (P802) or member of (P463) or family name (P734)
+            # or residence (P551) or occupant (P466) or work location (P937) or location (P276) or part of (P361) or has part (P527)
+            # or participant of (P1344) or participant (P710)
+            VALUES ?relation {wdt:P22 wdt:P25 wdt:P40 wdt:P3373 wdt:P26 wdt:P1066 wdt:P802 wdt:P463 wdt:P734 wdt:P551 wdt:P466 wdt:P937 wdt:P276 wdt:P361 wdt:P527 wdt:P1344 wdt:P710}
+            # ?relation is from ?x_ to ?y
+            ?x_ ?relation ?y.
+            # show ?relation on graph edges
+            ?edge wikibase:directClaim ?relation;
+               a wikibase:Property}
+  # optional: show ?x_'s image (P18), which appears directly in graph, and as link in table
+  OPTIONAL {?x_ wdt:P18 ?image}
+  # show label in simplified Chinese (zh-hans) as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"zh-hans,en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

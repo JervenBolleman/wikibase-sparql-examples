@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-010a366e8a8e983e734994c4a54a5981> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# find birth places of those who had a jinshi degree
+# using birth century as layer
+#defaultView:Map
+SELECT  ?person ?personLabel ?image ?personDescription ?nationality ?nationalityLabel ?birth_year ?birth_place ?birth_placeLabel ?coord ?layer
+WHERE {
+  # define ?person as one that had academic degree (P512, or subclass of (P279), so that zhuangyuan et al. can be included) of jinshi (Q420477), and
+  ?person wdt:P512/wdt:P279* wd:Q420477;
+          # is instance of (P31) human (Q5)
+          wdt:P31 wd:Q5
+  # optional: show ?person's birth place (P19) as ?birth_place
+  OPTIONAL {?person wdt:P19 ?birth_place.
+             # and show ?birth_place's coordinate location (P625) as ?coord
+             ?birth_place wdt:P625 ?coord}
+  # optional: define ?person's birth date (P569) as ?birth_date
+  OPTIONAL {?person wdt:P569 ?birth_date}
+  # bind year of ?birth_date as ?birth_year
+  BIND(YEAR(?birth_date) as ?birth_year)
+  # use IF to classify birth years into centuries, and bind birth century as layer
+  BIND(IF((?birth_year<700), \"Pre-700\", IF((?birth_year<800), \"700-799\", IF((?birth_year<900), \"800-899\", IF((?birth_year<1000), \"900-999\", IF((?birth_year<1100), \"1000-1099\", IF((?birth_year<1200), \"1100-1199\", IF((?birth_year<1300), \"1200-1299\", IF((?birth_year<1400), \"1300-1399\", IF((?birth_year<1500), \"1400-1499\", IF((?birth_year<1600), \"1500-1599\", IF((?birth_year<1700), \"1600-1699\", IF((?birth_year<1800), \"1700-1799\", \"Post-1799\" )))))))))))) AS ?layer)
+  # optional: show ?person's nationality (P27) as ?nationality
+  OPTIONAL {?person wdt:P27 ?nationality}
+  # show ?person's image (P18) as ?image
+  OPTIONAL {?person wdt:P18 ?image}
+  # show label in simplified Chinese (zh-hans) as default, and English when no default label exists
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"zh-hans,en\".}
+}
+# order layer by ?birth_year
+ORDER BY ?birth_year""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

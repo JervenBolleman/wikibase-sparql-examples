@@ -1,0 +1,25 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-03bee733922b077e7afd93eabe99f7b9> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?sitelinks ?itemLabel WHERE {
+  ?item wikibase:sitelinks ?sitelinks. hint:Prior hint:rangeSafe true. # https://wiki.blazegraph.com/wiki/index.php/QueryHints
+  FILTER(?sitelinks >= 75) # arbitrary limit to optimize the query by removing most items (assuming that the desired results will have more statements than this)
+  MINUS {
+    ?article schema:isPartOf <https://ru.wikipedia.org/>;
+             schema:about ?item.
+  }
+  MINUS { ?item wdt:P31/wdt:P279* wd:Q17442446. } # remove templates etc.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"ru,[AUTO_LANGUAGE],en\". } 
+}
+ORDER BY DESC(?sitelinks)
+LIMIT 30""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:%D0%A4%D0%BE%D1%80%D1%83%D0%BC/%D0%90%D1%80%D1%85%D0%B8%D0%B2/2018/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

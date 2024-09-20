@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0a80d2e698972f5491e05850d95c0758> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT distinct ?item ?itemLabel ?countryLabel ?fr_article ?Wfr ?en_article ?Wen ?iata ?icao WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q1248784.                     # item must be an instance of an airport, or an instance that is a subclass of an airport
+  optional {?item wdt:P17 ?country .                        # ?item may have a country 
+           filter not exists {?country pq:P582 [].} }        # ?country that still exists              
+  optional {?item p:P238 ?node .                           # item may have a P238 (IATA) node
+           ?node ps:P238 ?iata.                            # and the node has a P238 (IATA) value
+           filter not exists {?node pq:P582 [].}   }       # but the value is ignored if it has an end-date
+  optional {?item p:P239 ?node2. 
+            ?node2 ps:P239 ?icao .                         # item may have a P239 (ICAO) value  
+           filter not exists {?node2 pq:P582 [].}   }      # P239 that still exists        
+  optional {?Wen schema:about ?item;                       # item may have a sitelink
+            schema:isPartOf <https://en.wikipedia.org/>;   # the sitelink points to en.wikipedia
+            schema:name ?en_article.}                      # and has an article name
+  optional {?Wfr schema:about ?item;                       # item may have a sitelink
+            schema:isPartOf <https://fr.wikipedia.org/>;   # the sitelink points to fr.wikipedia 
+            schema:name ?fr_article.}                      # and has an article name
+  minus {?item wdt:P31/wdt:P279* wd:Q695850.}              # exclude items having instances that are military airports & subclasses thereof
+  bind(coalesce(?en_article,?fr_article) as ?article)      # create ?article if there is an EN or FR wikipedia article
+  minus {?item wdt:P31/wdt:P279* wd:Q695850.}      # exclude military airports
+  minus {?item wdt:P31/wdt:P279* wd:Q1311670.}     # exclude railways stations
+  minus {?item wdt:P31/wdt:P279* wd:Q7373622.}     # exclude Royal Air Force
+  minus {?item wdt:P31/wdt:P279* wd:Q502074.}      # exclude héliports
+  minus {?item wdt:P576 ?date}                     # exclude destructed airports
+  minus {?item wdt:P31/wdt:P279* wd:Q44665966.}    # exclude  airports being build
+  filter(bound(?article))                                  # select only if there is an ?article
+  bind(coalesce(?iata,?icao) as ?code)                     # create ?code if there is an ICAO or IATA code 
+  filter(bound(?code))                                     # select only if there is an ?code
+  minus {?item wdt:P576 [].}                               # remove items with P576 (dissolved, abolished or demolished) as a main property
+  minus {?item wdt:P582 [].}                               # remove items with P582 (end date) as a main property
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } . #this bit gets labels for Qid values
+} order by ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

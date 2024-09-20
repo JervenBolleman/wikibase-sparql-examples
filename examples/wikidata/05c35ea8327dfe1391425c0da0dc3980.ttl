@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-05c35ea8327dfe1391425c0da0dc3980> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Items of admin.-terr. units with bad RO labels
+SELECT ?item ?label ?page_title ?article WHERE {
+    ?item wdt:P31/wdt:P279* wd:Q56061 .
+    ?item wdt:P36 ?capital .
+    ?item rdfs:label ?label filter (lang(?label) = \"ro\") .
+    ?article schema:about ?item ; schema:name ?page_title .
+    ?article schema:isPartOf <https://ro.wikipedia.org/> .
+    FILTER(strStarts(?page_title, \"Raionul\")) .
+    FILTER NOT EXISTS { FILTER(CONTAINS(?label, \"aionul\")) . }
+#    FILTER(strlen(?label) < 10)
+} 
+GROUP BY ?item ?label
+ORDER BY ?label""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:XXN/q>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

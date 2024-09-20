@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-01193c8a30888a6cef1b6d588d65bff3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+SELECT DISTINCT ?item ?itemLabel ?coord ?image ?latitude_longitude ?object_location ?adresse_1 ?adresse_2
+WHERE {
+	?item	wdt:P1435/wdt:P279* wd:Q3370013;
+		    wdt:P625 ?coord;
+    OPTIONAL { ?item p:P625 ?coordinate .
+               ?coordinate ps:P625 ?coord .
+               ?coordinate psv:P625 ?coordinate_node .
+               ?coordinate_node wikibase:geoLongitude ?lon .
+               ?coordinate_node wikibase:geoLatitude ?lat .  }   
+    OPTIONAL {?item wdt:P6375 ?adresse_1 .}
+    OPTIONAL {?item wdt:P969 ?adresse_2 .}
+    FILTER NOT EXISTS { ?item wdt:P18 ?image . }
+    FILTER NOT EXISTS { ?item wdt:P576 ?end }
+	
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . } . 
+
+    # Afficher [[:Template:Object location]] (Wikimedia Commons)
+    BIND(   CONCAT(\"\\u007B\\u007Bobject location|\", str(?lat), \"|\", str(?lon), \"\\u007D\\u007D\")    AS     ?object_location).
+    # Afficher coordonnées géographiques dans l'ordre latitude/longitude
+    BIND(   CONCAT(str(?lat), \" \\u00A0 \\u00A0 \\u00A0 \\u00A0 \\u00A0 \\u00A0\", str(?lon))    AS     ?latitude_longitude).
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Cantons-de-l%27Est>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

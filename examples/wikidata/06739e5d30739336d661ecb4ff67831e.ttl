@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-06739e5d30739336d661ecb4ff67831e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?s ?desc ?dob WHERE {
+  ?s wdt:P31 wd:Q5.                           # must be human
+  ?s  p:P569/psv:P569 [wikibase:timePrecision ?precision; wikibase:timeValue ?birth]
+  bind(if(?precision=11,?birth,if(?precision=10,concat(month(?birth),\" \",year(?birth)),year(?birth))) as ?dob)                
+  ?s wdt:P19 ?place.                         # must have a place of birth
+  ?place (wdt:P131*/wdt:P706*) wd:Q5705.     # place of birth must be located within or on Catelonia
+  MINUS { ?s wdt:P570 _:b5. }                # must be alive - no date of death
+  ?s rdfs:label ?desc.                       # must have a label ...
+  FILTER((LANG(?desc)) = \"ca\")               # label must be in Catalan
+  ?article schema:about ?s.                  # must have a sitelink
+  ?article schema:inLanguage \"ca\".           # sitelink must be (by inference) to the Catalan wikipedia
+  FILTER((?birth > \"1898-01-01\"^^xsd:dateTime) && (?birth < \"1918-01-01\"^^xsd:dateTime))
+}
+GROUP BY ?s ?desc ?dob                       # right now the group by serves no purpose whatsoever - there are to aggregates in the select
+LIMIT 100                                    # obvs, only give me 100 results""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-03058937c5ae54a512e9a5aa8ed1e183> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?river ?item ?lat ?long ?coord2 ?dist WHERE { 
+    {
+      VALUES ?river {wd:Q24639723} .
+     
+      ?river p:P403 ?stat. 
+      ?river wdt:P131/wdt:P131 wd:Q22 .
+      ?stat pq:P625 ?coord .                            # get the coords for the main river
+  
+      ?stat2 ps:P403 ?river.
+      ?item p:P403 ?stat2. 
+      ?stat2 pqv:P625/wikibase:geoLatitude ?lat. 
+      ?stat2 pqv:P625/wikibase:geoLongitude ?long.
+      ?stat2 pq:P625 ?coord2 .                          # get coords for all tributary rivers
+      BIND(geof:distance(?coord, ?coord2) as ?dist)       # distance between tributary mouth and main river mouth
+    }
+    UNION
+    {
+      VALUES ( ?river ?item ?dist ) { ( wd:Q24639723 wd:Q24639723 0.0 ) }
+      ?river p:P625 ?stat.
+      ?stat ps:P625 ?coord2.
+      ?stat psv:P625/wikibase:geoLatitude ?lat. 
+      ?stat psv:P625/wikibase:geoLongitude ?long.
+    }
+  }""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/05>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

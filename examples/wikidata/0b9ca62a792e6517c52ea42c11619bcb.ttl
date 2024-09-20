@@ -1,0 +1,24 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0b9ca62a792e6517c52ea42c11619bcb> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Communes dont les coordonnées sont distantes de plus de 50 kilomètres
+#defaultView:Map
+SELECT ?item1 ?item1Label ?item2 ?item2Label ?coord1 ?coord2 ?dist WHERE {
+ 	?item1 wdt:P31/wdt:P279* wd:Q484170 ; wdt:P47 ?item2 ; wdt:P625 ?coord1 .
+	?item2 wdt:P31/wdt:P279* wd:Q484170 ; wdt:P625 ?coord2 .
+	MINUS { ?item1 wdt:P131 wd:Q3769 } # not in Guyane
+	MINUS { ?item1 wdt:P131 wd:Q33788 } # not in Nouvelle-Calédonie
+ BIND( geof:distance( ?coord1 , ?coord2) as ?dist ).
+ FILTER (?dist > 50).
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\" } .
+} ORDER BY DESC(?dist)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_France/Communes>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

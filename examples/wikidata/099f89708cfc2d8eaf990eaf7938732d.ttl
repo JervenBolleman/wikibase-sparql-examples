@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-099f89708cfc2d8eaf990eaf7938732d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Lister tous les éléments connus de Wikidata qui sont des institutions qui conservent des archives
+#Et dont le pays de localisation est la France.
+#Afficher la commune de localisation si elle est précisée.
+#Regrouper les communes s'il en a plusieurs en les séparant par une virgule.
+#Présenter par ordre alphabétique de titre de l'institution (les majuscules venant avant les minuscules qui viennent avant les caractères accentués)
+SELECT ?item ?itemLabel (GROUP_CONCAT(DISTINCT(?LieuLabel); separator=\", \") as ?Lieux)
+WHERE 
+{
+  ?item wdt:P31/wdt:P279* wd:Q166118;
+        wdt:P17 wd:Q142.
+    OPTIONAL {?item wdt:P131 ?Lieu;
+      OPTIONAL {?Lieu rdfs:label ?LieuLabel. filter(lang(?LieuLabel)=\"fr\") }       
+             }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,en\".}
+}
+GROUP BY ?item ?itemLabel
+ORDER BY ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:Events/AAFSaint%C3%8919>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

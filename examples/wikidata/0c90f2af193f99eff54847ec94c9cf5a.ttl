@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0c90f2af193f99eff54847ec94c9cf5a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?point ?pointLabel ?class1 ?class1Label (COUNT(DISTINCT ?class) AS ?classes) (MIN(?instances) AS ?min) (MAX(?instances) AS ?max) (SUM(?instances) AS ?sum) WHERE {
+  {
+    SELECT DISTINCT ?point ?class1 ?class (COUNT(DISTINCT ?instance) AS ?instances) WHERE {
+      VALUES ?point {wd:Q228332}
+      #VALUES ?point {wd:Q548662 wd:Q55488 wd:Q55678}
+      #VALUES ?point {wd:928830 wd:Q1248784 wd:Q2298537 wd:Q20202390 wd:Q87979897}
+      OPTIONAL {?class1 wdt:P279 ?point.
+                ?subclass wdt:P279* ?class1.}
+      BIND(COALESCE(?subclass, ?point) AS ?class)
+      #OPTIONAL {?class ?property ?value.}
+      #?property rdf:type owl:DatatypeProperty.
+      OPTIONAL {?instance wdt:P31 ?class.}
+    }
+    GROUP BY ?point ?class1 ?class
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+GROUP BY ?point ?pointLabel ?class1 ?class1Label
+ORDER BY CONCAT(STR(?point), \"  \", IF(BOUND(?class1), STR(?class1Label), \" \"))""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:SM5POR/Geography>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

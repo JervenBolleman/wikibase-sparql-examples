@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-04b4be85a757fcd1b15054d6bc47be7b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?wpfr ?deps WHERE {
+  {
+	SELECT DISTINCT ?item (GROUP_CONCAT(DISTINCT ?l; separator = ', ') as ?deps) (COUNT(DISTINCT ?l) as ?count) WHERE { 
+	  ?item wdt:P16 wd:Q1426271 .
+	  MINUS { ?item wdt:P131 wd:Q17012 } MINUS { ?item wdt:P131 wd:Q17054 } MINUS { ?item wdt:P131 wd:Q3769 } MINUS { ?item wdt:P131 wd:Q17070 } MINUS { ?item wdt:P131 wd:Q34617 } MINUS { ?item wdt:P131 wd:Q17063 } MINUS { ?item wdt:P131 wd:Q25362 } MINUS { ?item wdt:P131 wd:Q126125 } . 
+	  ?item p:P131/ps:P131 ?dep .
+	  OPTIONAL { ?dep rdfs:label ?l filter (lang(?l) = \"fr\") }
+	  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\" . }
+	} 
+	GROUP BY ?item
+  } .
+  OPTIONAL { ?wpfr schema:about ?item ; schema:inLanguage \"fr\" ; schema:isPartOf <https://fr.wikipedia.org/> } .
+  OPTIONAL { ?item wdt:P1824 ?p1824 }
+  BIND(STRLEN(str(?p1824)) as ?longp1824)
+  BIND(SUBSTR(str(?p1824),1,1) as ?statut)
+  BIND(SUBSTR(str(?p1824),2,(?longp1824 - 1)) as ?numero)
+  BIND(REPLACE(SUBSTR(str(?numero),1,4),\"[A-Za-z ]\",\"\") as ?num)
+  BIND(STRLEN(str(?num)) as ?longnum)
+  BIND(CONCAT(IF(?longnum=1,\"000\",IF(?longnum=2,\"00\",IF(?longnum=3,\"0\",\"\"))), str(?num)) as ?numz)
+  BIND(CONCAT(str(?statut),str(?num)) as ?numsp) BIND(STRLEN(str(?numsp)) as ?longnumsp)
+  BIND((?longp1824 - ?longnumsp) as ?longprefixe) BIND(SUBSTR(str(?p1824),(?longnumsp + 1),?longprefixe) as ?prefixe)
+  BIND(CONCAT(str(?statut),str(?numz),str(?prefixe)) as ?cledetri)
+  FILTER(?count=1)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\" . }
+} ORDER BY ?cledetri""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Gz260/Programme/2023>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

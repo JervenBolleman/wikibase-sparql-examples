@@ -1,0 +1,49 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0867c629044dde7052c9fde2f1ac90a1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  (COUNT(?work) AS ?count) 
+  ?author_name 
+  (CONCAT(
+      'https://tools.wmflabs.org/author-disambiguator/names_oauth.php?limit=5000&name=',
+      ENCODE_FOR_URI(?author_name)) AS ?generic_resolver_url)
+  (CONCAT(
+      'https://author-disambiguator.toolforge.org/names_oauth.php?precise=0&doit=Look+for+author&limit=1000&filter=wdt%3AP6104+wd%3AQ56241615&filter_authors=1&name=',
+      ENCODE_FOR_URI(?author_name)) AS ?specific_resolver_url)
+WITH {
+ 
+    SELECT DISTINCT ?author_name WHERE {
+      { 
+        SERVICE bd:sample { ?work wdt:P6104 wd:Q56241615 . bd:serviceParam bd:sample.limit 10000 }
+        ?work wdt:P50 ?author .
+        { ?author skos:altLabel ?author_name_. }
+        UNION
+        { ?author rdfs:label ?author_name_. }
+        BIND(STR(?author_name_) AS ?author_name)
+      }
+      UNION
+      {
+        ?author_statement ps:P50 ?author;
+          pq:P1932 ?author_name.
+      }
+    }
+    LIMIT 2000 
+}
+AS %name_strings
+WHERE {
+  INCLUDE %name_strings
+  ?work wdt:P2093 ?author_name. 
+}
+
+GROUP BY ?author_name
+ORDER BY DESC (?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

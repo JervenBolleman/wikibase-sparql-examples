@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0b4d2bb0c81e63c07d9d4bdb84bef617> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title:P8034 by number of external identifiers (group 15-25, 26+)
+#defaultView:BubbleChart
+SELECT ?group (SUM(?count) AS ?count_group) #(SAMPLE(?sampl) AS ?sample)
+WITH
+{
+  SELECT ?ids (COUNT(DISTINCT ?item) AS ?count) #(SAMPLE(?item) AS ?sampl) 
+  WHERE 
+  {
+    ?item wdt:P8034 ?id .
+    ?item wikibase:identifiers ?ids .
+  }
+  GROUP BY ?ids
+} AS %what
+WHERE
+{
+  INCLUDE %what
+  BIND( IF(?ids < 16, CONCAT(\"0\",STR(?ids)),  #zero added for sorting by group
+        IF(?ids < 26, \"16-25\", \"26+\")) 
+        AS ?group) 
+}
+GROUP BY ?group
+ORDER BY ?group""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/Queries>, <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/sandbox>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

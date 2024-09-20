@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0508c618b0f6ffeca353aa12f10f8d16> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?author ?authorLabel
+WITH
+{
+  SELECT ?author
+  {
+    ?wikisource schema:about ?author ; schema:isPartOf / wikibase:wikiGroup \"wikisource\" .
+    ?author wikibase:sitelinks ?sitelinks . 
+    ?work wdt:P50 ?author .
+  }
+  GROUP BY ?author
+  HAVING (COUNT(DISTINCT ?wikisource) = SAMPLE(?sitelinks))
+} AS %1
+WITH
+{
+  SELECT ?author
+  WHERE
+  {
+    INCLUDE %1
+    FILTER EXISTS
+    {
+      ?work wdt:P50 ?author .
+      ?work wdt:P31/wdt:P279* wd:Q47461344 . # Written work exists
+      hint:Prior hint:gearing \"forward\" .
+    }
+  }
+} AS %2
+WHERE
+{
+  INCLUDE %2
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

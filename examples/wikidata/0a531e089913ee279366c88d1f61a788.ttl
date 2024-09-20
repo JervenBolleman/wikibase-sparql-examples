@@ -1,0 +1,23 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0a531e089913ee279366c88d1f61a788> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?age_at_first_elo WITH {
+  SELECT ?item (MIN(?elo_time) AS ?min_time) WHERE {
+    ?item p:P1087/pq:P585 ?elo_time .
+  } GROUP BY ?item
+} AS %subquery WHERE {
+  INCLUDE %subquery .
+  ?item wdt:P569 ?dob .
+  BIND(xsd:integer(YEAR(?min_time) - YEAR(?dob)) AS ?age_at_first_elo) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+} ORDER BY ASC(?age_at_first_elo)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

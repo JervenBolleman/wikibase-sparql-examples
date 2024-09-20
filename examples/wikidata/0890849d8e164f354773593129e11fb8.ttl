@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0890849d8e164f354773593129e11fb8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# All former MPs alive on election day (Andrew Gray)
+# note that election is explicitly hardcoded in three places because MINUS clauses are odd
+
+SELECT distinct ?item ?itemLabel ?died ?born
+{
+  ?item p:P39 ?positionStatement . ?positionStatement ps:P39 ?membership . ?membership wdt:P279 wd:Q16707842 .
+  ?positionStatement pq:P582 ?end . FILTER (?end < ?electionday) . wd:Q3586935 wdt:P585 ?electionday .
+  # find all MPs who served any terms in office before this date (nb will include any unknown end dates)
+  MINUS { ?item wdt:P570 ?died . FILTER (?died < ?electionday) . wd:Q3586935 wdt:P585 ?electionday }
+  MINUS { ?item wdt:P570 ?died . FILTER isBLANK(?died) . }
+  # remove all who died before this date, or have a date of death unknown
+  MINUS { ?item p:P39 ?positionStatement2 . ?positionStatement2 ps:P39 ?membership2 .
+         ?membership2 wdt:P279 wd:Q16707842 . ?positionStatement2 pq:P2715 wd:Q3586935 . }
+  # remove all those who were elected at this specific election and thus were an MP on that day
+  optional { ?item wdt:P569 ?born } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Charles_Matthews/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

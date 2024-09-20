@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0e8e2134bfa21792df1d5f9fceb192bb> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# COVID19 victims
+SELECT ?dateOfDeath ?name (SAMPLE(?nationality) AS ?citizenship) (SAMPLE(?occupation) AS ?profession)
+{
+    ?s wdt:P509 wd:Q84263196 .
+    ?s rdfs:label ?name .
+    FILTER(LANG(?name)=\"en\")
+    # occupation
+    OPTIONAL {
+        ?s wdt:P106 ?occupationRes .
+        ?occupationRes rdfs:label ?occupation .
+        FILTER(LANG(?occupation)=\"en\")
+    }
+    # nationality
+    OPTIONAL {
+        ?s wdt:P27 ?nationalityRes .
+        ?nationalityRes rdfs:label ?nationality .
+        FILTER(LANG(?nationality)=\"en\")
+    }
+    # date of death
+    OPTIONAL {
+        ?s wdt:P570 ?dateOfDeath .
+    }
+} GROUP BY ?name ?dateOfDeath ORDER BY DESC(?dateOfDeath)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_COVID-19/Queries/SPARQL_Study>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

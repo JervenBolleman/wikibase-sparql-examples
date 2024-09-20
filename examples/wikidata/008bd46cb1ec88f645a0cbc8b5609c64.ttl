@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-008bd46cb1ec88f645a0cbc8b5609c64> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?ord ?ingredient ?ingredientLabel ?quantity ?unitShort ?unitLabel WHERE {
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+      { 
+        wd:Q1039131 p:P186 ?materialStatement.
+        ?materialStatement ps:P186 ?ingredient.
+        OPTIONAL {
+          ?materialStatement pq:P1114 ?quantity.
+          ?materialStatement pqv:P1114 ?value.
+          ?value wikibase:quantityUnit ?unit.
+          ?unit wdt:P5061 ?unitShort.
+          FILTER(LANG(?unitShort) = \"en\")
+        }
+        OPTIONAL {
+          ?materialStatement pq:P1545 ?ord.
+        }
+      } MINUS {
+        ?materialStatement pq:P518 wd:Q81727.
+      }
+    } ORDER BY ASC(?ord)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

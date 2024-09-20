@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-045da210e931e93d698c1fe6677faa96> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select  DISTINCT ?item  ?collectie (sample (?filename) as ?urlsample)  with {
+  select * {
+    service <https://query.wikidata.org/sparql> {
+      ?item wdt:P31 wd:Q5 . 
+   {?item wdt:P106/wdt:P279* wd:Q33231} #fotograaf
+   #{?item wdt:P106/wdt:P279* wd:Q3391743} #beeldend kunstenaar
+#      FILTER NOT EXISTS { ?item wdt:P7763 [].} 
+    }
+  }
+} as %works where {
+  include %works.
+  ?image wdt:P170 ?item.
+
+  
+      ?image wdt:P195 ?collectie.
+  
+      ?image schema:contentUrl ?url .
+#      ?image rdfs:label ?filename .
+  
+      bind(replace(wikibase:decodeUri(substr(str(?url),53)), \"_\", \" \")  AS ?filename)
+      FILTER NOT EXISTS { ?item wdt:P6379 ?collectie.} 
+}
+group by ?item ?collectie""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:CopyClear/monitor/creators_without_collection_with_works_in_Commons>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

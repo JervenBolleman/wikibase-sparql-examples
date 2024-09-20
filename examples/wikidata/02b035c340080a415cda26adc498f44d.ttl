@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-02b035c340080a415cda26adc498f44d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Count Danish citizens by birth decade
+SELECT ?birth_decade (COUNT(?person) as ?persons)
+WHERE
+{
+  ?person wdt:P31 wd:Q5.
+  ?person wdt:P27 wd:Q35.
+  ?person p:P569/psv:P569 [
+    wikibase:timeValue ?dateOfBirth;
+    wikibase:timePrecision ?precision
+  ].
+  FILTER(?precision >= \"8\"^^xsd:integer) # Precision is decade or smaller
+  BIND(SUBSTR(STR(?dateOfBirth),1,3) as ?birth_decade)
+}
+GROUP BY ?birth_decade
+ORDER BY ASC(?birth_decade)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,48 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-058fa993c66d1cb808bf67bff43a3c86> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?partyLabel ?chamberLabel ?stateLabel ?districtLabel
+       ((NOW() - ?date_of_birth)/365.25 AS ?age)
+       ?genderLabel ?etnic_groupLabel ?religionLabel
+WHERE
+{
+  ?item wdt:P31 wd:Q5. # item is a human
+  VALUES ?chamber { wd:Q4416090 wd:Q13218630 } # US senator, US representative
+  ?item p:P39 ?position_statement.
+  ?position_statement ps:P39 ?chamber.
+  ?position_statement a wikibase:BestRank.
+  OPTIONAL { ?position_statement pq:P582 ?endtime. }
+  FILTER (! BOUND(?endtime)) # No end time, ?item still has the position
+  OPTIONAL
+  {
+    ?position_statement ps:P39 wd:Q4416090. # senator
+    ?position_statement pq:P768 ?state.
+  }
+  OPTIONAL
+  {
+    ?position_statement ps:P39 wd:Q13218630. # representative
+    ?position_statement pq:P768 ?district. 
+    ?district wdt:P131 ?state.
+    ?state wdt:P31 wd:Q35657. # ?state is a US state
+  }
+  OPTIONAL { ?position_statement pq:P4100 ?parliamentary_group. }
+  OPTIONAL { ?position_statement a wdno:P4100. BIND(\"No party\" AS ?parliamentary_group) }
+  OPTIONAL { ?item wdt:P102 ?party_member. }
+  OPTIONAL { ?item a wdno:P102. BIND(\"No party\" AS ?party_member) }
+  BIND (COALESCE(?parliamentary_group,?party_member) AS ?party)
+  OPTIONAL { ?item wdt:P569 ?date_of_birth. }
+  OPTIONAL { ?item wdt:P21 ?gender. }
+  OPTIONAL { ?item wdt:P172 ?etnic_group. }
+  OPTIONAL { ?item wdt:P140 ?religion. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/05>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

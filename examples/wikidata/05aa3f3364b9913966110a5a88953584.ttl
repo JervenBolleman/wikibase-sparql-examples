@@ -1,0 +1,51 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-05aa3f3364b9913966110a5a88953584> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?revenue ?unitLabel ?hqLabel ?revenue_USD ?date WHERE {
+  ?item wdt:P31 wd:Q4830453;
+        wdt:P159 ?hq;
+        p:P2139 ?statement .
+  FILTER NOT EXISTS { ?statement wikibase:rank wikibase:DeprecatedRank } .
+  FILTER NOT EXISTS {
+    ?item p:P2139 ?statement1 .
+    ?statement1 wikibase:rank wikibase:PreferredRank .
+    FILTER( ?statement1 != ?statement ) .
+  } .
+  OPTIONAL { ?statement pq:P585 ?date } .
+  {
+    ?statement psv:P2139 [
+      wikibase:quantityAmount ?revenue; wikibase:quantityUnit wd:Q4917
+    ] .
+    BIND( wd:Q4917 AS ?unit ) .
+    BIND( ?revenue AS ?revenue_USD ) .
+  } UNION {
+    ?statement psv:P2139 [
+      wikibase:quantityAmount ?revenue; wikibase:quantityUnit ?unit
+    ] .
+    FILTER( ?unit != wd:Q4917 ) .
+    ?unit p:P2284 ?unit_statement .
+    ?unit_statement psv:P2284 [
+      wikibase:quantityUnit wd:Q4917; wikibase:quantityAmount ?usd
+    ] .
+    FILTER NOT EXISTS { ?unit_statement wikibase:rank wikibase:DeprecatedRank } .
+    FILTER NOT EXISTS {
+      ?unit p:P2284 ?unit_statement1 .
+      ?unit_statement1 wikibase:rank wikibase:PreferredRank;
+                       psv:P2284/wikibase:quantityUnit wd:Q4917 .
+      FILTER( ?unit_statement1 != ?unit_statement ) .
+    } .
+    BIND( ?revenue * ?usd AS ?revenue_USD ) .
+  } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"cs,en\" } .
+}
+ORDER BY DESC(?revenue_USD)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jklamo/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

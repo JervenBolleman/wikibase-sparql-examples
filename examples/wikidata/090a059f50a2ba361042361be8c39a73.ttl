@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-090a059f50a2ba361042361be8c39a73> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select  ?item (group_concat(?partieLabel;separator=\", \") as ?partieLabelFr) (group_concat(?ligneLabel;separator=\", \") as ?ligneLabelFr)
+where {SELECT ?item ?ligne ?ligneLabel ?partieLabel ?partie WHERE { 
+  ?item wdt:P31 wd:Q928830.
+  OPTIONAL { ?item wdt:P361 ?partie. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+  FILTER(NOT EXISTS {
+    ?item schema:description ?itemdesc.
+    FILTER((LANG(?itemdesc)) = \"fr\")  })
+  OPTIONAL { ?item wdt:P81 ?ligne. }   MINUS { ?item (wdt:P576|wdt:P582|wdt:P3999) ?dispar. }
+  MINUS { 
+    ?item wdt:P5817 ?interdit.    VALUES ?interdit {
+      wd:Q811683
+      wd:Q63065035 
+      wd:Q12377751 
+      wd:Q55653430  
+      wd:Q30108381 
+      wd:Q55570340 
+      wd:Q11639308    }
+  } }  } group by ?item""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Bouzinac/Data_quality>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

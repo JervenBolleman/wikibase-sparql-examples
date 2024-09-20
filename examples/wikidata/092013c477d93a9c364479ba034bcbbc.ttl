@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-092013c477d93a9c364479ba034bcbbc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  ?item ?itemLabel (GROUP_CONCAT(?instance_ofLabel; SEPARATOR=\", \") AS ?instance_ofLabels)
+  ?location ?locationLabel ?country ?countryLabel ?wikipedia_en
+  ?person ?personLabel ?occupation ?occupationLabel
+WHERE
+{
+  VALUES ?occupation { wd:Q17769800 wd:Q10076267 wd:Q806283} # slave trader, slave owner, Bandeirantes
+  ?person wdt:P31 wd:Q5. # human
+  ?person wdt:P106 ?occupation.
+  ?item wdt:P138 ?person. # ?item is named after person
+  OPTIONAL { ?item wdt:P31 ?instance_of. }
+  OPTIONAL { ?item wdt:P131 ?location. }
+  OPTIONAL { ?item wdt:P17 ?country. }
+  OPTIONAL
+  {
+    ?wikipedia_en schema:about ?item.
+    ?wikipedia_en schema:isPartOf <https://en.wikipedia.org/> .
+  }
+  SERVICE wikibase:label
+  {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?item rdfs:label ?itemLabel.
+    ?instance_of rdfs:label ?instance_ofLabel.
+    ?location rdfs:label ?locationLabel.
+    ?country rdfs:label ?countryLabel.
+    ?person rdfs:label ?personLabel.
+    ?occupation rdfs:label ?occupationLabel.
+  }
+}
+GROUP BY
+  ?item ?itemLabel ?location ?locationLabel ?country ?countryLabel ?wikipedia_en
+  ?person ?personLabel ?occupation ?occupationLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .
