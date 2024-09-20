@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-d063aecf30954c694ee41d44f71123ad> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT 
 DISTINCT 
 ?taxon ?taxonname 
 ?papercount
@@ -34,9 +42,65 @@ WHERE {
 }
 GROUP BY ?taxon ?taxonname ?papercount ?linkcount ?score
 ORDER BY DESC(?score)
+LIMIT 200""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT 
+DISTINCT 
+?taxon ?taxonname 
+?papercount
+?linkcount
+?score
+
+WHERE {
+  {
+  SELECT 
+  ?taxon ?taxonname 
+         (COUNT(?paper) AS ?papercount)
+         {
+           ?paper wdt:P6104 wd:Q56241615 ;
+                  wdt:P921 ?taxon .
+           ?taxon wdt:P225 ?taxonname ;
+                  wdt:P105 wd:Q7432 .
+           MINUS {?taxon wdt:P18 ?image}
+
+         }
+  GROUP BY ?taxon ?taxonname ?papercount 
+
+}
+          ?taxon wikibase:sitelinks ?linkcount .
+  BIND ((?papercount +1) * (?linkcount +1 ) AS ?score)
+}
+GROUP BY ?taxon ?taxonname ?papercount ?linkcount ?score
+ORDER BY DESC(?score)
 LIMIT 200""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT 
+DISTINCT 
+?taxon ?taxonname 
+?papercount
+?linkcount
+?score
+WITH {
+  SELECT 
+  ?taxon ?taxonname 
+         (COUNT(?paper) AS ?papercount)
+         {
+           ?paper wdt:P6104 wd:Q56241615 ;
+                  wdt:P921 ?taxon .
+           ?taxon wdt:P225 ?taxonname ;
+                  wdt:P105 wd:Q7432 .
+           MINUS {?taxon wdt:P18 ?image}
+
+         }
+  GROUP BY ?taxon ?taxonname ?papercount 
+
+} AS %papers
+WHERE {
+  INCLUDE %papers
+          ?taxon wikibase:sitelinks ?linkcount .
+  BIND ((?papercount +1) * (?linkcount +1 ) AS ?score)
+}
+GROUP BY ?taxon ?taxonname ?papercount ?linkcount ?score
+ORDER BY DESC(?score)
+LIMIT 200""" .

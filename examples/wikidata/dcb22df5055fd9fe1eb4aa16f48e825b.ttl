@@ -6,7 +6,14 @@
 
 <https://www.wikidata.org/#query-dcb22df5055fd9fe1eb4aa16f48e825b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# List with counts of lexical categories
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:lexicalcategory-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# List with counts of lexical categories
 SELECT
   ?count
   ?lexical_category ?lexical_categoryLabel 
@@ -21,9 +28,38 @@ WHERE {
   INCLUDE %results
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# List with counts of lexical categories
+SELECT
+  ?count
+  ?lexical_category ?lexical_categoryLabel 
+  (CONCAT(\"#lexicalcategory/\", SUBSTR(STR(?lexical_category), 32)) AS ?lexical_categoryUrl)
+
+WHERE {
+  {
+  SELECT (COUNT(*) AS ?count) ?lexical_category WHERE {
+    [] wikibase:lexicalCategory ?lexical_category .
+  }
+  GROUP BY ?lexical_category
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:lexicalcategory-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """# List with counts of lexical categories
+SELECT
+  ?count
+  ?lexical_category ?lexical_categoryLabel 
+  (CONCAT(\"#lexicalcategory/\", SUBSTR(STR(?lexical_category), 32)) AS ?lexical_categoryUrl)
+WITH {
+  SELECT (COUNT(*) AS ?count) ?lexical_category WHERE {
+    [] wikibase:lexicalCategory ?lexical_category .
+  }
+  GROUP BY ?lexical_category
+} AS %results
+WHERE {
+  INCLUDE %results
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?count)""" .

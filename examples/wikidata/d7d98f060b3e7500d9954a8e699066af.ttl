@@ -6,7 +6,14 @@
 
 <https://www.wikidata.org/#query-d7d98f060b3e7500d9954a8e699066af> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/1/13>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+SELECT
   ?total
   ?without
   ?with
@@ -26,9 +33,48 @@ WITH {
   INCLUDE %1.
   BIND((?total - ?with) AS ?without)
   BIND(CONCAT(STR((?with/?total)), \" %\") AS ?ratio)
+}""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+SELECT
+  ?total
+  ?without
+  ?with
+  ?ratio
+
+WITH {
+  SELECT (COUNT(*) AS ?total) {
+    [] ontolex:lexicalForm [].
+  }
+} AS %1
+{
+  {
+  SELECT (COUNT(*) AS ?with) {
+    [] ontolex:lexicalForm [wdt:P443 []]
+  }
+}.
+  INCLUDE %1.
+  BIND((?total - ?with) AS ?without)
+  BIND(CONCAT(STR((?with/?total)), \" %\") AS ?ratio)
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/1/13>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT
+  ?total
+  ?without
+  ?with
+  ?ratio
+WITH {
+  SELECT (COUNT(*) AS ?with) {
+    [] ontolex:lexicalForm [wdt:P443 []]
+  }
+} AS %0
+WITH {
+  SELECT (COUNT(*) AS ?total) {
+    [] ontolex:lexicalForm [].
+  }
+} AS %1
+{
+  INCLUDE %0.
+  INCLUDE %1.
+  BIND((?total - ?with) AS ?without)
+  BIND(CONCAT(STR((?with/?total)), \" %\") AS ?ratio)
+}""" .

@@ -6,7 +6,20 @@
 
 <https://www.wikidata.org/#query-d800dee029e3f701549f3cb8e38bd914> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?itemDescription ?statements WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/rowing/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?itemDescription ?statements WITH {
   SELECT DISTINCT ?item WHERE {
     ?item p:P106/ps:P106/wdt:P279* wd:Q26270618 .
   }
@@ -18,9 +31,38 @@
   FILTER(!BOUND(?p)) .
   MINUS { ?item wdt:P973|wdt:P1343 [] }
   SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?itemDescription ?statements  WHERE {
+  {
+  SELECT DISTINCT ?item WHERE {
+    ?item p:P106/ps:P106/wdt:P279* wd:Q26270618 .
+  }
+} .
+  ?item wikibase:sitelinks 0; wikibase:identifiers 0; wikibase:statements ?statements .
+  MINUS { [] ?backlink ?item }
+  OPTIONAL { ?item ?p [ prov:wasDerivedFrom [ ?pr [] ] ] . FILTER(?pr NOT IN (pr:P143, pr:P3452)) }
+  FILTER(!BOUND(?p)) .
+  MINUS { ?item wdt:P973|wdt:P1343 [] }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/rowing/queries>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?itemDescription ?statements WITH {
+  SELECT DISTINCT ?item WHERE {
+    ?item p:P106/ps:P106/wdt:P279* wd:Q26270618 .
+  }
+} AS %s WHERE {
+  INCLUDE %s .
+  ?item wikibase:sitelinks 0; wikibase:identifiers 0; wikibase:statements ?statements .
+  MINUS { [] ?backlink ?item }
+  OPTIONAL { ?item ?p [ prov:wasDerivedFrom [ ?pr [] ] ] . FILTER(?pr NOT IN (pr:P143, pr:P3452)) }
+  FILTER(!BOUND(?p)) .
+  MINUS { ?item wdt:P973|wdt:P1343 [] }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}""" .

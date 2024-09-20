@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-df6646a18810374d09b766760c543dd8> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """select ?item ?itemLabel ?number
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+select ?item ?itemLabel ?number
 with { # select all the numbers of sitelinks
   select ?number (count(*) as ?total) { # we don't use ?total but without it the query times out, so we'll just ignore it
     [] wikibase:sitelinks ?number .
@@ -19,8 +28,16 @@ where {
   ?item wdt:P31 wd:Q5.
   service wikibase:label { bd:serviceParam wikibase:language \"en\" }
 } order by desc(?number)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/12>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """select ?item ?itemLabel ?number
+with { # select all the numbers of sitelinks
+  select ?number (count(*) as ?total) { # we don't use ?total but without it the query times out, so we'll just ignore it
+    [] wikibase:sitelinks ?number .
+  } group by ?number
+} as %numbers
+where {
+  include %numbers .
+  filter (?number > 25) .
+  ?item wikibase:sitelinks ?number .
+  ?item wdt:P31 wd:Q5.
+  service wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} order by desc(?number)""" .

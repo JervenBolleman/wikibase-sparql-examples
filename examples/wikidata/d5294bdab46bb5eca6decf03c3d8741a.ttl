@@ -6,7 +6,18 @@
 
 <https://www.wikidata.org/#query-d5294bdab46bb5eca6decf03c3d8741a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# Version 1 - using a named subquery
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Version 1 - using a named subquery
 select ?item ?itemLabel ?pit ?value 
 with                                 # here's the start of the named subquery
 { 
@@ -27,8 +38,24 @@ where                              # here is the main query
   ?statement pq:P585 ?pit.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/10>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """# Version 1 - using a named subquery
+select ?item ?itemLabel ?pit ?value 
+with                                 # here's the start of the named subquery
+{ 
+  SELECT ?item (max(?pit) as ?pit)
+  WHERE 
+  {
+    values ?item {wd:Q84}
+    ?item p:P1082 ?statement.
+    ?statement pq:P585 ?pit.
+  } group by ?item 
+} as %i                            # end of named subquery - it finds the max ?pit
+
+where                              # here is the main query
+{
+  include %i                       # it uses the ?item and ?pit values supplied by the named subquery 
+  ?item p:P1082 ?statement.
+  ?statement ps:P1082 ?value.      # and finds the associated ?value
+  ?statement pq:P585 ?pit.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

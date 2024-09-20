@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-db8102c1d0cea3699fb7302a1c12e375> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT distinct ?item ?itemLabel ?elo ?date WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT distinct ?item ?itemLabel ?elo ?date WITH {
   SELECT ?item ?stmt ?elo ?date WHERE {
      ?item p:P1087 ?stmt .
      ?stmt ps:P1087 ?elo .
@@ -23,9 +33,52 @@ WHERE {
   }
   INCLUDE %elo .   
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT distinct ?item ?itemLabel ?elo ?date 
+
+WHERE {
+  {
+    SELECT ?item (MAX(?date) AS ?date) WHERE {
+       {
+  SELECT ?item ?stmt ?elo ?date WHERE {
+     ?item p:P1087 ?stmt .
+     ?stmt ps:P1087 ?elo .
+     FILTER(?elo > 2700)
+     optional {?stmt pq:P585 ?date }
+  }
+} .
+    } GROUP BY ?item 
+  }
+  {
+  SELECT ?item ?stmt ?elo ?date WHERE {
+     ?item p:P1087 ?stmt .
+     ?stmt ps:P1087 ?elo .
+     FILTER(?elo > 2700)
+     optional {?stmt pq:P585 ?date }
+  }
+} .   
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/03>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT distinct ?item ?itemLabel ?elo ?date WITH {
+  SELECT ?item ?stmt ?elo ?date WHERE {
+     ?item p:P1087 ?stmt .
+     ?stmt ps:P1087 ?elo .
+     FILTER(?elo > 2700)
+     optional {?stmt pq:P585 ?date }
+  }
+} AS %elo
+
+WHERE {
+  {
+    SELECT ?item (MAX(?date) AS ?date) WHERE {
+       INCLUDE %elo .
+    } GROUP BY ?item 
+  }
+  INCLUDE %elo .   
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

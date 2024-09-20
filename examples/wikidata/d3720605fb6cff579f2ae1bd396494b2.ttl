@@ -6,7 +6,14 @@
 
 <https://www.wikidata.org/#query-d3720605fb6cff579f2ae1bd396494b2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?partner_count ?female ?male
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT ?partner_count ?female ?male
 
 WITH {
   SELECT ?item ?p
@@ -42,8 +49,39 @@ WHERE
   INCLUDE %i    
   INCLUDE %j
 } order by desc (?partner_count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/09>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?partner_count ?female ?male
+
+WITH {
+  SELECT ?item ?p
+WHERE 
+{
+ ?item wdt:P451 ?p. hint:Prior hint:runFirst true.
+ ?item wdt:P106/wdt:P279* wd:Q108289408 . 
+hint:Prior hint:gearing \"forward\".  
+} } as %t
+
+WITH {
+SELECT ?partner_count  (count(?partner_count) as ?female) WHERE {  
+  SELECT ?item ?g (count(?p) as ?partner_count) WHERE 
+  {
+    VALUES ?g {wd:Q6581072}
+    INCLUDE %t
+    ?item wdt:P21 ?g.  
+  } group by ?item ?g } group by ?partner_count ?g } as %i
+
+WITH {
+SELECT ?partner_count  (count(?partner_count) as ?male) WHERE {  
+  SELECT ?item ?g (count(?p) as ?partner_count) 
+  WHERE  
+  {
+    VALUES ?g {wd:Q6581097}
+    INCLUDE %t
+    ?item wdt:P21 ?g.  
+  } group by ?item ?g } group by ?partner_count ?g } as %j
+
+WHERE
+{
+  hint:Query hint:optimizer \"None\"
+  INCLUDE %i    
+  INCLUDE %j
+} order by desc (?partner_count)""" .

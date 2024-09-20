@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-d1aec087da3e0709889cbd5295039a7d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?language ?topicSitelink ?code ?article ?label 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?item ?language ?topicSitelink ?code ?article ?label 
 
 WITH {
   SELECT ?topic ?item ?itemLink WHERE {
@@ -28,9 +38,61 @@ WHERE {
     BIND(replace(wikibase:decodeUri(STRAFTER(STR(?topicSitelink), \"wiki/\" )),\"_\",\" \") AS ?article)
   }
   OPTIONAL{ ?topic rdfs:label ?label filter (lang(?label) = ?code).}
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?item ?language ?topicSitelink ?code ?article ?label 
+
+
+  
+WHERE {
+  {
+  SELECT ?topic ?item ?itemLink WHERE {
+    VALUES ?topic {wd:Q1071518} .
+    ?item wdt:P31 wd:Q10876391.
+    ?item wdt:P856 ?itemLink .
+  }
+} .
+  ?item wdt:P407 ?lang .
+  BIND(SUBSTR(STR(?lang), 32 ) AS ?language)
+  BIND(STRAFTER(STRBEFORE(STR(?itemLink), \".\"),\"//\") AS ?code)
+  OPTIONAL {
+    {
+  SELECT ?topic ?item ?itemLink WHERE {
+    VALUES ?topic {wd:Q1071518} .
+    ?item wdt:P31 wd:Q10876391.
+    ?item wdt:P856 ?itemLink .
+  }
+} .
+    ?topicSitelink schema:isPartOf ?itemLink;
+                schema:about ?topic.
+    BIND(replace(wikibase:decodeUri(STRAFTER(STR(?topicSitelink), \"wiki/\" )),\"_\",\" \") AS ?article)
+  }
+  OPTIONAL{ ?topic rdfs:label ?label filter (lang(?label) = ?code).}
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/01>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?language ?topicSitelink ?code ?article ?label 
+
+WITH {
+  SELECT ?topic ?item ?itemLink WHERE {
+    VALUES ?topic {wd:Q1071518} .
+    ?item wdt:P31 wd:Q10876391.
+    ?item wdt:P856 ?itemLink .
+  }
+} AS %requirements
+  
+WHERE {
+  INCLUDE %requirements .
+  ?item wdt:P407 ?lang .
+  BIND(SUBSTR(STR(?lang), 32 ) AS ?language)
+  BIND(STRAFTER(STRBEFORE(STR(?itemLink), \".\"),\"//\") AS ?code)
+  OPTIONAL {
+    INCLUDE %requirements .
+    ?topicSitelink schema:isPartOf ?itemLink;
+                schema:about ?topic.
+    BIND(replace(wikibase:decodeUri(STRAFTER(STR(?topicSitelink), \"wiki/\" )),\"_\",\" \") AS ?article)
+  }
+  OPTIONAL{ ?topic rdfs:label ?label filter (lang(?label) = ?code).}
+}""" .

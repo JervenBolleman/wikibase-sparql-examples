@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-d50a0a6c14cc07d5ec17742084c4d910> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?gender ?genderLabel ?count 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:PAC2/SPARQL_queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?gender ?genderLabel ?count 
 WITH {
 SELECT ?gender (COUNT(?item) AS ?count) WHERE {
   ?item wdt:P31 wd:Q5;
@@ -24,9 +32,45 @@ WHERE {
        FILTER(LANG(?genderLabel) = \"fr\") 
 } 
 ORDER BY DESC (?count)
+LIMIT 100""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?gender ?genderLabel ?count 
+
+WHERE {
+  {
+SELECT ?gender (COUNT(?item) AS ?count) WHERE {
+  ?item wdt:P31 wd:Q5;
+    wdt:P27 wd:Q142;
+    wdt:P21 ?gender.
+
+}
+GROUP BY ?gender 
+
+}
+   ?gender rdfs:label ?genderLabel 
+          
+       FILTER(LANG(?genderLabel) = \"fr\") 
+} 
+ORDER BY DESC (?count)
 LIMIT 100""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:PAC2/SPARQL_queries>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?gender ?genderLabel ?count 
+WITH {
+SELECT ?gender (COUNT(?item) AS ?count) WHERE {
+  ?item wdt:P31 wd:Q5;
+    wdt:P27 wd:Q142;
+    wdt:P21 ?gender.
+
+}
+GROUP BY ?gender 
+
+} AS %COUNT
+WHERE {
+  INCLUDE %COUNT
+   ?gender rdfs:label ?genderLabel 
+          
+       FILTER(LANG(?genderLabel) = \"fr\") 
+} 
+ORDER BY DESC (?count)
+LIMIT 100""" .

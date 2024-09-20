@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-d881058ad4324fd41749d1553233f962> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:languagestyle-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
   ?lexemes
 
   ?language_styles
@@ -34,9 +44,67 @@ WHERE {
   INCLUDE %languages
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?lexemes)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
+  ?lexemes
+
+  ?language_styles
+  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32), \"/languagestyle\") AS ?language_stylesUrl)
+
+  ?language ?languageLabel
+  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32)) AS ?languageUrl)
+  
+  ?example_language_style ?example_language_styleLabel
+  (CONCAT(\"#languagestyle/\", SUBSTR(STR(?example_language_style), 32)) AS ?example_language_styleUrl)
+
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(DISTINCT ?lexeme) AS ?lexemes)
+    (COUNT(DISTINCT ?language_style) AS ?language_styles)
+    ?language
+    (SAMPLE(?language_style) AS ?example_language_style)
+  WHERE {
+    ?lexeme dct:language ?language ;
+            ontolex:sense / wdt:P6191 ?language_style .
+  }
+  GROUP BY ?language
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?lexemes)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:languagestyle-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT 
+  ?lexemes
+
+  ?language_styles
+  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32), \"/languagestyle\") AS ?language_stylesUrl)
+
+  ?language ?languageLabel
+  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32)) AS ?languageUrl)
+  
+  ?example_language_style ?example_language_styleLabel
+  (CONCAT(\"#languagestyle/\", SUBSTR(STR(?example_language_style), 32)) AS ?example_language_styleUrl)
+
+WITH {
+  SELECT 
+    (COUNT(DISTINCT ?lexeme) AS ?lexemes)
+    (COUNT(DISTINCT ?language_style) AS ?language_styles)
+    ?language
+    (SAMPLE(?language_style) AS ?example_language_style)
+  WHERE {
+    ?lexeme dct:language ?language ;
+            ontolex:sense / wdt:P6191 ?language_style .
+  }
+  GROUP BY ?language
+} AS %languages
+WHERE {
+  INCLUDE %languages
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?lexemes)""" .

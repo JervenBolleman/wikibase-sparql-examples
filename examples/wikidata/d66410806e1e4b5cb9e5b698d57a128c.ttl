@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-d66410806e1e4b5cb9e5b698d57a128c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?count ?institution ?institutionLabel 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Scholia/Robustifying/Testing>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?count ?institution ?institutionLabel 
 WITH {
   SELECT (COUNT(DISTINCT ?researcher) AS ?count) ?institution WHERE {
     ?researcher ( wdt:P108 | wdt:P463 | wdt:P1416 ) / wdt:P361* ?institution .
@@ -19,9 +27,35 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,ep,fr,jp,nl,no,ru,sv,zh\" . } 
 } 
 ORDER BY DESC(?count)
+LIMIT 200""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?count ?institution ?institutionLabel 
+
+WHERE {
+  {
+  SELECT (COUNT(DISTINCT ?researcher) AS ?count) ?institution WHERE {
+    ?researcher ( wdt:P108 | wdt:P463 | wdt:P1416 ) / wdt:P361* ?institution .
+    ?institution wdt:P2427 ?grid .
+  } 
+  GROUP BY ?institution
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,ep,fr,jp,nl,no,ru,sv,zh\" . } 
+} 
+ORDER BY DESC(?count)
 LIMIT 200""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Scholia/Robustifying/Testing>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?count ?institution ?institutionLabel 
+WITH {
+  SELECT (COUNT(DISTINCT ?researcher) AS ?count) ?institution WHERE {
+    ?researcher ( wdt:P108 | wdt:P463 | wdt:P1416 ) / wdt:P361* ?institution .
+    ?institution wdt:P2427 ?grid .
+  } 
+  GROUP BY ?institution
+} AS %result
+WHERE {
+  INCLUDE %result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,ep,fr,jp,nl,no,ru,sv,zh\" . } 
+} 
+ORDER BY DESC(?count)
+LIMIT 200""" .

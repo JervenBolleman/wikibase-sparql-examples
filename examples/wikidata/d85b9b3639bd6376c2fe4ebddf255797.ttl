@@ -6,7 +6,18 @@
 
 <https://www.wikidata.org/#query-d85b9b3639bd6376c2fe4ebddf255797> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:Map
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/3/6>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map
 SELECT
   ?item
   ?itemLabel
@@ -57,8 +68,54 @@ WITH {
   OPTIONAL{INCLUDE %3}.
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\"}.
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/3/6>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#defaultView:Map
+SELECT
+  ?item
+  ?itemLabel
+  ?coords
+WITH {
+  SELECT DISTINCT ?item {
+    {?item wdt:P512/(wdt:P31|wdt:P279)* wd:Q752297}
+    UNION
+    {
+      ?item p:P69 [
+        pq:P512/(wdt:P31|wdt:P279)* wd:Q752297;
+        wikibase:rank wikibase:NormalRank
+      ]
+    }
+    UNION
+    {
+      ?item p:P69 [
+        pq:P512/(wdt:P31|wdt:P279)* wd:Q752297;
+        wikibase:rank wikibase:PreferredRank
+      ]
+    }
+  }
+} AS %0
+WITH {
+  SELECT DISTINCT ?item ?location {
+    INCLUDE %0.
+    ?item wdt:P19 ?location.
+  }
+} AS %1
+WITH {
+  SELECT DISTINCT ?location {
+    INCLUDE %1.
+  }
+} AS %2
+WITH {
+  SELECT DISTINCT ?location ?coords {
+    INCLUDE %2.
+    OPTIONAL{?location wdt:P625 ?P625}.
+    OPTIONAL{?location (wdt:P131|wdt:P276)+/wdt:P625 ?P131_or_P276__P625}.
+    BIND(COALESCE(IF(BOUND(?P625), ?P625, 1/0),
+                  IF(BOUND(?P276_P625), ?P276_P625, 1/0),
+                  IF(BOUND(?P131_or_P276__P625), ?P131_or_P276__P625, 1/0))
+         AS ?coords)
+  }
+} AS %3
+{
+  INCLUDE %1.
+  OPTIONAL{INCLUDE %3}.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\"}.
+}""" .

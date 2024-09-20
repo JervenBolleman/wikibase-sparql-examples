@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-ddb62e084c72f679168be2707bf6b664> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# Double cousins: children of 2 brothers marrying 2 sisters
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Double cousins: children of 2 brothers marrying 2 sisters
 SELECT 
   ?person ?personLabel
   ?relative ?relativeLabel
@@ -41,8 +50,38 @@ WHERE
     ?relative wdt:P31 wd:Q5 .
     SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/10>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """# Double cousins: children of 2 brothers marrying 2 sisters
+SELECT 
+  ?person ?personLabel
+  ?relative ?relativeLabel
+  ?link
+  ?f1 ?f1Label
+  ?m1 ?m1Label
+  ?f2 ?f2Label
+  ?m2 ?m2Label
+  # ?gf1 ?gf1Label    ?gm1 ?gm1Label
+  # ?gf2 ?gf2Label    ?gm2 ?gm2Label
+WITH
+{
+  SELECT   ?person   ?f1   ?m1   ?relative ?f2 ?m2 ?link ?gf1 ?gf2 ?gm1 ?gm2
+  {
+    ?person wdt:P22 ?f1 ; wdt:P25 ?m1 .
+    ?relative wdt:P22 ?f2 ;wdt:P25 ?m2 .
+    { ?f1 wdt:P3373 ?f2 . ?m1 wdt:P3373 ?m2 . BIND(\"2 brothers/2 sisters\" as ?link)
+    # checks to avoid half-siblings:
+    ?f1 wdt:P22 ?gf1 ; wdt:P25 ?gm1 . 
+    ?f2 wdt:P22 ?gf1 ; wdt:P25 ?gm1 .
+    ?m1 wdt:P22 ?gf2 ; wdt:P25 ?gm2 .
+    ?m2 wdt:P22 ?gf2 ; wdt:P25 ?gm2 .
+    } 
+    FILTER ( ?person != ?relative && ?f1 != ?f2 && ?m1 != ?m2 && ?gf1 != ?gf2  && ?gm1 != ?gm2 )  #avoid more closely related
+  }  LIMIT 200
+} as %basic
+WHERE
+{
+    # hint:Query hint:optimizer \"None\".
+    INCLUDE %basic
+    ?person wdt:P31 wd:Q5 .
+    ?relative wdt:P31 wd:Q5 .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

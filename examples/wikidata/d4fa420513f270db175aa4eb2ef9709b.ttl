@@ -6,7 +6,20 @@
 
 <https://www.wikidata.org/#query-d4fa420513f270db175aa4eb2ef9709b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?item ?itemLabel ?enddate (group_concat(distinct ?denomLabel;separator=\", \") as ?denomination) ?inception (group_concat(distinct ?architectLabel;separator=\", \") as ?architects) WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?enddate (group_concat(distinct ?denomLabel;separator=\", \") as ?denomination) ?inception (group_concat(distinct ?architectLabel;separator=\", \") as ?architects) WITH {
   SELECT DISTINCT ?item ?denom ?inception ?architect WHERE {
     ?item wdt:P131* wd:Q365 .
     OPTIONAL { ?item wdt:P140 ?denom .
@@ -26,9 +39,54 @@
   ?item rdfs:label ?itemLabel.
   ?denom rdfs:label ?denomLabel.
   ?architect rdfs:label ?architectLabel.  }
+} group by ?item ?itemLabel ?enddate ?inception""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?enddate (group_concat(distinct ?denomLabel;separator=\", \") as ?denomination) ?inception (group_concat(distinct ?architectLabel;separator=\", \") as ?architects)  WHERE {
+  {
+  SELECT DISTINCT ?item ?denom ?inception ?architect WHERE {
+    ?item wdt:P131* wd:Q365 .
+    OPTIONAL { ?item wdt:P140 ?denom .
+    ?item wdt:P571 ?inception .
+    ?item wdt:P84 ?architect.}
+  }
+} .
+  ?item p:P31 ?statementNode .
+  ?statementNode ps:P31/wdt:P279* wd:Q16970 .
+
+  OPTIONAL {
+    ?statementNode pq:P582 ?enddate .
+   
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'de,en'.
+  ?item rdfs:label ?itemLabel.
+  ?denom rdfs:label ?denomLabel.
+  ?architect rdfs:label ?architectLabel.  }
 } group by ?item ?itemLabel ?enddate ?inception""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/04>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?itemLabel ?enddate (group_concat(distinct ?denomLabel;separator=\", \") as ?denomination) ?inception (group_concat(distinct ?architectLabel;separator=\", \") as ?architects) WITH {
+  SELECT DISTINCT ?item ?denom ?inception ?architect WHERE {
+    ?item wdt:P131* wd:Q365 .
+    OPTIONAL { ?item wdt:P140 ?denom .
+    ?item wdt:P571 ?inception .
+    ?item wdt:P84 ?architect.}
+  }
+} AS %subquery WHERE {
+  INCLUDE %subquery .
+  ?item p:P31 ?statementNode .
+  ?statementNode ps:P31/wdt:P279* wd:Q16970 .
+
+  OPTIONAL {
+    ?statementNode pq:P582 ?enddate .
+   
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'de,en'.
+  ?item rdfs:label ?itemLabel.
+  ?denom rdfs:label ?denomLabel.
+  ?architect rdfs:label ?architectLabel.  }
+} group by ?item ?itemLabel ?enddate ?inception""" .

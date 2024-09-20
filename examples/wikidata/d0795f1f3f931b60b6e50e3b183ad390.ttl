@@ -6,7 +6,20 @@
 
 <https://www.wikidata.org/#query-d0795f1f3f931b60b6e50e3b183ad390> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?epicenter ?time (SUM(?population) AS ?total_population) (SAMPLE(?place) AS ?sample_place)  WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?epicenter ?time (SUM(?population) AS ?total_population) (SAMPLE(?place) AS ?sample_place)  WITH {
   SELECT * {
     ?item wdt:P31 wd:Q7944;
           wdt:P625 ?epicenter;
@@ -30,9 +43,62 @@
     bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" .
     ?item rdfs:label ?itemLabel .
   } .
+} GROUP BY ?item ?itemLabel ?epicenter ?time""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?epicenter ?time (SUM(?population) AS ?total_population) (SAMPLE(?place) AS ?sample_place)   WHERE {
+  {
+  SELECT * {
+    ?item wdt:P31 wd:Q7944;
+          wdt:P625 ?epicenter;
+          wdt:P585 ?time .
+    FILTER( YEAR( ?time ) > 2007 ) .
+    SERVICE wikibase:around {
+      ?place wdt:P625 ?location .
+      bd:serviceParam wikibase:center ?epicenter .
+      bd:serviceParam wikibase:radius 50 .
+    } .
+  }
+} .
+  ?place p:P1082 [ ps:P1082 ?population; pq:P585 ?date ] .
+  FILTER( ?time >= ?date ) .
+  MINUS {
+    ?place p:P1082/pq:P585 ?date2 .
+    FILTER( ?time >= ?date2 && ?date2 > ?date ) .
+  } .
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" .
+    ?item rdfs:label ?itemLabel .
+  } .
 } GROUP BY ?item ?itemLabel ?epicenter ?time""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/09>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?epicenter ?time (SUM(?population) AS ?total_population) (SAMPLE(?place) AS ?sample_place)  WITH {
+  SELECT * {
+    ?item wdt:P31 wd:Q7944;
+          wdt:P625 ?epicenter;
+          wdt:P585 ?time .
+    FILTER( YEAR( ?time ) > 2007 ) .
+    SERVICE wikibase:around {
+      ?place wdt:P625 ?location .
+      bd:serviceParam wikibase:center ?epicenter .
+      bd:serviceParam wikibase:radius 50 .
+    } .
+  }
+} AS %places WHERE {
+  INCLUDE %places .
+  ?place p:P1082 [ ps:P1082 ?population; pq:P585 ?date ] .
+  FILTER( ?time >= ?date ) .
+  MINUS {
+    ?place p:P1082/pq:P585 ?date2 .
+    FILTER( ?time >= ?date2 && ?date2 > ?date ) .
+  } .
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" .
+    ?item rdfs:label ?itemLabel .
+  } .
+} GROUP BY ?item ?itemLabel ?epicenter ?time""" .

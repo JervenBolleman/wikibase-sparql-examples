@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-da43d9957b18cb1ee85e635d9bf5bd89> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# Prolific authors for a specific journal
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Richard_Nevell>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Prolific authors for a specific journal
 SELECT ?count ?author ?authorLabel ?viaf ?lccn ?example_work ?example_workLabel
 WITH {
   # Count the number of works author by the author publishing in the journal
@@ -31,9 +40,60 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,no,ru,sv,zh\" . } 
 }
 ORDER BY DESC(?count)
+LIMIT 500""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Prolific authors for a specific journal
+SELECT ?count ?author ?authorLabel ?viaf ?lccn ?example_work ?example_workLabel
+
+WHERE {
+  {
+  # Count the number of works author by the author publishing in the journal
+  SELECT
+    ?author
+    (COUNT(?work) AS ?count)
+    (SAMPLE(?work) AS ?example_work)
+  WHERE {
+    ?work wdt:P50 ?author ;
+          wdt:P1433 wd:Q69499259 .
+  }
+  GROUP BY ?author
+} 
+          
+  # Include optional ORCID iD
+  OPTIONAL { ?author wdt:P214 ?viaf . }
+  OPTIONAL { ?author wdt:P244 ?lccn . }
+  
+  # Label the results
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,no,ru,sv,zh\" . } 
+}
+ORDER BY DESC(?count)
 LIMIT 500""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Richard_Nevell>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """# Prolific authors for a specific journal
+SELECT ?count ?author ?authorLabel ?viaf ?lccn ?example_work ?example_workLabel
+WITH {
+  # Count the number of works author by the author publishing in the journal
+  SELECT
+    ?author
+    (COUNT(?work) AS ?count)
+    (SAMPLE(?work) AS ?example_work)
+  WHERE {
+    ?work wdt:P50 ?author ;
+          wdt:P1433 wd:Q69499259 .
+  }
+  GROUP BY ?author
+} AS %result
+WHERE {
+  INCLUDE %result 
+          
+  # Include optional ORCID iD
+  OPTIONAL { ?author wdt:P214 ?viaf . }
+  OPTIONAL { ?author wdt:P244 ?lccn . }
+  
+  # Label the results
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,no,ru,sv,zh\" . } 
+}
+ORDER BY DESC(?count)
+LIMIT 500""" .

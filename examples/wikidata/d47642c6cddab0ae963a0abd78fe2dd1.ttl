@@ -6,7 +6,19 @@
 
 <https://www.wikidata.org/#query-d47642c6cddab0ae963a0abd78fe2dd1> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?itemDescription (GROUP_CONCAT(?p31label;SEPARATOR=', ') AS ?type) (YEAR(?p577) AS ?year) ?sitelinks ?sitelink ?article WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?itemDescription (GROUP_CONCAT(?p31label;SEPARATOR=', ') AS ?type) (YEAR(?p577) AS ?year) ?sitelinks ?sitelink ?article WITH {
 
  SELECT DISTINCT ?item ?p577 ?sitelinks WHERE {
    ?item wdt:P31 wd:Q7725634 .
@@ -27,9 +39,55 @@
   
  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],it,en,es,pl,uk\". }
 
+} GROUP BY ?item ?itemLabel ?itemDescription ?type ?p577 ?sitelinks ?sitelink ?article ORDER BY DESC(?sitelinks) ?itemLabel""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?itemDescription (GROUP_CONCAT(?p31label;SEPARATOR=', ') AS ?type) (YEAR(?p577) AS ?year) ?sitelinks ?sitelink ?article  WHERE {
+
+ {
+
+ SELECT DISTINCT ?item ?p577 ?sitelinks WHERE {
+   ?item wdt:P31 wd:Q7725634 .
+   ?item wdt:P407 wd:Q652 .
+   ?item wdt:P577 ?p577 . hint:Prior hint:rangeSafe true .
+   FILTER (\"1980-00-00\"^^xsd:dateTime <= ?p577 && ?p577 < \"2021-00-00\"^^xsd:dateTime) # change the year limits if needed
+   ?item wikibase:sitelinks ?sitelinks .
+
+} }
+ ?item wdt:P31 [rdfs:label ?p31label] . FILTER(LANG(?p31label)='it')   # change the language code if needed
+
+  OPTIONAL { ?article schema:about ?item ;
+  schema:isPartOf <https://en.wikipedia.org/> ; 
+  schema:name ?sitelink .
+  }
+  
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],it,en,es,pl,uk\". }
+
 } GROUP BY ?item ?itemLabel ?itemDescription ?type ?p577 ?sitelinks ?sitelink ?article ORDER BY DESC(?sitelinks) ?itemLabel""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/01>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?itemDescription (GROUP_CONCAT(?p31label;SEPARATOR=', ') AS ?type) (YEAR(?p577) AS ?year) ?sitelinks ?sitelink ?article WITH {
+
+ SELECT DISTINCT ?item ?p577 ?sitelinks WHERE {
+   ?item wdt:P31 wd:Q7725634 .
+   ?item wdt:P407 wd:Q652 .
+   ?item wdt:P577 ?p577 . hint:Prior hint:rangeSafe true .
+   FILTER (\"1980-00-00\"^^xsd:dateTime <= ?p577 && ?p577 < \"2021-00-00\"^^xsd:dateTime) # change the year limits if needed
+   ?item wikibase:sitelinks ?sitelinks .
+
+} } AS %i WHERE {
+
+ INCLUDE %i
+ ?item wdt:P31 [rdfs:label ?p31label] . FILTER(LANG(?p31label)='it')   # change the language code if needed
+
+  OPTIONAL { ?article schema:about ?item ;
+  schema:isPartOf <https://en.wikipedia.org/> ; 
+  schema:name ?sitelink .
+  }
+  
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],it,en,es,pl,uk\". }
+
+} GROUP BY ?item ?itemLabel ?itemDescription ?type ?p577 ?sitelinks ?sitelink ?article ORDER BY DESC(?sitelinks) ?itemLabel""" .

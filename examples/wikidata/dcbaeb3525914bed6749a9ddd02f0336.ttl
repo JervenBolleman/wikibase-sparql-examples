@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-dcbaeb3525914bed6749a9ddd02f0336> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?member ?memberLabel ?memberDescription ?sitelinks ?birthLabel ?workLabel ?residenceLabel
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/05>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?member ?memberLabel ?memberDescription ?sitelinks ?birthLabel ?workLabel ?residenceLabel
 
 WITH { SELECT DISTINCT * WHERE {
   ?member wdt:P463 wd:Q110938829;
@@ -21,9 +30,40 @@ WHERE {
   ?member wikibase:sitelinks ?sitelinks.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC (?sitelinks) ?memberLabel""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?member ?memberLabel ?memberDescription ?sitelinks ?birthLabel ?workLabel ?residenceLabel
+
+
+
+WHERE {
+  { SELECT DISTINCT * WHERE {
+  ?member wdt:P463 wd:Q110938829;
+  (wdt:P19|wdt:P551|wdt:P937)/wdt:P131* wd:Q16.
+} }.
+  OPTIONAL { ?member wdt:P19 ?birth }
+  OPTIONAL { ?member wdt:P551 ?residence }
+  OPTIONAL { ?member wdt:P937 ?work }
+  ?member wikibase:sitelinks ?sitelinks.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC (?sitelinks) ?memberLabel""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/05>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?member ?memberLabel ?memberDescription ?sitelinks ?birthLabel ?workLabel ?residenceLabel
+
+WITH { SELECT DISTINCT * WHERE {
+  ?member wdt:P463 wd:Q110938829;
+  (wdt:P19|wdt:P551|wdt:P937)/wdt:P131* wd:Q16.
+} } AS %i
+
+WHERE {
+  INCLUDE %i.
+  OPTIONAL { ?member wdt:P19 ?birth }
+  OPTIONAL { ?member wdt:P551 ?residence }
+  OPTIONAL { ?member wdt:P937 ?work }
+  ?member wikibase:sitelinks ?sitelinks.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC (?sitelinks) ?memberLabel""" .
