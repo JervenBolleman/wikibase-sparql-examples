@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-461b6125b3bbbc04a2155e953778d9ac> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+SELECT DISTINCT  (?foundingEra as ?layer) ?socLabel ?soc ?coord ?socBegan ?socLocQ WHERE {  
+ { {?soc wdt:P31 wd:Q12160242 } UNION {  ?soc wdt:P31 wd:Q1797187 } }  .
+  { ?soc wdt:P571 ?socBegan; BIND(IF(BOUND(?socBegan),year(?socBegan),1945) AS ?socBeganYr). }. 
+  optional {?soc rdfs:label ?socLabel. FILTER(LANG(?socLabel) = \"en\").}.
+  BIND( IF (?socBeganYr < 1800, \"1 pre-1800\", IF (?socBeganYr < 1850, \"2 pre-1850\", IF (?socBeganYr < 1900, \"3 pre-1900\", IF (?socBeganYr < 1915, \"4 pre-WW1\", 
+                        IF (?socBeganYr < 1946, \"5 inter-war\", IF (?socBeganYr < 1990, \"6 Post WW2\", \"7 Recent\")))))) AS ?foundingEra).
+  optional { ?soc wdt:P131 ?socLocAQ. ?socLocAQ wdt:P625 ?coord. } .
+  optional { ?soc wdt:P740 ?socLocFQ. ?socLocFQ wdt:P625 ?coord. } .
+  optional { ?soc wdt:P276 ?socLocPQ. ?socLocPQ wdt:P625 ?coord.} .
+  optional { ?soc wdt:P937 ?socLocWLQ. ?socLocWLQ wdt:P625 ?coord. } .
+  optional { ?soc wdt:P17 ?socCountryQ. ?socCountryQ wdt:P625 ?coord. } .
+  BIND(IF(BOUND(?socLocPQ),?socLocPQ,?socLocAQ) AS ?socLocQ).
+  BIND(IF(BOUND(?socLocQ),?socLocQ,?socLocFQ) AS ?socLocQ).
+  BIND(IF(BOUND(?socLocQ),?socLocQ,?socLocWLQ) AS ?socLocQ).
+  BIND(IF(BOUND(?socLocQ),?socLocQ,?socCountryQ) AS ?socLocQ).
+} LIMIT 900""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:AllyD/sandbox>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

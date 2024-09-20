@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4f238797a9d189efe1b92b09b0b8338e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?itemLabel ?itemAltLabel
+WHERE {
+  hint:Query hint:optimizer \"None\".
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"USS Aaron Ward (DF-132)\".
+    ?item wikibase:apiOutputItem mwapi:title .
+  }
+ FILTER EXISTS
+  {
+    { ?item rdfs:label ?text }
+    UNION
+    { ?item schema:description ?text }
+    UNION
+    { ?item skos:altLabel ?text }
+    FILTER CONTAINS(?text, \"HMS Castleton\")
+  }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en-GB,en,mul\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Vicarage>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

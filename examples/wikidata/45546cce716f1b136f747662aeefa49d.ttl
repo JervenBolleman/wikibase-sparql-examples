@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-45546cce716f1b136f747662aeefa49d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT 
+  ?item ?itemLabel ?synOf ?synOfLabel ?syn_sl ?refHasRole ?refHasRoleLabel ?Pages
+  (IRI(CONCAT(\"https://biodiversitylibrary.org/page/\",?BHLpageID)) as ?BHL_URL)
+  (IRI(CONCAT(\"http://treatment.plazi.org/id/\",?PlaziID)) as ?PlaziID_URL)
+WHERE {
+  ?reference pr:P248 ?publication. FILTER (?publication IN (wd:Q56025286))
+  ?reference ^prov:wasDerivedFrom ?st .
+  ?st ^p:P225 ?item .
+
+  OPTIONAL {
+    ?item p:P2868 ?syn_st .
+    ?syn_st a wikibase:BestRank .
+    ?syn_st ps:P2868 wd:Q1040689 .
+    ?syn_st pq:P642 ?synOf .
+    OPTIONAL {
+      ?syn_sl schema:about ?synOf .
+      ?syn_sl schema:isPartOf <https://species.wikimedia.org/> .
+    }
+  }
+
+  OPTIONAL { ?reference pr:P6184 ?refHasRole . }
+  OPTIONAL { ?reference pr:P304 ?Pages . }
+  OPTIONAL { ?reference pr:P1992 ?PlaziID . }
+  OPTIONAL { ?reference pr:P687 ?BHLpageID . }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

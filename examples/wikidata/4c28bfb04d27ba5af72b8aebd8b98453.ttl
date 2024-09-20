@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4c28bfb04d27ba5af72b8aebd8b98453> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item (SAMPLE(?instanceFilter) AS ?instanceFilter) (COUNT(?link) AS ?links) WHERE {
+
+  # apply territory filter (Milano)
+  ?item (wdt:P131*) wd:Q490.
+  
+  # item must be an instance of (of any subclass of) something we want
+  ?item wdt:P31/wdt:P279* ?instanceFilter.
+  VALUES (?instanceFilter) {
+      # educational institution
+      (wd:Q2385804)
+
+      # park
+      (wd:Q22698)
+  }
+
+  # exclude items with coordinates or an headquarter or that are deprecated
+  MINUS {
+    ?item wdt:P625|wdt:P159|wdt:P576 ?unusedinfo.
+  } 
+
+  #OPTIONAL {
+  # links to Wikimedia projects
+    ?link schema:about ?item.
+  #}
+}
+# group by item so we can count their links
+GROUP BY ?item
+
+ORDER BY DESC(?links)
+
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Valerio_Bozzolan/Museum_and_parks_without_coordinates_somewhere.sparql>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

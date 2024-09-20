@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4c5f28383bd9446d58322c5b174dd160> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?linkcount ?lambiekurl
+with {
+  select ?occ WHERE { VALUES ?occ {
+    wd:Q715301  # comics artists
+    wd:Q1114448 # cartoonists 
+  }
+  }
+} as %i
+with { SELECT ?item ?linkcount { 
+  include %i.
+    {?item wdt:P106/wdt:P279* ?occ .}                            # item has this occupation
+  MINUS { ?item wdt:P5035 ?lambiek } # those in the Comiclopedia omitted here, since it will be returned in the other subquery
+  MINUS {?wen schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> . } # has no en.wikipedia sitelink
+  ?item wdt:P21 wd:Q6581072 .                      # gender is female
+  ?item wdt:P31 wd:Q5 .                            # instance is human
+  ?item wikibase:sitelinks ?linkcount .            # number of sitelinks for the item
+  }
+} as %a
+with { SELECT ?item ?linkcount ?lambiekurl { 
+  include %i.
+  ?item wdt:P5035 ?lambiek.  BIND ((CONCAT (\"[https://www.lambiek.net/artists/\", ?lambiek, \".htm entry]\")) as ?lambiekurl) . # is in the Lambiek Comiclopedia
+  MINUS {?wen schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> . } # has no en.wikipedia sitelink
+  ?item wdt:P21 wd:Q6581072 .                      # gender is female
+  ?item wdt:P31 wd:Q5 .                            # instance is human
+  ?item wikibase:sitelinks ?linkcount .            # number of sitelinks for the item
+  }
+} as %b
+where
+{
+  {include %a} UNION {include %b}
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

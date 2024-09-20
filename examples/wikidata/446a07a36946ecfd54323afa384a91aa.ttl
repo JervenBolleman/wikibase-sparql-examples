@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-446a07a36946ecfd54323afa384a91aa> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title:International Booker Prize winners and nominees
+SELECT ?book ?bookLabel ?authorLabel ?rel (YEAR(?time) as ?year) ?authorwp ?bookwp ?orig_langLabel WHERE {
+  VALUES ?award{wd:Q2052291}
+  {?book p:P166 ?s. ?s ps:P166 ?award BIND(\"won\" AS ?rel). MINUS{?book wdt:P31 wd:Q5} }
+  UNION{?book p:P1411 ?s. ?s ps:P1411 ?award. ?s pq:P1552 wd:Q115010579 BIND(\"shortlist\" AS ?rel) MINUS{?book wdt:P31 wd:Q5} }
+UNION{?book p:P1411 ?s. ?s ps:P1411 ?award. ?s pq:P1552 wd:Q115010563 BIND(\"longlist\" AS ?rel) MINUS{?book wdt:P31 wd:Q5} }
+OPTIONAL {?s pq:P585 ?time}
+OPTIONAL {?book wdt:P629?/wdt:P50 ?author
+     OPTIONAL {?authorwp schema:about ?author; schema:isPartOf <https://en.wikipedia.org/> }
+         }
+OPTIONAL {?bookwp schema:about ?book; schema:isPartOf <https://en.wikipedia.org/> }
+OPTIONAL {?book wdt:P407 ?orig_lang }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+} ORDER BY ?year ?awardLabel DESC(?rel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/booker>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

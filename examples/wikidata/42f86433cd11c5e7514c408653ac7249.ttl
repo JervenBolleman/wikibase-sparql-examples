@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-42f86433cd11c5e7514c408653ac7249> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?subclassOccurrence ?subclassOccurrenceLabel ?country ?countryLabel (COUNT(DISTINCT ?instance) AS ?instanceCount) (GROUP_CONCAT(?instanceLabelQ;SEPARATOR=\" | \") AS ?instances)
+WHERE {
+  VALUES ?level {
+    wd:Q10864048
+  }
+  ?subclassOccurrence wdt:P279 ?level;
+                      wdt:P17 ?country.
+  OPTIONAL {
+    ?instance wdt:P31 ?subclassOccurrence.
+    OPTIONAL {
+      ?instance rdfs:label ?enLabel .
+      FILTER(LANG(?enLabel)=\"en\")
+      BIND(CONCAT(STR(?enLabel), \" (\", STRAFTER(STR(?instance), STR(wd:)), \")\") AS ?instanceLabelQ)
+    }
+  }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,zh\". 
+    ?subclassOccurrence rdfs:label ?subclassOccurrenceLabel .
+    ?country rdfs:label ?countryLabel .
+  }
+}
+GROUP BY ?subclassOccurrence ?subclassOccurrenceLabel ?country ?countryLabel
+ORDER BY DESC(?instanceCount)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Realworldobject/GeographicLevels>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

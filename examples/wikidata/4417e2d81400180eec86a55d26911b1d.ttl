@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4417e2d81400180eec86a55d26911b1d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?itemLabel
+WHERE{
+  ?item wikibase:sitelinks 0 .
+  ?item wdt:P31 wd:Q5 .
+  ?item wdt:P972 wd:Q28781198 .
+  ?item wdt:P21 ?sex .
+
+  ?item wikibase:statements ?statementCount.
+  FILTER(?statementCount = 3).
+
+  OPTIONAL{
+    ?backlink ?p1 ?item .
+  }
+  FILTER(!bound(?backlink))  
+  
+  OPTIONAL{
+    ?item ?p2 [prov:wasDerivedFrom ?ref] .
+    ?ref ?pr [] .
+    FILTER (?pr != pr:P143) #no source
+  }  
+  FILTER(!bound(?ref))
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Requests_for_deletions/Archive/2018/05/18>,
+    <https://www.wikidata.org//wiki/Wikidata:Requests_for_deletions/Archive/2017/12/17>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

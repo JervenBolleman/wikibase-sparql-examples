@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4ee40a4a5e0c64a81e19a389c8564066> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT
+  ?mastodons
+  (CONCAT(\"#country/\", SUBSTR(STR(?country), 32), \"/mastodon\") AS ?mastodonsUrl)
+
+  ?country ?countryLabel
+  (CONCAT(\"#country/\", SUBSTR(STR(?country), 32)) AS ?countryUrl)
+
+  ?example_mastodon
+WITH {
+  SELECT 
+    (COUNT(*) AS ?mastodons)
+    ?country
+    (SAMPLE(?mastodon) AS ?example_mastodon)
+  WHERE {
+    [] wdt:P4033 ?mastodon ;
+       (wdt:P108| wdt:P1416)? / wdt:P159? / wdt:P17 ?country .
+  }
+  GROUP BY ?country
+} AS %countries            
+WHERE {
+  INCLUDE %countries
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?mastodons)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:mastodon-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

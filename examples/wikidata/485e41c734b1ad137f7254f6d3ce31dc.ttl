@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-485e41c734b1ad137f7254f6d3ce31dc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?NSDAPMemberSince ?NSDAPMemberUntil ?BundesverdienstkreuzWhen WHERE {
+  ?item wdt:P31 wd:Q5;
+        p:P102 ?partyStatement;
+        p:P166 ?awardStatement.
+  ?partyStatement ps:P102 wd:Q7320.
+  ?awardStatement ps:P166/wdt:P279* wd:Q21164.
+  OPTIONAL { ?partyStatement pq:P580 ?NSDAPMemberSince_. }
+  OPTIONAL { ?partyStatement pq:P582 ?NSDAPMemberUntil_. }
+  OPTIONAL { ?awardStatement pq:P585 ?BundesverdienstkreuzWhen_. }
+  BIND(COALESCE(?NSDAPMemberSince_, \"unknown\"@en) AS ?NSDAPMemberSince)
+  BIND(COALESCE(?NSDAPMemberUntil_, \"unknown\"@en) AS ?NSDAPMemberUntil)
+  BIND(COALESCE(?BundesverdienstkreuzWhen_, \"unknown\"@en) AS ?BundesverdienstkreuzWhen)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY
+DESC(BOUND(?NSDAPMemberSince_))
+DESC(BOUND(?NSDAPMemberUntil_))
+DESC(BOUND(?BundesverdienstkreuzWhen_))
+ASC(?NSDAPMemberSince_)
+ASC(?NSDAPMemberUntil_)
+ASC(?BundesverdienstkreuzWhen_)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/Order_of_Merit_recipients_who_were_also_in_the_NSDAP>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

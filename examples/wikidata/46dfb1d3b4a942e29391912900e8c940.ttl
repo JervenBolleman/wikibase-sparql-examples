@@ -1,0 +1,25 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-46dfb1d3b4a942e29391912900e8c940> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?institution (MIN(?total) AS ?_) (COUNT(*) AS ?row_number)
+ WITH {
+  SELECT ?institution  (COUNT(?item) AS ?total) {
+    ?item wdt:P485 ?institution .
+    OPTIONAL {?institution wdt:P17 ?pays .}
+  }
+  GROUP BY ?institution HAVING (?total > 20) 
+} AS %query {
+   {SELECT * { INCLUDE %query } }
+   {SELECT (?institution AS ?institution_) (?total AS ?total_) { INCLUDE %query } }
+    FILTER (?total < ?total_  || ?total = ?total_  && str(?institution) <= str(?institution_) )
+} GROUP BY ?institution ORDER BY ?row_number""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

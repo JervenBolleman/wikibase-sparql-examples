@@ -1,0 +1,47 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4e20615194dc4143c1988ae9cdf78877> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?itemAltLabel ?itemDescription ?familynameLabel ?givennameLabel ?nativename ?titleLabel ?subtitleLabel
+WHERE
+{
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+    bd:serviceParam wikibase:limitContinuations \"199\". # change to limit total
+
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam mwapi:generator \"allpages\" .
+    bd:serviceParam mwapi:gaplimit \"1\" .
+
+    bd:serviceParam mwapi:list \"usercontribs\" .
+    bd:serviceParam mwapi:ucuser \"Mzajac\" .
+    bd:serviceParam mwapi:ucshow \"new\" .
+    bd:serviceParam mwapi:ucnamespace \"0\" .
+    bd:serviceParam mwapi:uclimit \"1\" .
+    bd:serviceParam mwapi:ucprop \"title|timestamp|comment|size\" .
+    ?item wikibase:apiOutputItem \"//api/query/usercontribs/item/@title\" .
+    ?timestamp wikibase:apiOutput \"//api/query/usercontribs/item/@timestamp\" .
+    ?comment wikibase:apiOutput \"//api/query/usercontribs/item/@comment\" .
+    ?size wikibase:apiOutput \"//api/query/usercontribs/item/@size\" .
+  }
+  FILTER BOUND(?item)
+  
+  OPTIONAL { ?item wdt:P734 ?familyname. }
+  OPTIONAL { ?item wdt:P735 ?givenname. }
+  OPTIONAL { ?item wdt:P1476 ?title. }
+  OPTIONAL { ?item wdt:P1680 ?subtitle. }
+  OPTIONAL { ?item wdt:P1705 ?nativename. }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ORDER BY ?titleLabel ?nativename ?familynameLabel ?givennameLabel ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Mzajac/notes>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

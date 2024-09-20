@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-45e0eb2e0a440a13b37bf3fe57c76707> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX schema: <http://schema.org/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+  # lista artykułów z plwiki, które mają coś wspólnego z wybraną dzienną datą
+SELECT DISTINCT ?q ?qLabel ?p ?propLabel ?date ?link WHERE {
+  hint:Query hint:optimizer \"None\" .
+  ?date_node wikibase:timePrecision \"11\"^^xsd:integer .
+  ?date_node wikibase:timeValue ?date .
+  FILTER (day(?date) = 29)
+  FILTER (month(?date) = 2)
+  FILTER ((year(?date)-(5*floor(year(?date)/5))) = 0)
+  ?statement ?v ?date_node .
+  ?q ?p ?statement .
+  ?link schema:about ?q .
+  FILTER regex(str(?link),'^https?://pl\\\\.wikipedia\\\\.org/','i')
+  ?statement wikibase:rank ?rank .
+  ?prop wikibase:claim ?p .
+
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"pl,en\" .
+  }
+} ORDER BY ?date
+#LIMIT 40""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Pawe%C5%82_Ziemian>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-41e0b41ed4159702b2950c46f378befc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# find films with cost between 50 and 100 millions USD and
+# country of origin as USA or Canada or Australia or New Zealand or a European country
+SELECT DISTINCT ?film ?filmLabel ?cost_amount
+WHERE {
+  # instance of (P31) or instance of subclass of (P279) film (Q11424)
+  ?film wdt:P31/wdt:P279* wd:Q11424;
+        # define cost (P2130) as ?cost
+        p:P2130/psv:P2130 ?cost.
+  # divide ?cost into amount and unit
+  ?cost wikibase:quantityAmount ?cost_amount;
+        wikibase:quantityUnit ?cost_unit.
+  # cost's amount >= 50 millions, AND amount <= 100 millions, AND unit is USD (Q4917)
+  FILTER(?cost_amount>=50000000 && ?cost_amount<=100000000 && ?cost_unit=wd:Q4917)
+  # film's country of origin (P495) is United States (Q30)
+  {?film wdt:P495 wd:Q30}
+  # OR country of origin (P495) is Canada (Q16)
+  UNION {?film wdt:P495 wd:Q16}
+  # OR country of origin (P495) is Australia (Q408)
+  UNION {?film wdt:P495 wd:Q408}
+  # OR country of origin (P495) is New Zealand (Q664)
+  UNION {?film wdt:P495 wd:Q664}
+  # OR country of origin (P495) is a European country (?EC)
+  UNION {?film wdt:P495 ?EC.
+         # ?EC is instance of (P31) or instance of subclass of (P279) ?x, and
+         ?EC wdt:P31/wdt:P279* ?x;
+             # ?EC's continent (P30) is Europe (Q46)
+             wdt:P30 wd:Q46.
+         # define ?x as country (Q6256) and historical country (Q3024240)
+ 	     VALUES ?x {wd:Q6256 wd:Q3024240} }
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

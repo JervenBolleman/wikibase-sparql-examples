@@ -1,0 +1,22 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-42cbb2618098ff90aac7cb0521f5fd57> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?article ?letter ?name ?lang ?wikiLabel ?scriptLabel  WHERE
+{
+  ?article schema:about wd:Q16520 . ?article schema:name ?name . ?article schema:inLanguage ?lang . ?article schema:isPartOf ?x .
+  FILTER CONTAINS(str(?x), \"wikipedia\") . # only Wikipedias
+  optional { filter(STRSTARTS(?name, 'B')) . bind('B' as ?letter) } # title starts with B
+  optional { filter(STRSTARTS(?name, 'P')) . bind('P' as ?letter) } # title starts with P
+  optional { ?wiki wdt:P856 ?x . optional { ?wiki wdt:P282 ?script . } } # find script of Wikipedia
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} order by ?letter ?name""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

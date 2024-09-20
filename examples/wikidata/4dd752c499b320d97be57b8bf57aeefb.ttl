@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4dd752c499b320d97be57b8bf57aeefb> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Italia: regions, provinces and comuni
+#defaultView:Tree
+SELECT ?regione ?regioneLabel ?provincia ?provinciaLabel ?comune ?comuneLabel
+WHERE 
+{
+  ?regione p:P31/ps:P31/wdt:P279* wd:Q16110 .    # Regions of Italia
+  ?provincia wdt:P131 ?regione .                 # Administrative divisions in the region
+  
+  { ?provincia wdt:P31 wd:Q15089 . }             # List of provinces
+  UNION
+  { ?provincia wdt:P31 wd:Q15110 . }             # metropolitan cities of Italy
+  UNION
+  { ?provincia wdt:P31 wd:Q21190155 . }          # Liberi consorzi comunali of Sicily
+   
+  ?comune wdt:P131 ?provincia .                  # Administrative divisions in the province
+  {
+    ?comune wdt:P31 wd:Q747074 .                 # Italian municipality
+  }
+  UNION
+  {
+    ?comune wdt:P31 wd:Q954172 .                 # Italian sparse municipality
+  } 
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Italy/Administrative_divisions>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

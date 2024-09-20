@@ -1,0 +1,51 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4e0a7714559591fd607f548567c6a7a7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Items with Internet Encyclopedia of Ukraine ID but no IEU identifier in en.Wikipedia
+
+SELECT DISTINCT ?item ?itemLabel ?itemDescription ?IEU_link ?enarticle WHERE {
+  
+  BIND('en' AS ?lang).
+  BIND(CONCAT(?lang, '.wikipedia.org') AS ?project).
+  
+  ?item wdt:P9070 ?IEU_ID . # item’s IEU ID
+  wd:P9070 wdt:P1630 ?formatterurl . # get its formatter
+  
+  ?enarticle schema:about ?item ; 
+             schema:inLanguage ?lang ; 
+             schema:isPartOf <https://en.wikipedia.org/> ; 
+             schema:name ?enname .
+
+  FILTER BOUND(?enarticle) # Safeguard to not get a timeout from unbound items when using ?enarticle below
+
+  MINUS {    
+    # en.Wikipedia articles in Category:Wikipedia articles with IEU identifiers
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:endpoint ?project;     # Set the project here
+                      wikibase:api \"Generator\";
+                      mwapi:generator \"categorymembers\";        # Selects the content from a category
+                      mwapi:gcmtitle \"Category:Wikipedia articles with IEU identifiers\";.    # Specifies the category
+      ?enarticle wikibase:apiOutputItem mwapi:item.
+    }
+  } 
+  
+  # derive the IEU URL
+  BIND(IRI(REPLACE( 
+    REPLACE(?IEU_ID, '\\\\', '%5C', 'q'), # percent-encode backslash
+    '^(.+)$', 
+    REPLACE(?formatterurl, '\\\\', '%5C', 'q') # percent-encode backslash
+  )) AS ?IEU_link) .
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,en\"  }
+  
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

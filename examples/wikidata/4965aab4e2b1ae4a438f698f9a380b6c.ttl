@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4965aab4e2b1ae4a438f698f9a380b6c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Copyright term(s) of a country
+SELECT DISTINCT ?item ?itemLabel ( GROUP_CONCAT ( DISTINCT ?partLabel; SEPARATOR=\", \") AS ?appliesToParts )  # Concatenate types of works
+WHERE { 
+  {?item wdt:P279 wd:Q108698760 . }  # Look for group of countries with post mortem auctoris copyright...
+  UNION  # ...or...
+  { ?item wdt:P279 wd:Q108701480 . }  # ...group of countries with copyright based on publication date.
+  ?item p:P1001 ?countryStatement . 
+  ?countryStatement ps:P1001 wd:Q241 .  # Select a specific country.
+  OPTIONAL { ?countryStatement pq:P518 ?part . }  # Get the types of works to which the copyright term applies.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . 
+                          ?item rdfs:label ?itemLabel .  # Necessary to concatenate types of works.
+                          ?part rdfs:label ?partLabel .  # Necessary to concatenate types of works.
+                         } 
+} 
+GROUP BY ?item ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Pepe_piton/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

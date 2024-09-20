@@ -1,0 +1,64 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-40e6e3c66259c115226ea4d199419c5c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+SELECT DISTINCT
+?item 
+(SAMPLE(?item_label) AS ?battle)
+(SAMPLE(?place_label) AS ?place_label)
+(SAMPLE(?partOf_label) AS ?partOf_label)
+(SAMPLE(?year) AS ?year)
+(SAMPLE(?image) AS ?image)
+(SAMPLE(?century) AS ?layer)
+(SAMPLE(?coords) AS ?coords)
+WHERE {
+  {
+    ?item wdt:P31/wdt:P279* wd:Q178561 . 
+  } UNION {
+    ?item wdt:P31/wdt:P279* wd:Q188055 . 
+  }
+  
+  OPTIONAL {
+    ?item rdfs:label ?item_label .
+    FILTER(LANG(?item_label) IN ('fr', 'en')) .
+  }
+  
+  OPTIONAL { 
+    ?item wdt:P361 ?partOf .
+    ?partOf rdfs:label ?partOf_label .
+    FILTER(LANG(?partOf_label) IN ('fr', 'en')) .
+  }
+  OPTIONAL { ?item wdt:P18 ?image . }
+  
+  # Place
+  ?item (wdt:P17|wdt:P276|wdt:P706|wdt:P131)*/wdt:P30 wd:Q46 .
+  ?item wdt:P276 ?place .
+  
+  OPTIONAL {
+    ?place rdfs:label ?place_label .
+    FILTER(LANG(?place_label) IN ('fr', 'en')) .
+  }
+  
+  # Coords
+  OPTIONAL { ?item wdt:P625 ?coordsItem . }
+  OPTIONAL { ?place wdt:P625 ?coordsPlace . }
+  BIND(COALESCE(?coordsItem, ?coordsPlace) AS ?coords)
+  
+  # Date
+  ?item (wdt:P585|wdt:P580|wdt:P582) ?date .
+  BIND(YEAR(?date) AS ?year) .
+  FILTER(?year >= 476) .
+  FILTER(?year <= 1492) .
+  BIND(FLOOR((?year - 1)/100)+1 AS ?century) .
+
+} GROUP BY ?item ORDER BY ?year ?battle""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ash_Crow/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

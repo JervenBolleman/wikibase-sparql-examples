@@ -1,0 +1,48 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-438d60df06e66e86ca6350231beddd7a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?itemLabel ?itemDescription 
+  (ROUND(?height*100) as ?h_cm) (ROUND(?width*100) as ?w_cm) (ROUND(?height * 10 * ?width)/10 as ?size) 
+  ?img0 ?imgh ?imgw ?imgsize ?available_img_res
+WHERE
+{
+  ?item wdt:P31 wd:Q3305213;
+    wdt:P170 wd:Q725681.
+  OPTIONAL { ?item p:P2048 /psn:P2048 [wikibase:quantityAmount ?height ; wikibase:quantityUnit wd:Q11573 ] }
+  OPTIONAL { ?item p:P2049 /psn:P2049 [wikibase:quantityAmount ?width ; wikibase:quantityUnit wd:Q11573 ]. }  
+
+  OPTIONAL { 
+    ?item wdt:P18 ?img0
+    BIND(replace(wikibase:decodeUri(SUBSTR(STR(?img0), 52)),\"_\",\" \") AS ?img)
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+      bd:serviceParam wikibase:api \"Generator\" .
+      bd:serviceParam mwapi:generator \"allpages\" .
+      bd:serviceParam mwapi:prop \"imageinfo\" .
+      bd:serviceParam mwapi:gapprefix ?img .
+      bd:serviceParam mwapi:gapnamespace \"6\" .
+      bd:serviceParam mwapi:iiprop \"timestamp|user|mediatype|metadata|dimensions\" .
+      ?imgsize wikibase:apiOutput \"imageinfo/ii/@size\".
+      ?imgw wikibase:apiOutput \"imageinfo/ii/@width\".
+      ?imgh wikibase:apiOutput \"imageinfo/ii/@height\".
+      ?imgmediatype wikibase:apiOutput \"imageinfo/ii/@mediatype\".
+    } 
+    BIND(xsd:integer(?imgw) as ?imgwi)
+    BIND(
+        IF(?imgwi < 290, \"very low\", 
+        IF(?imgwi < 750, \"low\", 
+           \"medium or higher\"))
+           as ?available_img_res)
+   }
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

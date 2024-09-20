@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4c9a373f0fe48a474bfbcadc94db2f8a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?property ?propertyLabel ?qualifier ?qualifierLabel ?time ?precision
+WHERE
+{
+  {
+    SELECT ?item ?claim ?qualifiervalue ?time ?precision
+    WHERE
+    {
+      ?item wdt:P31 wd:Q5.
+      ?item wdt:P6379 wd:Q17153751.
+      
+  
+      # Get truthy statements for ?item with any of time qualifiers in ?qualifiervalue:
+      VALUES ?qualifiervalue { pqv:P580 pqv:P582 pqv:P585 }
+      ?item ?claim ?statement.
+      ?statement a wikibase:BestRank.
+      ?statement ?qualifiervalue ?timenode.
+      ?timenode wikibase:timePrecision ?precision.
+      ?timenode wikibase:timeValue ?time.
+      FILTER (?precision > 8) #only year or better precision
+    }
+  }
+  hint:Prior hint:runFirst \"true\".
+  FILTER NOT EXISTS { ?item wdt:P7763 [] } .#no copyright status
+  FILTER NOT EXISTS { ?item wdt:P570 [] }.  #no dod
+  FILTER NOT EXISTS { ?item wdt:P1317 [] } .#no floruit
+
+  #Get labels for item, property and qualifier:
+  ?qualifier wikibase:qualifierValue ?qualifiervalue.
+  ?property wikibase:claim ?claim.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ecritures/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

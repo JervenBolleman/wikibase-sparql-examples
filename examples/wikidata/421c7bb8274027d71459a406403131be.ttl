@@ -1,0 +1,25 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-421c7bb8274027d71459a406403131be> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# WD entiteter med duplikater av IMO nummer
+SELECT
+  ?imonr (COUNT(DISTINCT ?a) AS ?count)
+  (GROUP_CONCAT(DISTINCT ?qid; SEPARATOR=\"; \") AS ?qids)
+WHERE {
+  ?a wdt:P31/wdt:P279* wd:Q11446;
+    wdt:P458 ?imonr.
+  BIND(SUBSTR(STR(?a), 32) AS ?qid)
+}
+GROUP BY ?imonr
+HAVING (?count > 1)
+ORDER BY DESC(?count) ?imonr""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infrastruktur/Sandbox2>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

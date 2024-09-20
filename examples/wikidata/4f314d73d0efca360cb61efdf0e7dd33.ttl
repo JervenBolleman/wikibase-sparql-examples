@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4f314d73d0efca360cb61efdf0e7dd33> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?PMID ?authorLabel ?author1 ?orcid with {
+  select ?item ?PMID ?author ?orcid ?author1 WHERE 
+{
+  ?item wdt:P698 ?PMID . # has PubMed-ID
+  VALUES ?PMID { '28665778' }
+  ?item wdt:P50 ?author .
+  optional {?author wdt:P496 ?orcid .} 
+} } as %i
+with {
+    select ?item ?PMID ?author ?author1 WHERE 
+{
+  ?item wdt:P698 ?PMID . # has PubMed-ID
+  VALUES ?PMID { '28665778' }
+  ?item wdt:P2093 ?author1 .
+} } as %j
+where
+{
+  {include %i }
+  UNION
+  {include %j }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" .}
+  }""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4d07a2324fc47974cf27ea05902b7b25> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?date (COUNT(distinct ?sitelink) as ?count)
+WHERE
+{
+	?item wdt:P21 wd:Q6581072 .
+        ?item wdt:P569 ?date .
+        ?item wdt:P31 wd:Q5 .
+        ?item wdt:P106 [] .
+	?sitelink schema:about ?item .
+	FILTER (?date >= \"1950-01-01T00:00:00Z\"^^xsd:dateTime)
+        FILTER (?date < \"1960-01-01T00:00:00Z\"^^xsd:dateTime)
+	FILTER NOT EXISTS { ?wfr schema:about ?item . ?wfr schema:inLanguage \"it\" }
+	FILTER( ?item NOT IN (wd:Q4617, wd:Q15397819, wd:Q13406268, wd:Q4115189) ) .
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"it,en\" }
+}
+GROUP BY ?item ?itemLabel ?date
+HAVING (?count > 9)
+ORDER BY ?date""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

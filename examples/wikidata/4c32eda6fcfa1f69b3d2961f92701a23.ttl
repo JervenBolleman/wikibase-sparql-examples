@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4c32eda6fcfa1f69b3d2961f92701a23> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q35>
+
+SELECT 
+  (xsd:date(?start_datetime) AS ?start_date)
+
+  ?exhibition ?exhibitionLabel
+  (CONCAT(\"#exhibition/\", SUBSTR(STR(?exhibition), 32)) AS ?exhibitionUrl)
+  ?exhibitionDescription
+WHERE {
+  ?exhibition wdt:P31 / wdt:P279* wd:Q464980 ;
+              p:P17 ?country_statement .
+  ?country_statement ps:P17 target: .
+  
+  OPTIONAL { ?exhibition wdt:P580 ?start_datetime_directly }
+  OPTIONAL { ?exhibition wdt:P585 ?datetime_directly }
+  OPTIONAL { ?country_statement pq:P580 ?start_datetime_qualifier }
+  BIND(COALESCE(?start_datetime_directly, ?start_datetime_qualifier, ?datetime_directly) AS ?start_datetime)
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en,cz,da,de,es,fi,fr,nb,nl,nn,sv,zh\". }
+}
+ORDER BY DESC(?start_datetime)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:country-exhibition-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

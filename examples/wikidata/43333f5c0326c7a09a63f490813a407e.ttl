@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-43333f5c0326c7a09a63f490813a407e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?file ?item ?itemLabel ?role ?roleLabel ?for ?forLabel
+WITH
+{
+  # Get items for type specimens at Museum of New Zealand Te Papa Tongarewa from WDQS
+  SELECT ?item ?itemLabel ?role ?roleLabel ?for ?forLabel
+  WHERE
+  {
+    SERVICE <https://query.wikidata.org/sparql>
+    {
+      ?item wdt:P31 wd:Q51255340 . # Item is a type specimen
+      ?item wdt:P195 wd:Q915603 . # Collection is Museum of New Zealand Te Papa Tongarewa
+      OPTIONAL
+      {
+        ?item p:P2868 ?stat .
+        ?stat ps:P2868 ?role .
+        ?stat pq:P642 ?for .
+      }
+      SERVICE wikibase:label
+      {
+        bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" .
+        ?item rdfs:label ?itemLabel .
+        ?role rdfs:label ?roleLabel .
+        ?for rdfs:label ?forLabel .
+      }
+    }
+  }
+}
+AS %get_items
+{
+  INCLUDE %get_items
+  OPTIONAL { ?file wdt:P180 ?item . }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

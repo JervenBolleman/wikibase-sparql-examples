@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4c6ba0e23e27b5491814f4e6060ec3db> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/L2310>
+
+SELECT 
+  ?property_item ?property_itemLabel ?property_itemDescription
+  ?identifier ?identifierLabel ?identifierUrl
+WHERE {
+  target: ?property ?identifier .
+  ?property_item wikibase:directClaim ?property ;
+                 wikibase:propertyType wikibase:ExternalId .
+  OPTIONAL {
+    ?property_item wdt:P1630 ?url_pattern .
+  }
+  BIND(CONCAT(?identifier, \"&nbsp;↗\") AS ?identifierLabel)
+  BIND(IRI(REPLACE(?url_pattern, \"\\\\$1\", ENCODE_FOR_URI(STR(?identifier)))) AS ?identifierUrl)
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?property_itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:lexeme>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

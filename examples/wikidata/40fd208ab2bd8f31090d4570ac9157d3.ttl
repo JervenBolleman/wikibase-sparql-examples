@@ -1,0 +1,101 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-40fd208ab2bd8f31090d4570ac9157d3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Software licenses
+# Taking in consideration license-sub-editions and counting software using them.
+# Taking in consideration direct-usage by that license.
+# Taking in consideration FSF and OSI approval.
+# Author: [[User:Valerio Bozzolan]] and contributors
+# Date: 2023
+# License: CC 0, public domain
+# https://phabricator.wikimedia.org/P52339
+# https://www.wikidata.org/wiki/User:Valerio_Bozzolan
+
+SELECT 
+  ?count_broad_software
+  ?count_exact_software
+  ?license
+  ?licenseLabel
+  ?min_license_date
+  ?approved_fsf
+  ?approved_osi
+WHERE
+{
+
+  # START SUB-QUERY: NO-LABEL
+  {
+    SELECT 
+      ?license
+      (COUNT (DISTINCT ?broad_software) AS ?count_broad_software)
+      (SAMPLE(?count_exact_software)    AS ?count_exact_software)
+      (SAMPLE(?min_license_date)        AS ?min_license_date)
+    WHERE 
+    {
+
+      # START SUB-QUERY: SOFTWARE COUNTER
+      {
+        SELECT
+          ?license
+          (COUNT(DISTINCT ?software)  AS ?count_exact_software)
+          (MIN   (?license_date) AS ?min_license_date)
+        WHERE
+        {
+
+          # START SUB-QUERY: LICENSE
+          {
+            SELECT ?license WHERE {
+              # This is a license.
+              ?license wdt:P31/wdt:P279* wd:Q207621.
+              
+              # The license must not be confused with a software (it happens).
+              MINUS {
+                ?license wdt:P31/wdt:P279* wd:Q7397.
+              }
+            } GROUP BY ?license
+          }
+          # STOP SUB-QUERY: LICENSE
+
+          # License must be used by software.
+          ?software wdt:P275 ?license.
+          wd:Q7397 ^wdt:P279*/^wdt:P31 ?software.
+
+          # The license may have a publication date.
+          OPTIONAL {
+            ?license wdt:P577 ?license_date.
+          }
+          
+        } GROUP BY ?license
+      }
+      # STOP SUB-QUERY: SOFTWARE COUNTER
+
+      # License may have editions.
+      # Software may use this license edition.
+      OPTIONAL {
+        ?child_license wdt:P629*/wdt:P279* ?license.
+        ?broad_software wdt:P275 ?child_license.
+        wd:Q7397 ^wdt:P279*/^wdt:P31 ?broad_software.
+      }
+    } GROUP BY ?license
+  }
+  # STOP SUB-QUERY: NO-LABEL  
+
+  # The license may be approved by OSI / FSF.
+  BIND (EXISTS{?license wdt:P790 wd:Q48413. } AS ?exists_fsf )
+  BIND (EXISTS{?license wdt:P790 wd:Q845918.} AS ?exists_osi )
+  BIND (IF(?exists_fsf, \"✅ FSF\", \"❌ FSF\")   AS ?approved_fsf)
+  BIND (IF(?exists_osi, \"✅ OSI\", \"❌ OSI\")   AS ?approved_osi)
+
+  # Helps get the label in your language, if not, then en language
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?count_broad_software)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Valerio_Bozzolan>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

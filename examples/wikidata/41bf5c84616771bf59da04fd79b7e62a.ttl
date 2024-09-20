@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-41bf5c84616771bf59da04fd79b7e62a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT distinct ?item ?itemLabel ?linkcount (group_concat(distinct ?occupationL;separator=\"; \") as ?occupationLabel) (group_concat(distinct ?fieldL;separator=\"; \") as ?fieldLabel) WHERE 
+{
+ {?item wdt:P106/wdt:P279* wd:Q331432.}
+  UNION
+ {?item wdt:P101/wdt:P279* wd:Q331432.}
+ OPTIONAL {?item wdt:P106 ?occupation.}
+ OPTIONAL {?item wdt:P101 ?field.}
+ FILTER NOT EXISTS {?sitelink ^schema:name ?article .
+ ?article schema:about ?item ;
+          schema:isPartOf <https://fr.wikipedia.org/> .}
+  ?item wikibase:sitelinks ?linkcount .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+                         ?item rdfs:label ?itemLabel .
+                         ?occupation  rdfs:label ?occupationL .
+                         ?field rdfs:label ?fieldL .}
+} group by ?item ?itemLabel ?sitelink ?article ?linkcount order by desc(?linkcount)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

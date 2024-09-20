@@ -1,0 +1,52 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4e93d0d5ef2b8d26a16bdfafbeaba87c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Infectious diseases, related drugs, filtered co-occurrence
+
+PREFIX ss: <http://sciencesource.wmflabs.org/entity/>
+PREFIX sst: <http://sciencesource.wmflabs.org/prop/direct/>       
+          
+SELECT ?item1 ?item2 ?str1 ?str2 
+WHERE {
+   
+  ?item1 wdt:P31 wd:Q12136;
+        wdt:P1995 ?medspec.
+  ?medspec wdt:P361* wd:Q788926 .
+  ?item2 wdt:P31 wd:Q12140;
+         wdt:P2175 ?condition.
+  ?condition wdt:P1995 wd:Q788926.
+  MINUS {?item2 wdt:P2175 ?item1}.
+  BIND(substr(str(?item1),32) AS ?str1) .
+  BIND(substr(str(?item2),32) AS ?str2) .
+  
+  SERVICE <http://sciencesource-query.wmflabs.org/proxy/wdqs/bigdata/namespace/wdq/sparql>
+       {?annotation1 sst:P16 \"infectiousdiseases\";
+                     sst:P2 ?str1;
+                     sst:P3 ss:Q5.
+        ?annotation2 sst:P16 \"infectiousdiseasesdrugs\";
+                     sst:P2 ?str2;
+                     sst:P3 ss:Q5.
+       ?annotation1 sst:P19 ?anchor1.
+        ?annotation2 sst:P19 ?anchor2.
+        ?anchor1 sst:P12 ?article;
+                 sst:P3 ss:Q2.
+        ?anchor2 sst:P12 ?article;
+                 sst:P3 ss:Q2.
+        ?article sst:P3 ss:Q4.
+        ?anchor1 sst:P10 ?charnumber1.
+        ?anchor2 sst:P10 ?charnumber2.
+        FILTER (?charnumber2 - ?charnumber1 = 100)
+       }
+  
+  }
+LIMIT 10""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:ScienceSource_project/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

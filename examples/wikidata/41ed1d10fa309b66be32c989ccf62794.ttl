@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-41ed1d10fa309b66be32c989ccf62794> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?sitelink ?size
+WHERE {
+VALUES ?item1 {wd:Q9438}
+?sitelink schema:about ?item1  # get Wikimedia pages
+FILTER(CONTAINS(str(?sitelink), \".wikipedia.org/\")) # only Wikipedia articles
+?sitelink schema:name ?title ; schema:isPartOf ?site.
+BIND(REPLACE(SUBSTR(STR(?site), 9), '/', '') AS ?endpoint)
+OPTIONAL{
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Generator\" ; 
+    wikibase:endpoint ?endpoint ;
+    mwapi:generator \"allpages\" ;
+    mwapi:gapfrom ?title ;
+    mwapi:gapto ?title ;
+    mwapi:prop \"revisions\" ;
+    mwapi:rvprop \"size\" .
+    ?bytes wikibase:apiOutput \"revisions/rev/@size\" .
+  }
+BIND (xsd:integer(?bytes) AS ?size)
+}
+} ORDER BY DESC(?size)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/equity_research>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,43 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-492d495d686a5ccebab8188d282c78a4> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q671384>
+
+SELECT 
+  ?items
+
+  ?start_date
+
+  ?exhibition ?exhibitionLabel
+  (CONCAT(\"#exhibition/\", SUBSTR(STR(?exhibition), 32)) AS ?exhibitionUrl)
+  ?exhibitionDescription
+
+  ?example_item ?example_itemLabel  
+WITH {
+  SELECT 
+    (COUNT(?item) AS ?items)
+    ?exhibition
+    (SAMPLE(?item) AS ?example_item)
+    (xsd:date(MIN(?start_datetime)) AS ?start_date)
+  WHERE {
+    ?item wdt:P195 target: ;
+          wdt:P608 ?exhibition .
+    OPTIONAL { ?exhibition wdt:P580 ?start_datetime }
+  }
+  GROUP BY ?exhibition
+} AS %exhibitions
+WHERE {
+  INCLUDE %exhibitions
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?items)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:collection>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

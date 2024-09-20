@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-49e013167b49dc741b8e6779a1f70416> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# display item and label
+SELECT ?item ?enLabel ?enDescription ?deLabel ?deDescr
+WHERE {
+  # instance of standard Unix utility
+  ?item wdt:P31 wd:Q18343316. 
+  # missing description in english
+  optional {
+    ?item schema:description ?enDescription FILTER(LANG(?enDescription) = \"en\") .
+  }
+  optional {
+    ?item rdfs:label ?enLabel FILTER(LANG(?enLabel) = \"en\") 
+  }
+  optional {
+    ?item schema:description ?deDescription FILTER(LANG(?deDescription) = \"de\") .
+  }
+  optional {
+    ?item rdfs:label ?deLabel FILTER(LANG(?deLabel) = \"de\") 
+  }
+  filter (!(bound(?enDescription) && bound(?enLabel) && bound(?deDescription) && bound(?deLabel)))
+  
+  # at least one sitelink is a WP article in any language
+  filter exists { ?article schema:about ?item FILTER (SUBSTR(str(?article), 11, 15) = \".wikipedia.org/\") . }
+ 
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

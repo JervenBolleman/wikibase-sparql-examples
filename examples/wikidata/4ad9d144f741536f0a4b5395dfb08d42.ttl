@@ -1,0 +1,55 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4ad9d144f741536f0a4b5395dfb08d42> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT
+  ?deporte
+  ?deporteLabel
+  (COUNT(?deporte) AS ?count)
+{
+  # Campeones en los Juegos Olímpicos
+
+  ?juego_olímpico
+    wdt:P31/wdt:P279* wd:Q18536594;
+    wdt:P641 ?deporte;
+    p:P1346 ?declaración.
+
+  ?declaración
+    ps:P1346 ?campeón;
+    pq:P642 ?medalla.
+  
+  # El valor de la variable \"medalla\" debe ser un valor que exprese posición en los 3 primeros puestos
+
+  VALUES ?medalla {
+    # Primer puesto
+    wd:Q15243387
+    wd:Q20882667
+    # Segundo puesto
+    wd:Q15889641
+    wd:Q20882668
+    # Tercer puesto
+    wd:Q15889643
+    wd:Q20882669
+  }
+  
+  # El campeón debe ser un peruano
+  
+  {?campeón wdt:P27 wd:Q419 }
+  UNION
+  {?campeón wdt:P19/wdt:P131* wd:Q419 }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?deporte ?deporteLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/de>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

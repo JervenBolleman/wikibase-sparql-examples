@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4e08772515d624ed2c9e28ae959db590> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?x ?xLabel ?xDescription  ?dateModified WHERE {
+  # Dexbot tries to process empty items after about 72 hours, so look for cases it missed.
+  BIND(NOW() + \"-P7D\"^^xsd:duration AS ?end) # Untouched in a week
+  ?x
+    wikibase:statements \"0\"^^xsd:integer ;
+	wikibase:sitelinks \"0\"^^xsd:integer ;
+	wikibase:identifiers \"0\"^^xsd:integer ;
+    schema:dateModified ?dateModified .
+  FILTER(?dateModified < ?end)
+  FILTER NOT EXISTS { ?y ?p ?x . ?prop wikibase:directClaim ?p . }
+  SERVICE wikibase:label {
+     bd:serviceParam wikibase:language \"en\" .
+   }
+} ORDER BY DESC(?dateModified) LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Bovlb/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

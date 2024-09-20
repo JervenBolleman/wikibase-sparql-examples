@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-42fa5abc9cd95f1741fd37fb80c7e08f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?pbLabel ?cat ?coord ?img (IF(BOUND(?img), ?usage, \"\") AS ?usg)
+WITH {
+  SELECT ?item (SAMPLE(?cat) AS ?cat) (SAMPLE(?coord) AS ?coord) (SAMPLE(?img) AS ?img)
+               WHERE {
+                 wd:Q75849591 wdt:P527 [ wdt:P527 ?item; wdt:P361 ?pb ].
+                 ?pb wdt:P31 wd:Q76598130.
+                 ?item wdt:P625 ?coord.
+                 OPTIONAL { ?item wdt:P373 ?cat. }
+                 OPTIONAL { ?item wdt:P18 ?img. }
+               } GROUP BY ?item
+} as %items
+WHERE {
+  INCLUDE %items .
+
+  BIND(STRAFTER(wikibase:decodeUri(STR(?img)), \"http://commons.wikimedia.org/wiki/Special:FilePath/\") AS ?fileTitle)
+
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\";
+                    wikibase:api \"Generator\";
+                    wikibase:limit \"once\";
+                    mwapi:generator \"allpages\";
+                    mwapi:gapfrom ?fileTitle;
+                    mwapi:gapnamespace 6; # NS_FILE
+                    mwapi:gaplimit \"1\";
+                    mwapi:prop \"imageinfo\";
+                    mwapi:iiprop \"extmetadata\" ;
+                    mwapi:iiextmetadatafilter \"UsageTerms\" .
+
+    ?usage wikibase:apiOutput \"imageinfo/ii/extmetadata/UsageTerms/@value\".
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Project_chat/Archive/2021/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

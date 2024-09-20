@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-40cfbaeafb23af2187bd37469864b6e1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select distinct ?geoCode ?item ?itemLabel ?pm20Category
+where {
+  ?item wdt:P8483 ?geoCode .
+
+  # extend for sorting
+  ?item p:P8483 ?statement .
+  ?statement ps:P8483 ?geoCode ;
+             pq:P1545 ?sortCode .
+  
+  # construct URI for category page access
+  bind(uri(concat('https://pm20.zbw.eu/category/geo/s/', ?geoCode)) as ?pm20Category)
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+order by ?sortCode""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_20th_Century_Press_Archives/Use_cases>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

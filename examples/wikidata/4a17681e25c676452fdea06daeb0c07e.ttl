@@ -1,0 +1,39 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4a17681e25c676452fdea06daeb0c07e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?preis ?preisLabel (COUNT (*) AS ?count) (SUM(?before_) AS ?before) (SUM(?after_) AS ?after)
+       (SUM(?same_) AS ?same) (SUM(?unknown_) AS ?unknown)
+WHERE {
+  ?person wdt:P31 wd:Q5 .
+
+  ?person p:P166 ?Leibnitz_preis_statement .
+  ?Leibnitz_preis_statement a wikibase:BestRank ; ps:P166 wd:Q703205 .
+  OPTIONAL { ?Leibnitz_preis_statement pq:P585 ?Leibnitz_preis_time . }
+
+  ?person p:P166 ?preis_statement .
+  ?preis_statement a wikibase:BestRank ; ps:P166 ?preis .
+  OPTIONAL { ?preis_statement pq:P585 ?preis_time . }
+
+  ?preis wdt:P31 ?preistype.
+  VALUES ?preistype { wd:Q618779  wd:Q11448906 wd:Q15383322 wd:Q107471279 wd:Q378427    wd:Q107494520
+                      wd:Q1404101 wd:Q5257307  wd:Q1829324  wd:Q1792571   wd:Q107471043 wd:Q636581
+                      wd:Q1357196 wd:Q55190113 wd:Q955824   wd:Q1966910   wd:Q1709894 }
+
+  BIND (IF (BOUND(?Leibnitz_preis_time) && BOUND(?preis_time) && ?preis_time < ?Leibnitz_preis_time, 1, 0) AS ?before_)
+  BIND (IF (BOUND(?Leibnitz_preis_time) && BOUND(?preis_time) && ?preis_time > ?Leibnitz_preis_time, 1, 0) AS ?after_)
+  BIND (IF (BOUND(?Leibnitz_preis_time) && BOUND(?preis_time) && ?preis_time = ?Leibnitz_preis_time, 1, 0) AS ?same_)
+  BIND (IF (BOUND(?Leibnitz_preis_time) && BOUND(?preis_time), 0, 1) AS ?unknown_)  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY  ?preis ?preisLabel
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

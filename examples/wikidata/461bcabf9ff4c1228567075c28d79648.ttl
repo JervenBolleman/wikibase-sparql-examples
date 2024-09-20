@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-461bcabf9ff4c1228567075c28d79648> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  (SAMPLE(?number_of_works_) AS ?works)
+  (SAMPLE(?wikis_) AS ?wikis)
+  ?researcher ?researcherLabel ?researcherDescription
+  (SAMPLE(?orcid_) AS ?orcid)
+WITH {
+  SELECT DISTINCT ?researcher WHERE {
+    ?researcher ( wdt:P108| wdt:P463 | wdt:P1416 ) / wdt:P361* wd:Q49210 . 
+  } 
+} AS %researchers
+WITH {
+  SELECT
+    (COUNT(?work) AS ?number_of_works_) ?researcher
+  WHERE {
+    INCLUDE %researchers
+    OPTIONAL { ?work wdt:P50 ?researcher . }
+  } 
+  GROUP BY ?researcher
+} AS %researchers_and_number_of_works
+WHERE {
+  INCLUDE %researchers_and_number_of_works
+  OPTIONAL { ?researcher wdt:P496 ?orcid_ . }
+  OPTIONAL { ?researcher wikibase:sitelinks ?wikis_ }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,nl,no,ru,sv,zh\" . } 
+}
+GROUP BY ?researcher ?researcherLabel ?researcherDescription 
+ORDER BY DESC(?works)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_NYU_Libraries/SPARQL_study_group>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

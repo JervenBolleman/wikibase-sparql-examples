@@ -1,0 +1,25 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4a288ecb7669b71cc0eea22c97ca5c71> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT *
+{
+    # male given names
+    ?item schema:description \"мужское личное имя\"@ru .
+    ?item wdt:P282 wd:Q8229 .
+    MINUS { ?item wdt:P282 ?ws . FILTER(?ws != wd:Q8229 ) }   # remove some items that may have a second P282 incorrectly defined
+    ?item wdt:P1705 ?nl . 
+    FILTER ( regex (?nl, \"^[A-Z].+$\") )   # basic filter for Latin script
+    ?item wdt:P31 wd:Q12308941 .
+    MINUS { ?item wdt:P31 ?instance . FILTER(?instance != wd:Q12308941 ) }   # to be safe, remove items that have a second P31 defined
+    BIND ( CONCAT(\"мужское личное имя - \", str(?nl) ) as ?new_ru_description) 
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Bot_requests/Archive/2020/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4eb05655c1660baf1f7963e6bf886751> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?errata ?errataLabel ?itemLabel ?item
+WHERE 
+{
+  hint:Query hint:optimizer \"None\" .
+  ?errata wdt:P31 wd:Q1348305 .                  # ?errata is an errata
+  filter not exists {?itemZ wdt:P2507 ?errata . } # there's no ?item pointing to the errata.
+  ?errata rdfs:label ?errataLabel . filter(lang(?errataLabel)=\"en\")
+  filter(strstarts(?errataLabel,\"Correction to \"))
+  bind(replace(?errataLabel,\"Correction to \",\"\") as ?itemLabel) .
+  ?item rdfs:label ?itemLabel.
+  filter(strlen(?itemLabel)>20)
+  filter(?item != ?errata)
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,69 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-413435d5dd989386ad95579ebb0b88a2> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# tool: scholia
+PREFIX target: <http://www.wikidata.org/entity/Q123059171>
+
+#defaultView:Graph
+SELECT ?node ?nodeLabel ?nodeImage ?childNode ?childNodeLabel ?childNodeImage ?rgb 
+WITH {
+  SELECT DISTINCT ?property WHERE {
+      ?property a wikibase:Property;
+                wdt:P31 wd:Q18610173 ;
+                wdt:P31 wd:Q26940804 . 
+    }
+} AS %properties
+WITH {
+  SELECT DISTINCT ?node ?childNode WHERE {
+      BIND(target: AS ?node)
+      ?node ?p ?i.
+      ?childNode ?x ?p.
+      ?childNode rdf:type wikibase:Property.
+      FILTER(STRSTARTS(STR(?i), \"http://www.wikidata.org/entity/Q\"))
+      FILTER(STRSTARTS(STR(?childNode), \"http://www.wikidata.org/entity/P\"))
+    }
+  LIMIT 5000
+} AS %nodes
+WITH {
+  SELECT DISTINCT ?childNode ?node ?rgb WHERE {
+      BIND(\"EFFBD8\" AS ?rgb)
+      target: ?p ?childNode.
+      ?node ?x ?p.
+      ?node rdf:type wikibase:Property.
+      FILTER(STRSTARTS(STR(?childNode), \"http://www.wikidata.org/entity/Q\"))
+    }
+  LIMIT 5000
+} AS %childNodes
+WHERE {
+  {
+    INCLUDE %nodes
+  }
+  UNION
+  {
+    INCLUDE %childNodes
+  }
+
+  OPTIONAL { 
+    INCLUDE %properties
+    ?property wikibase:directClaim ?nodeclaim.
+    ?node ?nodeclaim ?nodeImage. 
+  }
+
+  OPTIONAL { 
+    INCLUDE %properties
+    ?property wikibase:directClaim ?childNodeclaim.
+    ?childNode ?childNodeclaim ?childNodeImage. 
+  }
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }        
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:GLAM/Baden-W%C3%BCrttemberg_GLAM_goes_OpenData/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

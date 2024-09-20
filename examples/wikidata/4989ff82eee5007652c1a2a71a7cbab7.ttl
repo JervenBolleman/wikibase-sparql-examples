@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4989ff82eee5007652c1a2a71a7cbab7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?book ?bookLabel ?seriesLabel ?number ?followsLabel ?followed_byLabel
+WHERE
+{
+  ?book wdt:P50 wd:Q333719 . # book by Lee Child
+  OPTIONAL
+  {
+    ?book p:P179 ?series_statement .
+    ?series_statement ps:P179 ?series .
+    OPTIONAL { ?series_statement pq:P1545 ?number . }
+    OPTIONAL { ?series_statement pq:P155 ?follows_qualifier . }
+    OPTIONAL { ?series_statement pq:P156 ?followed_by_qualifier . }
+  }
+  OPTIONAL { ?book wdt:P155 ?follows_main . }
+  OPTIONAL { ?book wdt:P156 ?followed_by_main . }
+  BIND (COALESCE(?follows_qualifier, ?follows_main) AS ?follows) 
+  BIND (COALESCE(?followed_by_qualifier, ?followed_by_main) AS ?followed_by) 
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+  }
+}
+ORDER BY ?series xsd:integer(?number)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

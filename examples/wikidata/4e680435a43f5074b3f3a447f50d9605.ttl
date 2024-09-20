@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4e680435a43f5074b3f3a447f50d9605> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Video games with the most time elapsed between their announcement and their release
+# (as games can have more than one publication date [because re-releases], we only take the earliest one [using MIN])
+SELECT ?years ?interval ?game ?gameLabel ?first_publication_date ?announcement_date WHERE {
+  {
+    SELECT ?game ?gameLabel (MIN(?publication_date) AS ?first_publication_date) ?announcement_date WHERE {
+      ?game (wdt:P31/(wdt:P279*)) wd:Q7889;
+        wdt:P577 ?publication_date;
+        wdt:P6949 ?announcement_date.
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+    }
+    GROUP BY ?game ?gameLabel ?announcement_date
+  }
+  BIND(?first_publication_date - ?announcement_date AS ?interval)
+  BIND(ROUND(?interval / 365 ) AS ?years)
+  FILTER(?interval > 0 )
+}
+ORDER BY DESC (?interval)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Video_games/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

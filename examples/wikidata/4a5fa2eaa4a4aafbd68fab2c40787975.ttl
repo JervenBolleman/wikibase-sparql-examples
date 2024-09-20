@@ -1,0 +1,23 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4a5fa2eaa4a4aafbd68fab2c40787975> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?insee ?commune ?communeLabel
+WHERE {
+  ?commune p:P374 ?P374node .                 # existence code INSEE
+    ?P374node ps:P374 ?insee .                  # valeur code INSEE
+    FILTER NOT EXISTS {?P374node pq:P582 [] .}  # retrait anciens codes insee
+  ?commune wdt:P31 wd:Q666943.                # commune de France
+    FILTER NOT EXISTS { ?commune wdt:P576 []. }   # retrait anciennes communes
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\" } # noms des communes
+}
+ORDER BY (?insee)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_France/Communes>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

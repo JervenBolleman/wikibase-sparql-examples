@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4dfb4088468d97ece9797fa1b2e7bf77> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX v: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+
+SELECT ?dir ?familyName ?director (COUNT(?ordinal) as ?count) (GROUP_CONCAT(?ordinal;separator=\", \") AS ?episodes) WHERE {
+  ?film p:P179 ?series . ?series v:P179 wd:Q689438 . ?series pq:P1545 ?ordinal .
+  ?film wdt:P577 ?publication . FILTER(year(?publication)<2022)
+  ?film wdt:P57 ?dir . ?dir rdfs:label ?director . FILTER(lang(?director) = \"de\")
+  OPTIONAL{?dir wdt:P734 ?family . ?family rdfs:label ?familyName .  FILTER(lang(?familyName) = \"de\")}
+}
+GROUP BY ?dir ?director ?familyName
+ORDER BY ASC(STR(?familyName)) ?director""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service/queries>,
+    <https://www.wikidata.org//wiki/User:Jobu0101/Tatort>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

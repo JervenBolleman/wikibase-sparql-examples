@@ -1,0 +1,42 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-402a1c3e6a5ba453390d8ff8fa85a2c3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT * WITH {
+  SELECT ?country ?gender ?descriptionLanguage WHERE {
+    BIND(wd:Q38 AS ?country) .
+    BIND(wd:Q6581072 AS ?gender) .
+    BIND('it' AS ?descriptionLanguage) .
+  }
+} AS %input WITH {
+  SELECT (COUNT(DISTINCT ?item) AS ?items) WHERE {
+    INCLUDE %input .
+    ?item p:P106/ps:P106/wdt:P279* wd:Q26270618; wdt:P27 ?country; wdt:P21 ?gender .
+  }
+} AS %items WITH {
+  SELECT (COUNT(DISTINCT ?item) AS ?itemsWithAnyDescription) WHERE {
+    INCLUDE %input .
+    ?item p:P106/ps:P106/wdt:P279* wd:Q26270618; wdt:P27 ?country; wdt:P21 ?gender; schema:description ?description .
+    FILTER(LANG(?description) = ?descriptionLanguage) .
+  }
+} AS %itemsWithAnyDescription WITH {
+  SELECT ?description (COUNT(DISTINCT ?item) AS ?itemsWithThisDescription) WHERE {
+    INCLUDE %input .
+    ?item p:P106/ps:P106/wdt:P279* wd:Q26270618; wdt:P27 ?country; wdt:P21 ?gender; schema:description ?description .
+    FILTER(LANG(?description) = ?descriptionLanguage) .
+  } GROUP BY ?description ORDER BY DESC(?cnt)
+} AS %itemsWithThisDescription WHERE {
+  INCLUDE %itemsWithThisDescription .
+  INCLUDE %itemsWithAnyDescription .
+  INCLUDE %items .
+  INCLUDE %input .
+} ORDER BY DESC(?itemsWithThisDescription)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/rowing/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

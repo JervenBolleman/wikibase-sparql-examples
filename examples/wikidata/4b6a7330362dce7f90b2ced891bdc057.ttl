@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4b6a7330362dce7f90b2ced891bdc057> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT  
+  DISTINCT
+    ?item ?title
+    (CONCAT(
+      ENCODE_FOR_URI(REPLACE(STR(?item), \".*Q\", \"Q\")), \"|P407|Q1860|S887|Q69652283\") AS ?QuickStatements)
+WITH {
+  SELECT ?item ?title WHERE {
+  ?item wdt:P6104 wd:Q56241615 ;
+  wdt:P356 [] ;
+        wdt:P1476 ?title .
+  MINUS {?item wdt:P407 []. }
+  }
+  LIMIT 20000
+} AS %items
+WHERE {
+  INCLUDE %items
+  FILTER (REGEX(LCASE(?title), \"\\\\b(the|and|which|with|why|where|what|from)\\\\b\"))
+  FILTER (!REGEX(LCASE(?title), \"^\\\\[.*\\\\]$\"))
+}
+ORDER BY DESC(?QuickStatements)
+LIMIT 10000""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

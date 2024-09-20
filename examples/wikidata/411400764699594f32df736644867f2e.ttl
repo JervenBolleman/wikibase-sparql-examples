@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-411400764699594f32df736644867f2e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?q ?qLabel (GROUP_CONCAT(DISTINCT ?collectionLabel; separator=\"; \") AS ?where) ?enwp (GROUP_CONCAT(DISTINCT ?langLabel; separator=\", \") AS ?languages) ?linkcount
+WHERE { {SELECT ?q (COUNT(?sitelink) AS ?linkcount) WHERE {  ?q (wdt:P31/wdt:P279*) wd:Q87167. ?sitelink schema:about ?q }
+   GROUP BY ?q  }
+?q p:P195 ?s. ?s ps:P195 ?collection . MINUS {?s pq:P582 []}.
+      MINUS {?s ps:P195 wd:Q1322278 }
+OPTIONAL{ ?q wdt:P407 ?lang }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?q rdfs:label ?qLabel. ?collection rdfs:label ?collectionLabel . ?lang rdfs:label ?langLabel
+  }
+ OPTIONAL{?enwp schema:about ?q ; schema:isPartOf <https://en.wikipedia.org/> }
+ # other props: inventory number; part of ; full work (P953); Commons cat; described at (P973)
+}
+GROUP BY ?q ?qLabel ?enwp ?linkcount
+ORDER BY DESC(?linkcount)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/collections>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

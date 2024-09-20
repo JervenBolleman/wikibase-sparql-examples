@@ -1,0 +1,25 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4223775a39ead33e5ff6286f31ed8a28> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?itemLabel ?linkcount ?nationality (YEAR(COALESCE(?date1, ?date2)) AS ?year) WHERE { 
+  ?item wdt:P31 wd:Q1344 . # instance of opera
+  ?item wdt:P86|wdt:P87 ?maker . # either the composer or the librettist of the opera
+  ?maker wdt:P21 wd:Q6581072 . # maker is female
+  ?maker wdt:P31 wd:Q5 . # maker is human 
+  OPTIONAL { ?item wdt:P577 ?date1 } . # date of publication...
+  OPTIONAL { ?item wdt:P1191 ?date2 } . # ... or of first performance
+  OPTIONAL { ?maker wdt:P27 ?nationality } . # get the nationality of the maker
+  OPTIONAL { ?item wikibase:sitelinks ?linkcount } . # count of sitelinks
+  FILTER NOT EXISTS { ?wfr schema:about ?item . ?wfr schema:isPartOf <https://en.wikipedia.org/> } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } .
+} LIMIT 5000""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

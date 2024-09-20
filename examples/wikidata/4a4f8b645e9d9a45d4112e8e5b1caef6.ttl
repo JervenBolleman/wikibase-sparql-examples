@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4a4f8b645e9d9a45d4112e8e5b1caef6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Chybejici stromy
+SELECT ?usop ?drusop ?item ?itemLabel ?obrazek ?nic ?obecLabel ?lon ?lat ?druh ?obvod ?kod ?commons
+WHERE
+{
+  ?item wdt:P31 wd:Q811534 .          #Památný strom
+  ?item wdt:P131 ?obec . 
+  ?obec wdt:P131 ?okres . 
+  OPTIONAL{?item wdt:P677 ?usop . } 
+  FILTER regex(?usop, \"105301|105974\") 
+  OPTIONAL {                          #Dekódovat souřadnice
+    ?item p:P625/psv:P625 ?node.
+    ?node wikibase:geoLatitude ?lat.
+    ?node wikibase:geoLongitude ?lon.
+   }
+  OPTIONAL{?item wdt:P2547 ?obvod . } 
+  OPTIONAL{?item wdt:P18 ?obrazek . }
+  OPTIONAL{?item wdt:P373 ?commons . }
+  OPTIONAL{?item p:P31/pq:P580 ?datum . } 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"cs\" }
+}
+ORDER BY DESC(?pocetDruhu)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Maxx>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

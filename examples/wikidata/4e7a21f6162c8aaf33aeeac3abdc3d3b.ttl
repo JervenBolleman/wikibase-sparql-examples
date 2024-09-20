@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4e7a21f6162c8aaf33aeeac3abdc3d3b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#NLse auteurs uit de NTA met pseudoniem(en) die een foto hebben
+SELECT DISTINCT ?auteur ?auteurLabel ?geboortenaam
+(GROUP_CONCAT(?pseudonym; SEPARATOR = \"; \") AS ?pseudonyms) 
+?image 
+(GROUP_CONCAT(?ntaid; SEPARATOR = \"; \") AS ?ntaids) 
+WHERE {
+  ?auteur wdt:P31 wd:Q5; #mens
+    wdt:P27 wd:Q29999; #uit Koninkrijk NL
+    (wdt:P106/wdt:P279) wd:Q482980; # beroep=auteur
+    wdt:P742 ?pseudonym; #met pseudonym
+    wdt:P18 ?image; #met afbeelding
+    wdt:P1006 ?ntaid. #met NTA id
+    OPTIONAL {?auteur wdt:P1477 ?geboortenaam.} #geboortenaam
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"nl,en\". }
+} GROUP BY ?auteur ?auteurLabel ?image ?geboortenaam""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:OlafJanssen/Sandbox>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

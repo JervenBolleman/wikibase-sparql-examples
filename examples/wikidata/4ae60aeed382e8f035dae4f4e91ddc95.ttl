@@ -1,0 +1,49 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4ae60aeed382e8f035dae4f4e91ddc95> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?skip ?skipLabel ?tatt_i_bruk WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?skip wdt:P31 wd:Q11446.                                                                                    # find a ?skip which is a ship
+  ?skip wdt:P17 wd:Q20.                                                                                       # ?skip has country Norway
+  OPTIONAL { ?skip wdt:P729 ?tatt_i_bruk. }                                                                   # optionally it has a P729 date
+                                                                                                              # but we really want to use the 
+                                                                                                              # ?service_entry date which we find 
+                                                                                                              # below and which is the 
+                                                                                                              # 1939-46 date-delimited P729
+                                                                                                              # so this line is not needed
+
+  {?item wdt:729 ?service_entry . FILTER ((year(?service_entry) > 1939) && ( year(?servic_entry) < 1946 )) }  # find an *unrelated* ?item with 
+                                                                                                              # a P729 date
+                                                                                                              # also ?servic_entry typo would
+                                                                                                              # bork the filter
+  UNION
+  {?item wdt:P730 ?service_end . FILTER ((year(?service_end) > 1939 ) && (year(?service_end) < 1946 ))  }     # or with a P730 date
+                                                                                                              # so the query looks at ALL items
+                                                                                                              # and times out because hamster exhaustion
+                                                                                                              # you really wanted to find the P729 
+                                                                                                              # of the *** ?skip *** here
+                                                                                                              # and P730 has nothing to do with
+                                                                                                              # date built. More like date sunk.
+
+  OPTIONAL {?item wdt:729 ?service_entry } .                                                                  # you have already found ?service_entry 
+                                                                                                              # in the UNIONed lines above
+  OPTIONAL {?item wdt:730 ?service_end } .                                                                    # ditto service_end ... you do not need 
+                                                                                                              # to find them again, even if you
+                                                                                                              # ever needed P730, which you did not.
+
+  BIND( IF (bound(?service_entry) && !isBlank(?service_entry) , year(?service_entry) , year(?service_end) - 40) AS ?order_date) . 
+                                                                                                              # this is all about setting ?order_date
+                                                                                                              # but you do not use ?order date anywhere 
+                                                                                                              # in the query
+}
+LIMIT 10000                                                                                                   # Harmless, but 10k ships in 6/7 years?""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

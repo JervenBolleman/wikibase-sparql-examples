@@ -1,0 +1,74 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-45ae39dea54d45b00aef6eca73fb25a5> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Script #3
+SELECT
+	(MIN(?dateYear) AS	?dateYears)
+	(GROUP_CONCAT(DISTINCT	?gameENLabelTxt;	separator = \", \") AS	?gameENLabelTxts)		# English label
+	(GROUP_CONCAT(DISTINCT	?wikiName;		separator = \", \") AS	?wikiNames)
+	(GROUP_CONCAT(DISTINCT	?wikiHypr;		separator = \", \") AS	?wikiHyprs)
+	(GROUP_CONCAT(DISTINCT	?dataHypr;		separator = \", \") AS	?dataHyprs)
+#	(GROUP_CONCAT(DISTINCT	?websHypr;		separator = \", \") AS	?websHyprs)
+#	(?game AS ?dataLink)
+	WHERE
+	{
+#		hint:Query hint:optimizer \"None\".
+
+		# test values
+#		VALUES ?game
+#		{
+#			wd:Q4850488		# Baldur's Gate III: The Black Hound (should have \"no value\" due to being cancelled)
+#			wd:Q4931588		# Bob's Game (should have \"no value\" due to not being released yet)
+#			wd:Q5315330		# Dunjonquest (1979)
+#			wd:Q5250229		# Deep Labyrinth (should have multiple dates)
+#			wd:Q1462499		# Starflight (1986, has multiple genres)
+#			wd:Q22124593		# God Wars: Beyond Time (should have blank date since the property does not exist)
+#		}
+
+		# types of item
+		      {?game wdt:P136 wd:Q744038}	# regular RPGs
+		UNION {?game wdt:P136 wd:Q1529437}	# tactical RPGs
+		UNION {?game wdt:P136 wd:Q1422746}	# action RPGs
+		UNION {?game wdt:P136 wd:Q1143132}	# roguelikes
+#		?game wdt:P136/wdt:P279* wd:Q744038.	# any class or subclass of role-playing video game, including MMORPGs
+		?game wdt:P31 wd:Q7889.		 # instance of video game
+
+		# English label
+		OPTIONAL
+		{
+			?game rdfs:label ?gameENLabel FILTER(LANG(?gameENLabel) = \"en\").
+			BIND(CONCAT(?gameENLabel, \" (EN)\") AS ?gameENLabelTxt)
+		}
+
+		# release date (simple)
+		OPTIONAL {?game wdt:P577 ?date BIND(YEAR(?date) AS ?dateYear)}
+
+		# wikidata link
+		BIND(CONCAT(\"=hyperlink(\"\", replace(replace(STR(?game), \"entity\", \"wiki\"), \"http\", \"https\"), \"\")\") AS ?dataHypr).		# changes the target of the URL and creates a MS Excel compatible hyperlink
+
+		# wikipedia link and wikidata name
+		OPTIONAL
+		{
+			?wikiURL schema:about ?game.
+			?wikiURL schema:isPartOf <https://en.wikipedia.org/>.
+			?wikiURL schema:name ?wikiName.
+			BIND(CONCAT(\"=hyperlink(\"\", STR(?wikiURL), \"\")\") AS ?wikiHypr).		# creates a MS Excel compatible hyperlink
+			#BIND(STR(?wikiURL) AS ?wikiHypr).		# faster substitute
+		}
+
+		# offial website link
+		OPTIONAL {?game wdt:P856 ?website BIND(CONCAT(\"=hyperlink(\"\", STR(?website), \"\")\") AS ?websHypr)}
+	}
+GROUP BY $game
+ORDER BY ASC (?dateYears) ASC (?gameENLabelTxts)
+#limit 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Datumizer/List_of_role-playing_video_games>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

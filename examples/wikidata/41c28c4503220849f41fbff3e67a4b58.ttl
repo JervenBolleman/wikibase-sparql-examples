@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-41c28c4503220849f41fbff3e67a4b58> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX dbo: <http://dbpedia.org/ontology/>
+
+SELECT DISTINCT ?author ?author_name ?page_name ?wd_item
+WITH {
+  SELECT DISTINCT ?author ?author_name ?page_name
+  WHERE {
+    SERVICE <http://dbpedia.org/sparql> {
+      ?author rdf:type dbo:Writer;
+        prov:wasDerivedFrom ?derivedfrom.
+      ?author rdfs:label ?author_name. FILTER(LANG(?author_name) = \"en\")
+      BIND(STRBEFORE(STR(?derivedfrom), \"?\") AS ?page_name1)
+      BIND(URI(REPLACE(?page_name1, \"^http\", \"https\")) AS ?page_name)
+    }
+  } 
+  LIMIT 100
+} AS %w
+WHERE {
+  INCLUDE %w
+  ?page_name schema:about ?wd_item.
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infrastruktur/Sandbox2>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

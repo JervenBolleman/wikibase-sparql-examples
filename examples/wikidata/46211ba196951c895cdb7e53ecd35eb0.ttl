@@ -1,0 +1,60 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-46211ba196951c895cdb7e53ecd35eb0> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select
+  ?quantity
+  (sample(?label) as ?label)
+  (sample(?desc) as ?desc)
+  (
+    strdt(
+      concat(
+        \"<\", \"math><mtable columnalign=left rowlines=dashed>\",
+        group_concat(distinct ?formula),
+        \"</mtable></math>\"
+      ),
+      <http://www.w3.org/1998/Math/MathML>
+    ) as ?formulas
+  )
+  (
+    strdt(
+      concat(
+        \"<\", \"math><mtable columnalign=left>\",
+        group_concat(distinct ?symbolAndLabel),
+        \"</mtable></math>\"
+      ),
+      <http://www.w3.org/1998/Math/MathML>
+    ) as ?formulaSymbols
+  )
+where {
+  ?quantity wdt:P279+ wd:Q71550118 .
+  optional { ?quantity rdfs:label ?label . filter (lang(?label) = \"de\") }
+  optional { ?quantity schema:description ?desc . filter (lang(?desc) = \"de\") }
+  ?quantity wdt:P2534 ?formula .
+  {
+    select distinct * where {
+      ?quantity p:P7235 [ ps:P7235 ?formulaSymbol ; pq:P9758 ?formulaQuantity ] .
+      optional { ?formulaQuantity rdfs:label ?formulaQuantityLabel . filter (lang(?formulaQuantityLabel) = \"de\") }
+      bind (
+        concat(
+          \"<mrow>\",
+          str(?formulaSymbol),
+          \"<mtext href=\"\", str(?formulaQuantity), \"\">\",
+          \": \",
+          coalesce(?formulaQuantityLabel, strafter(str(?formulaQuantity), \"http://www.wikidata.org/entity/\")),
+          \"</mtext>\",
+          \"</mrow>\"
+        ) as ?symbolAndLabel
+      )
+    }
+  }
+} group by ?quantity""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Toni_001>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

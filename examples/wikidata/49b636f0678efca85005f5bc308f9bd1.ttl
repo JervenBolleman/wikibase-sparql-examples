@@ -1,0 +1,43 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-49b636f0678efca85005f5bc308f9bd1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+
+PREFIX target: <http://www.wikidata.org/entity/Q183368>
+
+SELECT
+  ?location ?locationLabel
+  ?geo
+  ?example_work ?example_workLabel
+WITH {
+  SELECT
+    ?location ?geo
+    (SAMPLE(?work) AS ?example_work)
+  WHERE {
+    # Find works that are marked with main subject of the topic.
+    ?work wdt:P921 / ( wdt:P31*/wdt:P279* | wdt:P361+ | wdt:P1269+ ) target: .
+    
+    # Identify co-occuring topic that is geo-locatable. 
+    ?work wdt:P921 ?location .
+    ?location wdt:P625 ?geo .
+  }
+  GROUP BY ?location ?geo
+} AS %results
+WHERE {
+  INCLUDE %results
+  
+  # Label the results
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\".
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .
