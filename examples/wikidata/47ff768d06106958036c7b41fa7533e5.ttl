@@ -11,7 +11,23 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """SELECT ?item ?locatedLabel ?provinciaLabel WITH { 
+  SELECT ?item ?located ?provincia WHERE {
+    ?item wdt:P31 wd:Q486972;
+      wdt:P17 wd:Q38;
+      wdt:P131 ?located.
+    ?located wdt:P31 wd:Q747074.
+    ?located wdt:P131 ?provincia
+    FILTER NOT EXISTS {
+      ?item schema:description ?itemdesc.
+      FILTER(LANG(?itemdesc) = \"it\") }
+  } } as %i
+WHERE
+{
+  INCLUDE %i
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"it\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
@@ -32,7 +48,12 @@ WHERE
   INCLUDE %i
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"it\". }
 }""";
-  <http://example.org/bigdata_select> """SELECT ?item ?locatedLabel ?provinciaLabel WITH { 
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?locatedLabel ?provinciaLabel WITH { 
   SELECT ?item ?located ?provincia WHERE {
     ?item wdt:P31 wd:Q486972;
       wdt:P17 wd:Q38;

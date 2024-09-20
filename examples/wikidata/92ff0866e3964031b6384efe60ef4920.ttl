@@ -11,7 +11,32 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+  <http://example.org/bigdata_select> """SELECT ?item ?author ?authorQID ?dob ?dod ?field ?description with 
+{ 
+  SELECT ?item ?author ?description
+WHERE 
+{
+  ?article wdt:P1433 wd:Q35387261. # article was published in costume
+  ?article wdt:P50 ?item . # here's an author
+  optional {?item rdfs:label ?author .  filter(lang(?author)=\"en\")} 
+  optional {?item schema:description ?description .  filter(lang(?description)=\"en\")} 
+
+}
+} as %i with 
+{ 
+  select (sample(?it) as ?item) ?author ?description WHERE 
+  {
+    ?it wdt:P1433 wd:Q35387261. # article was published in costume
+    ?it wdt:P2093 ?author . # here's an author (without a Wikidata object)
+  } group by ?author ?description
+} as %j
+where
+{
+{  include %i}
+          UNION
+{  include %j }
+}""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -40,7 +65,11 @@ where
           UNION
 {  include %j }
 }""";
-  <http://example.org/bigdata_select> """SELECT ?item ?author ?authorQID ?dob ?dod ?field ?description with 
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?item ?author ?authorQID ?dob ?dod ?field ?description with 
 { 
   SELECT ?item ?author ?description
 WHERE 

@@ -24,6 +24,34 @@ SELECT
   (CONCAT(\"#company/\", SUBSTR(STR(?company), 32)) AS ?companyUrl)
 
   ?example_subject ?example_subjectLabel
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(?subject) AS ?subjects)
+    ?company
+    (SAMPLE(?subject) AS ?example_subject)
+  WHERE {
+    ?subject ?property target: , ?company .
+    ?property_item wikibase:directClaim ?property .
+    FILTER (?company != target:)
+  }
+  GROUP BY ?company
+}
+  VALUES ?company_type { wd:Q43229 wd:Q157031 wd:Q4830453 }
+  ?company wdt:P31 ?company_type .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }
+}
+ORDER BY DESC(?subjects)""";
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q22723716>
+
+SELECT 
+  ?subjects
+
+  ?company ?companyLabel
+  (CONCAT(\"#company/\", SUBSTR(STR(?company), 32)) AS ?companyUrl)
+
+  ?example_subject ?example_subjectLabel
 WITH {
   SELECT 
     (COUNT(?subject) AS ?subjects)
@@ -48,34 +76,6 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX target: <http://www.wikidata.org/entity/Q22723716>
-
-SELECT 
-  ?subjects
-
-  ?company ?companyLabel
-  (CONCAT(\"#company/\", SUBSTR(STR(?company), 32)) AS ?companyUrl)
-
-  ?example_subject ?example_subjectLabel
-
-WHERE {
-  {
-  SELECT 
-    (COUNT(?subject) AS ?subjects)
-    ?company
-    (SAMPLE(?subject) AS ?example_subject)
-  WHERE {
-    ?subject ?property target: , ?company .
-    ?property_item wikibase:directClaim ?property .
-    FILTER (?company != target:)
-  }
-  GROUP BY ?company
-}
-  VALUES ?company_type { wd:Q43229 wd:Q157031 wd:Q4830453 }
-  ?company wdt:P31 ?company_type .
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }
-}
-ORDER BY DESC(?subjects)""";
-  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q22723716>
 
 SELECT 
   ?subjects

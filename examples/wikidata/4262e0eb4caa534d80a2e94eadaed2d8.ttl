@@ -20,6 +20,40 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX schema: <http://schema.org/>
 SELECT ?commune ?communeLabel ?wikivoyageTitel ?wikipediaTitel ?communeImage ?communePostalCode ?communeWebsite ?latitude ?longitude
     
+     
+    
+    WHERE {
+      {
+      SELECT ?commune (SAMPLE(?lat) AS ?latitude) (SAMPLE(?lng) AS ?longitude) ?communePostalCode WHERE {
+        ?commune wdt:P31 wd:Q484170;
+                 p:P625 ?coordinate.
+        ?coordinate psv:P625 ?coordinate_node.
+        ?coordinate_node wikibase:geoLatitude ?lat. 
+        ?coordinate_node wikibase:geoLongitude ?lng.
+        ?commune wdt:P281 ?communePostalCode
+        FILTER (?communePostalCode > \"0\" && ?communePostalCode < \"10000\")
+      }
+      GROUP BY ?commune ?communePostalCode
+    }.
+      OPTIONAL { ?commune wdt:P18 ?communeImage }.
+      OPTIONAL { ?commune wdt:P856 ?communeWebsite }.
+      OPTIONAL { 
+        ?wikivoyageArticle schema:about ?commune.
+        ?wikivoyageArticle schema:isPartOf <https://en.wikivoyage.org/>.
+        ?wikivoyageArticle schema:name ?wikivoyageTitel.
+      }.
+      OPTIONAL { 
+        ?wikipediaArticle schema:about ?commune.
+        ?wikipediaArticle schema:isPartOf <https://en.wikipedia.org/>.
+        ?wikipediaArticle schema:name ?wikipediaTitel.
+      }.
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+    }
+GROUP BY ?commune ?communeLabel ?wikivoyageTitel ?wikipediaTitel ?communeImage ?communePostalCode ?communeWebsite ?latitude ?longitude
+ORDER BY ?communePostalCode""";
+  <http://example.org/bigdata_select> """PREFIX schema: <http://schema.org/>
+SELECT ?commune ?communeLabel ?wikivoyageTitel ?wikipediaTitel ?communeImage ?communePostalCode ?communeWebsite ?latitude ?longitude
+    
     WITH {
       SELECT ?commune (SAMPLE(?lat) AS ?latitude) (SAMPLE(?lng) AS ?longitude) ?communePostalCode WHERE {
         ?commune wdt:P31 wd:Q484170;
@@ -58,40 +92,6 @@ PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX schema: <http://schema.org/>
-SELECT ?commune ?communeLabel ?wikivoyageTitel ?wikipediaTitel ?communeImage ?communePostalCode ?communeWebsite ?latitude ?longitude
-    
-     
-    
-    WHERE {
-      {
-      SELECT ?commune (SAMPLE(?lat) AS ?latitude) (SAMPLE(?lng) AS ?longitude) ?communePostalCode WHERE {
-        ?commune wdt:P31 wd:Q484170;
-                 p:P625 ?coordinate.
-        ?coordinate psv:P625 ?coordinate_node.
-        ?coordinate_node wikibase:geoLatitude ?lat. 
-        ?coordinate_node wikibase:geoLongitude ?lng.
-        ?commune wdt:P281 ?communePostalCode
-        FILTER (?communePostalCode > \"0\" && ?communePostalCode < \"10000\")
-      }
-      GROUP BY ?commune ?communePostalCode
-    }.
-      OPTIONAL { ?commune wdt:P18 ?communeImage }.
-      OPTIONAL { ?commune wdt:P856 ?communeWebsite }.
-      OPTIONAL { 
-        ?wikivoyageArticle schema:about ?commune.
-        ?wikivoyageArticle schema:isPartOf <https://en.wikivoyage.org/>.
-        ?wikivoyageArticle schema:name ?wikivoyageTitel.
-      }.
-      OPTIONAL { 
-        ?wikipediaArticle schema:about ?commune.
-        ?wikipediaArticle schema:isPartOf <https://en.wikipedia.org/>.
-        ?wikipediaArticle schema:name ?wikipediaTitel.
-      }.
-      SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-    }
-GROUP BY ?commune ?communeLabel ?wikivoyageTitel ?wikipediaTitel ?communeImage ?communePostalCode ?communeWebsite ?latitude ?longitude
-ORDER BY ?communePostalCode""";
-  <http://example.org/bigdata_select> """PREFIX schema: <http://schema.org/>
 SELECT ?commune ?communeLabel ?wikivoyageTitel ?wikipediaTitel ?communeImage ?communePostalCode ?communeWebsite ?latitude ?longitude
     
     WITH {

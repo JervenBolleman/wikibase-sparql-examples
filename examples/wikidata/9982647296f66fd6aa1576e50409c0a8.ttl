@@ -16,7 +16,21 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?itemDescription (GROUP_CONCAT(?p31label;SEPARATOR=', ') AS ?type) (YEAR(?p577) AS ?year) ?sitelinks WITH {
+SELECT ?item ?itemLabel ?itemDescription (GROUP_CONCAT(?p31label;SEPARATOR=', ') AS ?type) (YEAR(?p577) AS ?year) ?sitelinks  WHERE {
+  {
+  SELECT DISTINCT ?item ?p577 ?sitelinks WHERE {
+	?item wdt:P31/wdt:P279* wd:Q7725634 . 
+	?item wdt:P407 wd:Q652 .
+    ?item wdt:P577 ?p577 . FILTER(YEAR(?p577)>=1980 && YEAR(?p577)<=1989) # change the year limits if needed
+    ?item wikibase:sitelinks ?sitelinks .
+}
+}
+  ?item wdt:P31 [rdfs:label ?p31label] . FILTER(LANG(?p31label)='en')   # change the language code if needed
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],it,en,es,pl,uk\". }
+}  
+GROUP BY ?item ?itemLabel ?itemDescription ?type ?p577 ?sitelinks
+ORDER BY DESC(?sitelinks) ?itemLabel""";
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?itemDescription (GROUP_CONCAT(?p31label;SEPARATOR=', ') AS ?type) (YEAR(?p577) AS ?year) ?sitelinks WITH {
   SELECT DISTINCT ?item ?p577 ?sitelinks WHERE {
 	?item wdt:P31/wdt:P279* wd:Q7725634 . 
 	?item wdt:P407 wd:Q652 .
@@ -35,21 +49,7 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?itemDescription (GROUP_CONCAT(?p31label;SEPARATOR=', ') AS ?type) (YEAR(?p577) AS ?year) ?sitelinks  WHERE {
-  {
-  SELECT DISTINCT ?item ?p577 ?sitelinks WHERE {
-	?item wdt:P31/wdt:P279* wd:Q7725634 . 
-	?item wdt:P407 wd:Q652 .
-    ?item wdt:P577 ?p577 . FILTER(YEAR(?p577)>=1980 && YEAR(?p577)<=1989) # change the year limits if needed
-    ?item wikibase:sitelinks ?sitelinks .
-}
-}
-  ?item wdt:P31 [rdfs:label ?p31label] . FILTER(LANG(?p31label)='en')   # change the language code if needed
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],it,en,es,pl,uk\". }
-}  
-GROUP BY ?item ?itemLabel ?itemDescription ?type ?p577 ?sitelinks
-ORDER BY DESC(?sitelinks) ?itemLabel""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?itemDescription (GROUP_CONCAT(?p31label;SEPARATOR=', ') AS ?type) (YEAR(?p577) AS ?year) ?sitelinks WITH {
+SELECT ?item ?itemLabel ?itemDescription (GROUP_CONCAT(?p31label;SEPARATOR=', ') AS ?type) (YEAR(?p577) AS ?year) ?sitelinks WITH {
   SELECT DISTINCT ?item ?p577 ?sitelinks WHERE {
 	?item wdt:P31/wdt:P279* wd:Q7725634 . 
 	?item wdt:P407 wd:Q652 .

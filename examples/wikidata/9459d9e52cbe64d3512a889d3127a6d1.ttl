@@ -23,59 +23,6 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
 SELECT DISTINCT ?coordinates ?line ?station ?stationLabel ?connectLabel ?image ?opening ?rgb
 
-WITH {
-  SELECT ?station ?coordinates ?image ?lat ?lon ?opening WHERE {
-    {
-      SELECT ?station (SAMPLE(?coord_stmt) AS ?coord_stmt) (SAMPLE(?image) AS ?image) (sample(?opening) as ?opening) WHERE {
-        ?station wdt:P31 wd:Q14562709 .
-        ?station p:P625 ?coord_stmt  .
-        OPTIONAL { ?station wdt:P18 ?image }.
-        OPTIONAL { ?station wdt:P1619 ?opening }.
-      } GROUP BY ?station
-    }
-    hint:SubQuery hint:optimizer \"None\".
-    ?coord_stmt ps:P625 ?coordinates .
-    ?coord_stmt psv:P625 / wikibase:geoLatitude ?lat .
-    ?coord_stmt psv:P625 / wikibase:geoLongitude ?lon . 
-  }
-} AS %stations
-
-WITH {
-  SELECT (?station AS ?nextstation) (?lat AS ?lat2) (?lon AS ?lon2) WHERE {
-    INCLUDE %stations
-  }
-} AS %nextstations
-
-WITH {
-  SELECT ?line ?connect ?rgb WHERE {
-    INCLUDE %stations .
-    INCLUDE %nextstations .
-    ?station p:P197 ?nextstationstatement .
-    ?nextstationstatement ps:P197 ?nextstation .
-    ?nextstationstatement pq:P81 ?connect . ?connect wdt:P361 wd:Q20075  . 
-    ?connect wdt:P465 ?rgb .
-    FILTER(STR(?station) < STR(?nextstation)) .    
-    BIND(CONCAT('LINESTRING (', STR(?lon), ' ', STR(?lat), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
-    BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
-  }
-} AS %lines 
- 
-WHERE {
-  { INCLUDE %stations }  UNION { INCLUDE %lines  } .
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX geo: <http://www.opengis.net/ont/geosparql#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
-SELECT DISTINCT ?coordinates ?line ?station ?stationLabel ?connectLabel ?image ?opening ?rgb
-
 
 
 WITH {
@@ -148,6 +95,59 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
   <http://example.org/bigdata_select> """#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
+SELECT DISTINCT ?coordinates ?line ?station ?stationLabel ?connectLabel ?image ?opening ?rgb
+
+WITH {
+  SELECT ?station ?coordinates ?image ?lat ?lon ?opening WHERE {
+    {
+      SELECT ?station (SAMPLE(?coord_stmt) AS ?coord_stmt) (SAMPLE(?image) AS ?image) (sample(?opening) as ?opening) WHERE {
+        ?station wdt:P31 wd:Q14562709 .
+        ?station p:P625 ?coord_stmt  .
+        OPTIONAL { ?station wdt:P18 ?image }.
+        OPTIONAL { ?station wdt:P1619 ?opening }.
+      } GROUP BY ?station
+    }
+    hint:SubQuery hint:optimizer \"None\".
+    ?coord_stmt ps:P625 ?coordinates .
+    ?coord_stmt psv:P625 / wikibase:geoLatitude ?lat .
+    ?coord_stmt psv:P625 / wikibase:geoLongitude ?lon . 
+  }
+} AS %stations
+
+WITH {
+  SELECT (?station AS ?nextstation) (?lat AS ?lat2) (?lon AS ?lon2) WHERE {
+    INCLUDE %stations
+  }
+} AS %nextstations
+
+WITH {
+  SELECT ?line ?connect ?rgb WHERE {
+    INCLUDE %stations .
+    INCLUDE %nextstations .
+    ?station p:P197 ?nextstationstatement .
+    ?nextstationstatement ps:P197 ?nextstation .
+    ?nextstationstatement pq:P81 ?connect . ?connect wdt:P361 wd:Q20075  . 
+    ?connect wdt:P465 ?rgb .
+    FILTER(STR(?station) < STR(?nextstation)) .    
+    BIND(CONCAT('LINESTRING (', STR(?lon), ' ', STR(?lat), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
+    BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
+  }
+} AS %lines 
+ 
+WHERE {
+  { INCLUDE %stations }  UNION { INCLUDE %lines  } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
 SELECT DISTINCT ?coordinates ?line ?station ?stationLabel ?connectLabel ?image ?opening ?rgb
 
 WITH {

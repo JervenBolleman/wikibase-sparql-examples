@@ -11,7 +11,125 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+  <http://example.org/bigdata_select> """SELECT
+  # ?item ?itemLabel ?start_ ?end_ ?days_ # Subquery B
+  # ?date_ ?diff ?changes_ # Subquery C
+  # ?min ?max ?avg # Subquery D
+  ?date ?amount ?changes # Subquery E
+WITH {
+  # Members of the House of Commons (58th parliament)
+  SELECT ?item ?st
+  WHERE {
+    ?item p:P39 ?st .
+    ?st ps:P39 wd:Q77685926 ;
+      a wikibase:BestRank .
+  }
+} AS %a
+WITH {
+  # Periods that intersects 2021 (clamped): 660
+  SELECT ?item ?start_ ?end_ ?days_
+  WHERE {
+    { # 21
+      INCLUDE %a
+      ?st pq:P580 ?start__. FILTER (?start__ < \"2022-01-01\"^^xsd:dateTime)
+      ?st pq:P582 ?end__. FILTER (?end__ >= \"2021-01-01\"^^xsd:dateTime)
+      BIND(IF(?start__ < \"2021-01-01\"^^xsd:dateTime, \"2021-01-01\"^^xsd:dateTime, ?start__) AS ?start_)
+      BIND(IF(?end__ >= \"2022-01-01\"^^xsd:dateTime, \"2021-12-31\"^^xsd:dateTime, ?end__) AS ?end_)
+      BIND (xsd:integer(?end_ - ?start_) + 1 AS ?days_)
+    }
+    UNION
+    { # 639
+      INCLUDE %a
+      ?st pq:P580 ?start__. FILTER (?start__ < \"2022-01-01\"^^xsd:dateTime)
+      BIND(IF(?start__ < \"2021-01-01\"^^xsd:dateTime, \"2021-01-01\"^^xsd:dateTime, ?start__) AS ?start_)
+      FILTER NOT EXISTS { ?st pq:P582 []. }
+      BIND(\"2021-12-31\"^^xsd:dateTime AS ?end_)
+      BIND (xsd:integer(?end_ - ?start_) + 1 AS ?days_)
+    }
+    UNION
+    { # 0
+      INCLUDE %a
+      FILTER NOT EXISTS { ?st pq:P580 []. }
+      BIND(\"2021-01-01\"^^xsd:dateTime AS ?start_)
+      ?st pq:P582 ?end__. FILTER (?end__ >= \"2021-01-01\"^^xsd:dateTime)
+      BIND(IF(?end__ >= \"2022-01-01\"^^xsd:dateTime, \"2021-12-31\"^^xsd:dateTime, ?end__) AS ?end_)
+      BIND (xsd:integer(?end_ - ?start_) + 1 AS ?days_)
+    }
+    UNION
+    { # 0
+      INCLUDE %a
+      FILTER NOT EXISTS { ?st pq:P580 []. }
+      FILTER NOT EXISTS { ?st pq:P582 []. }
+    }
+  }
+} AS %b
+WITH {
+  # Date of change and difference
+  SELECT ?date_ (SUM(?diff_) AS ?diff) (COUNT(?diff_) AS ?changes_)
+  WHERE {
+    {
+      INCLUDE %b
+      BIND(IF(BOUND(?start_), ?start_, \"2021-01-01\"^^xsd:dateTime) AS ?date_)
+      BIND(IF(BOUND(?start_), 1, 0) AS ?diff_)
+    }
+    UNION
+    {
+      INCLUDE %b
+      BIND(IF(BOUND(?end_), ?end_, \"2021-12-31\"^^xsd:dateTime) AS ?date_)
+      BIND(IF(BOUND(?end_), -1, 0) AS ?diff_)
+    }
+  }
+  GROUP BY ?date_
+} AS %c
+WITH {
+  # Pretty-print with running count
+  SELECT ?date (SUM(?diff) AS ?amount) (SAMPLE(?changes_) AS ?changes)
+  WHERE {
+    {
+      SELECT ?date ?changes_
+      WHERE {
+        INCLUDE %c
+        BIND(?date_ AS ?date)
+      }
+    }
+    {
+      SELECT ?date2 ?diff
+      WHERE {
+        INCLUDE %c
+        BIND(?date_ AS ?date2)
+      }
+    }
+    FILTER(?date2 <= ?date)
+    # Ignore the last date as it is an artifact from clamping the date-range.
+    FILTER (?date != \"2021-12-31\"^^xsd:dateTime)
+  }
+  GROUP BY ?date
+} AS %e
+#WITH {
+#  # Calculate average, min and max values
+#  SELECT ?min ?max ?avg
+#  WHERE {
+#    {
+#      SELECT (MIN(?amount) AS ?min) (MAX(?amount) AS ?max)
+#      WHERE {
+#        INCLUDE %e
+#      }
+#    }
+#    {
+#      # Seat-days divided by the days of the non-leap year 2021 should give us the average amount of seats.
+#      SELECT (ROUND(SUM(?days_)*1000/365)/1000 AS ?avg)
+#      WHERE {
+#        INCLUDE %b
+#      }
+#    }
+#  }
+#} AS %d
+WHERE {
+  INCLUDE %e
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
+ORDER BY ?date""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
@@ -136,7 +254,14 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
 }
 ORDER BY ?date""";
-  <http://example.org/bigdata_select> """SELECT
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
   # ?item ?itemLabel ?start_ ?end_ ?days_ # Subquery B
   # ?date_ ?diff ?changes_ # Subquery C
   # ?min ?max ?avg # Subquery D

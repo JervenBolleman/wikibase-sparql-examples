@@ -22,90 +22,6 @@ PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:LineChart
 SELECT ?date (COUNT(DISTINCT ?head) AS ?count) ?stateLabel
-WITH {
-  # the states to query for
-  SELECT ?state ?stateLabel WHERE {
-    VALUES ?state { wd:Q35 wd:Q30 wd:Q408 wd:Q20 } # EDIT THIS LINE to change the list of states, or replace it with a query instead of a fixed list
-    SERVICE wikibase:label {
-      bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
-      ?state rdfs:label ?stateLabel.
-    }
-  }
-} AS %states
-WITH {
-  # get all the dates where the number of former heads of government changed
-  # (term ended or person died)
-  SELECT DISTINCT ?state ?date_ WHERE {
-    INCLUDE %states.
-    {
-      # term ended
-      ?state p:P6 [
-        ps:P6 ?head;
-        pq:P582 ?date_
-      ].
-    } UNION {
-      # person died
-      ?state p:P6/ps:P6 ?head.
-      ?head wdt:P570 ?date_.
-    }
-  }
-} AS %changeDates_
-WITH {
-  # rename ?date_ to ?date, we need both in different subqueries :/
-  SELECT ?state (?date_ AS ?date) WHERE {
-    INCLUDE %changeDates_.
-  }
-} AS %changeDates
-WITH {
-  # for each date, inject a second date, one day before,
-  # so that we get a straight line until that date and then a steep climb/drop for the real change,
-  # instead of a diagonal slope over the entire preceding period
-  SELECT ?state ?date WHERE {
-    INCLUDE %changeDates_.
-    BIND(?date_ - \"P1D\"^^xsd:duration AS ?date)
-  }
-} AS %noChangeDates
-WITH {
-  # for each state, inject the current time as another date,
-  # so that the chart continues until the present day
-  SELECT ?state (NOW() AS ?date) WHERE {
-    INCLUDE %states.
-  }
-} AS %nowDates
-WITH {
-  # all the dates together
-  SELECT ?state ?date WHERE {
-    { INCLUDE %changeDates. } UNION
-    { INCLUDE %noChangeDates. } UNION
-    { INCLUDE %nowDates. }
-  }
-} AS %allDates
-WHERE {
-  # main query: find all living former heads of government at each date
-  INCLUDE %allDates.
-  INCLUDE %states. # for the labels
-  ?state p:P6 [
-    ps:P6 ?head;
-    pq:P582 ?end
-  ].
-  FILTER(?end <= ?date) # former head of government, not current
-  OPTIONAL { ?head wdt:P570 ?died_. }
-  BIND(COALESCE(?died_, NOW() + \"P1D\"^^xsd:duration) AS ?died) # date of death: fall back to tomorrow, not today, so that it doesn’t look like a head of government died today
-  FILTER(?date < ?died) # must not yet have died
-}
-GROUP BY ?date ?stateLabel
-ORDER BY ?stateLabel ?date""",
-    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#defaultView:LineChart
-SELECT ?date (COUNT(DISTINCT ?head) AS ?count) ?stateLabel
 
 WITH {
   # get all the dates where the number of former heads of government changed
@@ -198,6 +114,90 @@ WHERE {
 GROUP BY ?date ?stateLabel
 ORDER BY ?stateLabel ?date""";
   <http://example.org/bigdata_select> """#defaultView:LineChart
+SELECT ?date (COUNT(DISTINCT ?head) AS ?count) ?stateLabel
+WITH {
+  # the states to query for
+  SELECT ?state ?stateLabel WHERE {
+    VALUES ?state { wd:Q35 wd:Q30 wd:Q408 wd:Q20 } # EDIT THIS LINE to change the list of states, or replace it with a query instead of a fixed list
+    SERVICE wikibase:label {
+      bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+      ?state rdfs:label ?stateLabel.
+    }
+  }
+} AS %states
+WITH {
+  # get all the dates where the number of former heads of government changed
+  # (term ended or person died)
+  SELECT DISTINCT ?state ?date_ WHERE {
+    INCLUDE %states.
+    {
+      # term ended
+      ?state p:P6 [
+        ps:P6 ?head;
+        pq:P582 ?date_
+      ].
+    } UNION {
+      # person died
+      ?state p:P6/ps:P6 ?head.
+      ?head wdt:P570 ?date_.
+    }
+  }
+} AS %changeDates_
+WITH {
+  # rename ?date_ to ?date, we need both in different subqueries :/
+  SELECT ?state (?date_ AS ?date) WHERE {
+    INCLUDE %changeDates_.
+  }
+} AS %changeDates
+WITH {
+  # for each date, inject a second date, one day before,
+  # so that we get a straight line until that date and then a steep climb/drop for the real change,
+  # instead of a diagonal slope over the entire preceding period
+  SELECT ?state ?date WHERE {
+    INCLUDE %changeDates_.
+    BIND(?date_ - \"P1D\"^^xsd:duration AS ?date)
+  }
+} AS %noChangeDates
+WITH {
+  # for each state, inject the current time as another date,
+  # so that the chart continues until the present day
+  SELECT ?state (NOW() AS ?date) WHERE {
+    INCLUDE %states.
+  }
+} AS %nowDates
+WITH {
+  # all the dates together
+  SELECT ?state ?date WHERE {
+    { INCLUDE %changeDates. } UNION
+    { INCLUDE %noChangeDates. } UNION
+    { INCLUDE %nowDates. }
+  }
+} AS %allDates
+WHERE {
+  # main query: find all living former heads of government at each date
+  INCLUDE %allDates.
+  INCLUDE %states. # for the labels
+  ?state p:P6 [
+    ps:P6 ?head;
+    pq:P582 ?end
+  ].
+  FILTER(?end <= ?date) # former head of government, not current
+  OPTIONAL { ?head wdt:P570 ?died_. }
+  BIND(COALESCE(?died_, NOW() + \"P1D\"^^xsd:duration) AS ?died) # date of death: fall back to tomorrow, not today, so that it doesn’t look like a head of government died today
+  FILTER(?date < ?died) # must not yet have died
+}
+GROUP BY ?date ?stateLabel
+ORDER BY ?stateLabel ?date""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:LineChart
 SELECT ?date (COUNT(DISTINCT ?head) AS ?count) ?stateLabel
 WITH {
   # the states to query for

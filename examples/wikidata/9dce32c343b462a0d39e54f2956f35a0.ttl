@@ -19,6 +19,24 @@ PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?country ?countryLabel ?countryArea
+ 
+ WHERE {
+   {
+   SELECT DISTINCT *
+   WHERE {
+     # Instances (P31) of country (Q3624078), sovereign state (Q183366), or disputed territory (Q15634554).
+     VALUES ?countryclass {wd:Q3624078 wd:Q183366 wd:Q15634554 }
+     ?country wdt:P31 ?countryclass .
+     # the psn: prefix to normalize the values to a common unit of area (meters, in this case)
+     ?country p:P2046 ?statement . 
+     ?statement psn:P2046/wikibase:quantityAmount ?countryArea .
+     #?statement pq:P518 wd:Q2872203.
+     ?statement a wikibase:BestRank.
+   }
+ }
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+ } ORDER BY ASC(?countryLabel)""";
+  <http://example.org/bigdata_select> """SELECT ?country ?countryLabel ?countryArea
  WITH {
    SELECT DISTINCT *
    WHERE {
@@ -44,24 +62,6 @@ PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?country ?countryLabel ?countryArea
- 
- WHERE {
-   {
-   SELECT DISTINCT *
-   WHERE {
-     # Instances (P31) of country (Q3624078), sovereign state (Q183366), or disputed territory (Q15634554).
-     VALUES ?countryclass {wd:Q3624078 wd:Q183366 wd:Q15634554 }
-     ?country wdt:P31 ?countryclass .
-     # the psn: prefix to normalize the values to a common unit of area (meters, in this case)
-     ?country p:P2046 ?statement . 
-     ?statement psn:P2046/wikibase:quantityAmount ?countryArea .
-     #?statement pq:P518 wd:Q2872203.
-     ?statement a wikibase:BestRank.
-   }
- }
-   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
- } ORDER BY ASC(?countryLabel)""";
-  <http://example.org/bigdata_select> """SELECT ?country ?countryLabel ?countryArea
  WITH {
    SELECT DISTINCT *
    WHERE {

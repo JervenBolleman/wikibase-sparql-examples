@@ -11,7 +11,45 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """#defaultView:Map
+SELECT  ?coauthor_countryLabel ?shape ?numOfCoAuthors ?layer ?rgb 
+WITH {
+  SELECT ?author ?searched_author WHERE {
+    # Find co-authors
+    ?searched_author wdt:P496  \"0000-0002-6778-0887\".
+    ?work wdt:P50 ?searched_author, ?author .
+  }
+  GROUP BY ?author  ?searched_author
+} AS %authors
+WITH {
+  SELECT ?shape ?coauthor_country (COUNT(?author) AS ?numOfCoAuthors) WHERE {
+    INCLUDE %authors
+           
+    # Exclude self-links
+    FILTER (?searched_author != ?author)
+    
+    ?author wdt:P27 ?coauthor_country .
+    ?coauthor_country wdt:P3896 ?shape.
+
+
+  }GROUP BY ?shape ?coauthor_country
+} AS %result
+WHERE {
+  INCLUDE %result
+  # Label the results 
+  BIND(IF(?numOfCoAuthors <= 2,\"< 2 Authors\",
+          IF(?numOfCoAuthors < 5,\"< 5 Authors\",
+          IF(?numOfCoAuthors < 10,\"< 10 Authors\",\"> 10 Authors\"))) AS ?layer).
+ 
+  #Set ColorRange for Ordinal Scale
+  BIND(IF(?numOfCoAuthors <= 2,\"#fef0d9\",
+          IF(?numOfCoAuthors < 5,\"#fdcc8a\",
+          IF(?numOfCoAuthors < 10,\"#fc8d59\",\"#d7301f\"))) AS ?rgb).
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  
+} ORDER BY DESC(?numOfCoAuthors)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Map
@@ -52,7 +90,10 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
   
 } ORDER BY DESC(?numOfCoAuthors)""";
-  <http://example.org/bigdata_select> """#defaultView:Map
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map
 SELECT  ?coauthor_countryLabel ?shape ?numOfCoAuthors ?layer ?rgb 
 WITH {
   SELECT ?author ?searched_author WHERE {

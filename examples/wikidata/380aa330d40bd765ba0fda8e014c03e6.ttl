@@ -17,7 +17,19 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT ?item ?itemLabel ?num (COUNT(?sitelink) AS ?sitelinks) WITH {
+SELECT ?item ?itemLabel ?num (COUNT(?sitelink) AS ?sitelinks)  WHERE {
+  {
+  SELECT DISTINCT ?item WHERE {
+    VALUES ?item_class { wd:Q34 wd:Q183 }
+    ?item wdt:P27 ?item_class; wdt:P21 wd:Q6581072; wdt:P31 wd:Q5 .
+  }
+} .
+  ?item rdfs:label ?itemLabel .
+  FILTER(LANG(?itemLabel) = 'fr') .
+  BIND(xsd:integer(SUBSTR(STR(?item), 33)) AS ?num) .
+  OPTIONAL { ?sitelink schema:about ?item; schema:isPartOf [ wikibase:wikiGroup 'wikipedia' ] }
+} GROUP BY ?item ?itemLabel ?num ORDER BY DESC(?sitelinks) ASC(?num)""";
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?num (COUNT(?sitelink) AS ?sitelinks) WITH {
   SELECT DISTINCT ?item WHERE {
     VALUES ?item_class { wd:Q34 wd:Q183 }
     ?item wdt:P27 ?item_class; wdt:P21 wd:Q6581072; wdt:P31 wd:Q5 .
@@ -35,19 +47,7 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT ?item ?itemLabel ?num (COUNT(?sitelink) AS ?sitelinks)  WHERE {
-  {
-  SELECT DISTINCT ?item WHERE {
-    VALUES ?item_class { wd:Q34 wd:Q183 }
-    ?item wdt:P27 ?item_class; wdt:P21 wd:Q6581072; wdt:P31 wd:Q5 .
-  }
-} .
-  ?item rdfs:label ?itemLabel .
-  FILTER(LANG(?itemLabel) = 'fr') .
-  BIND(xsd:integer(SUBSTR(STR(?item), 33)) AS ?num) .
-  OPTIONAL { ?sitelink schema:about ?item; schema:isPartOf [ wikibase:wikiGroup 'wikipedia' ] }
-} GROUP BY ?item ?itemLabel ?num ORDER BY DESC(?sitelinks) ASC(?num)""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?num (COUNT(?sitelink) AS ?sitelinks) WITH {
+SELECT ?item ?itemLabel ?num (COUNT(?sitelink) AS ?sitelinks) WITH {
   SELECT DISTINCT ?item WHERE {
     VALUES ?item_class { wd:Q34 wd:Q183 }
     ?item wdt:P27 ?item_class; wdt:P21 wd:Q6581072; wdt:P31 wd:Q5 .

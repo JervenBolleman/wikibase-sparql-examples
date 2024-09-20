@@ -11,7 +11,41 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?countryLabel ?lat ?lon ?nlat ?slat ?elong ?wlong with 
+{
+ select distinct ?country  ?nlat ?stal ?elong ?wlong (count(?country) as ?count) where
+  { # restrict query to countries that have only one set of bounding coords
+    ?country wdt:P463 wd:Q1065 . #membership of UN taken as a proxy that this is a country
+    ?country p:P1332 [psv:P1332 [wikibase:geoLatitude ?nlat;] ; ] .   #get the northernmost coord for the country
+    ?country p:P1333 [psv:P1333 [wikibase:geoLatitude ?slat;] ; ] .   #if there is more than one northrn coord
+    ?country p:P1334 [psv:P1334 [wikibase:geoLongitude ?elong;] ; ] . # the having( ?count=1) at the foot of this
+    ?country p:P1335 [psv:P1335 [wikibase:geoLongitude ?wlong;] ; ] . # named-query will reject the country
+  } group by ?country ?nlat ?stal ?elong ?wlong having( ?count=1) } as %countries
+
+with {select ?item ?country (count(?item) as ?count2) where
+{  # restrict query to airports that are in one country only
+  ?item wdt:P31 wd:Q644371.
+  ?item wdt:P17 ?country .          #get country for the airport
+  # values ?airport_country {wd:Q30 wd:Q123 wd:Q456}  #restrict the set of countries for which we will examine airports
+  } group by ?item ?country having (?count2=1) } as %airports
+
+{ 
+  include %countries 
+  include %airports   
+  ?item p:P625 [ps:P625 ?coord; psv:P625 [           # get coords for the airport        
+             wikibase:geoLongitude ?lon;
+             wikibase:geoLatitude ?lat;] ; ] .
+  bind(if(?lat>?nlat,1,0) as ?ntest)                 #compare country northernmost latitude with the airport northern latitude
+  bind(if(?lat<?slat,1,0) as ?stest) 
+  bind(if(?lon>?elong,1,0) as ?etest) 
+  bind(if(?lon<?wlong,1,0) as ?wtest)
+ 
+  #check if any of the above tests=1 indicating there's a problem and we should display the row
+  bind(if(?ntest=1,1,if(?etest=1,1,if(?wtest=1,1,(if(?stest=1,1,0))))) as ?bigtest)
+  filter(?bigtest=1)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" .}
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
@@ -52,7 +86,14 @@ with {select ?item ?country (count(?item) as ?count2) where
   filter(?bigtest=1)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" .}
 }""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?countryLabel ?lat ?lon ?nlat ?slat ?elong ?wlong with 
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?countryLabel ?lat ?lon ?nlat ?slat ?elong ?wlong with 
 {
  select distinct ?country  ?nlat ?stal ?elong ?wlong (count(?country) as ?count) where
   { # restrict query to countries that have only one set of bounding coords

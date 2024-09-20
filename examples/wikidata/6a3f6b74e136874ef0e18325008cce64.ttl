@@ -24,6 +24,30 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 
 SELECT ?year ?diedcount
 #defaultView:BarChart
+ 
+WHERE {
+  {
+  # count of MPs who died in office in each parliament
+  SELECT ?year (COUNT(DISTINCT ?mp) AS ?died) WHERE {
+    ?membership wdt:P279 wd:Q16707842 . # all UK MPs
+    ?mp p:P39 ?positionStatement .  ?positionStatement ps:P39 ?membership . 
+    ?positionStatement pq:P1534 wd:Q5247364 .  # ie only those coded as end cause: death in office
+    ?mp wdt:P570 ?died .
+    BIND(STR(YEAR(?died)) AS ?year)
+  }
+  GROUP BY ?year
+}
+  BIND(?died AS ?diedcount)
+  # add labels
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?year""";
+  <http://example.org/bigdata_select> """# How many MPs died in office, each year 1832-date?
+# Data pre-WW2 is still a bit flaky on exact death dates,
+# probably a bit more reliable after that
+
+SELECT ?year ?diedcount
+#defaultView:BarChart
 WITH {
   # count of MPs who died in office in each parliament
   SELECT ?year (COUNT(DISTINCT ?mp) AS ?died) WHERE {
@@ -50,30 +74,6 @@ PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 # How many MPs died in office, each year 1832-date?
-# Data pre-WW2 is still a bit flaky on exact death dates,
-# probably a bit more reliable after that
-
-SELECT ?year ?diedcount
-#defaultView:BarChart
- 
-WHERE {
-  {
-  # count of MPs who died in office in each parliament
-  SELECT ?year (COUNT(DISTINCT ?mp) AS ?died) WHERE {
-    ?membership wdt:P279 wd:Q16707842 . # all UK MPs
-    ?mp p:P39 ?positionStatement .  ?positionStatement ps:P39 ?membership . 
-    ?positionStatement pq:P1534 wd:Q5247364 .  # ie only those coded as end cause: death in office
-    ?mp wdt:P570 ?died .
-    BIND(STR(YEAR(?died)) AS ?year)
-  }
-  GROUP BY ?year
-}
-  BIND(?died AS ?diedcount)
-  # add labels
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-ORDER BY ?year""";
-  <http://example.org/bigdata_select> """# How many MPs died in office, each year 1832-date?
 # Data pre-WW2 is still a bit flaky on exact death dates,
 # probably a bit more reliable after that
 

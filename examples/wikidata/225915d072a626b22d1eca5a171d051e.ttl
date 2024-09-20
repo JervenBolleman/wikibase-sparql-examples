@@ -11,7 +11,74 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """# English-speaking people whose given and family names are a noun and an adjective (both in English)
+# uncomment the %nounGivenNames and %adjectiveFamilyNames parts to also include the opposite, e. g. Guy Standing
+SELECT DISTINCT ?item ?givenNameLabel ?familyNameLabel
+WITH {
+  SELECT DISTINCT ?name ?nameLabel WHERE {
+    hint:SubQuery hint:optimizer \"None\".
+    ?noun wikibase:lexicalCategory/wdt:P279* wd:Q1084;
+          dct:language wd:Q1860;
+          wikibase:lemma ?_nameLabel.
+    BIND(CONCAT(UCASE(SUBSTR(?_nameLabel, 1, 1)), SUBSTR(?_nameLabel, 2)) AS ?nameLabel)
+    BIND(STRLANG(STR(?nameLabel), \"mul\") AS ?nameLabel_)
+    { ?name wdt:P1705 ?nameLabel. } UNION { ?name wdt:P1705 ?nameLabel_. }
+  }
+} AS %nounNames
+# WITH {
+#   SELECT (?name AS ?givenName) (?nameLabel AS ?givenNameLabel) WHERE {
+#     INCLUDE %nounNames.
+#     FILTER EXISTS { [] wdt:P735 ?name. }
+#   }
+# } AS %nounGivenNames
+WITH {
+  SELECT (?name AS ?familyName) (?nameLabel AS ?familyNameLabel) WHERE {
+    INCLUDE %nounNames.
+    FILTER EXISTS { [] wdt:P734 ?name. }
+  }
+} AS %nounFamilyNames
+WITH {
+  SELECT DISTINCT ?name ?nameLabel WHERE {
+    hint:SubQuery hint:optimizer \"None\".
+    ?noun wikibase:lexicalCategory/wdt:P279* wd:Q34698;
+          dct:language wd:Q1860;
+          wikibase:lemma ?_nameLabel.
+    BIND(CONCAT(UCASE(SUBSTR(?_nameLabel, 1, 1)), SUBSTR(?_nameLabel, 2)) AS ?nameLabel)
+    BIND(STRLANG(STR(?nameLabel), \"mul\") AS ?nameLabel_)
+    { ?name wdt:P1705 ?nameLabel. } UNION { ?name wdt:P1705 ?nameLabel_. }
+  }
+} AS %adjectiveNames
+WITH {
+  SELECT (?name AS ?givenName) (?nameLabel AS ?givenNameLabel) WHERE {
+    INCLUDE %adjectiveNames.
+    FILTER EXISTS { [] wdt:P735 ?name. }
+  }
+} AS %adjectiveGivenNames
+# WITH {
+#   SELECT (?name AS ?familyName) (?nameLabel AS ?familyNameLabel) WHERE {
+#     INCLUDE %adjectiveNames.
+#     FILTER EXISTS { [] wdt:P734 ?name. }
+#   }
+# } AS %adjectiveFamilyNames
+WHERE {
+  {
+#     INCLUDE %nounGivenNames.
+#     INCLUDE %adjectiveFamilyNames.
+#     ?item wdt:P31 wd:Q5;
+#           wdt:P103|wdt:P1412 wd:Q1860;
+#           wdt:P735 ?givenName;
+#           wdt:P734 ?familyName.
+#   } UNION {
+    INCLUDE %adjectiveGivenNames.
+    INCLUDE %nounFamilyNames.
+    ?item wdt:P31 wd:Q5;
+          wdt:P103|wdt:P1412 wd:Q1860;
+          wdt:P735 ?givenName;
+          wdt:P734 ?familyName.
+  }
+}
+LIMIT 50""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX dct: <http://purl.org/dc/terms/>
@@ -82,7 +149,11 @@ WHERE {
   }
 }
 LIMIT 50""";
-  <http://example.org/bigdata_select> """# English-speaking people whose given and family names are a noun and an adjective (both in English)
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX dct: <http://purl.org/dc/terms/>
+# English-speaking people whose given and family names are a noun and an adjective (both in English)
 # uncomment the %nounGivenNames and %adjectiveFamilyNames parts to also include the opposite, e. g. Guy Standing
 SELECT DISTINCT ?item ?givenNameLabel ?familyNameLabel
 WITH {

@@ -11,7 +11,23 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?itemDescription ?td ?p ?pLabel ?pDescription ?dob ?dod ?gap with {
+  SELECT ?item ?itemLabel ?itemDescription ?td ?p ?pLabel ?pDescription ?dob ?dod where
+{
+	hint:Query hint:optimizer \"None\".
+    { ?item p:P225 [ pq:P574 ?td ; pq:P405 ?p ] .
+    ?p wdt:P569 ?dob . FILTER( YEAR(?td) < YEAR(?dob) + 20) }
+    UNION
+    { ?item p:P225 [ pq:P574 ?td ; pq:P405 ?p ] .
+      ?p wdt:P570 ?dod . FILTER( YEAR(?td) > YEAR(?dod) + 2) }
+} limit 2500 } as %i where
+{
+  include %i
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+  bind(coalesce(year(?dob)+20,year(?dod)+2) as ?edate)
+  bind((year(?td)-?edate) as ?gap)
+  } order by desc(?gap)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
@@ -32,7 +48,12 @@ SELECT ?item ?itemLabel ?itemDescription ?td ?p ?pLabel ?pDescription ?dob ?dod 
   bind(coalesce(year(?dob)+20,year(?dod)+2) as ?edate)
   bind((year(?td)-?edate) as ?gap)
   } order by desc(?gap)""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?itemDescription ?td ?p ?pLabel ?pDescription ?dob ?dod ?gap with {
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?itemDescription ?td ?p ?pLabel ?pDescription ?dob ?dod ?gap with {
   SELECT ?item ?itemLabel ?itemDescription ?td ?p ?pLabel ?pDescription ?dob ?dod where
 {
 	hint:Query hint:optimizer \"None\".

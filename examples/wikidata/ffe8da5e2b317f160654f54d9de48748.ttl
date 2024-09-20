@@ -14,6 +14,23 @@
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?unit ?count ?real_unit ?real_unitLabel
+
+WHERE
+{
+  {
+  SELECT ?unit (COUNT(?unit) AS ?count)
+  WHERE
+  { 
+    ?value wikibase:quantityUnit ?unit .
+  }
+  GROUP BY (?unit)
+}
+  OPTIONAL { ?unit wikibase:sitelinks ?sitelinks . }
+  FILTER (! BOUND(?sitelinks))
+  BIND (IRI(REPLACE(STR(?unit), \"P\", \"Q\")) AS ?real_unit)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}""";
+  <http://example.org/bigdata_select> """SELECT ?unit ?count ?real_unit ?real_unitLabel
 WITH
 {
   SELECT ?unit (COUNT(?unit) AS ?count)
@@ -34,23 +51,6 @@ WHERE
     """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?unit ?count ?real_unit ?real_unitLabel
-
-WHERE
-{
-  {
-  SELECT ?unit (COUNT(?unit) AS ?count)
-  WHERE
-  { 
-    ?value wikibase:quantityUnit ?unit .
-  }
-  GROUP BY (?unit)
-}
-  OPTIONAL { ?unit wikibase:sitelinks ?sitelinks . }
-  FILTER (! BOUND(?sitelinks))
-  BIND (IRI(REPLACE(STR(?unit), \"P\", \"Q\")) AS ?real_unit)
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
-}""";
-  <http://example.org/bigdata_select> """SELECT ?unit ?count ?real_unit ?real_unitLabel
 WITH
 {
   SELECT ?unit (COUNT(?unit) AS ?count)

@@ -17,7 +17,22 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?river ?riverLabel (?lengthInM/1000 AS ?lengthInKm) ?mouthLabel WITH {
+SELECT ?river ?riverLabel (?lengthInM/1000 AS ?lengthInKm) ?mouthLabel  WHERE {
+  {
+  SELECT DISTINCT ?river ?lengthInM ?mouth WHERE {
+    ?river wdt:P31/wdt:P279* wd:Q4022;
+           wdt:P403 ?mouth;
+           p:P2043 ?lengthStatement. ?lengthStatement a wikibase:BestRank; psn:P2043/wikibase:quantityAmount ?lengthInM. hint:Prior hint:rangeSafe true.
+    ?mouth wdt:P31/wdt:P279* wd:Q4022.
+    FILTER(?lengthInM > 1000000)
+  }
+  ORDER BY DESC(?lengthInM)
+  LIMIT 10
+}.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?lengthInM)""";
+  <http://example.org/bigdata_select> """SELECT ?river ?riverLabel (?lengthInM/1000 AS ?lengthInKm) ?mouthLabel WITH {
   SELECT DISTINCT ?river ?lengthInM ?mouth WHERE {
     ?river wdt:P31/wdt:P279* wd:Q4022;
            wdt:P403 ?mouth;
@@ -38,22 +53,7 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?river ?riverLabel (?lengthInM/1000 AS ?lengthInKm) ?mouthLabel  WHERE {
-  {
-  SELECT DISTINCT ?river ?lengthInM ?mouth WHERE {
-    ?river wdt:P31/wdt:P279* wd:Q4022;
-           wdt:P403 ?mouth;
-           p:P2043 ?lengthStatement. ?lengthStatement a wikibase:BestRank; psn:P2043/wikibase:quantityAmount ?lengthInM. hint:Prior hint:rangeSafe true.
-    ?mouth wdt:P31/wdt:P279* wd:Q4022.
-    FILTER(?lengthInM > 1000000)
-  }
-  ORDER BY DESC(?lengthInM)
-  LIMIT 10
-}.
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-ORDER BY DESC(?lengthInM)""";
-  <http://example.org/bigdata_select> """SELECT ?river ?riverLabel (?lengthInM/1000 AS ?lengthInKm) ?mouthLabel WITH {
+SELECT ?river ?riverLabel (?lengthInM/1000 AS ?lengthInKm) ?mouthLabel WITH {
   SELECT DISTINCT ?river ?lengthInM ?mouth WHERE {
     ?river wdt:P31/wdt:P279* wd:Q4022;
            wdt:P403 ?mouth;

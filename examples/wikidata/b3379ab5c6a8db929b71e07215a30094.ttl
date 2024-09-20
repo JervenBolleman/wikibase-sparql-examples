@@ -17,6 +17,28 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?sitelinks
+
+WHERE
+{
+  {
+  SELECT ?item ?sitelinks
+  WHERE
+  {
+    ?item wikibase:sitelinks ?sitelinks.
+    hint:Prior hint:rangeSafe true.
+    FILTER (?sitelinks > 40 )
+    MINUS { ?item wdt:P31/wdt:P279* wd:Q17379835. }
+    MINUS
+    {
+      ?article schema:about ?item.
+      ?article schema:isPartOf <https://en.wikipedia.org/>.
+    }
+  }
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } 
+}
+ORDER BY DESC(?sitelinks)""";
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?sitelinks
 WITH
 {
   SELECT ?item ?sitelinks
@@ -46,28 +68,6 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?sitelinks
-
-WHERE
-{
-  {
-  SELECT ?item ?sitelinks
-  WHERE
-  {
-    ?item wikibase:sitelinks ?sitelinks.
-    hint:Prior hint:rangeSafe true.
-    FILTER (?sitelinks > 40 )
-    MINUS { ?item wdt:P31/wdt:P279* wd:Q17379835. }
-    MINUS
-    {
-      ?article schema:about ?item.
-      ?article schema:isPartOf <https://en.wikipedia.org/>.
-    }
-  }
-}
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } 
-}
-ORDER BY DESC(?sitelinks)""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?sitelinks
 WITH
 {
   SELECT ?item ?sitelinks

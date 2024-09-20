@@ -30,6 +30,38 @@ SELECT
 
   ?language ?languageLabel
   (CONCAT(\"#language/\", SUBSTR(STR(?language), 32)) AS ?languageUrl)
+
+WHERE {
+  {
+  SELECT
+    (MIN(?publication_datetime) AS ?earliest_publication_datetime)
+    ?lexeme
+  WHERE {
+    ?lexeme dct:language [] ;
+            (wdt:P5323 / wdt:P577) | (p:P5323 / pq:P577) ?publication_datetime .
+  }
+  GROUP BY ?lexeme
+  ORDER BY DESC(?earliest_publication_datetime)
+  LIMIT 100
+}
+  ?lexeme dct:language ?language ;
+          wikibase:lexicalCategory ?lexical_category ;
+          wikibase:lemma ?lemma .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }        
+}
+ORDER BY DESC(?publication_date)""";
+  <http://example.org/bigdata_select> """SELECT 
+  (xsd:date(?earliest_publication_datetime) AS ?publication_date)
+
+  ?lexeme 
+  (?lemma AS ?lexemeLabel)
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?lexeme), 32)) AS ?lexemeUrl)
+
+  ?lexical_category ?lexical_categoryLabel
+  (CONCAT(\"#lexicalcategory/\", SUBSTR(STR(?lexical_category), 32)) AS ?lexical_categoryUrl)
+
+  ?language ?languageLabel
+  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32)) AS ?languageUrl)
 WITH {
   SELECT
     (MIN(?publication_datetime) AS ?earliest_publication_datetime)
@@ -58,38 +90,6 @@ PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX dct: <http://purl.org/dc/terms/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT 
-  (xsd:date(?earliest_publication_datetime) AS ?publication_date)
-
-  ?lexeme 
-  (?lemma AS ?lexemeLabel)
-  (CONCAT(\"#lexeme/\", SUBSTR(STR(?lexeme), 32)) AS ?lexemeUrl)
-
-  ?lexical_category ?lexical_categoryLabel
-  (CONCAT(\"#lexicalcategory/\", SUBSTR(STR(?lexical_category), 32)) AS ?lexical_categoryUrl)
-
-  ?language ?languageLabel
-  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32)) AS ?languageUrl)
-
-WHERE {
-  {
-  SELECT
-    (MIN(?publication_datetime) AS ?earliest_publication_datetime)
-    ?lexeme
-  WHERE {
-    ?lexeme dct:language [] ;
-            (wdt:P5323 / wdt:P577) | (p:P5323 / pq:P577) ?publication_datetime .
-  }
-  GROUP BY ?lexeme
-  ORDER BY DESC(?earliest_publication_datetime)
-  LIMIT 100
-}
-  ?lexeme dct:language ?language ;
-          wikibase:lexicalCategory ?lexical_category ;
-          wikibase:lemma ?lemma .
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }        
-}
-ORDER BY DESC(?publication_date)""";
-  <http://example.org/bigdata_select> """SELECT 
   (xsd:date(?earliest_publication_datetime) AS ?publication_date)
 
   ?lexeme 

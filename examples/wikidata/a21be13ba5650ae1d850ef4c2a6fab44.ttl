@@ -18,6 +18,26 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX p: <http://www.wikidata.org/prop/>
 SELECT DISTINCT ?item ?articlecount
+
+WHERE
+{
+  {
+  SELECT ?item
+  WHERE
+  {
+    ?item wdt:P570 ?deathdate .
+    hint:Prior hint:rangeSafe true .
+    FILTER ( ?deathdate < \"1951-00-00\"^^xsd:dateTime && ?deathdate >= \"1950-00-00\"^^xsd:dateTime )
+  }
+}
+  ?item wikibase:sitelinks ?articlecount .
+  ?item p:P106 ?occupationStatement .
+  ?occupationStatement ps:P106/wdt:P279* wd:Q2500638 .
+  hint:Prior hint:gearing \"forward\" .
+  MINUS { ?occupationStatement wikibase:rank wikibase:DeprecatedRank . }
+}
+ORDER BY DESC (?articlecount)""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?articlecount
 WITH
 {
   SELECT ?item
@@ -46,26 +66,6 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX p: <http://www.wikidata.org/prop/>
 SELECT DISTINCT ?item ?articlecount
-
-WHERE
-{
-  {
-  SELECT ?item
-  WHERE
-  {
-    ?item wdt:P570 ?deathdate .
-    hint:Prior hint:rangeSafe true .
-    FILTER ( ?deathdate < \"1951-00-00\"^^xsd:dateTime && ?deathdate >= \"1950-00-00\"^^xsd:dateTime )
-  }
-}
-  ?item wikibase:sitelinks ?articlecount .
-  ?item p:P106 ?occupationStatement .
-  ?occupationStatement ps:P106/wdt:P279* wd:Q2500638 .
-  hint:Prior hint:gearing \"forward\" .
-  MINUS { ?occupationStatement wikibase:rank wikibase:DeprecatedRank . }
-}
-ORDER BY DESC (?articlecount)""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?articlecount
 WITH
 {
   SELECT ?item

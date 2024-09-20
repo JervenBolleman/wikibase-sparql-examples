@@ -17,6 +17,26 @@ PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 # Find multiple labels with exact values in multiple languages
 SELECT ?s (SAMPLE(?label) AS ?label_) (GROUP_CONCAT(?lc) AS ?lc_) (GROUP_CONCAT(?lang; SEPARATOR=\"; \") AS ?lang__) (SAMPLE(?desc) AS ?desc_)
+
+WHERE {
+  { SELECT DISTINCT ?lc WHERE { 
+  [] wdt:P424 ?lc . FILTER (!wikibase:isSomeValue(?lc))
+} }
+  # Efficiency might degrade rapidly with the amount of strings to search for, so just do a few at a time
+  VALUES ?thing { \"Allegory of the Cave\" \"Gertrude Stein\" }
+  BIND (STRLANG(?thing, ?lc) AS ?label)
+  ?s rdfs:label ?label .
+  OPTIONAL {
+    ?lang_ wdt:P424 ?lc ;
+      wdt:P305 ?lc .
+    ?lang_ rdfs:label ?lang . FILTER(LANG(?lang)=\"en\")
+  }
+  OPTIONAL { ?s schema:description ?desc. FILTER(LANG(?desc)=\"en\") }
+  FILTER NOT EXISTS { ?s wdt:P821 []. } # Doesn't already have a P821 statement
+}
+GROUP BY ?s""";
+  <http://example.org/bigdata_select> """# Find multiple labels with exact values in multiple languages
+SELECT ?s (SAMPLE(?label) AS ?label_) (GROUP_CONCAT(?lc) AS ?lc_) (GROUP_CONCAT(?lang; SEPARATOR=\"; \") AS ?lang__) (SAMPLE(?desc) AS ?desc_)
 WITH { SELECT DISTINCT ?lc WHERE { 
   [] wdt:P424 ?lc . FILTER (!wikibase:isSomeValue(?lc))
 } } AS %lcs
@@ -40,26 +60,6 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 # Find multiple labels with exact values in multiple languages
-SELECT ?s (SAMPLE(?label) AS ?label_) (GROUP_CONCAT(?lc) AS ?lc_) (GROUP_CONCAT(?lang; SEPARATOR=\"; \") AS ?lang__) (SAMPLE(?desc) AS ?desc_)
-
-WHERE {
-  { SELECT DISTINCT ?lc WHERE { 
-  [] wdt:P424 ?lc . FILTER (!wikibase:isSomeValue(?lc))
-} }
-  # Efficiency might degrade rapidly with the amount of strings to search for, so just do a few at a time
-  VALUES ?thing { \"Allegory of the Cave\" \"Gertrude Stein\" }
-  BIND (STRLANG(?thing, ?lc) AS ?label)
-  ?s rdfs:label ?label .
-  OPTIONAL {
-    ?lang_ wdt:P424 ?lc ;
-      wdt:P305 ?lc .
-    ?lang_ rdfs:label ?lang . FILTER(LANG(?lang)=\"en\")
-  }
-  OPTIONAL { ?s schema:description ?desc. FILTER(LANG(?desc)=\"en\") }
-  FILTER NOT EXISTS { ?s wdt:P821 []. } # Doesn't already have a P821 statement
-}
-GROUP BY ?s""";
-  <http://example.org/bigdata_select> """# Find multiple labels with exact values in multiple languages
 SELECT ?s (SAMPLE(?label) AS ?label_) (GROUP_CONCAT(?lc) AS ?lc_) (GROUP_CONCAT(?lang; SEPARATOR=\"; \") AS ?lang__) (SAMPLE(?desc) AS ?desc_)
 WITH { SELECT DISTINCT ?lc WHERE { 
   [] wdt:P424 ?lc . FILTER (!wikibase:isSomeValue(?lc))

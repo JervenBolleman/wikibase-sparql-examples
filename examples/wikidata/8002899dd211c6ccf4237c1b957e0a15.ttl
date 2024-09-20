@@ -14,6 +14,20 @@
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?sitelinks
+
+WHERE {
+  { SELECT ?item ?sitelinks WHERE {
+  #Minimum sitelinks
+  ?item wikibase:sitelinks ?sitelinks . hint:Prior hint:rangeSafe true .
+  FILTER (?sitelinks > 20 )
+
+  #Random stuff
+  #BIND(RAND() AS ?random) . # Doesn't work
+  BIND(SHA512(CONCAT(STR(RAND()), STR(?item))) AS ?random) .
+} ORDER BY ?random LIMIT 100 }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE], en\" . }
+}""";
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?sitelinks
 WITH { SELECT ?item ?sitelinks WHERE {
   #Minimum sitelinks
   ?item wikibase:sitelinks ?sitelinks . hint:Prior hint:rangeSafe true .
@@ -30,20 +44,6 @@ WHERE {
     """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?sitelinks
-
-WHERE {
-  { SELECT ?item ?sitelinks WHERE {
-  #Minimum sitelinks
-  ?item wikibase:sitelinks ?sitelinks . hint:Prior hint:rangeSafe true .
-  FILTER (?sitelinks > 20 )
-
-  #Random stuff
-  #BIND(RAND() AS ?random) . # Doesn't work
-  BIND(SHA512(CONCAT(STR(RAND()), STR(?item))) AS ?random) .
-} ORDER BY ?random LIMIT 100 }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE], en\" . }
-}""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?sitelinks
 WITH { SELECT ?item ?sitelinks WHERE {
   #Minimum sitelinks
   ?item wikibase:sitelinks ?sitelinks . hint:Prior hint:rangeSafe true .

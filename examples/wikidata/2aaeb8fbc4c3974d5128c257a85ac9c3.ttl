@@ -11,7 +11,48 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """#defaultView:Tree
+SELECT
+  ?continent
+  ?continentLabel
+  ?continentLocatorMapImage
+  ?country
+  ?countryLabel
+  ?countryFlag
+  ?instanceOf
+  ?instanceOfLabel
+  ?software
+  ?softwareLabel
+  ?maintainerOrDeveloper
+  ?maintainerOrDeveloperLabel
+WITH {
+  SELECT DISTINCT ?license {
+    ?license wdt:P629*/wdt:P31/wdt:P279* wd:Q3943414.
+  }
+} AS %0
+WITH {
+  SELECT DISTINCT ?software {
+    INCLUDE %0.
+    {?software wdt:P31/wdt:P279* wd:Q341}
+    UNION
+    {?software wdt:P275 ?license}
+  }
+} AS %1
+{
+  INCLUDE %1
+  ?software
+    wdt:P126|wdt:P178 ?maintainerOrDeveloper;
+    wdt:P31 ?instanceOf.
+  ?maintainerOrDeveloper
+    wdt:P31 wd:Q5;
+    wdt:P27|wdt:P17 ?country.
+  ?country wdt:P41 ?countryFlag.
+  ?country wdt:P30 ?continent.
+  ?continent wdt:P242 ?continentLocatorMapImage.
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
@@ -56,7 +97,11 @@ WITH {
   
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
 }""";
-  <http://example.org/bigdata_select> """#defaultView:Tree
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Tree
 SELECT
   ?continent
   ?continentLabel

@@ -11,7 +11,26 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """SELECT ?propertyLabel (count(?propertyLabel) as ?cnt)
+  WITH {
+    SELECT ?item {
+      ?item wdt:P27 wd:Q17 .
+      FILTER NOT EXISTS {?item wdt:P21 ?gender}
+      ?item wdt:P31 wd:Q5 .
+    }
+  } as %items
+{
+  ?property wikibase:claim ?propertyclaim .
+  ?item ?propertyclaim [] .
+  ?property wikibase:propertyType wikibase:ExternalId .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+
+  INCLUDE %items
+}
+group by ?propertyLabel
+order by desc(?cnt)
+limit 20""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
@@ -34,7 +53,11 @@ SELECT ?propertyLabel (count(?propertyLabel) as ?cnt)
 group by ?propertyLabel
 order by desc(?cnt)
 limit 20""";
-  <http://example.org/bigdata_select> """SELECT ?propertyLabel (count(?propertyLabel) as ?cnt)
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?propertyLabel (count(?propertyLabel) as ?cnt)
   WITH {
     SELECT ?item {
       ?item wdt:P27 wd:Q17 .

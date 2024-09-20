@@ -11,7 +11,41 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """#defaultView:AreaChart
+SELECT
+  ?year
+  ?works
+  ?designer ?designerLabel
+WITH {
+  SELECT
+    (COUNT(?work) AS ?count)
+    ?designer
+  WHERE {
+    ?work wdt:P2739 / wdt:P287 ?designer .
+  }
+  GROUP BY ?designer
+  ORDER BY DESC(?count)
+  LIMIT 5
+} AS %works
+WITH {
+  SELECT
+    ?year 
+    (COUNT(?work) AS ?works)
+    ?designer
+  WHERE {
+    INCLUDE %works
+    ?work wdt:P2739 / wdt:P287 ?designer ;
+          wdt:P577 ?publication_datetime .
+    BIND(STR(YEAR(?publication_datetime)) AS ?year)
+  }
+  GROUP BY ?year ?designer
+} AS %result
+WHERE {
+  INCLUDE %result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?year""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:AreaChart
@@ -48,7 +82,10 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY ?year""";
-  <http://example.org/bigdata_select> """#defaultView:AreaChart
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:AreaChart
 SELECT
   ?year
   ?works

@@ -11,7 +11,30 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+  <http://example.org/bigdata_select> """PREFIX v: <http://www.wikidata.org/prop/statement/>
+
+SELECT ?dir ?familyName ?director ?count ?episodes 
+
+WITH {
+  SELECT (str(?ord) AS ?ordinal) ?dir WHERE {
+    ?film p:P179 ?series . ?series v:P179 wd:Q689438 . ?series pq:P1545 ?ord .
+    ?film wdt:P577 ?publication . FILTER(year(?publication)<2022)
+    ?film wdt:P57 ?dir .
+  } ORDER BY ?ord
+} AS %episodes
+                                         
+WITH {
+  SELECT ?dir (COUNT(?ordinal) as ?count) (GROUP_CONCAT(?ordinal;separator=\", \") AS ?episodes) WHERE {
+    INCLUDE %episodes .
+  } GROUP BY ?dir 
+} AS %counts
+                                         
+WHERE {
+  INCLUDE %counts .
+  ?dir rdfs:label ?director . FILTER(lang(?director) = \"de\")
+  OPTIONAL{?dir wdt:P734 ?family . ?family rdfs:label ?familyName .  FILTER(lang(?familyName) = \"de\")}
+} ORDER BY ASC(STR(?familyName)) ?director""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
@@ -39,7 +62,12 @@ WHERE {
   ?dir rdfs:label ?director . FILTER(lang(?director) = \"de\")
   OPTIONAL{?dir wdt:P734 ?family . ?family rdfs:label ?familyName .  FILTER(lang(?familyName) = \"de\")}
 } ORDER BY ASC(STR(?familyName)) ?director""";
-  <http://example.org/bigdata_select> """PREFIX v: <http://www.wikidata.org/prop/statement/>
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX v: <http://www.wikidata.org/prop/statement/>
 
 SELECT ?dir ?familyName ?director ?count ?episodes 
 

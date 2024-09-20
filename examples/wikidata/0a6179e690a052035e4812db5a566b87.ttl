@@ -11,7 +11,31 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """SELECT ?property ?propertyLabel ?count WITH { 
+                                     # Using a named subquery here so that we can keep the label service away from the part of the query
+                                     # which is looking at the items: prevents the label service slowing down the report by getting labels for each
+                                     # item when we don't ever want to see the item labels 
+  SELECT ?property (count(distinct ?item) as ?count)  WHERE {
+    ?item wdt:P31 wd:Q23397 .        # It's a lake
+    hint:Prior hint:runFirst true .  # Run the above statement first
+    ?item wdt:P17 wd:Q145 .          # It's in the UK
+    
+    ?item ?predicate ?value .        # The item has a predicate and a value - i.e. let's look at all triples for this item.
+
+    ?property wikibase:directClaim ?predicate . # the ?predicate is a directClaim (i.e. a wdt: type predicate) 
+                                                # it is a predicate of the ?property
+                                                # and the clause is specifying that we're only interested in seeing wdt: predicates for the item
+
+  } group by ?property  } as %i                 # group on ?property so that we can count the number of distinct items with this property
+
+WHERE
+{
+  INCLUDE %i                                    # so we get the result of the named query, above, here, which will be a list of property wd: values 
+                                                # and counts for each property; and now we can get the label for each property.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+  
+} order by desc(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
@@ -39,7 +63,11 @@ WHERE
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
   
 } order by desc(?count)""";
-  <http://example.org/bigdata_select> """SELECT ?property ?propertyLabel ?count WITH { 
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?property ?propertyLabel ?count WITH { 
                                      # Using a named subquery here so that we can keep the label service away from the part of the query
                                      # which is looking at the items: prevents the label service slowing down the report by getting labels for each
                                      # item when we don't ever want to see the item labels 

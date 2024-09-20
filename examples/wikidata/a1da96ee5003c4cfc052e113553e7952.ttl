@@ -11,7 +11,23 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+  <http://example.org/bigdata_select> """# Wikisource-linked items without Wikipedia links
+SELECT ?work ?page_titleWS  WITH {
+  SELECT ?work ?page_titleWS WHERE {
+    ?wsarticle schema:about ?work;
+               schema:isPartOf <https://en.wikisource.org/>;
+               schema:name ?page_titleWS.
+    MINUS { ?wparticle schema:about ?work;
+                       schema:isPartOf <https://en.wikipedia.org/>. }
+  } } as %i
+WHERE {
+  INCLUDE %i
+  ?work wdt:P31/wdt:P279* wd:Q17537576 . hint:Prior hint:gearing \"forward\" .   
+  OPTIONAL {?work wdt:P629 ?P629 . 
+  MINUS { ?wparticle_P629 schema:about ?P629;
+                       schema:isPartOf <https://en.wikipedia.org/>. } }
+  } group by ?work ?page_titleWS""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 # Wikisource-linked items without Wikipedia links
@@ -30,7 +46,10 @@ WHERE {
   MINUS { ?wparticle_P629 schema:about ?P629;
                        schema:isPartOf <https://en.wikipedia.org/>. } }
   } group by ?work ?page_titleWS""";
-  <http://example.org/bigdata_select> """# Wikisource-linked items without Wikipedia links
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+# Wikisource-linked items without Wikipedia links
 SELECT ?work ?page_titleWS  WITH {
   SELECT ?work ?page_titleWS WHERE {
     ?wsarticle schema:about ?work;

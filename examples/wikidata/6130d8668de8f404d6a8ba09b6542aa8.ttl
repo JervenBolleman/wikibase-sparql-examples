@@ -11,7 +11,29 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """#title:Grouping by range of values (external-id count)
+SELECT ?group (SUM(?count) as ?count_group) (SAMPLE(?sampl) as ?sample)
+WITH
+{
+  SELECT ?type (COUNT(DISTINCT ?item) AS ?count) (SAMPLE(?item) as ?sampl) 
+  WHERE 
+  {
+    ?item wdt:P8034 ?id .
+    ?item wikibase:identifiers ?ids .
+    BIND((?ids) AS ?type) #not really needed
+  }
+  GROUP BY ?type
+} as %what
+WHERE
+{
+  INCLUDE %what
+  BIND( IF(?type < 6, CONCAT(\"0\",str(?type)),  #zero added for sorting by group
+        IF(?type < 16, \"06-15\", \"16+\")) 
+        as ?group) 
+}
+GROUP BY ?group
+ORDER BY ?group""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 #title:Grouping by range of values (external-id count)
 SELECT ?group (SUM(?count) as ?count_group) (SAMPLE(?sampl) as ?sample)
@@ -35,7 +57,9 @@ WHERE
 }
 GROUP BY ?group
 ORDER BY ?group""";
-  <http://example.org/bigdata_select> """#title:Grouping by range of values (external-id count)
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+#title:Grouping by range of values (external-id count)
 SELECT ?group (SUM(?count) as ?count_group) (SAMPLE(?sampl) as ?sample)
 WITH
 {

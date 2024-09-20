@@ -18,6 +18,27 @@ PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 #title:Most common properties (excluding external ids) for a type of item on a given Wikipedia
 SELECT ?id (COUNT(DISTINCT ?item)*100/?total AS ?percent) # ?idlabel
+
+WITH { SELECT (COUNT(?item) AS ?total) WHERE {
+  ?item wdt:P31/wdt:P279? wd:Q5398426 .
+   ?arwp schema:about ?item ; schema:isPartOf <https://ary.wikipedia.org/>
+ } } AS %total
+WHERE {
+  {
+ SELECT ?item WHERE {
+  ?item wdt:P31/wdt:P279? wd:Q5398426 .
+   ?arwp schema:about ?item ; schema:isPartOf <https://ary.wikipedia.org/>
+ } } .
+  include %total .
+  ?item ?p [] .
+  ?id wikibase:claim ?p FILTER(?id != wd:P31).
+  MINUS { ?id wikibase:propertyType wikibase:ExternalId }
+ #  ?id rdfs:label ?idlabel FILTER (lang(?idlabel) = \"en\")
+} GROUP BY ?id ?total # ?idlabel
+ORDER BY DESC(?percent)
+LIMIT 20""";
+  <http://example.org/bigdata_select> """#title:Most common properties (excluding external ids) for a type of item on a given Wikipedia
+SELECT ?id (COUNT(DISTINCT ?item)*100/?total AS ?percent) # ?idlabel
 WITH {
  SELECT ?item WHERE {
   ?item wdt:P31/wdt:P279? wd:Q5398426 .
@@ -43,27 +64,6 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 #title:Most common properties (excluding external ids) for a type of item on a given Wikipedia
-SELECT ?id (COUNT(DISTINCT ?item)*100/?total AS ?percent) # ?idlabel
-
-WITH { SELECT (COUNT(?item) AS ?total) WHERE {
-  ?item wdt:P31/wdt:P279? wd:Q5398426 .
-   ?arwp schema:about ?item ; schema:isPartOf <https://ary.wikipedia.org/>
- } } AS %total
-WHERE {
-  {
- SELECT ?item WHERE {
-  ?item wdt:P31/wdt:P279? wd:Q5398426 .
-   ?arwp schema:about ?item ; schema:isPartOf <https://ary.wikipedia.org/>
- } } .
-  include %total .
-  ?item ?p [] .
-  ?id wikibase:claim ?p FILTER(?id != wd:P31).
-  MINUS { ?id wikibase:propertyType wikibase:ExternalId }
- #  ?id rdfs:label ?idlabel FILTER (lang(?idlabel) = \"en\")
-} GROUP BY ?id ?total # ?idlabel
-ORDER BY DESC(?percent)
-LIMIT 20""";
-  <http://example.org/bigdata_select> """#title:Most common properties (excluding external ids) for a type of item on a given Wikipedia
 SELECT ?id (COUNT(DISTINCT ?item)*100/?total AS ?percent) # ?idlabel
 WITH {
  SELECT ?item WHERE {

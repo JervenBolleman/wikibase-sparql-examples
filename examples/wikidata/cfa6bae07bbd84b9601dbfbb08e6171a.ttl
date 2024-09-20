@@ -11,7 +11,25 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?author ?authorLabel ?sitelink ?article WITH { SELECT ?item ?sitelink ?article
+WHERE 
+{
+  ?item wdt:P31 wd:Q47461344.            #written work
+  ?article schema:about ?item ;          #on en wiki
+          schema:isPartOf <https://en.wikipedia.org/> ;
+          schema:name ?sitelink .
+} } as %i
+WHERE
+{
+  INCLUDE %i
+  ?item wdt:P50 ?author . 
+  ?author wdt:P21 wd:Q6581072 .          #female author
+  filter not exists {                    #not on pt wiki
+  ?article2 schema:about ?item ;
+           schema:isPartOf <https://pt.wikipedia.org/> .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
@@ -34,7 +52,12 @@ WHERE
            schema:isPartOf <https://pt.wikipedia.org/> .}
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?author ?authorLabel ?sitelink ?article WITH { SELECT ?item ?sitelink ?article
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?author ?authorLabel ?sitelink ?article WITH { SELECT ?item ?sitelink ?article
 WHERE 
 {
   ?item wdt:P31 wd:Q47461344.            #written work

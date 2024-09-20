@@ -15,6 +15,31 @@
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?count ?award ?awardLabel ?recipients ?recipientsUrl
+
+WHERE {
+  {
+  SELECT (COUNT(?researcher) AS ?count) ?award 
+  (GROUP_CONCAT(DISTINCT ?researcher_label; separator=\", \") AS ?recipients) 
+  (CONCAT(\"https://scholia.toolforge.org/authors/\", GROUP_CONCAT(DISTINCT SUBSTR(STR(?researcher), 32); separator=\",\")) AS ?recipientsUrl)
+  WHERE {
+    { 
+      SELECT DISTINCT ?researcher ?award WHERE {
+        hint:Query hint:optimizer \"None\" .
+        ?researcher wdt:P6104 wd:Q56241615 ; 
+                    wdt:P31 wd:Q5 ;
+                    wdt:P166 ?award .
+      } 
+      LIMIT 100000
+    }
+    ?researcher rdfs:label ?researcher_label . FILTER (LANG(?researcher_label) = 'en')
+  }
+  GROUP BY ?award 
+}
+    ?award rdfs:label ?awardLabel . FILTER (LANG(?awardLabel) = 'en')
+}
+GROUP BY ?count ?award ?awardLabel ?recipients ?recipientsUrl
+ORDER BY DESC(?count)""";
+  <http://example.org/bigdata_select> """SELECT ?count ?award ?awardLabel ?recipients ?recipientsUrl
 WITH {
   SELECT (COUNT(?researcher) AS ?count) ?award 
   (GROUP_CONCAT(DISTINCT ?researcher_label; separator=\", \") AS ?recipients) 
@@ -43,31 +68,6 @@ ORDER BY DESC(?count)""",
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?count ?award ?awardLabel ?recipients ?recipientsUrl
-
-WHERE {
-  {
-  SELECT (COUNT(?researcher) AS ?count) ?award 
-  (GROUP_CONCAT(DISTINCT ?researcher_label; separator=\", \") AS ?recipients) 
-  (CONCAT(\"https://scholia.toolforge.org/authors/\", GROUP_CONCAT(DISTINCT SUBSTR(STR(?researcher), 32); separator=\",\")) AS ?recipientsUrl)
-  WHERE {
-    { 
-      SELECT DISTINCT ?researcher ?award WHERE {
-        hint:Query hint:optimizer \"None\" .
-        ?researcher wdt:P6104 wd:Q56241615 ; 
-                    wdt:P31 wd:Q5 ;
-                    wdt:P166 ?award .
-      } 
-      LIMIT 100000
-    }
-    ?researcher rdfs:label ?researcher_label . FILTER (LANG(?researcher_label) = 'en')
-  }
-  GROUP BY ?award 
-}
-    ?award rdfs:label ?awardLabel . FILTER (LANG(?awardLabel) = 'en')
-}
-GROUP BY ?count ?award ?awardLabel ?recipients ?recipientsUrl
-ORDER BY DESC(?count)""";
-  <http://example.org/bigdata_select> """SELECT ?count ?award ?awardLabel ?recipients ?recipientsUrl
 WITH {
   SELECT (COUNT(?researcher) AS ?count) ?award 
   (GROUP_CONCAT(DISTINCT ?researcher_label; separator=\", \") AS ?recipients) 

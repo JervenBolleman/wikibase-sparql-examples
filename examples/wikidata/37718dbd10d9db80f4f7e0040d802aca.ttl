@@ -24,6 +24,31 @@ SELECT
 
   ?example_artwork ?example_artworkLabel
   (CONCAT(\"#artwork/\", SUBSTR(STR(?example_artwork), 32)) AS ?example_artworkUrl)
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(?artwork) AS ?artworks)
+    ?depicted_feature
+    (SAMPLE(?artwork) AS ?example_artwork)
+  WHERE {
+    ?artwork p:P180 ?depicted_statement .
+    ?depicted_statement pq:P1354 ?depicted_feature .
+  }
+  GROUP BY ?depicted_feature
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?artworks)""";
+  <http://example.org/bigdata_select> """SELECT
+  ?artworks
+
+  ?depicted_feature ?depicted_featureLabel
+  (CONCAT(\"#depictedfeature/\", SUBSTR(STR(?depicted_feature), 32)) AS ?depicted_featureUrl)
+  ?depicted_featureDescription
+
+  ?example_artwork ?example_artworkLabel
+  (CONCAT(\"#artwork/\", SUBSTR(STR(?example_artwork), 32)) AS ?example_artworkUrl)
 WITH {
   SELECT 
     (COUNT(?artwork) AS ?artworks)
@@ -45,31 +70,6 @@ PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT
-  ?artworks
-
-  ?depicted_feature ?depicted_featureLabel
-  (CONCAT(\"#depictedfeature/\", SUBSTR(STR(?depicted_feature), 32)) AS ?depicted_featureUrl)
-  ?depicted_featureDescription
-
-  ?example_artwork ?example_artworkLabel
-  (CONCAT(\"#artwork/\", SUBSTR(STR(?example_artwork), 32)) AS ?example_artworkUrl)
-
-WHERE {
-  {
-  SELECT 
-    (COUNT(?artwork) AS ?artworks)
-    ?depicted_feature
-    (SAMPLE(?artwork) AS ?example_artwork)
-  WHERE {
-    ?artwork p:P180 ?depicted_statement .
-    ?depicted_statement pq:P1354 ?depicted_feature .
-  }
-  GROUP BY ?depicted_feature
-}
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-ORDER BY DESC(?artworks)""";
-  <http://example.org/bigdata_select> """SELECT
   ?artworks
 
   ?depicted_feature ?depicted_featureLabel

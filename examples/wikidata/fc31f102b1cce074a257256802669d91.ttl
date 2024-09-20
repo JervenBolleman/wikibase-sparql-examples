@@ -17,6 +17,30 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 # Most common classes for \"depicts\" (P180) on Commons
 SELECT (SUM(?count) AS ?sum) ?class ?class_label (SAMPLE(?value) AS ?instance) (SAMPLE(?value_label) AS ?instance_label) (SAMPLE(?example) AS ?sample)
 
+
+ 
+WHERE {
+    { 
+  SELECT (COUNT(DISTINCT(?file)) AS ?count) ?value (SAMPLE(?file) AS ?example) WHERE {
+     service bd:sample {
+       ?file wdt:P180 ?value . 
+        bd:serviceParam bd:sample.limit 1000 .
+        bd:serviceParam bd:sample.sampleType \"RANDOM\" .
+     }  
+  } GROUP BY ?value
+  ORDER BY DESC(?count)
+#  LIMIT 2000           
+} .
+    service <https://query.wikidata.org/sparql> {
+      ?value wdt:P31 ?class
+      OPTIONAL {?value rdfs:label ?value_label FILTER (lang(?value_label) = 'en') } .
+      OPTIONAL {?class rdfs:label ?class_label FILTER (lang(?class_label) = 'en') } .
+    }
+} GROUP BY ?class ?class_label 
+ORDER BY DESC(?sum)""";
+  <http://example.org/bigdata_select> """# Most common classes for \"depicts\" (P180) on Commons
+SELECT (SUM(?count) AS ?sum) ?class ?class_label (SAMPLE(?value) AS ?instance) (SAMPLE(?value_label) AS ?instance_label) (SAMPLE(?example) AS ?sample)
+
 WITH { 
   SELECT (COUNT(DISTINCT(?file)) AS ?count) ?value (SAMPLE(?file) AS ?example) WHERE {
      service bd:sample {
@@ -42,30 +66,6 @@ ORDER BY DESC(?sum)""",
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 # Most common classes for \"depicts\" (P180) on Commons
-SELECT (SUM(?count) AS ?sum) ?class ?class_label (SAMPLE(?value) AS ?instance) (SAMPLE(?value_label) AS ?instance_label) (SAMPLE(?example) AS ?sample)
-
-
- 
-WHERE {
-    { 
-  SELECT (COUNT(DISTINCT(?file)) AS ?count) ?value (SAMPLE(?file) AS ?example) WHERE {
-     service bd:sample {
-       ?file wdt:P180 ?value . 
-        bd:serviceParam bd:sample.limit 1000 .
-        bd:serviceParam bd:sample.sampleType \"RANDOM\" .
-     }  
-  } GROUP BY ?value
-  ORDER BY DESC(?count)
-#  LIMIT 2000           
-} .
-    service <https://query.wikidata.org/sparql> {
-      ?value wdt:P31 ?class
-      OPTIONAL {?value rdfs:label ?value_label FILTER (lang(?value_label) = 'en') } .
-      OPTIONAL {?class rdfs:label ?class_label FILTER (lang(?class_label) = 'en') } .
-    }
-} GROUP BY ?class ?class_label 
-ORDER BY DESC(?sum)""";
-  <http://example.org/bigdata_select> """# Most common classes for \"depicts\" (P180) on Commons
 SELECT (SUM(?count) AS ?sum) ?class ?class_label (SAMPLE(?value) AS ?instance) (SAMPLE(?value_label) AS ?instance_label) (SAMPLE(?example) AS ?sample)
 
 WITH { 

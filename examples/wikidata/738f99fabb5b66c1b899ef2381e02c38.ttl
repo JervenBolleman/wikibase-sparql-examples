@@ -20,6 +20,21 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 # and surprisingly generating pseudo-randoms with SHA512 is more efficient than anything else
 # even MD5 and SHA1 suggesting this hashing function is heavily optimized on Blazegraph.
 SELECT ?s ?sLabel ?random
+
+WHERE {
+  { SELECT ?s ?random WHERE {
+  ?s wdt:P31 wd:Q5;
+     wdt:P27 wd:Q20.
+  #BIND(STRUUID() AS ?random)
+  BIND(SHA512(CONCAT(STR(RAND()), STR(?s))) AS ?random)
+} ORDER BY ?random LIMIT 1000 }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}""";
+  <http://example.org/bigdata_select> """# Well-distributed random subset, portable version
+# The optimizer thwarts use of RAND() but UUID() and STRUUID() works,
+# and surprisingly generating pseudo-randoms with SHA512 is more efficient than anything else
+# even MD5 and SHA1 suggesting this hashing function is heavily optimized on Blazegraph.
+SELECT ?s ?sLabel ?random
 WITH { SELECT ?s ?random WHERE {
   ?s wdt:P31 wd:Q5;
      wdt:P27 wd:Q20.
@@ -35,21 +50,6 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 # Well-distributed random subset, portable version
-# The optimizer thwarts use of RAND() but UUID() and STRUUID() works,
-# and surprisingly generating pseudo-randoms with SHA512 is more efficient than anything else
-# even MD5 and SHA1 suggesting this hashing function is heavily optimized on Blazegraph.
-SELECT ?s ?sLabel ?random
-
-WHERE {
-  { SELECT ?s ?random WHERE {
-  ?s wdt:P31 wd:Q5;
-     wdt:P27 wd:Q20.
-  #BIND(STRUUID() AS ?random)
-  BIND(SHA512(CONCAT(STR(RAND()), STR(?s))) AS ?random)
-} ORDER BY ?random LIMIT 1000 }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
-}""";
-  <http://example.org/bigdata_select> """# Well-distributed random subset, portable version
 # The optimizer thwarts use of RAND() but UUID() and STRUUID() works,
 # and surprisingly generating pseudo-randoms with SHA512 is more efficient than anything else
 # even MD5 and SHA1 suggesting this hashing function is heavily optimized on Blazegraph.

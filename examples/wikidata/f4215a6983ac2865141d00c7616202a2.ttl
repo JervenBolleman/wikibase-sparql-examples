@@ -16,6 +16,31 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?isni ?isniLink ?gnd ?gndLink ?loc ?locLink
+
+WITH {
+  SELECT * WHERE {
+    wd:P213 wdt:P1630 ?isniFormatterUrl.
+    wd:P227 wdt:P1630 ?gndFormatterUrl.
+    wd:P244 wdt:P1630 ?locFormatterUrl.
+  }
+} AS %urls WHERE {
+  {
+  SELECT ?item ?itemLabel ?isni ?gnd ?loc WHERE {
+    ?item wdt:P31 wd:Q5 .
+    ?item wdt:P213 ?isni .
+    MINUS {?item wdt:P214 [] .}
+    OPTIONAL {?item wdt:P227 ?gnd.}
+    OPTIONAL {?item wdt:P244 ?loc.}
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+  }
+}.
+  INCLUDE %urls.
+  BIND(IRI(REPLACE(?isniFormatterUrl, \"\\\\$1\", ?isni)) AS ?isniLink)
+  BIND(IRI(REPLACE(?gndFormatterUrl, \"\\\\$1\", ?gnd)) AS ?gndLink)
+  BIND(IRI(REPLACE(?locFormatterUrl, \"\\\\$1\", ?loc)) AS ?locLink)
+}
+ORDER BY DESC(?gnd) DESC(?loc)""";
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?isni ?isniLink ?gnd ?gndLink ?loc ?locLink
 WITH {
   SELECT ?item ?itemLabel ?isni ?gnd ?loc WHERE {
     ?item wdt:P31 wd:Q5 .
@@ -45,31 +70,6 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?isni ?isniLink ?gnd ?gndLink ?loc ?locLink
-
-WITH {
-  SELECT * WHERE {
-    wd:P213 wdt:P1630 ?isniFormatterUrl.
-    wd:P227 wdt:P1630 ?gndFormatterUrl.
-    wd:P244 wdt:P1630 ?locFormatterUrl.
-  }
-} AS %urls WHERE {
-  {
-  SELECT ?item ?itemLabel ?isni ?gnd ?loc WHERE {
-    ?item wdt:P31 wd:Q5 .
-    ?item wdt:P213 ?isni .
-    MINUS {?item wdt:P214 [] .}
-    OPTIONAL {?item wdt:P227 ?gnd.}
-    OPTIONAL {?item wdt:P244 ?loc.}
-    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
-  }
-}.
-  INCLUDE %urls.
-  BIND(IRI(REPLACE(?isniFormatterUrl, \"\\\\$1\", ?isni)) AS ?isniLink)
-  BIND(IRI(REPLACE(?gndFormatterUrl, \"\\\\$1\", ?gnd)) AS ?gndLink)
-  BIND(IRI(REPLACE(?locFormatterUrl, \"\\\\$1\", ?loc)) AS ?locLink)
-}
-ORDER BY DESC(?gnd) DESC(?loc)""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?isni ?isniLink ?gnd ?gndLink ?loc ?locLink
 WITH {
   SELECT ?item ?itemLabel ?isni ?gnd ?loc WHERE {
     ?item wdt:P31 wd:Q5 .

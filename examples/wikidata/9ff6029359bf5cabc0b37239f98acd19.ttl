@@ -11,7 +11,31 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """select ?item 
+with {
+  select * {
+  values ?candidate {
+    # put your items on this list
+     wd:Q14084 # redirect to Q68
+     wd:Q73661 # nonredirect item
+  } 
+  }
+} as %cands
+{
+   {
+     select (?candidate as ?item) {
+       include %cands .
+       ?candidate wikibase:sitelinks [] .
+     }
+   } union {
+     select ?item {
+       include %cands .
+       ?candidate owl:sameAs ?item .
+       ?item wikibase:sitelinks [] .
+     }
+   }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 select ?item 
@@ -38,7 +62,10 @@ with {
      }
    }
 }""";
-  <http://example.org/bigdata_select> """select ?item 
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+select ?item 
 with {
   select * {
   values ?candidate {

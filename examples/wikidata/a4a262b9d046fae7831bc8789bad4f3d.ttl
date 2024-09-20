@@ -11,7 +11,42 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+  <http://example.org/bigdata_select> """SELECT 
+  DISTINCT 
+  ?topic ?classname ?speciesname
+  ?count
+  (CONCAT('https://scholia.toolforge.org/taxon/', ENCODE_FOR_URI(REPLACE(STR(?topic), \".*Q\", \"Q\")), '/curation') AS ?taxon_curation) 
+
+WITH {
+  SELECT DISTINCT ?topic 
+  (COUNT(?paper) AS ?count)
+  WHERE {
+  ?paper wdt:P6104 wd:Q56241615 ;
+         wdt:P921 ?topic .
+  }  
+  GROUP BY ?topic ?count
+} AS %papers
+WITH {
+  SELECT DISTINCT ?topic ?speciesname ?count WHERE {
+    INCLUDE %papers
+  ?topic wdt:P225 ?speciesname ;
+         wdt:P105 wd:Q7432 .
+
+  }
+  GROUP BY ?topic ?speciesname ?count
+#  HAVING (?count > 25)
+  
+} AS %species
+
+WHERE {
+  INCLUDE %species
+  ?topic wdt:P171* ?class .
+  ?class wdt:P105 wd:Q37517;
+         wdt:P225 ?classname .
+}
+GROUP BY ?topic ?classname ?speciesname ?count ?taxon_curation
+ORDER BY ASC(?classname) DESC(?count)""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 SELECT 
   DISTINCT 
@@ -48,7 +83,9 @@ WHERE {
 }
 GROUP BY ?topic ?classname ?speciesname ?count ?taxon_curation
 ORDER BY ASC(?classname) DESC(?count)""";
-  <http://example.org/bigdata_select> """SELECT 
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT 
   DISTINCT 
   ?topic ?classname ?speciesname
   ?count

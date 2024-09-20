@@ -21,6 +21,37 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
  # Ez néha többszintes,  most csak az egyszerűség miatt csak az egyel feletibb szintet listázom.
  # Nem tökéletes ,  quick&dirty lekérdezés.
  #
+ SELECT  ?broaderLabel  ?broader ?itemLabel ?item ?instances ?sites  WHERE { 
+    {
+    SELECT DISTINCT ?item { ?item wdt:P279* wd:Q618779 }
+  } .
+    OPTIONAL { ?item wdt:P279 ?broader } .
+    {
+      SELECT ?item (count(distinct ?element) as ?instances) {
+        {
+    SELECT DISTINCT ?item { ?item wdt:P279* wd:Q618779 }
+  }.
+        OPTIONAL { ?element wdt:P31 ?item }
+      } GROUP BY ?item
+    }
+    {
+      SELECT ?item (count(distinct ?site) as ?sites) {
+        {
+    SELECT DISTINCT ?item { ?item wdt:P279* wd:Q618779 }
+  }.
+        OPTIONAL { ?site schema:about ?item }
+      } GROUP BY ?item
+    }
+    SERVICE wikibase:label {
+      bd:serviceParam wikibase:language \"hu,en,de,es,fr,it,ru,uk,bg,zh,ja,ko\"
+    }
+  }
+ORDER BY  ?broaderLabel  ?broader ?itemLabel ?item""";
+  <http://example.org/bigdata_select> """#
+ # Díjak - hierarchiája 
+ # Ez néha többszintes,  most csak az egyszerűség miatt csak az egyel feletibb szintet listázom.
+ # Nem tökéletes ,  quick&dirty lekérdezés.
+ #
  SELECT  ?broaderLabel  ?broader ?itemLabel ?item ?instances ?sites WITH {
     SELECT DISTINCT ?item { ?item wdt:P279* wd:Q618779 }
   } AS %items WHERE { 
@@ -49,37 +80,6 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #
- # Díjak - hierarchiája 
- # Ez néha többszintes,  most csak az egyszerűség miatt csak az egyel feletibb szintet listázom.
- # Nem tökéletes ,  quick&dirty lekérdezés.
- #
- SELECT  ?broaderLabel  ?broader ?itemLabel ?item ?instances ?sites  WHERE { 
-    {
-    SELECT DISTINCT ?item { ?item wdt:P279* wd:Q618779 }
-  } .
-    OPTIONAL { ?item wdt:P279 ?broader } .
-    {
-      SELECT ?item (count(distinct ?element) as ?instances) {
-        {
-    SELECT DISTINCT ?item { ?item wdt:P279* wd:Q618779 }
-  }.
-        OPTIONAL { ?element wdt:P31 ?item }
-      } GROUP BY ?item
-    }
-    {
-      SELECT ?item (count(distinct ?site) as ?sites) {
-        {
-    SELECT DISTINCT ?item { ?item wdt:P279* wd:Q618779 }
-  }.
-        OPTIONAL { ?site schema:about ?item }
-      } GROUP BY ?item
-    }
-    SERVICE wikibase:label {
-      bd:serviceParam wikibase:language \"hu,en,de,es,fr,it,ru,uk,bg,zh,ja,ko\"
-    }
-  }
-ORDER BY  ?broaderLabel  ?broader ?itemLabel ?item""";
-  <http://example.org/bigdata_select> """#
  # Díjak - hierarchiája 
  # Ez néha többszintes,  most csak az egyszerűség miatt csak az egyel feletibb szintet listázom.
  # Nem tökéletes ,  quick&dirty lekérdezés.

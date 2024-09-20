@@ -11,7 +11,48 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+  <http://example.org/bigdata_select> """#defaultView:ImageGrid
+SELECT DISTINCT ?item ?itemLabel ?seq ?person ?personLabel (SAMPLE(?image_) AS ?image) 
+
+WITH {
+  SELECT ?item ?person WHERE {
+    ?item wdt:P5008 wd:Q117322976;    # item on focus list of the LSESuffrageInterviewsProject
+      wdt:P31 wd:Q178651 .           # item is an interview
+    ?item p:P710 ?statement .         # item has a participant statement
+    ?statement ps:P710 ?person .      # participant is ?person
+    ?statement pq:P3831 wd:Q55534929. # qualifier object has role is interviewee
+    ?item wdt:P921 ?person .         # main subject is same as participant
+  }
+} AS %items
+
+WITH {
+  SELECT (COUNT(DISTINCT(?item1)) AS ?seq) ?item ?person WHERE {
+    INCLUDE %items .
+    {
+      SELECT (?item AS ?item1) ?person WHERE{
+        INCLUDE %items .
+      } 
+    } FILTER (str(?item1) <= str(?item)) 
+  } GROUP BY ?item ?person 
+} AS %items_with_seq
+ 
+WHERE {
+  INCLUDE %items_with_seq
+  
+  OPTIONAL { 
+    INCLUDE %items_with_seq
+
+    FILTER (?seq > 1) .
+    ?person wdt:P18 ?img  .
+    BIND( IRI('http://commons.wikimedia.org/wiki/Special:FilePath/Arrow slim right.svg') AS ?image_ ) .
+  }
+  
+  OPTIONAL { ?person wdt:P18 ?image_} .
+             
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+} GROUP BY ?item ?itemLabel ?person ?personLabel ?seq
+ORDER BY xsd:integer(STRAFTER(str(?person), 'Q')) ?item""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -60,7 +101,15 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
 } GROUP BY ?item ?itemLabel ?person ?personLabel ?seq
 ORDER BY xsd:integer(STRAFTER(str(?person), 'Q')) ?item""";
-  <http://example.org/bigdata_select> """#defaultView:ImageGrid
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:ImageGrid
 SELECT DISTINCT ?item ?itemLabel ?seq ?person ?personLabel (SAMPLE(?image_) AS ?image) 
 
 WITH {

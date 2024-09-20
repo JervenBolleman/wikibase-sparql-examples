@@ -11,7 +11,24 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """SELECT ?point ?pointLabel ?height ?countyLabel WITH  {
+  SELECT ?county (MAX(?height_) AS ?height) WHERE {
+    ?point p:P2044 ?stat . 
+    ?stat psn:P2044/wikibase:quantityAmount ?height_.
+    ?stat a wikibase:BestRank.
+    ?point wdt:P131 ?county.
+    ?county wdt:P17 wd:Q33.
+  } GROUP BY ?county } as %i
+WHERE
+{
+  INCLUDE %i
+  ?point p:P2044 ?stat2 . 
+  ?stat2 psn:P2044/wikibase:quantityAmount ?height.
+  ?stat2 a wikibase:BestRank.
+  ?point wdt:P131 ?county.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fi,en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
@@ -34,7 +51,13 @@ WHERE
   ?point wdt:P131 ?county.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fi,en\". }
 }""";
-  <http://example.org/bigdata_select> """SELECT ?point ?pointLabel ?height ?countyLabel WITH  {
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?point ?pointLabel ?height ?countyLabel WITH  {
   SELECT ?county (MAX(?height_) AS ?height) WHERE {
     ?point p:P2044 ?stat . 
     ?stat psn:P2044/wikibase:quantityAmount ?height_.

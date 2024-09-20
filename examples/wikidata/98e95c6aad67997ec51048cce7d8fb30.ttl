@@ -22,6 +22,30 @@ SELECT
   ?class ?classLabel ?classDescription 
   ?example_lexeme ?example_lexemeLabel
   (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(?lexeme) AS ?count)
+    ?class
+    (SAMPLE(?lexeme) AS ?example_lexeme)
+  WHERE {
+    ?lexeme dct:language target: ;
+            wdt:P31 ?class .
+  }
+  GROUP BY ?class
+}
+  ?example_lexeme wikibase:lemma ?example_lexemeLabel
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?count)""";
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q9035>
+
+SELECT 
+  ?count
+  ?class ?classLabel ?classDescription 
+  ?example_lexeme ?example_lexemeLabel
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)
 WITH {
   SELECT 
     (COUNT(?lexeme) AS ?count)
@@ -44,30 +68,6 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX dct: <http://purl.org/dc/terms/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX target: <http://www.wikidata.org/entity/Q9035>
-
-SELECT 
-  ?count
-  ?class ?classLabel ?classDescription 
-  ?example_lexeme ?example_lexemeLabel
-  (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)
-
-WHERE {
-  {
-  SELECT 
-    (COUNT(?lexeme) AS ?count)
-    ?class
-    (SAMPLE(?lexeme) AS ?example_lexeme)
-  WHERE {
-    ?lexeme dct:language target: ;
-            wdt:P31 ?class .
-  }
-  GROUP BY ?class
-}
-  ?example_lexeme wikibase:lemma ?example_lexemeLabel
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-ORDER BY DESC(?count)""";
-  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q9035>
 
 SELECT 
   ?count

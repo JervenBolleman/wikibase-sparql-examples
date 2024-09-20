@@ -11,7 +11,41 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """SELECT ?ent ?val ?valLabel
+WITH
+{
+  SELECT ?class
+  WHERE
+  {
+    VALUES ?label1 { rdfs:label skos:altLabel }
+    ?class ?label1 \"river\"@en .
+  }
+} AS %exec1 
+WITH
+{
+  SELECT DISTINCT ?val ?amount
+  WHERE
+  {
+    INCLUDE %exec1   
+
+    ?val wdt:P31/wdt:P279* ?class .
+    ?val p:P2043/psn:P2043/wikibase:quantityAmount ?amount.
+  }
+  ORDER BY DESC(?amount)
+  LIMIT 10
+} AS %get_10_longest
+WHERE
+{
+  INCLUDE %get_10_longest
+  BIND(?amount / 1000 AS ?ent)
+  OPTIONAL
+  {
+    ?val rdfs:label ?valLabel .
+    FILTER(LANG(?valLabel) = \"en\")
+  } 
+}
+ORDER BY DESC(?ent)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -51,7 +85,13 @@ WHERE
   } 
 }
 ORDER BY DESC(?ent)""";
-  <http://example.org/bigdata_select> """SELECT ?ent ?val ?valLabel
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?ent ?val ?valLabel
 WITH
 {
   SELECT ?class

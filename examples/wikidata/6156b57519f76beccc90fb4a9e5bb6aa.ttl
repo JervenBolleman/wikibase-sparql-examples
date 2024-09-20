@@ -11,7 +11,24 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """SELECT ?property ?propertyLabel ?propertyType ?count WITH { 
+  SELECT ?property (count(distinct ?item) as ?count)  WHERE {
+    SERVICE bd:slice {
+      ?item wdt:P31 wd:Q3305213.
+      bd:serviceParam bd:slice.offset 0 . # Start at item number (not to be confused with QID)
+      bd:serviceParam bd:slice.limit 200000 . # List this many items
+    }
+    hint:Prior hint:runFirst true .
+    ?item ?predicate ?value .
+    ?property wikibase:directClaim ?predicate .
+  } group by ?property  } as %i
+WHERE
+{
+  INCLUDE %i
+  ?property wikibase:propertyType ?propertyType .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+} order by desc(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
@@ -32,7 +49,11 @@ WHERE
   ?property wikibase:propertyType ?propertyType .
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
 } order by desc(?count)""";
-  <http://example.org/bigdata_select> """SELECT ?property ?propertyLabel ?propertyType ?count WITH { 
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?property ?propertyLabel ?propertyType ?count WITH { 
   SELECT ?property (count(distinct ?item) as ?count)  WHERE {
     SERVICE bd:slice {
       ?item wdt:P31 wd:Q3305213.

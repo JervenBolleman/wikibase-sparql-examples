@@ -17,6 +17,26 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #title:Places of birth for IRIS authors
 SELECT DISTINCT ?l ?lLabel ?coord ?number ?layer
+
+WHERE
+{
+  {
+  SELECT DISTINCT ?l ?lLabel ?coord (COUNT(DISTINCT ?item) AS ?number)
+  WHERE 
+  {
+  ?iris wikibase:directClaim ?irisst ; wdt:P1629 [ wdt:P408 wd:Q107492957 ] .
+  ?item ?irisst ?irisid .
+  ?item wdt:P19 ?l . ?l wdt:P625 ?coord .
+  }
+  GROUP BY ?l ?lLabel ?coord ?number
+}
+  BIND( IF(?number < 6, \"1-5\", IF(?number < 16, \"6-15\", IF(?number < 26, \"16-25\",\"26+\"))) AS ?layer) 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"it\". }
+}
+GROUP BY ?l ?lLabel ?coord ?number ?layer
+ORDER BY DESC(?number)""";
+  <http://example.org/bigdata_select> """#title:Places of birth for IRIS authors
+SELECT DISTINCT ?l ?lLabel ?coord ?number ?layer
 WITH
 {
   SELECT DISTINCT ?l ?lLabel ?coord (COUNT(DISTINCT ?item) AS ?number)
@@ -41,26 +61,6 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #title:Places of birth for IRIS authors
-SELECT DISTINCT ?l ?lLabel ?coord ?number ?layer
-
-WHERE
-{
-  {
-  SELECT DISTINCT ?l ?lLabel ?coord (COUNT(DISTINCT ?item) AS ?number)
-  WHERE 
-  {
-  ?iris wikibase:directClaim ?irisst ; wdt:P1629 [ wdt:P408 wd:Q107492957 ] .
-  ?item ?irisst ?irisid .
-  ?item wdt:P19 ?l . ?l wdt:P625 ?coord .
-  }
-  GROUP BY ?l ?lLabel ?coord ?number
-}
-  BIND( IF(?number < 6, \"1-5\", IF(?number < 16, \"6-15\", IF(?number < 26, \"16-25\",\"26+\"))) AS ?layer) 
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"it\". }
-}
-GROUP BY ?l ?lLabel ?coord ?number ?layer
-ORDER BY DESC(?number)""";
-  <http://example.org/bigdata_select> """#title:Places of birth for IRIS authors
 SELECT DISTINCT ?l ?lLabel ?coord ?number ?layer
 WITH
 {

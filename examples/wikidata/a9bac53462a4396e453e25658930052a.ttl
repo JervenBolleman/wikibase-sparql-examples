@@ -16,7 +16,20 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?obj ?objLabel ?att ?count WITH {
+SELECT DISTINCT ?obj ?objLabel ?att ?count  WHERE {
+  {
+  SELECT ?obj (COUNT(?wikipage) AS ?count) WHERE {
+    hint:Query hint:optimizer \"None\" .
+    ?obj wdt:P31 wd:Q15633582 .
+    ?wikipage schema:about ?obj .
+    ?wikipage schema:isPartOf/wikibase:wikiGroup \"wikipedia\" . }
+  GROUP BY ?obj ?att HAVING (?count >= 100)
+}
+    ?obj wdt:P571 ?att .
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" . } }
+ORDER BY desc(?count)""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?obj ?objLabel ?att ?count WITH {
   SELECT ?obj (COUNT(?wikipage) AS ?count) WHERE {
     hint:Query hint:optimizer \"None\" .
     ?obj wdt:P31 wd:Q15633582 .
@@ -34,20 +47,7 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?obj ?objLabel ?att ?count  WHERE {
-  {
-  SELECT ?obj (COUNT(?wikipage) AS ?count) WHERE {
-    hint:Query hint:optimizer \"None\" .
-    ?obj wdt:P31 wd:Q15633582 .
-    ?wikipage schema:about ?obj .
-    ?wikipage schema:isPartOf/wikibase:wikiGroup \"wikipedia\" . }
-  GROUP BY ?obj ?att HAVING (?count >= 100)
-}
-    ?obj wdt:P571 ?att .
-  SERVICE wikibase:label {
-    bd:serviceParam wikibase:language \"en\" . } }
-ORDER BY desc(?count)""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT ?obj ?objLabel ?att ?count WITH {
+SELECT DISTINCT ?obj ?objLabel ?att ?count WITH {
   SELECT ?obj (COUNT(?wikipage) AS ?count) WHERE {
     hint:Query hint:optimizer \"None\" .
     ?obj wdt:P31 wd:Q15633582 .

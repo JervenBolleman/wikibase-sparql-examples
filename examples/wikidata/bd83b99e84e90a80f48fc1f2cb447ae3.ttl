@@ -17,6 +17,24 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?film ?filmLabel ?count
+
+WHERE
+{
+  {
+  SELECT ?film (COUNT(?wikipage) AS ?count)
+  WHERE
+  {
+    hint:Query hint:optimizer \"None\" .
+    ?film wdt:P31 wd:Q11424 .
+    ?wikipage schema:about ?film .
+    ?wikipage schema:isPartOf/wikibase:wikiGroup \"wikipedia\" .
+  }
+  GROUP BY ?film HAVING (?count > 50)
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}
+ORDER BY DESC(?count)""";
+  <http://example.org/bigdata_select> """SELECT ?film ?filmLabel ?count
 WITH
 {
   SELECT ?film (COUNT(?wikipage) AS ?count)
@@ -41,24 +59,6 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?film ?filmLabel ?count
-
-WHERE
-{
-  {
-  SELECT ?film (COUNT(?wikipage) AS ?count)
-  WHERE
-  {
-    hint:Query hint:optimizer \"None\" .
-    ?film wdt:P31 wd:Q11424 .
-    ?wikipage schema:about ?film .
-    ?wikipage schema:isPartOf/wikibase:wikiGroup \"wikipedia\" .
-  }
-  GROUP BY ?film HAVING (?count > 50)
-}
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
-}
-ORDER BY DESC(?count)""";
-  <http://example.org/bigdata_select> """SELECT ?film ?filmLabel ?count
 WITH
 {
   SELECT ?film (COUNT(?wikipage) AS ?count)

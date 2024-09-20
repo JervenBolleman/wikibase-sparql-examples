@@ -11,7 +11,36 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """#defaultView:Tree
+select ?person ?personLabel ?university ?universityLabel ?country ?countryLabel
+with {
+  select distinct ?person {
+  ?person wdt:P69 ?universityCanada, ?universityBelgium.
+          
+  ?universityCanada wdt:P31/wdt:P279* wd:Q3918 ;
+                    wdt:P17 wd:Q16 .
+                    
+  ?universityBelgium wdt:P31/wdt:P279* wd:Q3918 
+                     ; wdt:P17 wd:Q31 .
+ 
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+
+}
+
+} as %person
+
+with {
+  select ?person ?university ?country {
+    include %person
+            
+    ?person wdt:P69 ?university . ?university wdt:P17 ?country .
+  }
+} as %results
+{
+  include  %results.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
@@ -44,7 +73,11 @@ with {
   include  %results.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <http://example.org/bigdata_select> """#defaultView:Tree
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Tree
 select ?person ?personLabel ?university ?universityLabel ?country ?countryLabel
 with {
   select distinct ?person {

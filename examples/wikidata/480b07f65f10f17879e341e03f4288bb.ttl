@@ -11,7 +11,26 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+  <http://example.org/bigdata_select> """SELECT *
+WITH
+{
+  SELECT ?item
+  {
+    ?item wdt:P31 wd:Q101352 .
+    ?item schema:dateModified ?modified . hint:Prior hint:rangeSafe \"true\" .
+    FILTER (\"2019-01-00T00:00:00Z\"^^xsd:dateTime <= ?modified && ?modified < \"2019-07-00T00:00:00Z\"^^xsd:dateTime )
+    MINUS { ?item p:P1889 [] }
+  }
+} as %a
+WHERE
+{
+    hint:Query hint:optimizer \"None\".
+    INCLUDE %a
+    ?item rdfs:label ?l . FILTER(  lang(?l) = \"en\") 
+    ?dab  rdfs:label ?l ; wdt:P31 wd:Q4167410 .
+    FILTER( ?dab != ?item )   
+}""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
@@ -36,7 +55,13 @@ WHERE
     ?dab  rdfs:label ?l ; wdt:P31 wd:Q4167410 .
     FILTER( ?dab != ?item )   
 }""";
-  <http://example.org/bigdata_select> """SELECT *
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT *
 WITH
 {
   SELECT ?item

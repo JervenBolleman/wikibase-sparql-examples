@@ -15,6 +15,45 @@
 PREFIX wd: <http://www.wikidata.org/entity/>
 SELECT DISTINCT ?item ?scientific_name (GROUP_CONCAT(DISTINCT ?common_name; SEPARATOR=\", \") AS ?common_English_names)
   ?taxon_id ?genus ?family ?order (wd:Q7377 AS ?class)
+
+WHERE
+{
+  {
+  SELECT ?item
+  WHERE
+  {
+    # Select some items for species of mammals
+    ?item wdt:P31 wd:Q16521 . # ?item is instance of taxan
+    ?item wdt:P105 wd:Q7432 . # taxon rank is species
+    ?item wdt:P171+ wd:Q7377 . # Some higher level is mammal
+  }
+  LIMIT 5
+}
+  ?item wdt:P225 ?scientific_name .
+  OPTIONAL
+  {
+    ?item wdt:P1843 ?common_name .
+    FILTER (LANG(?common_name) = 'en')
+  }
+  OPTIONAL { ?item wdt:P846 ?taxon_id . }
+
+  # Get genus, family, order, class
+  ?item wdt:P171+ ?genus .
+  ?genus wdt:P105 wd:Q34740 . # taxon rank is genus
+  OPTIONAL
+  {
+    ?genus wdt:P171+ ?family .
+    ?family wdt:P105 wd:Q35409. # taxon rank is family
+    OPTIONAL
+    {
+      ?family wdt:P171+ ?order .
+      ?order wdt:P105 wd:Q36602 . # taxon rank is order
+    }
+  }
+}
+GROUP BY ?item ?scientific_name ?taxon_id ?genus ?family ?order ?class""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?scientific_name (GROUP_CONCAT(DISTINCT ?common_name; SEPARATOR=\", \") AS ?common_English_names)
+  ?taxon_id ?genus ?family ?order (wd:Q7377 AS ?class)
 WITH
 {
   SELECT ?item
@@ -56,45 +95,6 @@ GROUP BY ?item ?scientific_name ?taxon_id ?genus ?family ?order ?class""",
     """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 SELECT DISTINCT ?item ?scientific_name (GROUP_CONCAT(DISTINCT ?common_name; SEPARATOR=\", \") AS ?common_English_names)
-  ?taxon_id ?genus ?family ?order (wd:Q7377 AS ?class)
-
-WHERE
-{
-  {
-  SELECT ?item
-  WHERE
-  {
-    # Select some items for species of mammals
-    ?item wdt:P31 wd:Q16521 . # ?item is instance of taxan
-    ?item wdt:P105 wd:Q7432 . # taxon rank is species
-    ?item wdt:P171+ wd:Q7377 . # Some higher level is mammal
-  }
-  LIMIT 5
-}
-  ?item wdt:P225 ?scientific_name .
-  OPTIONAL
-  {
-    ?item wdt:P1843 ?common_name .
-    FILTER (LANG(?common_name) = 'en')
-  }
-  OPTIONAL { ?item wdt:P846 ?taxon_id . }
-
-  # Get genus, family, order, class
-  ?item wdt:P171+ ?genus .
-  ?genus wdt:P105 wd:Q34740 . # taxon rank is genus
-  OPTIONAL
-  {
-    ?genus wdt:P171+ ?family .
-    ?family wdt:P105 wd:Q35409. # taxon rank is family
-    OPTIONAL
-    {
-      ?family wdt:P171+ ?order .
-      ?order wdt:P105 wd:Q36602 . # taxon rank is order
-    }
-  }
-}
-GROUP BY ?item ?scientific_name ?taxon_id ?genus ?family ?order ?class""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?scientific_name (GROUP_CONCAT(DISTINCT ?common_name; SEPARATOR=\", \") AS ?common_English_names)
   ?taxon_id ?genus ?family ?order (wd:Q7377 AS ?class)
 WITH
 {

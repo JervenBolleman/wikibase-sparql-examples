@@ -20,6 +20,39 @@ PREFIX dcterms: <http://purl.org/dc/terms/>
       PREFIX bibo: <http://purl.org/ontology/bibo/>
       
       SELECT ?item ?ulanuri ?rkdartistsid
+      
+      WITH {
+        SELECT * {
+        SERVICE <http://vocab.getty.edu/sparql.json> {
+      
+       SELECT ?ulanuri ?rkdartistsid WHERE {
+            ?ulanuri rdf:type <http://vocab.getty.edu/ontology#PersonConcept> .
+            ?ulanuri dcterms:source ?source .
+            ?source dcterms:isPartOf <http://vocab.getty.edu/ulan/source/2100183444> .
+            ?source bibo:locator ?rkdartistsid
+            }
+      
+        }
+      }
+      } AS %ulan
+      WHERE {
+        {
+        SELECT ?item ?ulanuri ?rkdartistsid WHERE {
+        ?item wdtn:P245 ?ulanuri .
+       ?item p:P245 ?statement0.
+                                          ?statement0 ps:P245 _:anyValueP245;
+                                              wikibase:rank ?rank.
+         FILTER(?rank != wikibase:DeprecatedRank)
+        MINUS { ?item wdtn:P650 ?rkdartistsid } .
+        MINUS { ?item p:P650 ?statement1. ?statement1 (ps:P650) _:anyValueP650. }
+        }
+      }.
+        INCLUDE %ulan.
+      } LIMIT 500""";
+  <http://example.org/bigdata_select> """PREFIX dcterms: <http://purl.org/dc/terms/>
+      PREFIX bibo: <http://purl.org/ontology/bibo/>
+      
+      SELECT ?item ?ulanuri ?rkdartistsid
       WITH {
         SELECT ?item ?ulanuri ?rkdartistsid WHERE {
         ?item wdtn:P245 ?ulanuri .
@@ -55,39 +88,6 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX dcterms: <http://purl.org/dc/terms/>
-      PREFIX bibo: <http://purl.org/ontology/bibo/>
-      
-      SELECT ?item ?ulanuri ?rkdartistsid
-      
-      WITH {
-        SELECT * {
-        SERVICE <http://vocab.getty.edu/sparql.json> {
-      
-       SELECT ?ulanuri ?rkdartistsid WHERE {
-            ?ulanuri rdf:type <http://vocab.getty.edu/ontology#PersonConcept> .
-            ?ulanuri dcterms:source ?source .
-            ?source dcterms:isPartOf <http://vocab.getty.edu/ulan/source/2100183444> .
-            ?source bibo:locator ?rkdartistsid
-            }
-      
-        }
-      }
-      } AS %ulan
-      WHERE {
-        {
-        SELECT ?item ?ulanuri ?rkdartistsid WHERE {
-        ?item wdtn:P245 ?ulanuri .
-       ?item p:P245 ?statement0.
-                                          ?statement0 ps:P245 _:anyValueP245;
-                                              wikibase:rank ?rank.
-         FILTER(?rank != wikibase:DeprecatedRank)
-        MINUS { ?item wdtn:P650 ?rkdartistsid } .
-        MINUS { ?item p:P650 ?statement1. ?statement1 (ps:P650) _:anyValueP650. }
-        }
-      }.
-        INCLUDE %ulan.
-      } LIMIT 500""";
-  <http://example.org/bigdata_select> """PREFIX dcterms: <http://purl.org/dc/terms/>
       PREFIX bibo: <http://purl.org/ontology/bibo/>
       
       SELECT ?item ?ulanuri ?rkdartistsid

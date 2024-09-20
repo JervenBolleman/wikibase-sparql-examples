@@ -25,6 +25,33 @@ SELECT ?preis ?preisLabel (count (DISTINCT(?person)) as ?person_count)
     (sum(if(bound(?gwl_datum) && bound(?preis_datum) && (?preis_datum = ?gwl_datum), 1, 0)) as ?gleich) 
     (sum(if(!bound(?gwl_datum) || !bound(?preis_datum), 1, 0)) as ?unbek) 
  
+
+
+WHERE {
+    {
+  SELECT DISTINCT ?person ?preis ?gwl_datum ?preis_datum WHERE {
+    ?person wdt:P31 wd:Q5 . 
+    ?person p:P166 ?gwl_stmt . ?gwl_stmt ps:P166 wd:Q703205.
+    OPTIONAL {?gwl_stmt pq:P585 ?gwl_datum} .
+  
+    ?person p:P166 ?preis_stmt . ?preis_stmt ps:P166 ?preis .
+    ?preis wdt:P31 ?preistype.
+    filter (?preistype = wd:Q618779 || ?preistype = wd:Q11448906 || ?preistype = wd:Q15383322 || ?preistype = wd:Q107471279 || ?preistype =  wd:Q378427 ||  ?preistype = wd:Q107494520 || ?preistype = wd:Q1404101 || ?preistype = wd:Q5257307 || ?preistype = wd:Q1829324 || ?preistype =wd:Q1792571 || ?preistype = wd:Q107471043 || ?preistype =  wd:Q636581 || ?preistype =  wd:Q1357196 || ?preistype = wd:Q55190113 || ?preistype = wd:Q955824 || ?preistype = wd:Q1966910 || ?preistype = wd:Q1709894 )
+
+    OPTIONAL {?preis_stmt pq:P585 ?preis_datum} .
+  }
+} .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY  ?preis ?preisLabel
+ORDER BY DESC(?person_count)""";
+  <http://example.org/bigdata_select> """SELECT ?preis ?preisLabel (count (DISTINCT(?person)) as ?person_count) 
+    (count (DISTINCT(CONCAT(str(?person),COALESCE(str(?gwl_datum),'A'),COALESCE(str(?preis_datum),'B') ))) as ?comparison_count) 
+    (sum(if(bound(?gwl_datum) && bound(?preis_datum) && (?preis_datum < ?gwl_datum), 1, 0)) as ?vor) 
+    (sum(if(bound(?gwl_datum) && bound(?preis_datum) && (?preis_datum > ?gwl_datum), 1, 0)) as ?nach) 
+    (sum(if(bound(?gwl_datum) && bound(?preis_datum) && (?preis_datum = ?gwl_datum), 1, 0)) as ?gleich) 
+    (sum(if(!bound(?gwl_datum) || !bound(?preis_datum), 1, 0)) as ?unbek) 
+ 
 WITH {
   SELECT DISTINCT ?person ?preis ?gwl_datum ?preis_datum WHERE {
     ?person wdt:P31 wd:Q5 . 
@@ -53,33 +80,6 @@ PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?preis ?preisLabel (count (DISTINCT(?person)) as ?person_count) 
-    (count (DISTINCT(CONCAT(str(?person),COALESCE(str(?gwl_datum),'A'),COALESCE(str(?preis_datum),'B') ))) as ?comparison_count) 
-    (sum(if(bound(?gwl_datum) && bound(?preis_datum) && (?preis_datum < ?gwl_datum), 1, 0)) as ?vor) 
-    (sum(if(bound(?gwl_datum) && bound(?preis_datum) && (?preis_datum > ?gwl_datum), 1, 0)) as ?nach) 
-    (sum(if(bound(?gwl_datum) && bound(?preis_datum) && (?preis_datum = ?gwl_datum), 1, 0)) as ?gleich) 
-    (sum(if(!bound(?gwl_datum) || !bound(?preis_datum), 1, 0)) as ?unbek) 
- 
-
-
-WHERE {
-    {
-  SELECT DISTINCT ?person ?preis ?gwl_datum ?preis_datum WHERE {
-    ?person wdt:P31 wd:Q5 . 
-    ?person p:P166 ?gwl_stmt . ?gwl_stmt ps:P166 wd:Q703205.
-    OPTIONAL {?gwl_stmt pq:P585 ?gwl_datum} .
-  
-    ?person p:P166 ?preis_stmt . ?preis_stmt ps:P166 ?preis .
-    ?preis wdt:P31 ?preistype.
-    filter (?preistype = wd:Q618779 || ?preistype = wd:Q11448906 || ?preistype = wd:Q15383322 || ?preistype = wd:Q107471279 || ?preistype =  wd:Q378427 ||  ?preistype = wd:Q107494520 || ?preistype = wd:Q1404101 || ?preistype = wd:Q5257307 || ?preistype = wd:Q1829324 || ?preistype =wd:Q1792571 || ?preistype = wd:Q107471043 || ?preistype =  wd:Q636581 || ?preistype =  wd:Q1357196 || ?preistype = wd:Q55190113 || ?preistype = wd:Q955824 || ?preistype = wd:Q1966910 || ?preistype = wd:Q1709894 )
-
-    OPTIONAL {?preis_stmt pq:P585 ?preis_datum} .
-  }
-} .
-    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-GROUP BY  ?preis ?preisLabel
-ORDER BY DESC(?person_count)""";
-  <http://example.org/bigdata_select> """SELECT ?preis ?preisLabel (count (DISTINCT(?person)) as ?person_count) 
     (count (DISTINCT(CONCAT(str(?person),COALESCE(str(?gwl_datum),'A'),COALESCE(str(?preis_datum),'B') ))) as ?comparison_count) 
     (sum(if(bound(?gwl_datum) && bound(?preis_datum) && (?preis_datum < ?gwl_datum), 1, 0)) as ?vor) 
     (sum(if(bound(?gwl_datum) && bound(?preis_datum) && (?preis_datum > ?gwl_datum), 1, 0)) as ?nach) 

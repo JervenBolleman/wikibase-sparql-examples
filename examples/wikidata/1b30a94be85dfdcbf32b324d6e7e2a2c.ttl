@@ -14,7 +14,17 @@
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?natureLabel (COUNT(?nature) AS ?cnt) WITH {
+SELECT ?natureLabel (COUNT(?nature) AS ?cnt)  WHERE {
+  {
+  SELECT ?item WHERE {
+    ?item wdt:P1120 ?deaths .
+  } GROUP BY ?item HAVING(COUNT(?deaths) > 1)
+} .
+  ?item wdt:P31 ?nature.
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+} GROUP BY ?natureLabel ORDER BY DESC(?cnt)""";
+  <http://example.org/bigdata_select> """SELECT ?natureLabel (COUNT(?nature) AS ?cnt) WITH {
   SELECT ?item WHERE {
     ?item wdt:P1120 ?deaths .
   } GROUP BY ?item HAVING(COUNT(?deaths) > 1)
@@ -27,17 +37,7 @@ SELECT ?natureLabel (COUNT(?nature) AS ?cnt) WITH {
     """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?natureLabel (COUNT(?nature) AS ?cnt)  WHERE {
-  {
-  SELECT ?item WHERE {
-    ?item wdt:P1120 ?deaths .
-  } GROUP BY ?item HAVING(COUNT(?deaths) > 1)
-} .
-  ?item wdt:P31 ?nature.
-
-  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
-} GROUP BY ?natureLabel ORDER BY DESC(?cnt)""";
-  <http://example.org/bigdata_select> """SELECT ?natureLabel (COUNT(?nature) AS ?cnt) WITH {
+SELECT ?natureLabel (COUNT(?nature) AS ?cnt) WITH {
   SELECT ?item WHERE {
     ?item wdt:P1120 ?deaths .
   } GROUP BY ?item HAVING(COUNT(?deaths) > 1)

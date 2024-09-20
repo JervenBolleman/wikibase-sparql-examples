@@ -15,6 +15,30 @@
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 SELECT DISTINCT ?item ?gender ?country ?occupation
+  
+WHERE
+{
+  ?item wdt:P31 wd:Q5 . # humans
+  VALUES ?gender { wd:Q6581072 wd:Q1052281 wd:Q48270 }
+  ?item wdt:P21 ?gender .
+  { SELECT ?country WHERE { wd:Q72829598 wdt:P527+ ?country . } }
+  ?item wdt:P27 ?country .
+  ?item wdt:P106 ?occupation .
+  {
+    ?occupation wdt:P279* wd:Q483501 .
+    hint:Prior hint:gearing \"forward\" .
+  }
+  UNION
+  {
+    ?occupation wdt:P279* wd:Q482980 .
+    hint:Prior hint:gearing \"forward\" .
+  }
+  FILTER NOT EXISTS
+  {
+    [] schema:about ?item ; schema:isPartOf <https://es.wikipedia.org/> .
+  }
+}""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?gender ?country ?occupation
 WITH { SELECT ?country WHERE { wd:Q72829598 wdt:P527+ ?country . } } AS %get_countries  
 WHERE
 {
@@ -42,30 +66,6 @@ WHERE
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 SELECT DISTINCT ?item ?gender ?country ?occupation
-  
-WHERE
-{
-  ?item wdt:P31 wd:Q5 . # humans
-  VALUES ?gender { wd:Q6581072 wd:Q1052281 wd:Q48270 }
-  ?item wdt:P21 ?gender .
-  { SELECT ?country WHERE { wd:Q72829598 wdt:P527+ ?country . } }
-  ?item wdt:P27 ?country .
-  ?item wdt:P106 ?occupation .
-  {
-    ?occupation wdt:P279* wd:Q483501 .
-    hint:Prior hint:gearing \"forward\" .
-  }
-  UNION
-  {
-    ?occupation wdt:P279* wd:Q482980 .
-    hint:Prior hint:gearing \"forward\" .
-  }
-  FILTER NOT EXISTS
-  {
-    [] schema:about ?item ; schema:isPartOf <https://es.wikipedia.org/> .
-  }
-}""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?gender ?country ?occupation
 WITH { SELECT ?country WHERE { wd:Q72829598 wdt:P527+ ?country . } } AS %get_countries  
 WHERE
 {

@@ -21,6 +21,50 @@ PREFIX target: <http://www.wikidata.org/entity/Q818846>
 SELECT DISTINCT
   ?from ?from_image ?fromLabel
   ?to ?to_image ?toLabel
+
+WITH {
+  SELECT DISTINCT
+    ?to
+  WHERE {
+    { BIND(target: AS ?to) }
+    UNION
+    { target: ( (wdt:P127 | ^wdt:P1830 | wdt:P749 | ^wdt:P355)+ | 
+                (^wdt:P127 | wdt:P1830 | ^wdt:P749 | wdt:P355)+) ?to }
+  }
+} AS %tos
+WHERE {
+  {
+  SELECT DISTINCT
+    ?from
+  WHERE {
+    { BIND(target: AS ?from) }
+    UNION
+    { target: (wdt:P169| wdt:P488 | wdt:P1037 | wdt:P3320)? ?from }
+    UNION
+    { target: ( (wdt:P127 | ^wdt:P1830 | wdt:P749 | ^wdt:P355)+ | 
+                (^wdt:P127 | wdt:P1830 | ^wdt:P749 | wdt:P355)+)
+        / (wdt:P169 | wdt:P488 | wdt:P1037 | wdt:P3320)?
+                                                       ?from . }        
+  }
+}
+  INCLUDE %tos
+  { ?from wdt:P1830 | wdt:P355 ?to . }
+  UNION
+  { ?to wdt:P127 ?from }
+  UNION 
+  { ?to wdt:P169 | wdt:P488 | wdt:P1037 | wdt:P3320 ?from }
+
+  OPTIONAL { ?from wdt:P18 ?from_image . }
+  OPTIONAL { ?to wdt:P18 ?to_image . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"da,en\" .  } 
+}""";
+  <http://example.org/bigdata_select> """#defaultView:Graph
+#defaultView:Graph
+PREFIX target: <http://www.wikidata.org/entity/Q818846>
+
+SELECT DISTINCT
+  ?from ?from_image ?fromLabel
+  ?to ?to_image ?toLabel
 WITH {
   SELECT DISTINCT
     ?from
@@ -62,50 +106,6 @@ WHERE {
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Graph
-#defaultView:Graph
-PREFIX target: <http://www.wikidata.org/entity/Q818846>
-
-SELECT DISTINCT
-  ?from ?from_image ?fromLabel
-  ?to ?to_image ?toLabel
-
-WITH {
-  SELECT DISTINCT
-    ?to
-  WHERE {
-    { BIND(target: AS ?to) }
-    UNION
-    { target: ( (wdt:P127 | ^wdt:P1830 | wdt:P749 | ^wdt:P355)+ | 
-                (^wdt:P127 | wdt:P1830 | ^wdt:P749 | wdt:P355)+) ?to }
-  }
-} AS %tos
-WHERE {
-  {
-  SELECT DISTINCT
-    ?from
-  WHERE {
-    { BIND(target: AS ?from) }
-    UNION
-    { target: (wdt:P169| wdt:P488 | wdt:P1037 | wdt:P3320)? ?from }
-    UNION
-    { target: ( (wdt:P127 | ^wdt:P1830 | wdt:P749 | ^wdt:P355)+ | 
-                (^wdt:P127 | wdt:P1830 | ^wdt:P749 | wdt:P355)+)
-        / (wdt:P169 | wdt:P488 | wdt:P1037 | wdt:P3320)?
-                                                       ?from . }        
-  }
-}
-  INCLUDE %tos
-  { ?from wdt:P1830 | wdt:P355 ?to . }
-  UNION
-  { ?to wdt:P127 ?from }
-  UNION 
-  { ?to wdt:P169 | wdt:P488 | wdt:P1037 | wdt:P3320 ?from }
-
-  OPTIONAL { ?from wdt:P18 ?from_image . }
-  OPTIONAL { ?to wdt:P18 ?to_image . }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"da,en\" .  } 
-}""";
-  <http://example.org/bigdata_select> """#defaultView:Graph
 #defaultView:Graph
 PREFIX target: <http://www.wikidata.org/entity/Q818846>
 

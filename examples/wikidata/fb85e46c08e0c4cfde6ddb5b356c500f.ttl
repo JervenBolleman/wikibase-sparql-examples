@@ -21,6 +21,35 @@ PREFIX target: <http://www.wikidata.org/entity/Q1197552>
 SELECT ?count 
        ?topic ?topicLabel 
        ?example_work ?example_workLabel 
+
+WHERE {
+  # Label the results
+  {
+  SELECT (COUNT(?work) AS ?count) ?topic (SAMPLE(?work) AS ?example_work) WHERE {
+    # Find works for the specific queried topic
+	  ?work wdt:P921/( wdt:P31*/wdt:P279* | wdt:P361+ | wdt:P1269+) target: .
+    
+    # Find co-occuring topics
+    ?work wdt:P921 ?topic .
+    
+    # Filter for taxa
+    ?topic wdt:P225 [] .
+    
+    # Avoid listing the queried topic
+      FILTER (target: != ?topic)
+  }
+  GROUP BY ?topic
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" . } 
+}
+ORDER BY DESC(?count)""";
+  <http://example.org/bigdata_select> """#defaultView:Table
+
+PREFIX target: <http://www.wikidata.org/entity/Q1197552> 
+
+SELECT ?count 
+       ?topic ?topicLabel 
+       ?example_work ?example_workLabel 
 WITH {
   SELECT (COUNT(?work) AS ?count) ?topic (SAMPLE(?work) AS ?example_work) WHERE {
     # Find works for the specific queried topic
@@ -47,35 +76,6 @@ ORDER BY DESC(?count)""",
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Table
-
-PREFIX target: <http://www.wikidata.org/entity/Q1197552> 
-
-SELECT ?count 
-       ?topic ?topicLabel 
-       ?example_work ?example_workLabel 
-
-WHERE {
-  # Label the results
-  {
-  SELECT (COUNT(?work) AS ?count) ?topic (SAMPLE(?work) AS ?example_work) WHERE {
-    # Find works for the specific queried topic
-	  ?work wdt:P921/( wdt:P31*/wdt:P279* | wdt:P361+ | wdt:P1269+) target: .
-    
-    # Find co-occuring topics
-    ?work wdt:P921 ?topic .
-    
-    # Filter for taxa
-    ?topic wdt:P225 [] .
-    
-    # Avoid listing the queried topic
-      FILTER (target: != ?topic)
-  }
-  GROUP BY ?topic
-}
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" . } 
-}
-ORDER BY DESC(?count)""";
-  <http://example.org/bigdata_select> """#defaultView:Table
 
 PREFIX target: <http://www.wikidata.org/entity/Q1197552> 
 

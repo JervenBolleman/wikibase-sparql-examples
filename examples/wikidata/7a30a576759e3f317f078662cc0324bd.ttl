@@ -17,7 +17,24 @@ PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?positionLabel ?start ?end WITH {
+SELECT ?item ?itemLabel ?positionLabel ?start ?end  WHERE {
+  {
+  SELECT ?item ?position ?start ?end WHERE {
+    BIND(420 AS ?year)
+    BIND(STRDT(CONCAT(STR(?year), \"-01-01\"), xsd:dateTime) AS ?yearStart)
+    BIND(STRDT(CONCAT(STR(?year + 1), \"-01-01\"), xsd:dateTime) AS ?nextYearStart)
+    ?item p:P39 [
+      ps:P39 ?position;
+      pq:P580 ?start;
+      pq:P582 ?end
+    ].
+    FILTER(?start < ?yearStart)
+    FILTER(?end >= ?nextYearStart)
+  }
+}.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?positionLabel ?start ?end WITH {
   SELECT ?item ?position ?start ?end WHERE {
     BIND(420 AS ?year)
     BIND(STRDT(CONCAT(STR(?year), \"-01-01\"), xsd:dateTime) AS ?yearStart)
@@ -40,24 +57,7 @@ PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?positionLabel ?start ?end  WHERE {
-  {
-  SELECT ?item ?position ?start ?end WHERE {
-    BIND(420 AS ?year)
-    BIND(STRDT(CONCAT(STR(?year), \"-01-01\"), xsd:dateTime) AS ?yearStart)
-    BIND(STRDT(CONCAT(STR(?year + 1), \"-01-01\"), xsd:dateTime) AS ?nextYearStart)
-    ?item p:P39 [
-      ps:P39 ?position;
-      pq:P580 ?start;
-      pq:P582 ?end
-    ].
-    FILTER(?start < ?yearStart)
-    FILTER(?end >= ?nextYearStart)
-  }
-}.
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?positionLabel ?start ?end WITH {
+SELECT ?item ?itemLabel ?positionLabel ?start ?end WITH {
   SELECT ?item ?position ?start ?end WHERE {
     BIND(420 AS ?year)
     BIND(STRDT(CONCAT(STR(?year), \"-01-01\"), xsd:dateTime) AS ?yearStart)

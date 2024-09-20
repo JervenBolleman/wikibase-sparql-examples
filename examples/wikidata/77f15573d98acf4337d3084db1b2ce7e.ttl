@@ -23,6 +23,32 @@ SELECT
   ?track ?trackLabel
   ?event_series ?event_seriesLabel
   (CONCAT(\"#scientificeventseries/\", SUBSTR(STR(?event_series), 32)) AS ?event_seriesUrl)
+
+WHERE {
+  {
+  SELECT 
+    (MAX(?submissions) AS ?max_submissions)
+    ?event_series
+    ?track
+  WHERE {
+    ?event_series wdt:P31 / wdt:P279* wd:Q125391566 .
+    ?event wdt:P179 ?event_series ;
+           p:P12655 ?submissions_statement .
+    ?submissions_statement ps:P12655 ?submissions .
+    OPTIONAL { ?submissions_statement pq:P518 ?track_ . }
+    BIND(COALESCE(?track_, \"-\") AS ?track)
+    BIND(STR(YEAR(?datetime)) AS ?year)
+  }
+  GROUP BY ?event_series ?track
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?max_submissions)""";
+  <http://example.org/bigdata_select> """SELECT 
+  ?max_submissions
+  ?track ?trackLabel
+  ?event_series ?event_seriesLabel
+  (CONCAT(\"#scientificeventseries/\", SUBSTR(STR(?event_series), 32)) AS ?event_seriesUrl)
 WITH {
   SELECT 
     (MAX(?submissions) AS ?max_submissions)
@@ -52,32 +78,6 @@ PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT 
-  ?max_submissions
-  ?track ?trackLabel
-  ?event_series ?event_seriesLabel
-  (CONCAT(\"#scientificeventseries/\", SUBSTR(STR(?event_series), 32)) AS ?event_seriesUrl)
-
-WHERE {
-  {
-  SELECT 
-    (MAX(?submissions) AS ?max_submissions)
-    ?event_series
-    ?track
-  WHERE {
-    ?event_series wdt:P31 / wdt:P279* wd:Q125391566 .
-    ?event wdt:P179 ?event_series ;
-           p:P12655 ?submissions_statement .
-    ?submissions_statement ps:P12655 ?submissions .
-    OPTIONAL { ?submissions_statement pq:P518 ?track_ . }
-    BIND(COALESCE(?track_, \"-\") AS ?track)
-    BIND(STR(YEAR(?datetime)) AS ?year)
-  }
-  GROUP BY ?event_series ?track
-}
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-ORDER BY DESC(?max_submissions)""";
-  <http://example.org/bigdata_select> """SELECT 
   ?max_submissions
   ?track ?trackLabel
   ?event_series ?event_seriesLabel

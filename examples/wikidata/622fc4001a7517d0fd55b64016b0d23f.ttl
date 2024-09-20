@@ -29,6 +29,73 @@ PREFIX aat: <http://vocab.getty.edu/aat/>
 
 SELECT DISTINCT
 ?item ?itemLabel ?wdObject ?wdObjectLabel ?gettyHumanURI ?gettySubjectTerm ?gettyObject ?gettyObjectTerm ?QSlink # TODO: needs to be tested
+  
+
+  # now see what Getty says to those statements
+  WHERE { { SELECT ?item ?gettyHumanURI ?gettySubjectTerm ?wdObject ?gettyObject ?gettyObjectTerm ?gettyID
+  WHERE {
+    ?item wdt:P245 ?gettyID .
+    
+    ?item p:P26 ?statement .
+    ?statement ps:P26 ?wdObject .
+    FILTER NOT EXISTS { ?statement prov:wasDerivedFrom ?wdRef . }
+    FILTER NOT EXISTS { ?statement ?someQualProp [] .
+                        [] wikibase:qualifier ?someQualProp . }
+  } LIMIT 1000 }
+  BIND(URI(CONCAT(\"http://vocab.getty.edu/ulan/\", ?gettyID)) AS ?gettySubject)
+  BIND(URI(CONCAT(\"http://vocab.getty.edu/page/ulan/\", ?gettyID)) AS ?gettyHumanURI)
+  SERVICE <http://vocab.getty.edu/sparql.json> {
+    ?gettySubject gvp:ulan1541_spouse_of ?gettyObject .  \\u0023
+    { SELECT ?gettyModified WHERE {
+      ?gettySubject dct:modified ?gettyModified .
+      } ORDER BY DESC(?gettyModified) LIMIT 1
+    }\\u0023
+    OPTIONAL { ?gettySubject gvp:prefLabelGVP/xl:literalForm ?gettySubjectTerm. }
+    OPTIONAL { ?gettyObject gvp:prefLabelGVP/xl:literalForm ?gettyObjectTerm. }
+  
+  }
+  ?wdObject wdt:P245 ?ulanID . FILTER(URI(CONCAT(\"http://vocab.getty.edu/ulan/\", ?ulanID)) = ?gettyObject)\\u0023
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".}\\u0023
+  # formatting
+  BIND(SUBSTR(STR(?item), 32) AS ?qid)
+  BIND(SUBSTR(STR(?wdObject), 32) AS ?P26)
+  BIND(\"Q2494649\" AS ?S248)
+  BIND(CONCAT(\"\"\", ?gettyID, \"\"\") AS ?s245)
+  # \"publication date\" (P577)
+  BIND(CONCAT(\"+\", SUBSTR(STR(?gettyModified),1,10), \"T00:00:00Z/11\") AS ?s577)
+  # \"retrieved\" (P813)
+  BIND(CONCAT(\"+\", SUBSTR(STR(NOW()),1,10), \"T00:00:00Z/11\") AS ?s813)\\u0023
+  # String variables QuickStatements version 1 format
+  BIND(\"P26\" AS ?wdPropPid)    
+  BIND(\"S248\" as ?S248str)
+  BIND(\"S245\" as ?S245str)
+  BIND(\"S577\" as ?S577str)
+  BIND(\"S813\" as ?S813str)\\u0023
+  BIND(\"/*add first reference from [[Q2494649]]. Documentation at [[WD:WPVA/Getty]]. Please report any issues e.g. at [[WT:WPVA/Getty]]! */\" AS ?comment)\\u0023
+  # Produce QuickStatements version 1 links
+  # cf. <https://www.wikidata.org/wiki/Help:QuickStatements#Running_QuickStatements_through_URL>:
+  BIND(URI(CONCAT(\"https://quickstatements.toolforge.org/index_old.html#v1=\",
+                  ?qid, \"%09\", ?wdPropPid, \"%09\", ?P26, \"%09\", ?S248str, \"%09\", ?S248,
+                  \"%09\", ?S245str,
+                  \"%09\", ?s245,
+                  \"%09\", ?S577str, \"%09\", ?s577,
+                  \"%09\", ?S813str, \"%09\", ?s813,
+                  ?comment)) AS ?QSlink)
+  BIND(CONCAT(\"[\", STR(?gettyHumanURI), \" \", ?gettyID, \"]\") AS ?gettyLink)
+  BIND(CONCAT(\"[\", STR(?gettyObject), \"]\") AS ?gettyObjectLink)
+}
+ORDER BY xsd:integer(SUBSTR(STR(?qid),2))
+# LIMIT 500 # I think this isn't needed""";
+  <http://example.org/bigdata_select> """# property P26 statements without any reference
+# with information in ULAN of the Getty Vocabulary Program (GVP)
+# output: a human-readable table that allows visual checking of the data of Wikidata and the GVP
+
+PREFIX xl: <http://www.w3.org/2008/05/skos-xl#>
+PREFIX gvp: <http://vocab.getty.edu/ontology#>
+PREFIX aat: <http://vocab.getty.edu/aat/>
+
+SELECT DISTINCT
+?item ?itemLabel ?wdObject ?wdObjectLabel ?gettyHumanURI ?gettySubjectTerm ?gettyObject ?gettyObjectTerm ?QSlink # TODO: needs to be tested
   WITH { SELECT ?item ?gettyHumanURI ?gettySubjectTerm ?wdObject ?gettyObject ?gettyObjectTerm ?gettyID
   WHERE {
     ?item wdt:P245 ?gettyID .
@@ -95,73 +162,6 @@ PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX dct: <http://purl.org/dc/terms/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 # property P26 statements without any reference
-# with information in ULAN of the Getty Vocabulary Program (GVP)
-# output: a human-readable table that allows visual checking of the data of Wikidata and the GVP
-
-PREFIX xl: <http://www.w3.org/2008/05/skos-xl#>
-PREFIX gvp: <http://vocab.getty.edu/ontology#>
-PREFIX aat: <http://vocab.getty.edu/aat/>
-
-SELECT DISTINCT
-?item ?itemLabel ?wdObject ?wdObjectLabel ?gettyHumanURI ?gettySubjectTerm ?gettyObject ?gettyObjectTerm ?QSlink # TODO: needs to be tested
-  
-
-  # now see what Getty says to those statements
-  WHERE { { SELECT ?item ?gettyHumanURI ?gettySubjectTerm ?wdObject ?gettyObject ?gettyObjectTerm ?gettyID
-  WHERE {
-    ?item wdt:P245 ?gettyID .
-    
-    ?item p:P26 ?statement .
-    ?statement ps:P26 ?wdObject .
-    FILTER NOT EXISTS { ?statement prov:wasDerivedFrom ?wdRef . }
-    FILTER NOT EXISTS { ?statement ?someQualProp [] .
-                        [] wikibase:qualifier ?someQualProp . }
-  } LIMIT 1000 }
-  BIND(URI(CONCAT(\"http://vocab.getty.edu/ulan/\", ?gettyID)) AS ?gettySubject)
-  BIND(URI(CONCAT(\"http://vocab.getty.edu/page/ulan/\", ?gettyID)) AS ?gettyHumanURI)
-  SERVICE <http://vocab.getty.edu/sparql.json> {
-    ?gettySubject gvp:ulan1541_spouse_of ?gettyObject .  \\u0023
-    { SELECT ?gettyModified WHERE {
-      ?gettySubject dct:modified ?gettyModified .
-      } ORDER BY DESC(?gettyModified) LIMIT 1
-    }\\u0023
-    OPTIONAL { ?gettySubject gvp:prefLabelGVP/xl:literalForm ?gettySubjectTerm. }
-    OPTIONAL { ?gettyObject gvp:prefLabelGVP/xl:literalForm ?gettyObjectTerm. }
-  
-  }
-  ?wdObject wdt:P245 ?ulanID . FILTER(URI(CONCAT(\"http://vocab.getty.edu/ulan/\", ?ulanID)) = ?gettyObject)\\u0023
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".}\\u0023
-  # formatting
-  BIND(SUBSTR(STR(?item), 32) AS ?qid)
-  BIND(SUBSTR(STR(?wdObject), 32) AS ?P26)
-  BIND(\"Q2494649\" AS ?S248)
-  BIND(CONCAT(\"\"\", ?gettyID, \"\"\") AS ?s245)
-  # \"publication date\" (P577)
-  BIND(CONCAT(\"+\", SUBSTR(STR(?gettyModified),1,10), \"T00:00:00Z/11\") AS ?s577)
-  # \"retrieved\" (P813)
-  BIND(CONCAT(\"+\", SUBSTR(STR(NOW()),1,10), \"T00:00:00Z/11\") AS ?s813)\\u0023
-  # String variables QuickStatements version 1 format
-  BIND(\"P26\" AS ?wdPropPid)    
-  BIND(\"S248\" as ?S248str)
-  BIND(\"S245\" as ?S245str)
-  BIND(\"S577\" as ?S577str)
-  BIND(\"S813\" as ?S813str)\\u0023
-  BIND(\"/*add first reference from [[Q2494649]]. Documentation at [[WD:WPVA/Getty]]. Please report any issues e.g. at [[WT:WPVA/Getty]]! */\" AS ?comment)\\u0023
-  # Produce QuickStatements version 1 links
-  # cf. <https://www.wikidata.org/wiki/Help:QuickStatements#Running_QuickStatements_through_URL>:
-  BIND(URI(CONCAT(\"https://quickstatements.toolforge.org/index_old.html#v1=\",
-                  ?qid, \"%09\", ?wdPropPid, \"%09\", ?P26, \"%09\", ?S248str, \"%09\", ?S248,
-                  \"%09\", ?S245str,
-                  \"%09\", ?s245,
-                  \"%09\", ?S577str, \"%09\", ?s577,
-                  \"%09\", ?S813str, \"%09\", ?s813,
-                  ?comment)) AS ?QSlink)
-  BIND(CONCAT(\"[\", STR(?gettyHumanURI), \" \", ?gettyID, \"]\") AS ?gettyLink)
-  BIND(CONCAT(\"[\", STR(?gettyObject), \"]\") AS ?gettyObjectLink)
-}
-ORDER BY xsd:integer(SUBSTR(STR(?qid),2))
-# LIMIT 500 # I think this isn't needed""";
-  <http://example.org/bigdata_select> """# property P26 statements without any reference
 # with information in ULAN of the Getty Vocabulary Program (GVP)
 # output: a human-readable table that allows visual checking of the data of Wikidata and the GVP
 

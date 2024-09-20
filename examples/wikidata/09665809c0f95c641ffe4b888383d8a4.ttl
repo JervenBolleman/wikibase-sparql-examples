@@ -25,6 +25,38 @@ SELECT DISTINCT
   (\"S887\" AS ?heuristic)
   (\"Q69652283\" AS ?deduced)
 
+
+WHERE {
+  {
+  SELECT (count(?work) as ?count) ?cited_work WHERE {
+    { ?work wdt:P921/wdt:P31*/wdt:P279* target: . }
+    union { ?work wdt:P921/wdt:P361+ target: . }
+    union { ?work wdt:P921/wdt:P1269+ target: . }
+    ?work wdt:P2860 ?cited_work .
+  }
+  GROUP BY ?cited_work
+  ORDER BY DESC(?count)
+  LIMIT 20000
+}
+  FILTER (?count > 20)
+  FILTER NOT EXISTS {?cited_work wdt:P921 target: }
+  ?cited_work wdt:P1476 ?title .
+  ?cited_work wdt:P2860 [wdt:P921 target: ] .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" . } 
+}
+ORDER BY DESC(?count)
+LIMIT 200""";
+  <http://example.org/bigdata_select> """#title: Works not tagged as being about the target topic but citing AND cited from works that are
+PREFIX target: <http://www.wikidata.org/entity/Q85759287>
+
+SELECT DISTINCT
+  ?cited_work ?title ?count
+  (REPLACE(STR(?cited_work), \".*Q\", \"Q\") AS ?qid) 
+  (\"P921\" AS ?property)
+  (REPLACE(STR(target:), \".*Q\", \"Q\") AS ?target) 
+  (\"S887\" AS ?heuristic)
+  (\"Q69652283\" AS ?deduced)
+
 WITH {
   SELECT (count(?work) as ?count) ?cited_work WHERE {
     { ?work wdt:P921/wdt:P31*/wdt:P279* target: . }
@@ -50,38 +82,6 @@ LIMIT 200""",
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #title: Works not tagged as being about the target topic but citing AND cited from works that are
-PREFIX target: <http://www.wikidata.org/entity/Q85759287>
-
-SELECT DISTINCT
-  ?cited_work ?title ?count
-  (REPLACE(STR(?cited_work), \".*Q\", \"Q\") AS ?qid) 
-  (\"P921\" AS ?property)
-  (REPLACE(STR(target:), \".*Q\", \"Q\") AS ?target) 
-  (\"S887\" AS ?heuristic)
-  (\"Q69652283\" AS ?deduced)
-
-
-WHERE {
-  {
-  SELECT (count(?work) as ?count) ?cited_work WHERE {
-    { ?work wdt:P921/wdt:P31*/wdt:P279* target: . }
-    union { ?work wdt:P921/wdt:P361+ target: . }
-    union { ?work wdt:P921/wdt:P1269+ target: . }
-    ?work wdt:P2860 ?cited_work .
-  }
-  GROUP BY ?cited_work
-  ORDER BY DESC(?count)
-  LIMIT 20000
-}
-  FILTER (?count > 20)
-  FILTER NOT EXISTS {?cited_work wdt:P921 target: }
-  ?cited_work wdt:P1476 ?title .
-  ?cited_work wdt:P2860 [wdt:P921 target: ] .
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" . } 
-}
-ORDER BY DESC(?count)
-LIMIT 200""";
-  <http://example.org/bigdata_select> """#title: Works not tagged as being about the target topic but citing AND cited from works that are
 PREFIX target: <http://www.wikidata.org/entity/Q85759287>
 
 SELECT DISTINCT

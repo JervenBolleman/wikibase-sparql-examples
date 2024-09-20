@@ -11,7 +11,47 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?i ?iLabel ?population ?area_sqkm ?popstatement ?date 
+WITH { SELECT ?i (MAX(?date_) as ?date) WHERE
+  {
+    {
+      SELECT DISTINCT ?e ?i ?r WHERE {
+        VALUES ?i {
+          ## Problematic entities with multiple population values
+          wd:Q884 wd:Q31057 wd:Q35555 wd:Q220982 wd:Q31063 wd:Q475038
+        }
+        OPTIONAL { ?i owl:sameAs ?r. }
+        BIND(COALESCE(?r, ?i) AS ?e)
+      } }
+      OPTIONAL {                  ## Population, if it exists
+      ?i p:P1082 ?popstatement. 
+      ?popstatement a wikibase:BestRank .
+#      ?popstatement ps:P1082 ?population .
+      ?popstatement pq:P585 ?date_ .
+      }
+   } GROUP BY ?i } as %i
+WHERE
+{
+  INCLUDE %i
+  OPTIONAL {                  ## Population, if it exists
+      ?i p:P1082 ?popstatement. 
+      ?popstatement a wikibase:BestRank .
+      ?popstatement ps:P1082 ?population .
+      ?popstatement pq:P585 ?date .  ## <<<<< The ?date must be the same as the ?date found by MAX(?date) in the first select <<<
+  }
+  OPTIONAL {                  ## Area, if it exists
+    ?i p:P2046 ?areastatement .
+    ?areastatement a wikibase:BestRank .     
+    MINUS { ?areastatement pq:P518 wd:Q187223. }     ## Filter out lagoons
+    MINUS { ?areastatement pq:P518 wd:Q9259. }       ## Filter out UNESCO sites
+    MINUS { ?areastatement pq:P518 wd:Q64364418. }   ## Filter out buffer zones
+    MINUS { ?areastatement pq:P1012 wd:Q389717. }    ## Filter out contested Islands
+    ?areastatement psn:P2046/wikibase:quantityAmount ?area_norm .
+    BIND( ROUND(?area_norm/1000000) as ?area_sqkm) . 
+  }
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} ORDER BY ASC(?iLabel)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
@@ -59,7 +99,15 @@ WHERE
   }
 SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 } ORDER BY ASC(?iLabel)""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT ?i ?iLabel ?population ?area_sqkm ?popstatement ?date 
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?i ?iLabel ?population ?area_sqkm ?popstatement ?date 
 WITH { SELECT ?i (MAX(?date_) as ?date) WHERE
   {
     {

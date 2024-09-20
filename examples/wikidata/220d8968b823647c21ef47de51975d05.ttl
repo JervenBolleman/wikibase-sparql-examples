@@ -16,7 +16,40 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?item ?type (SAMPLE (DISTINCT ?sta) as ?subtypeLabel) WITH {
+SELECT DISTINCT ?item ?type (SAMPLE (DISTINCT ?sta) as ?subtypeLabel) 
+WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en-GB,en,fr,de,es,pt,pl,nl,cs\". }
+  {
+  SELECT ?classes1 ?classes2 #?range ?props
+  WHERE {
+    VALUES ?classes1 {
+      wd:Q1785071  # fort
+    }
+    VALUES ?classes2 {
+      wd:Q91122    # bunker
+    }
+    VALUES ?range {\"15\"}
+} }
+  wd:Q1180981 wdt:P17 ?country. 
+  ?item wdt:P17 ?country.
+  {?item wdt:P31/wdt:P279* ?classes1 .} UNION 
+  {?item wdt:P31/wdt:P279* ?classes2 .}
+  { {wd:Q1180981 wdt:P625 ?loc1.} UNION 
+    {wd:Q1180981 wdt:P276 ?loc. 
+     ?loc wdt:P625 ?loc1} }  hint:Prior hint:runFirst true.
+  SERVICE wikibase:around {
+    ?item wdt:P625 ?loc2.
+    bd:serviceParam wikibase:center ?loc1.
+    bd:serviceParam wikibase:radius \"15\".
+    bd:serviceParam wikibase:distance ?dist.
+  } 
+  MINUS {VALUES ?item {wd:Q1180981} } # itself
+  OPTIONAL {?item wdt:P1448 ?labellist. FILTER (lang(?labellist) = \"mul\")} # official name
+  {SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\" . ?item rdfs:label ?label1} }
+}
+    #GROUP by ?item ?starts ?ends ?dist ?label1 ?type
+    GROUP by ?item ?type ?label1""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?type (SAMPLE (DISTINCT ?sta) as ?subtypeLabel) WITH {
   SELECT ?classes1 ?classes2 #?range ?props
   WHERE {
     VALUES ?classes1 {
@@ -54,40 +87,7 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?item ?type (SAMPLE (DISTINCT ?sta) as ?subtypeLabel) 
-WHERE {
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en-GB,en,fr,de,es,pt,pl,nl,cs\". }
-  {
-  SELECT ?classes1 ?classes2 #?range ?props
-  WHERE {
-    VALUES ?classes1 {
-      wd:Q1785071  # fort
-    }
-    VALUES ?classes2 {
-      wd:Q91122    # bunker
-    }
-    VALUES ?range {\"15\"}
-} }
-  wd:Q1180981 wdt:P17 ?country. 
-  ?item wdt:P17 ?country.
-  {?item wdt:P31/wdt:P279* ?classes1 .} UNION 
-  {?item wdt:P31/wdt:P279* ?classes2 .}
-  { {wd:Q1180981 wdt:P625 ?loc1.} UNION 
-    {wd:Q1180981 wdt:P276 ?loc. 
-     ?loc wdt:P625 ?loc1} }  hint:Prior hint:runFirst true.
-  SERVICE wikibase:around {
-    ?item wdt:P625 ?loc2.
-    bd:serviceParam wikibase:center ?loc1.
-    bd:serviceParam wikibase:radius \"15\".
-    bd:serviceParam wikibase:distance ?dist.
-  } 
-  MINUS {VALUES ?item {wd:Q1180981} } # itself
-  OPTIONAL {?item wdt:P1448 ?labellist. FILTER (lang(?labellist) = \"mul\")} # official name
-  {SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\" . ?item rdfs:label ?label1} }
-}
-    #GROUP by ?item ?starts ?ends ?dist ?label1 ?type
-    GROUP by ?item ?type ?label1""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?type (SAMPLE (DISTINCT ?sta) as ?subtypeLabel) WITH {
+SELECT DISTINCT ?item ?type (SAMPLE (DISTINCT ?sta) as ?subtypeLabel) WITH {
   SELECT ?classes1 ?classes2 #?range ?props
   WHERE {
     VALUES ?classes1 {

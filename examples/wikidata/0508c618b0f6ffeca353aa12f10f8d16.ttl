@@ -11,7 +11,38 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """SELECT ?author ?authorLabel
+WITH
+{
+  SELECT ?author
+  {
+    ?wikisource schema:about ?author ; schema:isPartOf / wikibase:wikiGroup \"wikisource\" .
+    ?author wikibase:sitelinks ?sitelinks . 
+    ?work wdt:P50 ?author .
+  }
+  GROUP BY ?author
+  HAVING (COUNT(DISTINCT ?wikisource) = SAMPLE(?sitelinks))
+} AS %1
+WITH
+{
+  SELECT ?author
+  WHERE
+  {
+    INCLUDE %1
+    FILTER EXISTS
+    {
+      ?work wdt:P50 ?author .
+      ?work wdt:P31/wdt:P279* wd:Q47461344 . # Written work exists
+      hint:Prior hint:gearing \"forward\" .
+    }
+  }
+} AS %2
+WHERE
+{
+  INCLUDE %2
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
@@ -47,7 +78,12 @@ WHERE
   INCLUDE %2
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
 }""";
-  <http://example.org/bigdata_select> """SELECT ?author ?authorLabel
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?author ?authorLabel
 WITH
 {
   SELECT ?author

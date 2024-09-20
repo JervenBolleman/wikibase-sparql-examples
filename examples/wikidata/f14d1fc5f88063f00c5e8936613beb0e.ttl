@@ -11,7 +11,36 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """PREFIX geof: <http://www.opengis.net/def/geosparql/function/>
+
+SELECT ?bookcase ?bookcaseLabel ?location1 ?library ?libraryLabel ?location2 ?distance
+WITH {
+SELECT ?bookcase ?location1 (MIN(?distance) AS ?minDistance) WHERE {
+?bookcase wdt:P31 wd:Q294297;
+wdt:P625 ?location1;
+wdt:P17 wd:Q40.
+?library wdt:P31 wd:Q28564;
+wdt:P625 ?location2;
+wdt:P17 wd:Q40.
+BIND(geof:distance(?location1, ?location2) AS ?distance)
+}
+GROUP BY ?bookcase ?location1
+} AS %bookcasesWithDistance
+WITH {
+SELECT ?bookcase ?location1 ?library ?location2 ?distance WHERE {
+INCLUDE %bookcasesWithDistance.
+?library wdt:P31 wd:Q28564;
+wdt:P625 ?location2;
+wdt:P17 wd:Q40.
+BIND(geof:distance(?location1, ?location2) AS ?distance)
+FILTER(?distance = ?minDistance)
+}
+} AS %bookcasesWithLibraries
+WHERE {
+INCLUDE %bookcasesWithLibraries.
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
@@ -44,7 +73,11 @@ WHERE {
 INCLUDE %bookcasesWithLibraries.
 SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <http://example.org/bigdata_select> """PREFIX geof: <http://www.opengis.net/def/geosparql/function/>
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX geof: <http://www.opengis.net/def/geosparql/function/>
 
 SELECT ?bookcase ?bookcaseLabel ?location1 ?library ?libraryLabel ?location2 ?distance
 WITH {

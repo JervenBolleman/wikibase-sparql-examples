@@ -24,6 +24,31 @@ SELECT
   (CONCAT(\"#podcast/\", SUBSTR(STR(?podcast), 32)) AS ?podcastUrl)
   ?podcastDescription
 
+
+WHERE {
+  {
+  SELECT 
+    (MAX(?episodes_) AS ?episodes)
+    ?podcast
+  WHERE {
+    ?podcast wdt:P31 / wdt:P279* wd:Q24634210 ;
+             wdt:P364| wdt:P407 target:
+    OPTIONAL { ?podcast wdt:P1113 ?episodes_ }
+  }
+  GROUP BY ?podcast
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?episodes)""";
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q9027>
+
+SELECT
+  ?episodes
+
+  ?podcast ?podcastLabel
+  (CONCAT(\"#podcast/\", SUBSTR(STR(?podcast), 32)) AS ?podcastUrl)
+  ?podcastDescription
+
 WITH {
   SELECT 
     (MAX(?episodes_) AS ?episodes)
@@ -45,31 +70,6 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX target: <http://www.wikidata.org/entity/Q9027>
-
-SELECT
-  ?episodes
-
-  ?podcast ?podcastLabel
-  (CONCAT(\"#podcast/\", SUBSTR(STR(?podcast), 32)) AS ?podcastUrl)
-  ?podcastDescription
-
-
-WHERE {
-  {
-  SELECT 
-    (MAX(?episodes_) AS ?episodes)
-    ?podcast
-  WHERE {
-    ?podcast wdt:P31 / wdt:P279* wd:Q24634210 ;
-             wdt:P364| wdt:P407 target:
-    OPTIONAL { ?podcast wdt:P1113 ?episodes_ }
-  }
-  GROUP BY ?podcast
-}
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-ORDER BY DESC(?episodes)""";
-  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q9027>
 
 SELECT
   ?episodes

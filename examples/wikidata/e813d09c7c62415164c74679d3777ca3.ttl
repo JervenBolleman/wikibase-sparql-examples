@@ -12,7 +12,25 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+  <http://example.org/bigdata_select> """SELECT ?precision ?precisionLabel ?prec ?sample ?sampleLabel ?date
+WITH
+{
+    SELECT ?prec (SAMPLE(?item) as ?sample)
+    {
+        ?item p:P585/psv:P585/wikibase:timePrecision ?prec
+    }
+    GROUP BY ?prec
+}  as %inc
+WHERE      
+{
+    INCLUDE %inc 
+    ?precision wdt:P2803 ?pr .
+    ?sample wdt:P585 ?date
+    FILTER(?prec = xsd:integer(?pr) )
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,it,fr,ro\". }
+}          
+ORDER BY DESC(?prec)""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
@@ -36,7 +54,13 @@ WHERE
     SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,it,fr,ro\". }
 }          
 ORDER BY DESC(?prec)""";
-  <http://example.org/bigdata_select> """SELECT ?precision ?precisionLabel ?prec ?sample ?sampleLabel ?date
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?precision ?precisionLabel ?prec ?sample ?sampleLabel ?date
 WITH
 {
     SELECT ?prec (SAMPLE(?item) as ?sample)

@@ -11,7 +11,22 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """# Articles that have volume set as a qualifier of the published in statement
+SELECT DISTINCT ?article ?articleLabel ?publishedinLabel ?volume WITH { 
+  SELECT ?article WHERE {
+  ?article p:P1433/pq:P478 ?volume .
+} } as %i
+WHERE
+{
+  INCLUDE %i
+  ?article p:P1433 ?statement .
+  ?statement ps:P1433 ?publishedin .
+  ?statement pq:P478 ?volume .
+  ?article wdt:P31/wdt:P279* wd:Q191067 .  # instance or subclass of article
+  hint:Prior hint:gearing \"forward\".
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
@@ -33,7 +48,14 @@ WHERE
   hint:Prior hint:gearing \"forward\".
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <http://example.org/bigdata_select> """# Articles that have volume set as a qualifier of the published in statement
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Articles that have volume set as a qualifier of the published in statement
 SELECT DISTINCT ?article ?articleLabel ?publishedinLabel ?volume WITH { 
   SELECT ?article WHERE {
   ?article p:P1433/pq:P478 ?volume .

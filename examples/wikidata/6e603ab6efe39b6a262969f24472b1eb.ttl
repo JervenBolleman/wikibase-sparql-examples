@@ -11,7 +11,23 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """#title:Number of statements by property for things (ex. albums)
+SELECT ?property ?propertyLabel ?count ?type WITH {
+  SELECT ?property (count(?property) as ?count)
+WHERE 
+{
+  ?item wdt:P31 wd:Q482994.      # the thing you're interested in. \"albums\" (Q482994) in this example
+  hint:Prior hint:runFirst true.
+  ?item ?predicate [].
+  ?property wikibase:directClaim ?predicate .
+} group by ?property ?propertyLabel } as %i
+WHERE
+{
+  INCLUDE %i.
+  ?property wikibase:propertyType ?type.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
@@ -31,7 +47,11 @@ WHERE
   ?property wikibase:propertyType ?type.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 } ORDER BY DESC(?count)""";
-  <http://example.org/bigdata_select> """#title:Number of statements by property for things (ex. albums)
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#title:Number of statements by property for things (ex. albums)
 SELECT ?property ?propertyLabel ?count ?type WITH {
   SELECT ?property (count(?property) as ?count)
 WHERE 

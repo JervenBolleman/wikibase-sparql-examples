@@ -11,7 +11,43 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+  <http://example.org/bigdata_select> """SELECT ?partner_count (SAMPLE(?female_) AS ?female) (SAMPLE(?male_) AS ?male)
+
+WITH {
+  SELECT ?item ?p
+WHERE 
+{
+ ?item wdt:P451 ?p. hint:Prior hint:runFirst true.
+ ?item wdt:P106/wdt:P279* wd:Q108289408 . 
+hint:Prior hint:gearing \"forward\".  
+} } as %t
+
+WITH {
+SELECT ?partner_count  (count(?partner_count) as ?female_) WHERE {  
+  SELECT ?item ?g (count(?p) as ?partner_count) WHERE 
+  {
+    VALUES ?g {wd:Q6581072}
+    INCLUDE %t
+    ?item wdt:P21 ?g.  
+  } group by ?item ?g } group by ?partner_count ?g } as %i
+
+WITH {
+SELECT ?partner_count  (count(?partner_count) as ?male_) WHERE {  
+  SELECT ?item ?g (count(?p) as ?partner_count) 
+  WHERE  
+  {
+    VALUES ?g {wd:Q6581097}
+    INCLUDE %t
+    ?item wdt:P21 ?g.  
+  } group by ?item ?g } group by ?partner_count ?g } as %j
+
+WHERE
+{
+  { INCLUDE %i }    
+  UNION
+  { INCLUDE %j }
+} group by ?partner_count order by desc (?partner_count)""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 SELECT ?partner_count (SAMPLE(?female_) AS ?female) (SAMPLE(?male_) AS ?male)
 
@@ -49,7 +85,9 @@ WHERE
   UNION
   { INCLUDE %j }
 } group by ?partner_count order by desc (?partner_count)""";
-  <http://example.org/bigdata_select> """SELECT ?partner_count (SAMPLE(?female_) AS ?female) (SAMPLE(?male_) AS ?male)
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT ?partner_count (SAMPLE(?female_) AS ?female) (SAMPLE(?male_) AS ?male)
 
 WITH {
   SELECT ?item ?p

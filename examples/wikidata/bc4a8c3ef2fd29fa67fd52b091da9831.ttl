@@ -11,7 +11,58 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel 
+(sample(?mass_) as ?mass) (sample(?mass_unitLabel) as ?massUnitLabel) 
+(sample(?constellation_) as ?constellation) (sample(?constellation_Label) as ?constellationLabel)  
+(sample(?PM_) as ?PM) (sample(?PM_unitLabel) as ?PMUnitLabel) 
+(sample(?Rad_Vel_) as ?Rad_Vel) (sample(?Rad_Vel_unitLabel) as ?Rad_VelUnitLabel) 
+(sample(?SC_) as ?SC) (sample(?SC_unitLabel) as ?SCUnitLabel) 
+(sample(?lumin_) as ?lumin) (sample(?lumin_unitLabel) as ?luminUnitLabel) 
+(sample(?metal_) as ?metal) (sample(?metal_unitLabel) as ?metalUnitLabel) 
+(sample(?parallax_) as ?parallax) (sample(?parallax_unitLabel) as ?parallaxUnitLabel) 
+(sample(?LY_) as ?LY) 
+(sample(?RA_) as ?RA) (sample(?RA_unitLabel) as ?RAUnitLabel) 
+(sample(?declination_) as ?declination) (sample(?declination_unitLabel) as ?declinationUnitLabel) 
+(sample(?Eff_Temp_) as ?Eff_Temp) (sample(?Eff_Temp_unitLabel) as ?Eff_TempUnitLabel) 
+(sample(?SIMBAD_) as ?SIMBAD) WITH {
+  SELECT ?item WHERE 
+{
+  ?item wdt:P31 wd:Q523 .
+  } LIMIT 100000 } as %i
+WHERE
+{
+  INCLUDE %i
+  OPTIONAL {?item wdt:P59 ?constellation_. }
+  OPTIONAL {?item wdt:P2214 ?parallax_. }
+  OPTIONAL {?item p:P2583/psn:P2583 ?stat .
+            ?stat wikibase:quantityAmount ?dist_to_earth. 
+           BIND((?dist_to_earth * 0.00000000000000010570) as ?LY_)}
+  OPTIONAL {?item p:P2067/psn:P2067 [wikibase:quantityAmount ?mass_ ; wikibase:quantityUnit ?mass_unit] . }
+  OPTIONAL {?item p:P2215/psn:P2215 [wikibase:quantityAmount ?PM_ ; wikibase:quantityUnit ?PM_unit] . }
+  OPTIONAL {?item p:P2216/psn:P2216 [wikibase:quantityAmount ?Rad_Vel_ ; wikibase:quantityUnit ?Rad_Vel_unit] . }
+  OPTIONAL {?item p:P215/psn:P215   [wikibase:quantityAmount ?SC_ ; wikibase:quantityUnit ?SC_unit] . }
+  OPTIONAL {?item p:P2060/psn:P2060 [wikibase:quantityAmount ?lumin_ ; wikibase:quantityUnit ?lumin_unit] . }
+  OPTIONAL {?item p:P2227/psn:P2227 [wikibase:quantityAmount ?metal_ ; wikibase:quantityUnit ?metal_unit] . }
+  OPTIONAL {?item p:P6257/psn:P6257 [wikibase:quantityAmount ?RA_ ; wikibase:quantityUnit ?RA_unit] . }
+  OPTIONAL {?item p:P6258/psn:P6258 [wikibase:quantityAmount ?declination_ ; wikibase:quantityUnit ?declination_unit] . }
+  OPTIONAL {?item p:P6879/psn:P6879 [wikibase:quantityAmount ?Eff_Temp_ ; wikibase:quantityUnit ?Eff_Temp_unit] . }
+  OPTIONAL {?item wdt:P3083 ?SIMBAD_. }
+  filter(?LY_ <30|| ?parallax_ > 100)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+                           ?constellation_ rdfs:label ?constellation_Label.
+                           ?item rdfs:label ?itemLabel .
+                           ?mass_unit rdfs:label ?mass_unitLabel .
+                           ?PM_unit rdfs:label ?PM_unitLabel .
+                           ?Rad_Vel_unit rdfs:label ?Rad_Vel_unitLabel .
+                           ?SC_unit rdfs:label ?SC_unitLabel .
+                           ?lumin_unit rdfs:label ?lumin_unitLabel .
+                           ?metal_unit rdfs:label ?metal_unitLabel .
+                           ?RA_unit rdfs:label ?RA_unitLabel .
+                           ?declination_unit rdfs:label ?declination_unitLabel .
+                           ?Eff_Temp_unit rdfs:label ?Eff_Temp_unitLabel .
+                         }
+} group by ?item ?itemLabel""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -69,7 +120,14 @@ WHERE
                            ?Eff_Temp_unit rdfs:label ?Eff_Temp_unitLabel .
                          }
 } group by ?item ?itemLabel""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel 
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel 
 (sample(?mass_) as ?mass) (sample(?mass_unitLabel) as ?massUnitLabel) 
 (sample(?constellation_) as ?constellation) (sample(?constellation_Label) as ?constellationLabel)  
 (sample(?PM_) as ?PM) (sample(?PM_unitLabel) as ?PMUnitLabel) 

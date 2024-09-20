@@ -14,7 +14,22 @@
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel (COUNT(?id) AS ?count_of_external_identifiers) WITH {
+SELECT ?item ?itemLabel (COUNT(?id) AS ?count_of_external_identifiers)  WHERE {
+  {
+SELECT ?item {
+  ?item wdt:P6039 [] .
+}
+OFFSET 50000
+LIMIT 10000
+}
+  OPTIONAL { ?item ?id ?value .
+  ?p wikibase:directClaim ?id .
+  ?p wikibase:propertyType wikibase:ExternalId
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+GROUP BY ?item ?itemLabel""";
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel (COUNT(?id) AS ?count_of_external_identifiers) WITH {
 SELECT ?item {
   ?item wdt:P6039 [] .
 }
@@ -32,22 +47,7 @@ GROUP BY ?item ?itemLabel""",
     """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel (COUNT(?id) AS ?count_of_external_identifiers)  WHERE {
-  {
-SELECT ?item {
-  ?item wdt:P6039 [] .
-}
-OFFSET 50000
-LIMIT 10000
-}
-  OPTIONAL { ?item ?id ?value .
-  ?p wikibase:directClaim ?id .
-  ?p wikibase:propertyType wikibase:ExternalId
-  }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
-}
-GROUP BY ?item ?itemLabel""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel (COUNT(?id) AS ?count_of_external_identifiers) WITH {
+SELECT ?item ?itemLabel (COUNT(?id) AS ?count_of_external_identifiers) WITH {
 SELECT ?item {
   ?item wdt:P6039 [] .
 }

@@ -11,7 +11,71 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?player ?playerLabel ?place ?placeLabel ?location ?dist
+WITH
+{
+  SELECT ?place ?location ?loc 
+  WHERE
+  {
+    wd:Q25444 wdt:P625 ?loc .
+    SERVICE wikibase:around
+    {
+      ?place wdt:P625 ?location .
+      bd:serviceParam wikibase:center ?loc .
+      bd:serviceParam wikibase:radius \"100\" .
+    }
+  }
+}
+AS %find_possible_locations
+WHERE
+{
+  INCLUDE %find_possible_locations
+  ?player wdt:P31 wd:Q5 .
+  ?player wdt:P106 wd:Q937857 .
+  ?player wdt:P413 wd:Q193592 .
+  ?player wdt:P19 ?place .
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+  BIND(geof:distance(?loc, ?location) as ?dist)
+}
+ORDER BY ?dist""",
+    """PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?player ?playerLabel ?place ?placeLabel ?location ?dist
+
+WHERE
+{
+  {
+  SELECT ?place ?location ?loc 
+  WHERE
+  {
+    wd:Q25444 wdt:P625 ?loc .
+    SERVICE wikibase:around
+    {
+      ?place wdt:P625 ?location .
+      bd:serviceParam wikibase:center ?loc .
+      bd:serviceParam wikibase:radius \"100\" .
+    }
+  }
+}
+  ?player wdt:P31 wd:Q5 .
+  ?player wdt:P106 wd:Q937857 .
+  ?player wdt:P413 wd:Q193592 .
+  ?player wdt:P19 ?place .
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+  BIND(geof:distance(?loc, ?location) as ?dist)
+}
+ORDER BY ?dist""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>

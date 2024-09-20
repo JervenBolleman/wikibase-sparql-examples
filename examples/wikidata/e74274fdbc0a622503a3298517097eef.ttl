@@ -17,7 +17,33 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX p: <http://www.wikidata.org/prop/>
-SELECT DISTINCT * WITH {
+SELECT DISTINCT *  WITH {
+  SELECT DISTINCT ?painter (?description AS ?description2) WHERE {
+    ?painter wdt:P106 wd:Q1028181 .
+    ?painting wdt:P170 ?painter; wdt:P195/wdt:P17 wd:Q55 .
+    {
+      ?painter rdfs:label ?painterLabel .
+      FILTER( LANG( ?painterLabel ) = 'en' ) .
+    } UNION {
+      ?painter skos:altLabel ?painterLabel .
+      FILTER( LANG( ?painterLabel ) = 'en' ) .
+    } .
+    BIND( REPLACE( STR( ?painterLabel ), '^(.)[^\\\\s]+\\\\s(.+)$', 'painting by $1. $2' ) AS ?description ) .
+    FILTER( REGEX( ?description, '^painting by .+' ) ) .
+  } 
+} AS %painters WHERE {
+  {
+  SELECT DISTINCT ?item (STR(?description) AS ?description1) WHERE {
+    ?item wdt:P31 wd:Q3305213 .
+    { ?item wdt:P195 wd:Q28045665 } # UNION { ?item wdt:P195 wd:Q18600731 }.
+    MINUS { ?item p:P170 [] } .
+    ?item schema:description ?description FILTER( LANG( ?description ) = 'en' ) .
+  } 
+} .
+  INCLUDE %painters .
+  FILTER( ?description1 = ?description2 ) .
+} LIMIT 150""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT * WITH {
   SELECT DISTINCT ?item (STR(?description) AS ?description1) WHERE {
     ?item wdt:P31 wd:Q3305213 .
     { ?item wdt:P195 wd:Q28045665 } # UNION { ?item wdt:P195 wd:Q18600731 }.
@@ -49,33 +75,7 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX p: <http://www.wikidata.org/prop/>
-SELECT DISTINCT *  WITH {
-  SELECT DISTINCT ?painter (?description AS ?description2) WHERE {
-    ?painter wdt:P106 wd:Q1028181 .
-    ?painting wdt:P170 ?painter; wdt:P195/wdt:P17 wd:Q55 .
-    {
-      ?painter rdfs:label ?painterLabel .
-      FILTER( LANG( ?painterLabel ) = 'en' ) .
-    } UNION {
-      ?painter skos:altLabel ?painterLabel .
-      FILTER( LANG( ?painterLabel ) = 'en' ) .
-    } .
-    BIND( REPLACE( STR( ?painterLabel ), '^(.)[^\\\\s]+\\\\s(.+)$', 'painting by $1. $2' ) AS ?description ) .
-    FILTER( REGEX( ?description, '^painting by .+' ) ) .
-  } 
-} AS %painters WHERE {
-  {
-  SELECT DISTINCT ?item (STR(?description) AS ?description1) WHERE {
-    ?item wdt:P31 wd:Q3305213 .
-    { ?item wdt:P195 wd:Q28045665 } # UNION { ?item wdt:P195 wd:Q18600731 }.
-    MINUS { ?item p:P170 [] } .
-    ?item schema:description ?description FILTER( LANG( ?description ) = 'en' ) .
-  } 
-} .
-  INCLUDE %painters .
-  FILTER( ?description1 = ?description2 ) .
-} LIMIT 150""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT * WITH {
+SELECT DISTINCT * WITH {
   SELECT DISTINCT ?item (STR(?description) AS ?description1) WHERE {
     ?item wdt:P31 wd:Q3305213 .
     { ?item wdt:P195 wd:Q28045665 } # UNION { ?item wdt:P195 wd:Q18600731 }.

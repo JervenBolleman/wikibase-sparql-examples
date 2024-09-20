@@ -23,6 +23,34 @@ SELECT
     ?count 
     ?SamplePaper ?SamplePaperLabel
     (CONCAT('https://scholia.toolforge.org/topics/Q42985020,Q183368,', ENCODE_FOR_URI(REPLACE(STR(?topic), \".*Q\", \"Q\"))) AS ?curation_url ) 
+
+WHERE {
+  {
+  SELECT 
+  ?topic
+  (COUNT(?paper_) AS ?count)
+  (SAMPLE(?paper_) AS ?SamplePaper)
+  {
+    ?paper_ wdt:P6104 wd:Q56241615 ;
+            wdt:P921 ?topic .
+  }
+  GROUP BY ?topic ?count ?SamplePaper
+}
+  { ?topic wdt:P235 ?InChIKey .}
+  UNION
+  { ?topic wdt:P683 ?ChEBI .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?topic ?topicLabel ?count ?SamplePaper ?SamplePaperLabel ?curation_url 
+ORDER BY DESC(?count)""";
+  <http://example.org/bigdata_select> """#title: Chemicals associated with the invasion biology literature
+
+SELECT 
+  DISTINCT 
+    ?topic ?topicLabel 
+    ?count 
+    ?SamplePaper ?SamplePaperLabel
+    (CONCAT('https://scholia.toolforge.org/topics/Q42985020,Q183368,', ENCODE_FOR_URI(REPLACE(STR(?topic), \".*Q\", \"Q\"))) AS ?curation_url ) 
 WITH {
   SELECT 
   ?topic
@@ -49,34 +77,6 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #title: Chemicals associated with the invasion biology literature
-
-SELECT 
-  DISTINCT 
-    ?topic ?topicLabel 
-    ?count 
-    ?SamplePaper ?SamplePaperLabel
-    (CONCAT('https://scholia.toolforge.org/topics/Q42985020,Q183368,', ENCODE_FOR_URI(REPLACE(STR(?topic), \".*Q\", \"Q\"))) AS ?curation_url ) 
-
-WHERE {
-  {
-  SELECT 
-  ?topic
-  (COUNT(?paper_) AS ?count)
-  (SAMPLE(?paper_) AS ?SamplePaper)
-  {
-    ?paper_ wdt:P6104 wd:Q56241615 ;
-            wdt:P921 ?topic .
-  }
-  GROUP BY ?topic ?count ?SamplePaper
-}
-  { ?topic wdt:P235 ?InChIKey .}
-  UNION
-  { ?topic wdt:P683 ?ChEBI .}
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-GROUP BY ?topic ?topicLabel ?count ?SamplePaper ?SamplePaperLabel ?curation_url 
-ORDER BY DESC(?count)""";
-  <http://example.org/bigdata_select> """#title: Chemicals associated with the invasion biology literature
 
 SELECT 
   DISTINCT 

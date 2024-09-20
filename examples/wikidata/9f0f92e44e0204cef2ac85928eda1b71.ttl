@@ -21,6 +21,46 @@ PREFIX p: <http://www.wikidata.org/prop/>
 
 #defaultView:LineChart
 SELECT ?date (COUNT(DISTINCT ?item) AS ?count)
+
+WHERE {
+  # inject the current time as another date, so that the chart continues until the present day
+  { {
+  # get all the dates where the number of living people who have walked on the moon changed
+  # (person walked on the moon or person died)
+  SELECT DISTINCT ?date WHERE {
+    {
+      # person walked on the moon
+      ?item p:P793 [
+        ps:P793 wd:Q42882411;
+        pq:P580 ?date_
+      ].
+    } UNION {
+      # person died
+      ?item p:P793/ps:P793 wd:Q42882411;
+            wdt:P570 ?date_.
+    }
+    # for each date, inject a second date, one day before,
+    # so that we get a straight line until that date and then a steep climb/drop for the real change,
+    # instead of a diagonal slope over the entire preceding period
+    VALUES ?toggle { true false }
+    BIND(IF(?toggle, ?date_, ?date_ - \"P1D\"^^xsd:duration) AS ?date)
+  }
+}. } UNION { BIND(NOW() AS ?date) }
+  # main query: find all living people who have walked on the moon at each date
+  ?item p:P793 [
+    ps:P793 wd:Q42882411;
+    pq:P580 ?walkdate
+  ].
+  FILTER(?date >= ?walkdate) # must have walked on the moon already
+  OPTIONAL { ?item wdt:P570 ?died. }
+  FILTER(!BOUND(?died)|| ?date < ?died) # must not yet have died
+}
+GROUP BY ?date
+ORDER BY ?date""";
+  <http://example.org/bigdata_select> """# number of living people who have walked on the moon, over time
+
+#defaultView:LineChart
+SELECT ?date (COUNT(DISTINCT ?item) AS ?count)
 WITH {
   # get all the dates where the number of living people who have walked on the moon changed
   # (person walked on the moon or person died)
@@ -64,46 +104,6 @@ PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 # number of living people who have walked on the moon, over time
-
-#defaultView:LineChart
-SELECT ?date (COUNT(DISTINCT ?item) AS ?count)
-
-WHERE {
-  # inject the current time as another date, so that the chart continues until the present day
-  { {
-  # get all the dates where the number of living people who have walked on the moon changed
-  # (person walked on the moon or person died)
-  SELECT DISTINCT ?date WHERE {
-    {
-      # person walked on the moon
-      ?item p:P793 [
-        ps:P793 wd:Q42882411;
-        pq:P580 ?date_
-      ].
-    } UNION {
-      # person died
-      ?item p:P793/ps:P793 wd:Q42882411;
-            wdt:P570 ?date_.
-    }
-    # for each date, inject a second date, one day before,
-    # so that we get a straight line until that date and then a steep climb/drop for the real change,
-    # instead of a diagonal slope over the entire preceding period
-    VALUES ?toggle { true false }
-    BIND(IF(?toggle, ?date_, ?date_ - \"P1D\"^^xsd:duration) AS ?date)
-  }
-}. } UNION { BIND(NOW() AS ?date) }
-  # main query: find all living people who have walked on the moon at each date
-  ?item p:P793 [
-    ps:P793 wd:Q42882411;
-    pq:P580 ?walkdate
-  ].
-  FILTER(?date >= ?walkdate) # must have walked on the moon already
-  OPTIONAL { ?item wdt:P570 ?died. }
-  FILTER(!BOUND(?died)|| ?date < ?died) # must not yet have died
-}
-GROUP BY ?date
-ORDER BY ?date""";
-  <http://example.org/bigdata_select> """# number of living people who have walked on the moon, over time
 
 #defaultView:LineChart
 SELECT ?date (COUNT(DISTINCT ?item) AS ?count)

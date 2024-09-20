@@ -19,6 +19,28 @@ PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 SELECT DISTINCT ?item ?id ?name
+  
+  WHERE {
+    {
+    # members can have more than one official ID, so take the highest one
+    SELECT ?item (MAX(xsd:integer(?parliamentID)) AS ?id) WHERE { 
+      ?item p:P39 ?ps ; wdt:P5213 ?parliamentID .
+      ?ps ps:P39 wd:Q17277248 ; pq:P2937 wd:Q61165268 .
+      FILTER NOT EXISTS { ?ps pq:P582 [] }  
+      ?item wdt:P5213 ?parliamentID .
+    }
+    GROUP BY ?item
+  } .
+    ?item p:P5213 ?idstatement .
+    ?idstatement ps:P5213 ?id2 .
+    # we only want to get the name associated with the latest ID
+    FILTER (xsd:integer(?id2) = ?id)
+    OPTIONAL { ?idstatement pq:P1810 ?namedAs }
+    # Their on-wiki label as a fall-back if no \"named as\"
+    OPTIONAL { ?item rdfs:label ?enLabel FILTER(LANG(?enLabel) = \"en\") }
+    BIND(COALESCE(?namedAs, ?enLabel) AS ?name)
+  }""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?id ?name
   WITH {
     # members can have more than one official ID, so take the highest one
     SELECT ?item (MAX(xsd:integer(?parliamentID)) AS ?id) WHERE { 
@@ -48,28 +70,6 @@ PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 SELECT DISTINCT ?item ?id ?name
-  
-  WHERE {
-    {
-    # members can have more than one official ID, so take the highest one
-    SELECT ?item (MAX(xsd:integer(?parliamentID)) AS ?id) WHERE { 
-      ?item p:P39 ?ps ; wdt:P5213 ?parliamentID .
-      ?ps ps:P39 wd:Q17277248 ; pq:P2937 wd:Q61165268 .
-      FILTER NOT EXISTS { ?ps pq:P582 [] }  
-      ?item wdt:P5213 ?parliamentID .
-    }
-    GROUP BY ?item
-  } .
-    ?item p:P5213 ?idstatement .
-    ?idstatement ps:P5213 ?id2 .
-    # we only want to get the name associated with the latest ID
-    FILTER (xsd:integer(?id2) = ?id)
-    OPTIONAL { ?idstatement pq:P1810 ?namedAs }
-    # Their on-wiki label as a fall-back if no \"named as\"
-    OPTIONAL { ?item rdfs:label ?enLabel FILTER(LANG(?enLabel) = \"en\") }
-    BIND(COALESCE(?namedAs, ?enLabel) AS ?name)
-  }""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?id ?name
   WITH {
     # members can have more than one official ID, so take the highest one
     SELECT ?item (MAX(xsd:integer(?parliamentID)) AS ?id) WHERE { 

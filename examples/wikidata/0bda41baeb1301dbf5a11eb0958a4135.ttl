@@ -11,7 +11,53 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """# Topics through time
+
+PREFIX target: <http://www.wikidata.org/entity/Q2128181>
+
+SELECT
+  ?year
+  ?works
+  ?topic ?topicLabel
+WITH {
+  SELECT 
+    ?work
+  WHERE {
+    ?work wdt:P1433 target: .
+  }
+} AS %works
+WITH {
+  SELECT
+    (COUNT(?work) AS ?count)
+    ?topic
+  WHERE {
+    INCLUDE %works
+    ?work wdt:P921 ?topic .
+  }
+  GROUP BY ?topic
+  ORDER BY DESC(?count)
+  LIMIT 5
+} AS %topics
+WITH {
+  SELECT
+    ?year 
+    (COUNT(?work) AS ?works)
+    ?topic
+  WHERE {
+    INCLUDE %works
+    INCLUDE %topics
+    ?work wdt:P921 ?topic ;
+          wdt:P577 ?publication_datetime .
+    BIND(STR(YEAR(?publication_datetime)) AS ?year)
+  }
+  GROUP BY ?year ?topic
+} AS %result
+WHERE {
+  INCLUDE %result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?year""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 # Topics through time
@@ -60,7 +106,10 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY ?year""";
-  <http://example.org/bigdata_select> """# Topics through time
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Topics through time
 
 PREFIX target: <http://www.wikidata.org/entity/Q2128181>
 

@@ -16,6 +16,36 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?item ?weg ?label ?description
+
+WITH {
+  SELECT ?weg (?baglabel AS ?label) {
+    SERVICE <http://lov.okfn.org/dataset/lov/sparql> {
+      SERVICE <https://data.pdok.nl/sparql> {
+        ?weg <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://bag.basisregistraties.overheid.nl/def/bag#OpenbareRuimte> .
+        ?weg <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://bag.basisregistraties.overheid.nl/def/bag#Weg> .
+        ?weg <http://bag.basisregistraties.overheid.nl/def/bag#status> <http://bag.basisregistraties.overheid.nl/id/begrip/NaamgevingUitgegeven> .
+        MINUS { ?weg <http://bag.basisregistraties.overheid.nl/def/bag#status> <http://bag.basisregistraties.overheid.nl/id/begrip/NaamgevingIngetrokken> } .
+        ?weg <http://www.w3.org/2000/01/rdf-schema#label> ?baglabel .
+        ?weg <http://bag.basisregistraties.overheid.nl/def/bag#bijbehorendeWoonplaats> <http://bag.basisregistraties.overheid.nl/bag/id/woonplaats/2907>
+      } 
+    }
+  }
+} AS %weg
+WHERE {
+  {
+  SELECT DISTINCT ?item ?description (?wikilabel AS ?label) WHERE { 
+    ?item rdfs:label ?wikilabel .
+    ?item wdt:P131 wd:Q9920 .
+    ?item wdt:P31/wdt:P279* wd:Q79007 .
+    MINUS { ?item wdt:P5207 [] } . 
+    ?item schema:description ?description.
+    FILTER ( lang(?description) = \"nl\" ).
+    FILTER ( lang(?wikilabel) = \"nl\" ).
+  }
+}.
+  INCLUDE %weg.
+}""";
+  <http://example.org/bigdata_select> """SELECT ?item ?weg ?label ?description
 WITH {
   SELECT DISTINCT ?item ?description (?wikilabel AS ?label) WHERE { 
     ?item rdfs:label ?wikilabel .
@@ -50,36 +80,6 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?item ?weg ?label ?description
-
-WITH {
-  SELECT ?weg (?baglabel AS ?label) {
-    SERVICE <http://lov.okfn.org/dataset/lov/sparql> {
-      SERVICE <https://data.pdok.nl/sparql> {
-        ?weg <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://bag.basisregistraties.overheid.nl/def/bag#OpenbareRuimte> .
-        ?weg <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://bag.basisregistraties.overheid.nl/def/bag#Weg> .
-        ?weg <http://bag.basisregistraties.overheid.nl/def/bag#status> <http://bag.basisregistraties.overheid.nl/id/begrip/NaamgevingUitgegeven> .
-        MINUS { ?weg <http://bag.basisregistraties.overheid.nl/def/bag#status> <http://bag.basisregistraties.overheid.nl/id/begrip/NaamgevingIngetrokken> } .
-        ?weg <http://www.w3.org/2000/01/rdf-schema#label> ?baglabel .
-        ?weg <http://bag.basisregistraties.overheid.nl/def/bag#bijbehorendeWoonplaats> <http://bag.basisregistraties.overheid.nl/bag/id/woonplaats/2907>
-      } 
-    }
-  }
-} AS %weg
-WHERE {
-  {
-  SELECT DISTINCT ?item ?description (?wikilabel AS ?label) WHERE { 
-    ?item rdfs:label ?wikilabel .
-    ?item wdt:P131 wd:Q9920 .
-    ?item wdt:P31/wdt:P279* wd:Q79007 .
-    MINUS { ?item wdt:P5207 [] } . 
-    ?item schema:description ?description.
-    FILTER ( lang(?description) = \"nl\" ).
-    FILTER ( lang(?wikilabel) = \"nl\" ).
-  }
-}.
-  INCLUDE %weg.
-}""";
-  <http://example.org/bigdata_select> """SELECT ?item ?weg ?label ?description
 WITH {
   SELECT DISTINCT ?item ?description (?wikilabel AS ?label) WHERE { 
     ?item rdfs:label ?wikilabel .

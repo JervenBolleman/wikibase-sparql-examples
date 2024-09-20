@@ -11,7 +11,38 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """SELECT
+  ?wdt
+  ?count
+WITH {
+  SELECT ?wdt (COUNT(*) AS ?count) {
+    [] ?wdt [].
+  }
+  GROUP BY ?wdt
+} AS %0
+WITH {
+  SELECT ?wdt ?count {
+    INCLUDE %0.
+    MINUS {[] wikibase:directClaim ?wdt} # wdt:
+    MINUS {[] wikibase:reference ?wdt} # pr:
+    MINUS {[] wikibase:qualifier ?wdt} # pq:
+    MINUS {[] wikibase:statementProperty ?wdt} # ps:
+    MINUS {[] wikibase:statementValue ?wdt} # psv:
+    MINUS {[] wikibase:referenceValue ?wdt} # prv:
+    MINUS {[] wikibase:claim ?wdt} # p:
+    MINUS {[] wikibase:qualifierValue ?wdt} # pqv:
+    MINUS {[] wikibase:referenceValue ?wdt} # prv:
+    MINUS {[] wikibase:statementValueNormalized ?wdt} # psn:
+    MINUS {[] wikibase:qualifierValueNormalized ?wdt} # pqn:
+    MINUS {[] wikibase:referenceValueNormalized ?wdt} # prn:
+    MINUS {[] wikibase:directClaimNormalized ?wdt} # wdtn:
+  }
+} AS %1
+{
+  INCLUDE %1.
+}
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdtn: <http://www.wikidata.org/prop/direct-normalized/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
@@ -55,7 +86,20 @@ WITH {
   INCLUDE %1.
 }
 ORDER BY DESC(?count)""";
-  <http://example.org/bigdata_select> """SELECT
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdtn: <http://www.wikidata.org/prop/direct-normalized/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prv: <http://www.wikidata.org/prop/reference/value/>
+PREFIX prn: <http://www.wikidata.org/prop/reference/value-normalized/>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
+PREFIX pqn: <http://www.wikidata.org/prop/qualifier/value-normalized/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT
   ?wdt
   ?count
 WITH {

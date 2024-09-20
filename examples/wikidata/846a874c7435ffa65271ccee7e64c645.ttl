@@ -27,6 +27,37 @@ SELECT
 
   ?example_work ?example_workLabel
   (CONCAT(\"#work/\", SUBSTR(STR(?example_work), 32)) AS ?example_workUrl)
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(DISTINCT ?work) AS ?count)
+    ?topic
+    (SAMPLE(?work) AS ?example_work)
+  WHERE {
+    ?work wdt:P123 target: ;
+          wdt:P921 ?topic .
+  }
+  GROUP BY ?topic
+  ORDER BY DESC(?count)
+  LIMIT 200
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?count)""";
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q7894897>
+
+SELECT 
+  ?count
+  (CONCAT(\"#publisher/\", SUBSTR(STR(target:), 32),
+          \"/topic/\", SUBSTR(STR(?topic), 32)) AS ?countUrl)
+
+  ?topic ?topicLabel
+  (CONCAT(\"#topic/\", SUBSTR(STR(?topic), 32)) AS ?topicUrl)
+  ?topicDescription
+
+  ?example_work ?example_workLabel
+  (CONCAT(\"#work/\", SUBSTR(STR(?example_work), 32)) AS ?example_workUrl)
 WITH {
   SELECT 
     (COUNT(DISTINCT ?work) AS ?count)
@@ -49,37 +80,6 @@ ORDER BY DESC(?count)""",
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX target: <http://www.wikidata.org/entity/Q7894897>
-
-SELECT 
-  ?count
-  (CONCAT(\"#publisher/\", SUBSTR(STR(target:), 32),
-          \"/topic/\", SUBSTR(STR(?topic), 32)) AS ?countUrl)
-
-  ?topic ?topicLabel
-  (CONCAT(\"#topic/\", SUBSTR(STR(?topic), 32)) AS ?topicUrl)
-  ?topicDescription
-
-  ?example_work ?example_workLabel
-  (CONCAT(\"#work/\", SUBSTR(STR(?example_work), 32)) AS ?example_workUrl)
-
-WHERE {
-  {
-  SELECT 
-    (COUNT(DISTINCT ?work) AS ?count)
-    ?topic
-    (SAMPLE(?work) AS ?example_work)
-  WHERE {
-    ?work wdt:P123 target: ;
-          wdt:P921 ?topic .
-  }
-  GROUP BY ?topic
-  ORDER BY DESC(?count)
-  LIMIT 200
-}
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-ORDER BY DESC(?count)""";
-  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q7894897>
 
 SELECT 
   ?count

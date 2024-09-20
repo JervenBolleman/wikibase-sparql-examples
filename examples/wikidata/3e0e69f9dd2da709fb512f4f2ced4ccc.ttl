@@ -21,6 +21,27 @@ PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 # colorful state flags
 #defaultView:ImageGrid
+SELECT ?state ?stateLabel (COUNT(?color) AS ?count) ?image  WHERE {
+  {
+  SELECT DISTINCT ?state WHERE {
+    ?state wdt:P31/wdt:P279* wd:Q3624078;
+           p:P463 ?memberOfStatement.
+    ?memberOfStatement a wikibase:BestRank;
+                         ps:P463 wd:Q1065.
+    MINUS { ?memberOfStatement pq:P582 ?endTime. }
+    MINUS { ?state wdt:P576|wdt:P582 ?end. }
+  }
+}.
+  ?state wdt:P163 ?flag.
+  ?flag wdt:P462 ?color.
+  OPTIONAL { ?flag wdt:P18 ?image. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?state ?stateLabel ?image
+ORDER BY DESC(?count)
+LIMIT 25""";
+  <http://example.org/bigdata_select> """# colorful state flags
+#defaultView:ImageGrid
 SELECT ?state ?stateLabel (COUNT(?color) AS ?count) ?image WITH {
   SELECT DISTINCT ?state WHERE {
     ?state wdt:P31/wdt:P279* wd:Q3624078;
@@ -48,27 +69,6 @@ PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 # colorful state flags
-#defaultView:ImageGrid
-SELECT ?state ?stateLabel (COUNT(?color) AS ?count) ?image  WHERE {
-  {
-  SELECT DISTINCT ?state WHERE {
-    ?state wdt:P31/wdt:P279* wd:Q3624078;
-           p:P463 ?memberOfStatement.
-    ?memberOfStatement a wikibase:BestRank;
-                         ps:P463 wd:Q1065.
-    MINUS { ?memberOfStatement pq:P582 ?endTime. }
-    MINUS { ?state wdt:P576|wdt:P582 ?end. }
-  }
-}.
-  ?state wdt:P163 ?flag.
-  ?flag wdt:P462 ?color.
-  OPTIONAL { ?flag wdt:P18 ?image. }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-GROUP BY ?state ?stateLabel ?image
-ORDER BY DESC(?count)
-LIMIT 25""";
-  <http://example.org/bigdata_select> """# colorful state flags
 #defaultView:ImageGrid
 SELECT ?state ?stateLabel (COUNT(?color) AS ?count) ?image WITH {
   SELECT DISTINCT ?state WHERE {

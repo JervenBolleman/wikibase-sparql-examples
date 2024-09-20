@@ -17,6 +17,31 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:ScatterChart
 SELECT ?work_count ?citation_count ?journal ?journalLabel 
+
+WHERE {
+  {
+  SELECT ?work_count ?citation_count ?journal {
+    {
+      SELECT ?journal (COUNT(?work) AS ?work_count) {
+  	    ?journal wdt:P361 wd:Q2603503 .
+        ?work wdt:P1433 ?journal .
+      }
+      GROUP BY ?journal 
+    }
+    {
+      SELECT ?journal (COUNT(?citing_work) AS ?citation_count) {
+  	    ?journal wdt:P361 wd:Q2603503 .
+        ?work wdt:P1433 ?journal .
+        ?citing_work wdt:P2860 ?work . 
+      }
+      GROUP BY ?journal 
+    } 
+  }
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" . } 
+}""";
+  <http://example.org/bigdata_select> """#defaultView:ScatterChart
+SELECT ?work_count ?citation_count ?journal ?journalLabel 
 WITH {
   SELECT ?work_count ?citation_count ?journal {
     {
@@ -45,31 +70,6 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:ScatterChart
-SELECT ?work_count ?citation_count ?journal ?journalLabel 
-
-WHERE {
-  {
-  SELECT ?work_count ?citation_count ?journal {
-    {
-      SELECT ?journal (COUNT(?work) AS ?work_count) {
-  	    ?journal wdt:P361 wd:Q2603503 .
-        ?work wdt:P1433 ?journal .
-      }
-      GROUP BY ?journal 
-    }
-    {
-      SELECT ?journal (COUNT(?citing_work) AS ?citation_count) {
-  	    ?journal wdt:P361 wd:Q2603503 .
-        ?work wdt:P1433 ?journal .
-        ?citing_work wdt:P2860 ?work . 
-      }
-      GROUP BY ?journal 
-    } 
-  }
-}
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" . } 
-}""";
-  <http://example.org/bigdata_select> """#defaultView:ScatterChart
 SELECT ?work_count ?citation_count ?journal ?journalLabel 
 WITH {
   SELECT ?work_count ?citation_count ?journal {

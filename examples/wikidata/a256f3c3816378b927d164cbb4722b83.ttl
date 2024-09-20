@@ -14,7 +14,40 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """SELECT
+  ?obraLiteraria
+  ?obraLiterariaLabel
+  ?cantidad
+WITH {
+  SELECT DISTINCT ?peruane {
+    {?peruane wdt:P27 wd:Q419 }
+    UNION
+    {?peruane wdt:P19/wdt:P131* wd:Q419 }
+    UNION
+    {?peruane wdt:P1532 wd:Q419}
+  }
+} AS %0
+WITH {
+  SELECT DISTINCT ?peruane ?obraLiteraria {
+    INCLUDE %0.
+    ?obraLiteraria
+      wdt:P50 ?peruane;
+      wdt:P31/wdt:P279* wd:Q7725634.
+  }
+} AS %1
+WITH {
+  SELECT DISTINCT ?obraLiteraria ?cantidad {
+    INCLUDE %1.
+    ?obraLiteraria wikibase:sitelinks ?cantidad.
+  }
+} AS %2
+{
+  INCLUDE %1.
+  OPTIONAL{INCLUDE %2}.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"es\"}.
+}
+ORDER BY DESC(?cantidad)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
@@ -51,7 +84,11 @@ WITH {
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"es\"}.
 }
 ORDER BY DESC(?cantidad)""";
-  <http://example.org/bigdata_select> """SELECT
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
   ?obraLiteraria
   ?obraLiterariaLabel
   ?cantidad

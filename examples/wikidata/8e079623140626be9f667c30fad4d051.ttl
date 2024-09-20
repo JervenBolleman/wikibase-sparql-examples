@@ -11,7 +11,23 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """#Count of items related to places in Odisha (Q22048 )
+SELECT ?p ?pLabel  (COUNT(DISTINCT ?item) as ?ct) (SAMPLE(?item) as ?sample)  (SAMPLE(?itemLabel) as ?sampleLabel)
+WITH
+{
+    SELECT ?place { ?place wdt:P131* wd:Q22048 }
+} as %inc
+WHERE
+{
+  INCLUDE %inc 
+  hint:Query hint:optimizer \"None\".          
+  ?item ?wdt ?place .
+  ?p wikibase:directClaim ?wdt .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". ?p rdfs:label ?pLabel }
+}
+GROUP BY ?p ?pLabel
+ORDER BY DESC(?ct)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -32,7 +48,12 @@ WHERE
 }
 GROUP BY ?p ?pLabel
 ORDER BY DESC(?ct)""";
-  <http://example.org/bigdata_select> """#Count of items related to places in Odisha (Q22048 )
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#Count of items related to places in Odisha (Q22048 )
 SELECT ?p ?pLabel  (COUNT(DISTINCT ?item) as ?ct) (SAMPLE(?item) as ?sample)  (SAMPLE(?itemLabel) as ?sampleLabel)
 WITH
 {

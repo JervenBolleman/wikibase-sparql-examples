@@ -11,7 +11,27 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?airport ?airportLabel ?country ?countryLabel WITH {
+  SELECT ?airport WHERE {
+  ?airport (wdt:P31/wdt:P279*) wd:Q62447. hint:Prior hint:gearing \"forward\". #any aerodromes
+  optional {?airport wdt:P239|wdt:P238|wdt:P240|wdt:P5699|wdt:P5746|wdt:P5851|wdt:P6120 ?code.}#any airport code
+  filter(!Bound(?code)).#who does not have any airport code
+} } as %i
+WHERE
+{
+  INCLUDE %i
+  FILTER NOT EXISTS { ?airport p:P239 [rdf:type wdno:P239].} #we do not want the ?item if ICAO has a <no value>   
+  MINUS {?airport wdt:P576 [].} # remove items with P576 (dissolved, abolished or demolished) as a main property
+  MINUS {?airport wdt:P582 [].} # remove items with P582 (end date) as a main property
+    MINUS {?airport a wdno:P17.}                                    #exclude airports that aren't physically based in a country
+
+  MINUS {?airport (wdt:P31/wdt:P279*) ?thing . 
+         VALUES ?thing {wd:Q695850 wd:Q2265915 wd:Q1311670 wd:Q7373622 wd:Q782667 wd:Q502074 wd:Q44665966 wd:Q2071567} }
+  #except those special instances of unnotheworthy aerodromes
+  OPTIONAL {?airport wdt:P17 ?country. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr,de,kk\". }
+  } order by ?countryLabel""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -38,7 +58,14 @@ WHERE
   OPTIONAL {?airport wdt:P17 ?country. }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr,de,kk\". }
   } order by ?countryLabel""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT ?airport ?airportLabel ?country ?countryLabel WITH {
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?airport ?airportLabel ?country ?countryLabel WITH {
   SELECT ?airport WHERE {
   ?airport (wdt:P31/wdt:P279*) wd:Q62447. hint:Prior hint:gearing \"forward\". #any aerodromes
   optional {?airport wdt:P239|wdt:P238|wdt:P240|wdt:P5699|wdt:P5746|wdt:P5851|wdt:P6120 ?code.}#any airport code

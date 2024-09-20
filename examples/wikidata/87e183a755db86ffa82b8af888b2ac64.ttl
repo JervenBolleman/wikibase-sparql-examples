@@ -25,6 +25,69 @@ SELECT
 
   ?example_person ?example_personLabel
   (CONCAT(\"#author/\", SUBSTR(STR(?example_person), 32)) AS ?example_personUrl)
+
+WHERE {
+      {
+  SELECT
+    (COUNT(DISTINCT ?person) AS ?persons)
+    ?organization
+    (SAMPLE(?person) AS ?example_person)
+  WHERE {
+    {
+      # speaker
+      target: ^wdt:P179 / wdt:P823 ?person .
+
+    }
+    UNION
+    {
+      # organizer
+      target: ^wdt:P179 / wdt:P664 ?person .
+
+    }
+    UNION
+    {
+      # participant
+      ?person (wdt:P1344| ^wdt:P710) / wdt:P179 target: .
+
+    }
+    UNION
+    {
+      # editor
+      ?person (^wdt:P98 / wdt:P4745) / wdt:P179 target: .
+
+    }
+    UNION
+    {
+      # author
+      ?person (^wdt:P50 / wdt:P1433 / wdt:P4745) / wdt:P179 target: .
+
+    }
+    UNION
+    {
+      # program committee member
+      target: ^wdt:P179 / wdt:P5804 ?person .
+    }
+    
+    ?person wdt:P1416 | wdt:P108 ?organization .
+  }
+
+  GROUP BY ?organization
+} .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,da,de,es,fr,jp,no,ru,sv,zh\". }
+}
+ORDER BY DESC(?persons)
+LIMIT 500""";
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q17012957>
+
+SELECT
+  ?persons
+  (CONCAT(\"scientificeventseries/\", SUBSTR(STR(target:), 32), \"/organization/\", SUBSTR(STR(?organization), 32)) AS ?personsUrl)
+
+  ?organization ?organizationLabel ?organizationDescription
+  (CONCAT(\"#organization/\", SUBSTR(STR(?organization), 32)) AS ?organizationUrl)
+
+  ?example_person ?example_personLabel
+  (CONCAT(\"#author/\", SUBSTR(STR(?example_person), 32)) AS ?example_personUrl)
 WITH {
   SELECT
     (COUNT(DISTINCT ?person) AS ?persons)
@@ -81,69 +144,6 @@ LIMIT 500""",
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX target: <http://www.wikidata.org/entity/Q17012957>
-
-SELECT
-  ?persons
-  (CONCAT(\"scientificeventseries/\", SUBSTR(STR(target:), 32), \"/organization/\", SUBSTR(STR(?organization), 32)) AS ?personsUrl)
-
-  ?organization ?organizationLabel ?organizationDescription
-  (CONCAT(\"#organization/\", SUBSTR(STR(?organization), 32)) AS ?organizationUrl)
-
-  ?example_person ?example_personLabel
-  (CONCAT(\"#author/\", SUBSTR(STR(?example_person), 32)) AS ?example_personUrl)
-
-WHERE {
-      {
-  SELECT
-    (COUNT(DISTINCT ?person) AS ?persons)
-    ?organization
-    (SAMPLE(?person) AS ?example_person)
-  WHERE {
-    {
-      # speaker
-      target: ^wdt:P179 / wdt:P823 ?person .
-
-    }
-    UNION
-    {
-      # organizer
-      target: ^wdt:P179 / wdt:P664 ?person .
-
-    }
-    UNION
-    {
-      # participant
-      ?person (wdt:P1344| ^wdt:P710) / wdt:P179 target: .
-
-    }
-    UNION
-    {
-      # editor
-      ?person (^wdt:P98 / wdt:P4745) / wdt:P179 target: .
-
-    }
-    UNION
-    {
-      # author
-      ?person (^wdt:P50 / wdt:P1433 / wdt:P4745) / wdt:P179 target: .
-
-    }
-    UNION
-    {
-      # program committee member
-      target: ^wdt:P179 / wdt:P5804 ?person .
-    }
-    
-    ?person wdt:P1416 | wdt:P108 ?organization .
-  }
-
-  GROUP BY ?organization
-} .
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,da,de,es,fr,jp,no,ru,sv,zh\". }
-}
-ORDER BY DESC(?persons)
-LIMIT 500""";
-  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q17012957>
 
 SELECT
   ?persons

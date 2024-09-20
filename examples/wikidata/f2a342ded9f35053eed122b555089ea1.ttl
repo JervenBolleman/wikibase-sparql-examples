@@ -14,7 +14,15 @@
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?item ?itemLabel ?count ?sample WITH {
+SELECT DISTINCT ?item ?itemLabel ?count ?sample  WHERE {
+	{
+	SELECT ?item (COUNT(?value) AS ?count) (SAMPLE(?value) AS ?sample) {
+		?item wdt:P213 ?value .
+	} GROUP BY ?item HAVING(?count > 1)
+}.
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+} ORDER BY DESC(?count) LIMIT 1000""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?itemLabel ?count ?sample WITH {
 	SELECT ?item (COUNT(?value) AS ?count) (SAMPLE(?value) AS ?sample) {
 		?item wdt:P213 ?value .
 	} GROUP BY ?item HAVING(?count > 1)
@@ -25,15 +33,7 @@ SELECT DISTINCT ?item ?itemLabel ?count ?sample WITH {
     """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?item ?itemLabel ?count ?sample  WHERE {
-	{
-	SELECT ?item (COUNT(?value) AS ?count) (SAMPLE(?value) AS ?sample) {
-		?item wdt:P213 ?value .
-	} GROUP BY ?item HAVING(?count > 1)
-}.
-	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
-} ORDER BY DESC(?count) LIMIT 1000""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?itemLabel ?count ?sample WITH {
+SELECT DISTINCT ?item ?itemLabel ?count ?sample WITH {
 	SELECT ?item (COUNT(?value) AS ?count) (SAMPLE(?value) AS ?sample) {
 		?item wdt:P213 ?value .
 	} GROUP BY ?item HAVING(?count > 1)

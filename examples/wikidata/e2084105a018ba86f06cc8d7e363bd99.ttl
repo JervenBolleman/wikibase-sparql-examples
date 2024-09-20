@@ -11,7 +11,23 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """SELECT ?P143valueItem ?P143valueItemLabel (COUNT(?statement) AS ?cnt_statements) (COUNT(DISTINCT ?item) AS ?cnt_items) (IRI(CONCAT('https://query.wikidata.org/#SELECT%2a%7B%3Fitem%3Fprop%5Bprov%3AwasDerivedFrom%2Fpr%3AP143%20wd%3A', STRAFTER(STR(?P143valueItem), \"entity/\"), '%5D%7D')) AS ?query_items) WITH {
+  SELECT DISTINCT ?P143valueItem WHERE { [] pr:P143 ?P143valueItem }
+} AS %subquery1 WITH {
+  SELECT DISTINCT ?P143valueItem ?P143valueItemLabel WHERE {
+    INCLUDE %subquery1 .
+    MINUS { ?P143valueItem wdt:P31/wdt:P279* wd:Q14827288 }
+    MINUS { ?P143valueItem wdt:P31/wdt:P279* wd:Q63144794 }
+#   FILTER(?P143valueItem NOT IN (wd:Q28054658, wd:Q24731821, wd:Q19960422, wd:Q48552277)) . MINUS { ?P143valueItem wdt:P31/wdt:P279* wd:Q4167836 } MINUS { ?P143valueItem wdt:P31/wdt:P279* wd:Q13406463 } # some internal Wikimedia stuff
+#   VALUES ?class { wd:Q386724 wd:Q11028 } ?P143valueItem wdt:P31?/wdt:P279* ?class . # valid P248 values
+    SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+  }
+} AS %subquery2 WHERE {
+  INCLUDE %subquery2 .
+  ?statement prov:wasDerivedFrom/pr:P143 ?P143valueItem .
+  ?item ?any ?statement .
+} GROUP BY ?P143valueItem ?P143valueItemLabel ORDER BY DESC(?cnt_statements)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX prov: <http://www.w3.org/ns/prov#>
@@ -33,7 +49,13 @@ SELECT ?P143valueItem ?P143valueItemLabel (COUNT(?statement) AS ?cnt_statements)
   ?statement prov:wasDerivedFrom/pr:P143 ?P143valueItem .
   ?item ?any ?statement .
 } GROUP BY ?P143valueItem ?P143valueItemLabel ORDER BY DESC(?cnt_statements)""";
-  <http://example.org/bigdata_select> """SELECT ?P143valueItem ?P143valueItemLabel (COUNT(?statement) AS ?cnt_statements) (COUNT(DISTINCT ?item) AS ?cnt_items) (IRI(CONCAT('https://query.wikidata.org/#SELECT%2a%7B%3Fitem%3Fprop%5Bprov%3AwasDerivedFrom%2Fpr%3AP143%20wd%3A', STRAFTER(STR(?P143valueItem), \"entity/\"), '%5D%7D')) AS ?query_items) WITH {
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?P143valueItem ?P143valueItemLabel (COUNT(?statement) AS ?cnt_statements) (COUNT(DISTINCT ?item) AS ?cnt_items) (IRI(CONCAT('https://query.wikidata.org/#SELECT%2a%7B%3Fitem%3Fprop%5Bprov%3AwasDerivedFrom%2Fpr%3AP143%20wd%3A', STRAFTER(STR(?P143valueItem), \"entity/\"), '%5D%7D')) AS ?query_items) WITH {
   SELECT DISTINCT ?P143valueItem WHERE { [] pr:P143 ?P143valueItem }
 } AS %subquery1 WITH {
   SELECT DISTINCT ?P143valueItem ?P143valueItemLabel WHERE {

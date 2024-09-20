@@ -11,7 +11,36 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+  <http://example.org/bigdata_select> """SELECT (sum(?count) / 365 as ?count2) (min(?count) as ?mincount) (max(?count) as ?maxcount)
+WITH {
+  SELECT ?item ?date WHERE {
+  ?item wdt:P31 wd:Q47150325. 
+  ?item wdt:P585 ?date . hint:Prior hint:rangeSafe true.
+  filter(\"2021-01-01\"^^xsd:dateTime <= ?date && ?date < \"2022-01-01\"^^xsd:dateTime )
+} } as %dates
+WITH {
+  SELECT ?date (count(?MP) as ?count) WHERE { 
+  INCLUDE %dates
+  ?MP p:P39 ?stat . 
+  ?stat ps:P39 wd:Q77685926.
+  filter not exists {?stat pq:P580 ?start . filter(?start > ?date ) }        
+  filter not exists {?stat pq:P582 ?end . filter(?end < ?date ) }
+  filter not exists {
+    ?stat pq:P582 ?endt .   
+    ?MP p:P39 ?stat2 . 
+    ?stat2 ps:P39 wd:Q77685926.
+    ?stat2 pq:P580 ?endt .
+    filter(str(?stat2) != str(?stat))
+    filter(?endt = ?date)
+    }
+} group by ?date } as %counts
+WHERE
+{
+INCLUDE %counts
+        
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+} order by desc(?date)""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -48,7 +77,15 @@ INCLUDE %counts
         
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
 } order by desc(?date)""";
-  <http://example.org/bigdata_select> """SELECT (sum(?count) / 365 as ?count2) (min(?count) as ?mincount) (max(?count) as ?maxcount)
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT (sum(?count) / 365 as ?count2) (min(?count) as ?mincount) (max(?count) as ?maxcount)
 WITH {
   SELECT ?item ?date WHERE {
   ?item wdt:P31 wd:Q47150325. 

@@ -17,6 +17,30 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?item ?itemLabel ?rgb ?link ?linkLabel 
+
+WHERE {
+  {
+  SELECT DISTINCT ?item ?itemLabel ?link ?toggle
+  WHERE {
+    VALUES ?toggle {
+      \"true\"^^xsd:boolean
+      \"false\"^^xsd:boolean
+    }
+    ?item1 wdt:P31/wdt:P279* wd:Q55341040;
+      wdt:P10568 ?item2.
+
+    BIND(IF(?toggle, ?item1, ?item2) AS ?item)
+    BIND(IF(?toggle, \"\", ?item1) AS ?link)
+  }
+}
+  OPTIONAL {
+    ?item wdt:P1687 ?property.
+  }
+  # The idea is to highlight DBs linked from Wikidata, but that does not seem to work
+  BIND(IF(BOUND(?property),\"FFA500\",\"\") AS ?rgb)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+}""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?itemLabel ?rgb ?link ?linkLabel 
 WITH {
   SELECT DISTINCT ?item ?itemLabel ?link ?toggle
   WHERE {
@@ -46,30 +70,6 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?item ?itemLabel ?rgb ?link ?linkLabel 
-
-WHERE {
-  {
-  SELECT DISTINCT ?item ?itemLabel ?link ?toggle
-  WHERE {
-    VALUES ?toggle {
-      \"true\"^^xsd:boolean
-      \"false\"^^xsd:boolean
-    }
-    ?item1 wdt:P31/wdt:P279* wd:Q55341040;
-      wdt:P10568 ?item2.
-
-    BIND(IF(?toggle, ?item1, ?item2) AS ?item)
-    BIND(IF(?toggle, \"\", ?item1) AS ?link)
-  }
-}
-  OPTIONAL {
-    ?item wdt:P1687 ?property.
-  }
-  # The idea is to highlight DBs linked from Wikidata, but that does not seem to work
-  BIND(IF(BOUND(?property),\"FFA500\",\"\") AS ?rgb)
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
-}""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?itemLabel ?rgb ?link ?linkLabel 
 WITH {
   SELECT DISTINCT ?item ?itemLabel ?link ?toggle
   WHERE {

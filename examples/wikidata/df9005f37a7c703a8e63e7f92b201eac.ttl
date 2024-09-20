@@ -11,7 +11,27 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """SELECT ?instance ?instanceLabel ?count
+WITH
+{
+  SELECT ?instance (COUNT(*) as ?count) 
+  WHERE
+  {
+    ?item wdt:P580 ?from; wdt:P582 ?to . 
+    FILTER NOT EXISTS { ?item wdt:P585 [] } . 
+    FILTER( YEAR(?from) = YEAR(?to) )
+    ?item wdt:P31 ?instance 
+  }
+  GROUP BY ?instance
+} as %a
+WHERE
+{
+  INCLUDE %a 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}  
+ORDER BY DESC(?count) 
+LIMIT 300""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?instance ?instanceLabel ?count
@@ -34,7 +54,10 @@ WHERE
 }  
 ORDER BY DESC(?count) 
 LIMIT 300""";
-  <http://example.org/bigdata_select> """SELECT ?instance ?instanceLabel ?count
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?instance ?instanceLabel ?count
 WITH
 {
   SELECT ?instance (COUNT(*) as ?count) 

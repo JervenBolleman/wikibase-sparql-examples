@@ -14,7 +14,43 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """#defaultView:ImageGrid
+SELECT
+  ?imagen
+  ?plato
+  ?platoLabel
+WITH {
+  SELECT DISTINCT ?plato {
+    SERVICE <https://query.wikidata.org/sparql> {
+      ?plato wdt:P361 wd:Q749847.
+    }
+  }
+} AS %plato
+WITH {
+  SELECT ?plato ?platoLabel {
+    INCLUDE %plato.
+    SERVICE <https://query.wikidata.org/sparql> {
+      {
+        SELECT ?plato ?platoLabel {
+          SERVICE wikibase:label { bd:serviceParam wikibase:language \"es\". }
+        }
+      }
+    }
+  }
+} AS %platoLabel
+WITH {
+  SELECT DISTINCT ?imagen ?plato {
+    INCLUDE %plato.
+    [] wdt:P180 ?plato;
+       schema:url ?imagen.
+  }
+} AS %imagen
+{
+  INCLUDE %platoLabel
+  INCLUDE %imagen.
+}
+ORDER BY ASC(LCASE(?platoLabel))""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
@@ -55,7 +91,12 @@ WITH {
   INCLUDE %imagen.
 }
 ORDER BY ASC(LCASE(?platoLabel))""";
-  <http://example.org/bigdata_select> """#defaultView:ImageGrid
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:ImageGrid
 SELECT
   ?imagen
   ?plato

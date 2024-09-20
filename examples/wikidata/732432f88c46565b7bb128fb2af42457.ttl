@@ -11,7 +11,38 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """SELECT
+  ?property
+  ?propertyLabel
+  ?count
+WITH {
+  SELECT DISTINCT ?property ?wdt {
+    ?property
+      a wikibase:Property;
+      wdt:P31/wdt:P279* wd:Q105388954;
+      wikibase:directClaim ?wdt.
+  }
+} AS %0
+WITH {
+  SELECT DISTINCT ?item {
+    ?item wdt:P106 wd:Q5482740.
+  }
+  LIMIT 1234
+} AS %1
+WITH {
+  SELECT ?property (COUNT(*) AS ?count) {
+    INCLUDE %0.
+    INCLUDE %1.
+    ?item ?wdt [].
+  }
+  GROUP BY ?property
+} AS %2
+{
+  INCLUDE %2.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\"}.
+}
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
@@ -46,7 +77,11 @@ WITH {
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\"}.
 }
 ORDER BY DESC(?count)""";
-  <http://example.org/bigdata_select> """SELECT
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
   ?property
   ?propertyLabel
   ?count

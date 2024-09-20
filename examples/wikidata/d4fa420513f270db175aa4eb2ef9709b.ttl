@@ -19,7 +19,28 @@ PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?item ?itemLabel ?enddate (group_concat(distinct ?denomLabel;separator=\", \") as ?denomination) ?inception (group_concat(distinct ?architectLabel;separator=\", \") as ?architects) WITH {
+SELECT DISTINCT ?item ?itemLabel ?enddate (group_concat(distinct ?denomLabel;separator=\", \") as ?denomination) ?inception (group_concat(distinct ?architectLabel;separator=\", \") as ?architects)  WHERE {
+  {
+  SELECT DISTINCT ?item ?denom ?inception ?architect WHERE {
+    ?item wdt:P131* wd:Q365 .
+    OPTIONAL { ?item wdt:P140 ?denom .
+    ?item wdt:P571 ?inception .
+    ?item wdt:P84 ?architect.}
+  }
+} .
+  ?item p:P31 ?statementNode .
+  ?statementNode ps:P31/wdt:P279* wd:Q16970 .
+
+  OPTIONAL {
+    ?statementNode pq:P582 ?enddate .
+   
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'de,en'.
+  ?item rdfs:label ?itemLabel.
+  ?denom rdfs:label ?denomLabel.
+  ?architect rdfs:label ?architectLabel.  }
+} group by ?item ?itemLabel ?enddate ?inception""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?itemLabel ?enddate (group_concat(distinct ?denomLabel;separator=\", \") as ?denomination) ?inception (group_concat(distinct ?architectLabel;separator=\", \") as ?architects) WITH {
   SELECT DISTINCT ?item ?denom ?inception ?architect WHERE {
     ?item wdt:P131* wd:Q365 .
     OPTIONAL { ?item wdt:P140 ?denom .
@@ -48,28 +69,7 @@ PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?item ?itemLabel ?enddate (group_concat(distinct ?denomLabel;separator=\", \") as ?denomination) ?inception (group_concat(distinct ?architectLabel;separator=\", \") as ?architects)  WHERE {
-  {
-  SELECT DISTINCT ?item ?denom ?inception ?architect WHERE {
-    ?item wdt:P131* wd:Q365 .
-    OPTIONAL { ?item wdt:P140 ?denom .
-    ?item wdt:P571 ?inception .
-    ?item wdt:P84 ?architect.}
-  }
-} .
-  ?item p:P31 ?statementNode .
-  ?statementNode ps:P31/wdt:P279* wd:Q16970 .
-
-  OPTIONAL {
-    ?statementNode pq:P582 ?enddate .
-   
-  }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language 'de,en'.
-  ?item rdfs:label ?itemLabel.
-  ?denom rdfs:label ?denomLabel.
-  ?architect rdfs:label ?architectLabel.  }
-} group by ?item ?itemLabel ?enddate ?inception""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?itemLabel ?enddate (group_concat(distinct ?denomLabel;separator=\", \") as ?denomination) ?inception (group_concat(distinct ?architectLabel;separator=\", \") as ?architects) WITH {
+SELECT DISTINCT ?item ?itemLabel ?enddate (group_concat(distinct ?denomLabel;separator=\", \") as ?denomination) ?inception (group_concat(distinct ?architectLabel;separator=\", \") as ?architects) WITH {
   SELECT DISTINCT ?item ?denom ?inception ?architect WHERE {
     ?item wdt:P131* wd:Q365 .
     OPTIONAL { ?item wdt:P140 ?denom .

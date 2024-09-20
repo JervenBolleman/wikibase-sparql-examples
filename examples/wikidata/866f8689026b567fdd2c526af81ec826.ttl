@@ -17,6 +17,26 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?smallerCityLabel ?smallerPopulation ?mayorLabel ?largerCityLabel ?largerPopulation
+
+WHERE {
+  {
+  SELECT DISTINCT ?smallerCity ?smallerPopulation ?mayor ?largerCity ?largerPopulation WHERE {
+    ?smallerCity wdt:P31/wdt:P279* wd:Q515;
+                 wdt:P1082 ?smallerPopulation;
+                 wdt:P6 ?mayor.
+    ?mayor wdt:P31 wd:Q5;
+           wdt:P735 ?givenName.
+    ?givenName rdfs:label ?label.
+    ?largerCity rdfs:label ?label;
+                wdt:P31/wdt:P279* wd:Q515;
+                wdt:P1082 ?largerPopulation.
+    FILTER(?largerPopulation > ?smallerPopulation)
+  }
+}.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?smallerPopulation)""";
+  <http://example.org/bigdata_select> """SELECT ?smallerCityLabel ?smallerPopulation ?mayorLabel ?largerCityLabel ?largerPopulation
 WITH {
   SELECT DISTINCT ?smallerCity ?smallerPopulation ?mayor ?largerCity ?largerPopulation WHERE {
     ?smallerCity wdt:P31/wdt:P279* wd:Q515;
@@ -42,26 +62,6 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?smallerCityLabel ?smallerPopulation ?mayorLabel ?largerCityLabel ?largerPopulation
-
-WHERE {
-  {
-  SELECT DISTINCT ?smallerCity ?smallerPopulation ?mayor ?largerCity ?largerPopulation WHERE {
-    ?smallerCity wdt:P31/wdt:P279* wd:Q515;
-                 wdt:P1082 ?smallerPopulation;
-                 wdt:P6 ?mayor.
-    ?mayor wdt:P31 wd:Q5;
-           wdt:P735 ?givenName.
-    ?givenName rdfs:label ?label.
-    ?largerCity rdfs:label ?label;
-                wdt:P31/wdt:P279* wd:Q515;
-                wdt:P1082 ?largerPopulation.
-    FILTER(?largerPopulation > ?smallerPopulation)
-  }
-}.
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-ORDER BY DESC(?smallerPopulation)""";
-  <http://example.org/bigdata_select> """SELECT ?smallerCityLabel ?smallerPopulation ?mayorLabel ?largerCityLabel ?largerPopulation
 WITH {
   SELECT DISTINCT ?smallerCity ?smallerPopulation ?mayor ?largerCity ?largerPopulation WHERE {
     ?smallerCity wdt:P31/wdt:P279* wd:Q515;

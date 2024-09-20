@@ -11,7 +11,27 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """#adapted from query by User:Matěj Suchánek
+SELECT ?item ?st ?sl ?ids (str(?i) as ?offset)
+WITH { SELECT DISTINCT ?item        WHERE { ?item wdt:P31 wd:Q7889 ; wikibase:statements ?st . FILTER(?st < 2) }  } AS %all
+WITH { SELECT (COUNT(*) AS ?count)  WHERE { INCLUDE %all }  } AS %count
+WITH { SELECT (?item AS ?item2)     WHERE { INCLUDE %all }  } AS %all2
+WITH
+{
+  SELECT ?item (SUM(?x) AS ?i)  WHERE  { INCLUDE %all . INCLUDE %all2 .
+    BIND( IF( STR( ?item ) > STR( ?item2 ), 1, 0 ) AS ?x ) .
+  } GROUP BY ?item
+} AS %main 
+WHERE
+{
+  hint:Query hint:optimizer \"None\".
+  INCLUDE %count .
+  BIND(ROUND( ?count / 20) as ?slice ) BIND( ROUND(FLOOR( RAND() * ?count / 20 )) AS ?rnd) 
+  INCLUDE %main .
+  FILTER( ROUND( ( ?i/ ?slice - FLOOR( ?i / ?slice ) ) * ?slice ) = ?rnd)
+  ?item wikibase:statements ?st; wikibase:sitelinks ?sl; wikibase:identifiers ?ids.
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 #adapted from query by User:Matěj Suchánek
@@ -34,7 +54,10 @@ WHERE
   FILTER( ROUND( ( ?i/ ?slice - FLOOR( ?i / ?slice ) ) * ?slice ) = ?rnd)
   ?item wikibase:statements ?st; wikibase:sitelinks ?sl; wikibase:identifiers ?ids.
 }""";
-  <http://example.org/bigdata_select> """#adapted from query by User:Matěj Suchánek
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+#adapted from query by User:Matěj Suchánek
 SELECT ?item ?st ?sl ?ids (str(?i) as ?offset)
 WITH { SELECT DISTINCT ?item        WHERE { ?item wdt:P31 wd:Q7889 ; wikibase:statements ?st . FILTER(?st < 2) }  } AS %all
 WITH { SELECT (COUNT(*) AS ?count)  WHERE { INCLUDE %all }  } AS %count

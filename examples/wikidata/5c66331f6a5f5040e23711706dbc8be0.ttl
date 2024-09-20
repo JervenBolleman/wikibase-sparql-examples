@@ -11,7 +11,119 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """#defaultView:Map{\"hide\":[\"?rgb\"],\"?rgb\"}
+SELECT 
+?veteran 
+?veteranLabel 
+?veteran_
+?layer 
+?aita
+?aitaLabel 
+?aita_
+?jaiolekua_aita_
+?ama
+?amaLabel
+?ama_ 
+?jaiolekua_ama_
+?aitona
+?aitonaLabel 
+?aitona_ 
+?jaiolekua_aitona_ 
+?gatazkaLabel
+?coord
+?rgb 
+WITH { SELECT ?veteran ?jaiolekua ?heriotza ?ama ?aita ?aitona WHERE {
+?veteran wdt:P241 wd:Q11218.
+?veteran wdt:P172 wd:Q126756.
+?veteran wdt:P19 ?jaiolekua.
+?veteran wdt:P20 ?heriotza.
+?veteran wdt:P25 ?ama.
+?veteran wdt:P22 ?aita.
+OPTIONAL{?aita wdt:P22 ?aitona.}  
+} } as %i
+with { select ?veteran ?veteran_ ?layer ?ama ?jaiolekua_ama_ ?coord ?rgb WHERE {
+INCLUDE %i
+?ama wdt:P19 ?jaiolekua_ama.
+?jaiolekua_ama wdt:P625 ?coord.
+?veteran rdfs:label ?veteranL . FILTER(LANG(?veteranL)=\"eu\")
+BIND(CONCAT(\"Beteranoa: \",?veteranL) as ?veteran_)
+?jaiolekua_ama rdfs:label ?jaiolekua_amaL . FILTER(LANG(?jaiolekua_amaL)=\"eu\")
+BIND(CONCAT(\"Amaren jaiolekua: \",?jaiolekua_amaL) as ?jaiolekua_ama_)
+BIND(\"3366CC\" as ?rgb)
+BIND(\"Ama\" as ?layer)
+} } as %j
+with { select ?veteran ?veteran_ ?layer ?jaiolekua_aita_ ?aita ?coord ?rgb WHERE {
+INCLUDE %i
+?aita wdt:P19 ?jaiolekua_aita.
+?jaiolekua_aita wdt:P625 ?coord.
+?veteran rdfs:label ?veteranL . FILTER(LANG(?veteranL)=\"eu\")
+BIND(CONCAT(\"Beteranoa: \",?veteranL) as ?veteran_)
+?jaiolekua_aita rdfs:label ?jaiolekua_aitaL . FILTER(LANG(?jaiolekua_aitaL)=\"eu\")
+BIND(CONCAT(\"Aitaren jaiolekua: \",?jaiolekua_aitaL) as ?jaiolekua_aita_)
+BIND(\"FFCC33\" as ?rgb)
+BIND(\"Aita\" as ?layer)
+} } as %k
+with { select ?veteran ?veteran_ ?heriotza ?ama_ ?aita_ ?coord ?layer ?rgb WHERE {
+INCLUDE %i
+?heriotza wdt:P625 ?coord.
+?veteran rdfs:label ?veteranL . FILTER(LANG(?veteranL)=\"eu\")
+BIND(CONCAT(\"Beteranoa: \",?veteranL) as ?veteran_)
+?aita rdfs:label ?aitaL . FILTER(LANG(?aitaL)=\"eu\")
+BIND(CONCAT(\"Aita: \",?aitaL) as ?aita_)
+?ama rdfs:label ?amaL . FILTER(LANG(?amaL)=\"eu\")
+BIND(CONCAT(\"Ama: \",?amaL) as ?ama_)
+BIND(\"b32425\" as ?rgb)
+BIND(\"Heriotza lekua\" as ?layer)
+} } as %l
+with { select ?veteran ?veteran_ ?jaiolekua ?heriotza ?ama_ ?aita_ ?coord ?layer ?rgb WHERE {  
+INCLUDE %i
+?jaiolekua wdt:P625 ?coord.
+?veteran rdfs:label ?veteranL . FILTER(LANG(?veteranL)=\"eu\")
+BIND(CONCAT(\"Beteranoa: \",?veteranL) as ?veteran_)
+?aita rdfs:label ?aitaL . FILTER(LANG(?aitaL)=\"eu\")
+BIND(CONCAT(\"Aita: \",?aitaL) as ?aita_)
+?ama rdfs:label ?amaL . FILTER(LANG(?amaL)=\"eu\")
+BIND(CONCAT(\"Ama: \",?amaL) as ?ama_)
+BIND(\"00af89\" as ?rgb)  
+BIND(\"Jaiolekua\" as ?layer)
+} } as %m
+with { select ?veteran ?gatazka ?coord ?layer ?rgb WHERE {  
+INCLUDE %i
+?veteran wdt:P607 ?gatazka.
+?gatazka wdt:P625 ?coord.
+BIND(\"72777d\" as ?rgb)
+BIND(\"Gudua\" as ?layer)
+} } as %n
+with { select ?veteran ?veteran_ ?layer ?jaiolekua_aitona_ ?aitona_ ?coord ?rgb WHERE {
+INCLUDE %i
+
+?veteran wdt:P22 ?aita.
+?aita wdt:P22 ?aitona. 
+  
+?aitona wdt:P19 ?jaiolekua_aitona.
+?jaiolekua_aitona wdt:P625 ?coord.
+?veteran rdfs:label ?veteranL . FILTER(LANG(?veteranL)=\"eu\")
+BIND(CONCAT(\"Beteranoa: \",?veteranL) as ?veteran_)
+?jaiolekua_aitona rdfs:label ?jaiolekua_aitonaL . FILTER(LANG(?jaiolekua_aitonaL)=\"eu\")
+BIND(CONCAT(\"Aitonaren jaiolekua: \",?jaiolekua_aitonaL) as ?jaiolekua_aitona_)
+BIND(\"FFCC00\" as ?rgb)
+BIND(\"Aitona\" as ?layer)
+} } as %o
+WHERE {
+{INCLUDE %j}
+UNION
+{INCLUDE %k}
+UNION
+{INCLUDE %l}
+UNION
+{INCLUDE %m}
+UNION
+{INCLUDE %n}
+UNION
+{INCLUDE %o}
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"eu,en,es\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -128,7 +240,12 @@ UNION
 {INCLUDE %o}
 SERVICE wikibase:label { bd:serviceParam wikibase:language \"eu,en,es\". }
 }""";
-  <http://example.org/bigdata_select> """#defaultView:Map{\"hide\":[\"?rgb\"],\"?rgb\"}
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map{\"hide\":[\"?rgb\"],\"?rgb\"}
 SELECT 
 ?veteran 
 ?veteranLabel 

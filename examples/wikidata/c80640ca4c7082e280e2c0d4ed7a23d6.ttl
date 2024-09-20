@@ -16,7 +16,25 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX dct: <http://purl.org/dc/terms/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?language ?languageLabel ?statusLabel ?lexemes WITH {
+SELECT ?language ?languageLabel ?statusLabel ?lexemes  WHERE {
+  {
+  SELECT ?language ?status (COUNT(?lexeme) AS ?lexemes) WHERE {
+    VALUES ?status {
+      wd:Q20672087 # 2 vulnerable
+      wd:Q20672088 # 3 definitely endangered
+      wd:Q20672089 # 4 severely endangered
+      wd:Q20672090 # 5 critically endangered
+      wd:Q20672091 # 6 extinct
+    }
+    ?language wdt:P1999 ?status.
+    OPTIONAL { ?lexeme dct:language ?language. }
+  }
+  GROUP BY ?language ?status
+}.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?lexemes) DESC(?statusLabel)""";
+  <http://example.org/bigdata_select> """SELECT ?language ?languageLabel ?statusLabel ?lexemes WITH {
   SELECT ?language ?status (COUNT(?lexeme) AS ?lexemes) WHERE {
     VALUES ?status {
       wd:Q20672087 # 2 vulnerable
@@ -39,25 +57,7 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX dct: <http://purl.org/dc/terms/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?language ?languageLabel ?statusLabel ?lexemes  WHERE {
-  {
-  SELECT ?language ?status (COUNT(?lexeme) AS ?lexemes) WHERE {
-    VALUES ?status {
-      wd:Q20672087 # 2 vulnerable
-      wd:Q20672088 # 3 definitely endangered
-      wd:Q20672089 # 4 severely endangered
-      wd:Q20672090 # 5 critically endangered
-      wd:Q20672091 # 6 extinct
-    }
-    ?language wdt:P1999 ?status.
-    OPTIONAL { ?lexeme dct:language ?language. }
-  }
-  GROUP BY ?language ?status
-}.
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-ORDER BY DESC(?lexemes) DESC(?statusLabel)""";
-  <http://example.org/bigdata_select> """SELECT ?language ?languageLabel ?statusLabel ?lexemes WITH {
+SELECT ?language ?languageLabel ?statusLabel ?lexemes WITH {
   SELECT ?language ?status (COUNT(?lexeme) AS ?lexemes) WHERE {
     VALUES ?status {
       wd:Q20672087 # 2 vulnerable

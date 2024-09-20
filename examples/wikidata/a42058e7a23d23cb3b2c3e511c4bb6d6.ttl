@@ -21,6 +21,34 @@ SELECT
   ?count
   ?author ?authorLabel ?authorDescription
   (COALESCE(?orcid_, CONCAT(\"orcid-search/quick-search/?searchQuery=\", ?authorLabel)) AS ?orcid) 
+
+WHERE {
+  {
+  SELECT
+    ?author
+    (count(?work) as ?count)
+  WHERE {
+    ?work wdt:P921 target: . 
+    ?work wdt:P50 ?author .
+    ?author wdt:P2037 ?github .
+  }
+  GROUP BY ?author
+  ORDER BY DESC(?count)
+  LIMIT 200
+}
+          
+  # Include optional ORCID iD
+  OPTIONAL { ?author wdt:P496 ?orcid_ . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" . } 
+}
+ORDER BY DESC(?count)""";
+  <http://example.org/bigdata_select> """#title: People who published about GitHub and have a GitHub account known to Wikidata
+PREFIX target: <http://www.wikidata.org/entity/Q364>
+
+SELECT
+  ?count
+  ?author ?authorLabel ?authorDescription
+  (COALESCE(?orcid_, CONCAT(\"orcid-search/quick-search/?searchQuery=\", ?authorLabel)) AS ?orcid) 
 WITH {
   SELECT
     ?author
@@ -46,34 +74,6 @@ ORDER BY DESC(?count)""",
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #title: People who published about GitHub and have a GitHub account known to Wikidata
-PREFIX target: <http://www.wikidata.org/entity/Q364>
-
-SELECT
-  ?count
-  ?author ?authorLabel ?authorDescription
-  (COALESCE(?orcid_, CONCAT(\"orcid-search/quick-search/?searchQuery=\", ?authorLabel)) AS ?orcid) 
-
-WHERE {
-  {
-  SELECT
-    ?author
-    (count(?work) as ?count)
-  WHERE {
-    ?work wdt:P921 target: . 
-    ?work wdt:P50 ?author .
-    ?author wdt:P2037 ?github .
-  }
-  GROUP BY ?author
-  ORDER BY DESC(?count)
-  LIMIT 200
-}
-          
-  # Include optional ORCID iD
-  OPTIONAL { ?author wdt:P496 ?orcid_ . }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" . } 
-}
-ORDER BY DESC(?count)""";
-  <http://example.org/bigdata_select> """#title: People who published about GitHub and have a GitHub account known to Wikidata
 PREFIX target: <http://www.wikidata.org/entity/Q364>
 
 SELECT

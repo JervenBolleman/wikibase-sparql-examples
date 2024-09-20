@@ -11,7 +11,23 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?dateOfBirth ?twitter_username ?place_of_birthLabel WITH { SELECT ?item ?dateOfBirth
+WHERE 
+{
+  ?item wdt:P106 wd:Q82955.      # occupation = politician
+  ?item wdt:P27 wd:Q142.         # country of citizenship = France
+  ?item wdt:P569 ?dateOfBirth.   # date of birth greater than or equal to 1900
+  FILTER(\"1900-00-00\"^^xsd:dateTime <= ?dateOfBirth)
+  } } as %i
+WHERE
+{
+  INCLUDE %i
+  OPTIONAL {?item wdt:P2002 ?twitter_username .}
+  OPTIONAL {?item wdt:P19 ?place_of_birth .}
+ # add more OPTIONAL statements here ... remember also to add a column to the SELECT at the top 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+}""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -32,7 +48,12 @@ WHERE
  # add more OPTIONAL statements here ... remember also to add a column to the SELECT at the top 
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
 }""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?dateOfBirth ?twitter_username ?place_of_birthLabel WITH { SELECT ?item ?dateOfBirth
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?dateOfBirth ?twitter_username ?place_of_birthLabel WITH { SELECT ?item ?dateOfBirth
 WHERE 
 {
   ?item wdt:P106 wd:Q82955.      # occupation = politician

@@ -17,6 +17,41 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?label_de ?lastname ?lastname_item
+
+{
+  hint:Query hint:optimizer \"None\" .             # Enable top-to-bottom execution
+
+  SERVICE bd:slice {
+    ?item wdt:P27 wd:Q183 .                      # With Germany citizenship
+    bd:serviceParam bd:slice.offset 0 .          # offset 
+    bd:serviceParam bd:slice.limit 10000 .       # number of items to scan
+  }
+
+  FILTER NOT EXISTS { ?item wdt:P734 [] } .      # no family name
+
+  FILTER EXISTS {                                # only since 1875
+    ?item wdt:P569 ?date_of_birth .              # date of birth
+    hint:Prior hint:rangeSafe true .
+    FILTER (?date_of_birth >= \"1875-01-01T00:00:00Z\"^^xsd:dateTime)
+  }.
+
+  ?item rdfs:label ?label_de FILTER(LANG(?label_de) = 'de') .                   # with german label
+  FILTER(REGEX(STR(?label_de), \"^\\\\p{Lu}[\\\\p{Ll}-]+( \\\\p{Lu}[\\\\p{Ll}-]+)+$\")) . # like: Aaaa Bbbb Cccc
+
+  FILTER EXISTS { ?item wdt:P31 wd:Q5 } .                       # human btw
+
+  BIND(REPLACE(?label_de, \"^.* ([^\\\\s]+)$\", \"$1\") AS ?lastname) # get lastname
+  FILTER(REGEX(STR(?lastname), \"...\")) .                        # minimum 3 letters
+  
+  {
+  SELECT ?lastname (SAMPLE(?item) AS ?lastname_item) {
+    ?item wdt:P31 wd:Q101352 ;                   # family names
+          wdt:P407 wd:Q188 ;                     # in German
+          rdfs:label ?lastname FILTER(LANG(?lastname) = \"de\")
+  } GROUP BY ?lastname HAVING(COUNT(?item) = 1)  # non-ambiguous, just in case
+}                                             # hashjoin!
+}""";
+  <http://example.org/bigdata_select> """SELECT ?item ?label_de ?lastname ?lastname_item
 WITH {
   SELECT ?lastname (SAMPLE(?item) AS ?lastname_item) {
     ?item wdt:P31 wd:Q101352 ;                   # family names
@@ -57,41 +92,6 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?label_de ?lastname ?lastname_item
-
-{
-  hint:Query hint:optimizer \"None\" .             # Enable top-to-bottom execution
-
-  SERVICE bd:slice {
-    ?item wdt:P27 wd:Q183 .                      # With Germany citizenship
-    bd:serviceParam bd:slice.offset 0 .          # offset 
-    bd:serviceParam bd:slice.limit 10000 .       # number of items to scan
-  }
-
-  FILTER NOT EXISTS { ?item wdt:P734 [] } .      # no family name
-
-  FILTER EXISTS {                                # only since 1875
-    ?item wdt:P569 ?date_of_birth .              # date of birth
-    hint:Prior hint:rangeSafe true .
-    FILTER (?date_of_birth >= \"1875-01-01T00:00:00Z\"^^xsd:dateTime)
-  }.
-
-  ?item rdfs:label ?label_de FILTER(LANG(?label_de) = 'de') .                   # with german label
-  FILTER(REGEX(STR(?label_de), \"^\\\\p{Lu}[\\\\p{Ll}-]+( \\\\p{Lu}[\\\\p{Ll}-]+)+$\")) . # like: Aaaa Bbbb Cccc
-
-  FILTER EXISTS { ?item wdt:P31 wd:Q5 } .                       # human btw
-
-  BIND(REPLACE(?label_de, \"^.* ([^\\\\s]+)$\", \"$1\") AS ?lastname) # get lastname
-  FILTER(REGEX(STR(?lastname), \"...\")) .                        # minimum 3 letters
-  
-  {
-  SELECT ?lastname (SAMPLE(?item) AS ?lastname_item) {
-    ?item wdt:P31 wd:Q101352 ;                   # family names
-          wdt:P407 wd:Q188 ;                     # in German
-          rdfs:label ?lastname FILTER(LANG(?lastname) = \"de\")
-  } GROUP BY ?lastname HAVING(COUNT(?item) = 1)  # non-ambiguous, just in case
-}                                             # hashjoin!
-}""";
-  <http://example.org/bigdata_select> """SELECT ?item ?label_de ?lastname ?lastname_item
 WITH {
   SELECT ?lastname (SAMPLE(?item) AS ?lastname_item) {
     ?item wdt:P31 wd:Q101352 ;                   # family names

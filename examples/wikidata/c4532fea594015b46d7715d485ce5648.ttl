@@ -15,6 +15,31 @@
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?item ?weg ?label
+
+WITH {
+  SELECT ?weg (?baglabel AS ?label) {
+    SERVICE <http://lov.okfn.org/dataset/lov/sparql> {
+      SERVICE <https://data.pdok.nl/sparql> {
+        ?weg <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://bag.basisregistraties.overheid.nl/def/bag#OpenbareRuimte> .
+        #?weg <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://bag.basisregistraties.overheid.nl/def/bag#Weg> .
+        ?weg <http://bag.basisregistraties.overheid.nl/def/bag#status> <http://bag.basisregistraties.overheid.nl/id/begrip/NaamgevingUitgegeven> .
+        ?weg <http://www.w3.org/2000/01/rdf-schema#label> ?baglabel .
+        ?weg <http://bag.basisregistraties.overheid.nl/def/bag#bijbehorendeWoonplaats> <http://bag.basisregistraties.overheid.nl/bag/id/woonplaats/2907>
+      } 
+    }
+  }
+} AS %weg
+WHERE {
+  {
+  SELECT DISTINCT ?item (?wikilabel AS ?label) WHERE { 
+    ?item rdfs:label ?wikilabel .
+    ?item wdt:P131 wd:Q9920 .
+    ?item wdt:P31 wd:Q79007 .
+  }
+}.
+  INCLUDE %weg.
+}""";
+  <http://example.org/bigdata_select> """SELECT ?item ?weg ?label
 WITH {
   SELECT DISTINCT ?item (?wikilabel AS ?label) WHERE { 
     ?item rdfs:label ?wikilabel .
@@ -43,31 +68,6 @@ WHERE {
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?item ?weg ?label
-
-WITH {
-  SELECT ?weg (?baglabel AS ?label) {
-    SERVICE <http://lov.okfn.org/dataset/lov/sparql> {
-      SERVICE <https://data.pdok.nl/sparql> {
-        ?weg <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://bag.basisregistraties.overheid.nl/def/bag#OpenbareRuimte> .
-        #?weg <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://bag.basisregistraties.overheid.nl/def/bag#Weg> .
-        ?weg <http://bag.basisregistraties.overheid.nl/def/bag#status> <http://bag.basisregistraties.overheid.nl/id/begrip/NaamgevingUitgegeven> .
-        ?weg <http://www.w3.org/2000/01/rdf-schema#label> ?baglabel .
-        ?weg <http://bag.basisregistraties.overheid.nl/def/bag#bijbehorendeWoonplaats> <http://bag.basisregistraties.overheid.nl/bag/id/woonplaats/2907>
-      } 
-    }
-  }
-} AS %weg
-WHERE {
-  {
-  SELECT DISTINCT ?item (?wikilabel AS ?label) WHERE { 
-    ?item rdfs:label ?wikilabel .
-    ?item wdt:P131 wd:Q9920 .
-    ?item wdt:P31 wd:Q79007 .
-  }
-}.
-  INCLUDE %weg.
-}""";
-  <http://example.org/bigdata_select> """SELECT ?item ?weg ?label
 WITH {
   SELECT DISTINCT ?item (?wikilabel AS ?label) WHERE { 
     ?item rdfs:label ?wikilabel .

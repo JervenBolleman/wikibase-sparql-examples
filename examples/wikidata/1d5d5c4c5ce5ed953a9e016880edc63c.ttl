@@ -11,7 +11,22 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?owner ?ownerLabel ?owned ?ownedLabel with
+{
+  SELECT DISTINCT ?owner ?ownerLabel WHERE        # this is the named subquery
+   {
+     wd:Q3295867 wdt:P127 ?owner .                # get the direct owners of Coca-Cola
+ #    wd:Q1093541 wdt:P127* ?owner .              # get the ownership tree for IBM Cloud Video
+     ?owner rdfs:label ?ownerLabel. filter(lang(?ownerLabel)='en')       
+  } } as %i                                       # the query dumps its results into %i
+where
+{                                                 # this is the second query, which works from the %i list
+  include %i     
+  ?owned wdt:P127+ ?owner .                       # finds all companies owned (or recursively owned - P127+ ) by the companies 
+                                                  # that own Coca-Cola or IBM Cloud Video (depending on which variant you're running)
+  ?owned rdfs:label ?ownedLabel. filter(lang(?ownedLabel)='en')  
+} order by ?ownerLabel ?ownedLabel""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT DISTINCT ?owner ?ownerLabel ?owned ?ownedLabel with
@@ -29,7 +44,10 @@ where
                                                   # that own Coca-Cola or IBM Cloud Video (depending on which variant you're running)
   ?owned rdfs:label ?ownedLabel. filter(lang(?ownedLabel)='en')  
 } order by ?ownerLabel ?ownedLabel""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT ?owner ?ownerLabel ?owned ?ownedLabel with
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT DISTINCT ?owner ?ownerLabel ?owned ?ownedLabel with
 {
   SELECT DISTINCT ?owner ?ownerLabel WHERE        # this is the named subquery
    {

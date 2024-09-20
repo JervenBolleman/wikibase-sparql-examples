@@ -11,7 +11,20 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?aliases with {
+  select ?item (group_concat(distinct ?alias;separator=\", \") as ?aliases)
+  WHERE 
+  {
+    values ?occ {wd:Q482980 wd:Q36180}
+    ?item wdt:P106 ?occ.
+    ?item skos:altLabel ?alias. filter(lang(?alias)=\"en\")
+  } group by ?item } as %i
+where
+{
+  include %i
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
@@ -29,7 +42,12 @@ where
   include %i
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?aliases with {
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?aliases with {
   select ?item (group_concat(distinct ?alias;separator=\", \") as ?aliases)
   WHERE 
   {

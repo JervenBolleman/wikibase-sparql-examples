@@ -11,7 +11,23 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?linkcount
+with { 
+  select ?item ?itemLabel ?sitelink WHERE
+{
+	?item wdt:P31 wd:Q5 .
+	?sitelink schema:about ?item .
+	?sitelink schema:isPartOf <https://simple.wikipedia.org/> .
+   }      
+} as %s
+where {
+ include %s
+ FILTER NOT EXISTS { ?wfr schema:about ?item . ?wfr schema:inLanguage \"en\". }
+ OPTIONAL {?item rdfs:label ?itemLabel. filter(lang(?itemLabel)=\"en\")}
+ OPTIONAL {?item wikibase:sitelinks ?linkcount .} 
+}
+ORDER BY DESC(?linkcount)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
@@ -32,7 +48,12 @@ where {
  OPTIONAL {?item wikibase:sitelinks ?linkcount .} 
 }
 ORDER BY DESC(?linkcount)""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?linkcount
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?item ?itemLabel ?linkcount
 with { 
   select ?item ?itemLabel ?sitelink WHERE
 {

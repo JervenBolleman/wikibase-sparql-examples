@@ -18,6 +18,27 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 # US governors by eye color
 #defaultView:Map{ \"hide\": [\"?rgb\", \"?shape\"] }
 SELECT ?state ?stateLabel ?governor ?governorLabel ?eyeColor ?eyeColorLabel (?eyeColorRgb AS ?rgb) ?shape
+
+WHERE {
+  ?state wdt:P31 wd:Q35657;
+         wdt:P6 ?governor;
+         wdt:P3896 ?shape.
+  ?governor wdt:P31 wd:Q5;
+            wdt:P1340 ?eyeColor.
+  {
+  SELECT ?eyeColor (SAMPLE(?eyeColorRgb) AS ?eyeColorRgb) WHERE {
+    [] wdt:P1340 ?eyeColor.
+    OPTIONAL { ?eyeColor wdt:P465 ?eyeColorDirectRgb. }
+    OPTIONAL { ?eyeColor wdt:P462/wdt:P465 ?eyeColorIndirectRgb. }
+    BIND(COALESCE(?eyeColorDirectRgb, ?eyeColorIndirectRgb) AS ?eyeColorRgb)
+  }
+  GROUP BY ?eyeColor
+}.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <http://example.org/bigdata_select> """# US governors by eye color
+#defaultView:Map{ \"hide\": [\"?rgb\", \"?shape\"] }
+SELECT ?state ?stateLabel ?governor ?governorLabel ?eyeColor ?eyeColorLabel (?eyeColorRgb AS ?rgb) ?shape
 WITH {
   SELECT ?eyeColor (SAMPLE(?eyeColorRgb) AS ?eyeColorRgb) WHERE {
     [] wdt:P1340 ?eyeColor.
@@ -41,27 +62,6 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 # US governors by eye color
-#defaultView:Map{ \"hide\": [\"?rgb\", \"?shape\"] }
-SELECT ?state ?stateLabel ?governor ?governorLabel ?eyeColor ?eyeColorLabel (?eyeColorRgb AS ?rgb) ?shape
-
-WHERE {
-  ?state wdt:P31 wd:Q35657;
-         wdt:P6 ?governor;
-         wdt:P3896 ?shape.
-  ?governor wdt:P31 wd:Q5;
-            wdt:P1340 ?eyeColor.
-  {
-  SELECT ?eyeColor (SAMPLE(?eyeColorRgb) AS ?eyeColorRgb) WHERE {
-    [] wdt:P1340 ?eyeColor.
-    OPTIONAL { ?eyeColor wdt:P465 ?eyeColorDirectRgb. }
-    OPTIONAL { ?eyeColor wdt:P462/wdt:P465 ?eyeColorIndirectRgb. }
-    BIND(COALESCE(?eyeColorDirectRgb, ?eyeColorIndirectRgb) AS ?eyeColorRgb)
-  }
-  GROUP BY ?eyeColor
-}.
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""";
-  <http://example.org/bigdata_select> """# US governors by eye color
 #defaultView:Map{ \"hide\": [\"?rgb\", \"?shape\"] }
 SELECT ?state ?stateLabel ?governor ?governorLabel ?eyeColor ?eyeColorLabel (?eyeColorRgb AS ?rgb) ?shape
 WITH {

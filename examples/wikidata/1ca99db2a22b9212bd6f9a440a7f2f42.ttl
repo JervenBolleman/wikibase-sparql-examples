@@ -21,6 +21,30 @@ PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
 SELECT ?NobelId ?item ?itemLabel ?LaureateNobelUri ?NobelBirth (xsd:date(?WDBirth) AS ?WD_Birth) ?psv569 ?cmLabel ?p248Label ?p143Label ?p854
+ WHERE
+{
+  {SELECT ?NobelId ?item ?LaureateNobelUri ?NobelBirth ?WDBirth {
+  SERVICE <http://data.nobelprize.org/sparql>  {
+      SELECT distinct ?NobelId ?LaureateNobelUri ?NobelBirth WHERE {        
+      ?LaureateNobelUri <http://data.nobelprize.org/terms/laureateAward> ?NobelAwardid .
+      BIND(xsd:integer(REPLACE(str(?LaureateNobelUri),\"http://data.nobelprize.org/resource/laureate/\",\"\")) AS ?NobelId)
+      OPTIONAL{ ?LaureateNobelUri foaf:birthday ?NobelBirth}
+      }
+   }
+  } 
+ }
+  ?item wdt:P2888 ?LaureateNobelUri . 
+  OPTIONAL{  ?item p:P569 [ prov:wasDerivedFrom ?ref; psv:P569 [ wikibase:timeValue ?WDBirth; wikibase:timeCalendarModel ?cm ]] . 
+     OPTIONAL { ?ref pr:P248 ?p248 }
+     OPTIONAL { ?ref pr:P143 ?p143 }
+     OPTIONAL { ?ref pr:P854 ?p854 } 
+  }
+  FILTER(!(xsd:date(?WDBirth)=xsd:date(?NobelBirth))) 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ ORDER BY DESC(?NobelId) ?p248Label""";
+  <http://example.org/bigdata_select> """PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
+SELECT ?NobelId ?item ?itemLabel ?LaureateNobelUri ?NobelBirth (xsd:date(?WDBirth) AS ?WD_Birth) ?psv569 ?cmLabel ?p248Label ?p143Label ?p854
 WITH
 {SELECT ?NobelId ?item ?LaureateNobelUri ?NobelBirth ?WDBirth {
   SERVICE <http://data.nobelprize.org/sparql>  {
@@ -53,30 +77,6 @@ PREFIX pr: <http://www.wikidata.org/prop/reference/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
-SELECT ?NobelId ?item ?itemLabel ?LaureateNobelUri ?NobelBirth (xsd:date(?WDBirth) AS ?WD_Birth) ?psv569 ?cmLabel ?p248Label ?p143Label ?p854
- WHERE
-{
-  {SELECT ?NobelId ?item ?LaureateNobelUri ?NobelBirth ?WDBirth {
-  SERVICE <http://data.nobelprize.org/sparql>  {
-      SELECT distinct ?NobelId ?LaureateNobelUri ?NobelBirth WHERE {        
-      ?LaureateNobelUri <http://data.nobelprize.org/terms/laureateAward> ?NobelAwardid .
-      BIND(xsd:integer(REPLACE(str(?LaureateNobelUri),\"http://data.nobelprize.org/resource/laureate/\",\"\")) AS ?NobelId)
-      OPTIONAL{ ?LaureateNobelUri foaf:birthday ?NobelBirth}
-      }
-   }
-  } 
- }
-  ?item wdt:P2888 ?LaureateNobelUri . 
-  OPTIONAL{  ?item p:P569 [ prov:wasDerivedFrom ?ref; psv:P569 [ wikibase:timeValue ?WDBirth; wikibase:timeCalendarModel ?cm ]] . 
-     OPTIONAL { ?ref pr:P248 ?p248 }
-     OPTIONAL { ?ref pr:P143 ?p143 }
-     OPTIONAL { ?ref pr:P854 ?p854 } 
-  }
-  FILTER(!(xsd:date(?WDBirth)=xsd:date(?NobelBirth))) 
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
- ORDER BY DESC(?NobelId) ?p248Label""";
-  <http://example.org/bigdata_select> """PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
 SELECT ?NobelId ?item ?itemLabel ?LaureateNobelUri ?NobelBirth (xsd:date(?WDBirth) AS ?WD_Birth) ?psv569 ?cmLabel ?p248Label ?p143Label ?p854
 WITH
 {SELECT ?NobelId ?item ?LaureateNobelUri ?NobelBirth ?WDBirth {

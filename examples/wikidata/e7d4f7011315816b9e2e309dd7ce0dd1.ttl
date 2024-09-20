@@ -19,6 +19,23 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
 PREFIX p: <http://www.wikidata.org/prop/>
 SELECT DISTINCT ?ent ?wdtProperty ?val ?valLabel 
+ 
+WHERE { 
+  
+  { SELECT * WHERE { VALUES ?label1 { rdfs:label skos:altLabel } ?class ?label1 \"river\"@en;  } }   
+          
+  ?val wdt:P31/wdt:P279* ?class .
+  ?val p:P2043 ?statement . 
+  ?statement psv:P2043 ?psv. 
+  ?psv wikibase:quantityAmount ?amount;
+       wikibase:quantityUnit ?unit. 
+  
+  BIND( IF(?unit = wd:Q828224 , ?amount * 1000, ?amount) as ?ent)
+  
+  OPTIONAL { ?val rdfs:label ?valLabel FILTER(lang(?valLabel) = \"en\") } 
+
+} ORDER BY DESC(?ent) LIMIT 10""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?ent ?wdtProperty ?val ?valLabel 
 WITH { SELECT * WHERE { VALUES ?label1 { rdfs:label skos:altLabel } ?class ?label1 \"river\"@en;  } } AS %exec1 
 WHERE { 
   
@@ -43,23 +60,6 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
 PREFIX p: <http://www.wikidata.org/prop/>
 SELECT DISTINCT ?ent ?wdtProperty ?val ?valLabel 
- 
-WHERE { 
-  
-  { SELECT * WHERE { VALUES ?label1 { rdfs:label skos:altLabel } ?class ?label1 \"river\"@en;  } }   
-          
-  ?val wdt:P31/wdt:P279* ?class .
-  ?val p:P2043 ?statement . 
-  ?statement psv:P2043 ?psv. 
-  ?psv wikibase:quantityAmount ?amount;
-       wikibase:quantityUnit ?unit. 
-  
-  BIND( IF(?unit = wd:Q828224 , ?amount * 1000, ?amount) as ?ent)
-  
-  OPTIONAL { ?val rdfs:label ?valLabel FILTER(lang(?valLabel) = \"en\") } 
-
-} ORDER BY DESC(?ent) LIMIT 10""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT ?ent ?wdtProperty ?val ?valLabel 
 WITH { SELECT * WHERE { VALUES ?label1 { rdfs:label skos:altLabel } ?class ?label1 \"river\"@en;  } } AS %exec1 
 WHERE { 
   

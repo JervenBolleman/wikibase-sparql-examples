@@ -16,6 +16,26 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Map
+SELECT ?monument ?monumentLabel ?person ?personLabel (SAMPLE(?coordinates_) AS ?coordinates) (SAMPLE(?image_) AS ?image)  WHERE {
+  {
+  SELECT DISTINCT ?monument ?person WHERE {
+    ?monument wdt:P31/wdt:P279* wd:Q4989906;
+              wdt:P138 ?person.
+    MINUS {
+      ?monument ?wdt ?person.
+      FILTER(?wdt != wdt:P138)
+    }
+    ?person wdt:P31 wd:Q5.
+  }
+  LIMIT 100
+}.
+  OPTIONAL { ?monument wdt:P625 ?coordinates_. }
+  OPTIONAL { ?monument wdt:P18 ?image_. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?monument ?monumentLabel ?person ?personLabel
+LIMIT 100""";
+  <http://example.org/bigdata_select> """#defaultView:Map
 SELECT ?monument ?monumentLabel ?person ?personLabel (SAMPLE(?coordinates_) AS ?coordinates) (SAMPLE(?image_) AS ?image) WITH {
   SELECT DISTINCT ?monument ?person WHERE {
     ?monument wdt:P31/wdt:P279* wd:Q4989906;
@@ -40,26 +60,6 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Map
-SELECT ?monument ?monumentLabel ?person ?personLabel (SAMPLE(?coordinates_) AS ?coordinates) (SAMPLE(?image_) AS ?image)  WHERE {
-  {
-  SELECT DISTINCT ?monument ?person WHERE {
-    ?monument wdt:P31/wdt:P279* wd:Q4989906;
-              wdt:P138 ?person.
-    MINUS {
-      ?monument ?wdt ?person.
-      FILTER(?wdt != wdt:P138)
-    }
-    ?person wdt:P31 wd:Q5.
-  }
-  LIMIT 100
-}.
-  OPTIONAL { ?monument wdt:P625 ?coordinates_. }
-  OPTIONAL { ?monument wdt:P18 ?image_. }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-GROUP BY ?monument ?monumentLabel ?person ?personLabel
-LIMIT 100""";
-  <http://example.org/bigdata_select> """#defaultView:Map
 SELECT ?monument ?monumentLabel ?person ?personLabel (SAMPLE(?coordinates_) AS ?coordinates) (SAMPLE(?image_) AS ?image) WITH {
   SELECT DISTINCT ?monument ?person WHERE {
     ?monument wdt:P31/wdt:P279* wd:Q4989906;

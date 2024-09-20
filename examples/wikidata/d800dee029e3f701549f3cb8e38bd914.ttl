@@ -19,7 +19,20 @@ PREFIX prov: <http://www.w3.org/ns/prov#>
 PREFIX pr: <http://www.wikidata.org/prop/reference/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?itemDescription ?statements WITH {
+SELECT ?item ?itemLabel ?itemDescription ?statements  WHERE {
+  {
+  SELECT DISTINCT ?item WHERE {
+    ?item p:P106/ps:P106/wdt:P279* wd:Q26270618 .
+  }
+} .
+  ?item wikibase:sitelinks 0; wikibase:identifiers 0; wikibase:statements ?statements .
+  MINUS { [] ?backlink ?item }
+  OPTIONAL { ?item ?p [ prov:wasDerivedFrom [ ?pr [] ] ] . FILTER(?pr NOT IN (pr:P143, pr:P3452)) }
+  FILTER(!BOUND(?p)) .
+  MINUS { ?item wdt:P973|wdt:P1343 [] }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}""";
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?itemDescription ?statements WITH {
   SELECT DISTINCT ?item WHERE {
     ?item p:P106/ps:P106/wdt:P279* wd:Q26270618 .
   }
@@ -40,20 +53,7 @@ PREFIX prov: <http://www.w3.org/ns/prov#>
 PREFIX pr: <http://www.wikidata.org/prop/reference/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?itemDescription ?statements  WHERE {
-  {
-  SELECT DISTINCT ?item WHERE {
-    ?item p:P106/ps:P106/wdt:P279* wd:Q26270618 .
-  }
-} .
-  ?item wikibase:sitelinks 0; wikibase:identifiers 0; wikibase:statements ?statements .
-  MINUS { [] ?backlink ?item }
-  OPTIONAL { ?item ?p [ prov:wasDerivedFrom [ ?pr [] ] ] . FILTER(?pr NOT IN (pr:P143, pr:P3452)) }
-  FILTER(!BOUND(?p)) .
-  MINUS { ?item wdt:P973|wdt:P1343 [] }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
-}""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?itemDescription ?statements WITH {
+SELECT ?item ?itemLabel ?itemDescription ?statements WITH {
   SELECT DISTINCT ?item WHERE {
     ?item p:P106/ps:P106/wdt:P279* wd:Q26270618 .
   }

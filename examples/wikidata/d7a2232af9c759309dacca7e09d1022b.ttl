@@ -11,7 +11,73 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+#defaultView:Map
+SELECT ?item (SAMPLE(?title) AS ?itemLabel) (SAMPLE(?location) AS ?location) (SAMPLE(?language) AS ?layer) WITH {
+  SELECT * WHERE {
+    wd:Q39 p:P1332/psv:P1332/wikibase:geoLatitude ?n;
+           p:P1333/psv:P1333/wikibase:geoLatitude ?s;
+           p:P1334/psv:P1334/wikibase:geoLongitude ?e;
+           p:P1335/psv:P1335/wikibase:geoLongitude ?w.
+  }
+} AS %switzerlandBoundingBox WHERE {
+  VALUES ?wiki { <https://de.wikipedia.org/> <https://fr.wikipedia.org/> <https://it.wikipedia.org/> <https://rm.wikipedia.org/> }
+  ?item wdt:P17 wd:Q39;
+        wdt:P625 ?location.
+  ?article a schema:Article;
+           schema:about ?item;
+           schema:isPartOf ?wiki;
+           schema:inLanguage ?language;
+           schema:name ?title.
+  # filter out some stray results that have country Switzerland but coordinates outside it (e. g. rivers)
+  INCLUDE %switzerlandBoundingBox.
+  BIND(geof:latitude(?location) AS ?lat)
+  BIND(geof:longitude(?location) AS ?lon)
+  FILTER(?s <= ?lat && ?lat <= ?n &&
+         ?w <= ?lon && ?lon <= ?e)
+}
+GROUP BY ?item
+HAVING(COUNT(DISTINCT ?wiki) = 1)""",
+    """PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+#defaultView:Map
+SELECT ?item (SAMPLE(?title) AS ?itemLabel) (SAMPLE(?location) AS ?location) (SAMPLE(?language) AS ?layer)  WHERE {
+  VALUES ?wiki { <https://de.wikipedia.org/> <https://fr.wikipedia.org/> <https://it.wikipedia.org/> <https://rm.wikipedia.org/> }
+  ?item wdt:P17 wd:Q39;
+        wdt:P625 ?location.
+  ?article a schema:Article;
+           schema:about ?item;
+           schema:isPartOf ?wiki;
+           schema:inLanguage ?language;
+           schema:name ?title.
+  # filter out some stray results that have country Switzerland but coordinates outside it (e. g. rivers)
+  {
+  SELECT * WHERE {
+    wd:Q39 p:P1332/psv:P1332/wikibase:geoLatitude ?n;
+           p:P1333/psv:P1333/wikibase:geoLatitude ?s;
+           p:P1334/psv:P1334/wikibase:geoLongitude ?e;
+           p:P1335/psv:P1335/wikibase:geoLongitude ?w.
+  }
+}.
+  BIND(geof:latitude(?location) AS ?lat)
+  BIND(geof:longitude(?location) AS ?lon)
+  FILTER(?s <= ?lat && ?lat <= ?n &&
+         ?w <= ?lon && ?lon <= ?e)
+}
+GROUP BY ?item
+HAVING(COUNT(DISTINCT ?wiki) = 1)""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>

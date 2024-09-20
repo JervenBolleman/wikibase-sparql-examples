@@ -18,6 +18,41 @@ PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?light_years_from_earth ?parallax
+
+WHERE
+{
+  {
+  SELECT ?item (SAMPLE(?dist_to_earth * 0.000000000000000105700083402461546370946) AS ?light_years_from_earth)
+               (SAMPLE(?parallax_) AS ?parallax)
+  WHERE
+  {
+    {
+      # Get items between 1 and 30 lights years away
+      ?P2583_statement psn:P2583 ?nvalue .
+      ?nvalue wikibase:quantityAmount ?dist_to_earth .
+      hint:Prior hint:rangeSafe true .
+      FILTER (?dist_to_earth > 9460730472580800.0 && ?dist_to_earth <= 283821914177424000.0) # Distance is 1 to 30 light years
+      ?P2583_statement a wikibase:BestRank. # Do only use best rank values
+      ?item p:P2583 ?P2583_statement .
+      OPTIONAL { ?item wdt:P2214 ?parallax_ . }
+    }
+    UNION
+    {
+      # Get items with a parallax greater than 100 milli arch seconds
+      ?item wdt:P2214 ?parallax_.
+      # The paralax unit is always milli arch second (See [[Wikidata:Database reports/Constraint violations/P2214#Units statistics]])
+      hint:Prior hint:rangeSafe true .
+      FILTER (?parallax_ > 100.0)
+      OPTIONAL { ?item p:P2583/psn:P2583/wikibase:quantityAmount ?dist_to_earth . hint:Prior hint:gearing \"forward\" . }
+    }
+    ?item wdt:P31/wdt:P279* wd:Q523 . # Check that ?item is a star (remember to include subclasses of star!)
+    hint:Prior hint:gearing \"forward\" .
+  }
+  GROUP BY ?item
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}""";
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?light_years_from_earth ?parallax
 WITH
 {
   SELECT ?item (SAMPLE(?dist_to_earth * 0.000000000000000105700083402461546370946) AS ?light_years_from_earth)
@@ -61,41 +96,6 @@ PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?light_years_from_earth ?parallax
-
-WHERE
-{
-  {
-  SELECT ?item (SAMPLE(?dist_to_earth * 0.000000000000000105700083402461546370946) AS ?light_years_from_earth)
-               (SAMPLE(?parallax_) AS ?parallax)
-  WHERE
-  {
-    {
-      # Get items between 1 and 30 lights years away
-      ?P2583_statement psn:P2583 ?nvalue .
-      ?nvalue wikibase:quantityAmount ?dist_to_earth .
-      hint:Prior hint:rangeSafe true .
-      FILTER (?dist_to_earth > 9460730472580800.0 && ?dist_to_earth <= 283821914177424000.0) # Distance is 1 to 30 light years
-      ?P2583_statement a wikibase:BestRank. # Do only use best rank values
-      ?item p:P2583 ?P2583_statement .
-      OPTIONAL { ?item wdt:P2214 ?parallax_ . }
-    }
-    UNION
-    {
-      # Get items with a parallax greater than 100 milli arch seconds
-      ?item wdt:P2214 ?parallax_.
-      # The paralax unit is always milli arch second (See [[Wikidata:Database reports/Constraint violations/P2214#Units statistics]])
-      hint:Prior hint:rangeSafe true .
-      FILTER (?parallax_ > 100.0)
-      OPTIONAL { ?item p:P2583/psn:P2583/wikibase:quantityAmount ?dist_to_earth . hint:Prior hint:gearing \"forward\" . }
-    }
-    ?item wdt:P31/wdt:P279* wd:Q523 . # Check that ?item is a star (remember to include subclasses of star!)
-    hint:Prior hint:gearing \"forward\" .
-  }
-  GROUP BY ?item
-}
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
-}""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?light_years_from_earth ?parallax
 WITH
 {
   SELECT ?item (SAMPLE(?dist_to_earth * 0.000000000000000105700083402461546370946) AS ?light_years_from_earth)

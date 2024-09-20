@@ -14,7 +14,18 @@
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?universe ?universeLabel ?num_universe (count(?work) as ?num_works) WITH {
+SELECT ?universe ?universeLabel ?num_universe (count(?work) as ?num_works) 
+WHERE {
+   {
+   SELECT DISTINCT ?universe (count(?item) as ?num_universe) WHERE {
+      ?item wdt:P1080 ?universe .
+   } GROUP BY ?universe
+}
+   OPTIONAL {?work wdt:P1434 ?universe .}
+   OPTIONAL {?universe wdt:P1445 ?work .}
+   SERVICE wikibase:label {bd:serviceParam wikibase:language \"es\",\"en\" .}
+} GROUP BY ?universe ?universeLabel ?num_universe""";
+  <http://example.org/bigdata_select> """SELECT ?universe ?universeLabel ?num_universe (count(?work) as ?num_works) WITH {
    SELECT DISTINCT ?universe (count(?item) as ?num_universe) WHERE {
       ?item wdt:P1080 ?universe .
    } GROUP BY ?universe
@@ -28,18 +39,7 @@ WHERE {
     """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?universe ?universeLabel ?num_universe (count(?work) as ?num_works) 
-WHERE {
-   {
-   SELECT DISTINCT ?universe (count(?item) as ?num_universe) WHERE {
-      ?item wdt:P1080 ?universe .
-   } GROUP BY ?universe
-}
-   OPTIONAL {?work wdt:P1434 ?universe .}
-   OPTIONAL {?universe wdt:P1445 ?work .}
-   SERVICE wikibase:label {bd:serviceParam wikibase:language \"es\",\"en\" .}
-} GROUP BY ?universe ?universeLabel ?num_universe""";
-  <http://example.org/bigdata_select> """SELECT ?universe ?universeLabel ?num_universe (count(?work) as ?num_works) WITH {
+SELECT ?universe ?universeLabel ?num_universe (count(?work) as ?num_works) WITH {
    SELECT DISTINCT ?universe (count(?item) as ?num_universe) WHERE {
       ?item wdt:P1080 ?universe .
    } GROUP BY ?universe

@@ -11,7 +11,79 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """SELECT DISTINCT
+  ?name ?minister ?moves ?seq ?place_name ?from_lat ?from_lon ?lat ?lon
+
+WITH {
+  SELECT DISTINCT ?minister ?place ?StartTime ?res_stmt WHERE {
+    ?minister wdt:P106 wd:Q1423891 .
+    ?minister p:P551 ?res_stmt .
+    ?res_stmt ps:P551 ?place .
+    ?res_stmt pq:P580 ?StartTime .
+      #pq:P582 ?EndTime .
+    
+  } ORDER BY ?minister ?StartTime
+} AS %ministers
+
+WITH {
+  SELECT DISTINCT ?minister (COUNT(DISTINCT(?rs1)) AS ?seq) ?place ?StartTime WHERE {
+    INCLUDE %ministers .
+    {
+      SELECT DISTINCT ?minister (?place AS ?pl1) (?StartTime AS ?st1) (?res_stmt AS ?rs1) WHERE {
+        INCLUDE %ministers .
+      }
+    }
+    FILTER ((?st1 < ?StartTime) || ((?st1 = ?StartTime) && (STR (?rs1) <= STR(?res_stmt)))) .
+  } GROUP BY ?minister ?place ?StartTime ?res_stmt
+  ORDER BY ?minister ?seq
+} AS %ministers_seq 
+
+WITH {
+  SELECT DISTINCT ?minister ?seq (COALESCE(?from1, ?place) AS ?from) ?place ?place_name ?StartTime WHERE {
+    INCLUDE %ministers_seq .
+    BIND ((?seq) AS ?seq1) .
+    OPTIONAL {
+      SELECT ?minister (?seq + 1 AS ?seq1) (?place AS ?from1) WHERE {
+         INCLUDE %ministers_seq .
+      }
+    }
+    FILTER (bound(?from1)|| bound(?place)) .
+    SERVICE wikibase:label {
+       bd:serviceParam wikibase:language \"en\".
+       ?place rdfs:label ?place_name .
+    }
+    
+  }
+} AS %ministers_moves
+
+
+WITH {
+  SELECT ?minister (MAX(?seq) AS ?moves) WHERE {
+    INCLUDE %ministers_seq
+  } GROUP BY ?minister
+} AS %ministers_total
+
+WHERE {  
+  INCLUDE %ministers_moves.
+  INCLUDE %ministers_total.
+  
+  hint:SubQuery hint:optimizer \"None\".
+  
+  ?place p:P625 / psv:P625 / wikibase:geoLatitude ?lat .
+  ?place p:P625 / psv:P625 / wikibase:geoLongitude ?lon . 
+  ?from  p:P625 ?from_coords_stmt .
+         
+  ?from_coords_stmt psv:P625 / wikibase:geoLatitude  ?from_lat .
+  ?from_coords_stmt psv:P625 / wikibase:geoLongitude ?from_lon . 
+ 
+
+  SERVICE wikibase:label {
+       bd:serviceParam wikibase:language \"en\".
+       ?minister rdfs:label ?name .
+  }
+} 
+ORDER BY DESC(?moves) ?minister ?seq""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -92,7 +164,16 @@ WHERE {
   }
 } 
 ORDER BY DESC(?moves) ?minister ?seq""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT
   ?name ?minister ?moves ?seq ?place_name ?from_lat ?from_lon ?lat ?lon
 
 WITH {

@@ -18,6 +18,27 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 # doctoral theses with more than one (best-rank) author
 SELECT ?thesis ?thesisLabel (GROUP_CONCAT(?authorLabel; separator = \", \") AS ?authors)
+
+WHERE {
+  {
+  SELECT ?thesis WHERE {
+    ?thesis wdt:P31/(wdt:P279|wdt:P460)* wd:Q187685;
+            wdt:P50 ?author.
+  }
+  GROUP BY ?thesis
+  HAVING(COUNT(?author) > 1)
+}.
+  ?thesis wdt:P50 ?author.
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr,de\".
+    ?thesis rdfs:label ?thesisLabel.
+    ?author rdfs:label ?authorLabel.
+  }
+}
+GROUP BY ?thesis ?thesisLabel
+ORDER BY DESC(COUNT(?author))""";
+  <http://example.org/bigdata_select> """# doctoral theses with more than one (best-rank) author
+SELECT ?thesis ?thesisLabel (GROUP_CONCAT(?authorLabel; separator = \", \") AS ?authors)
 WITH {
   SELECT ?thesis WHERE {
     ?thesis wdt:P31/(wdt:P279|wdt:P460)* wd:Q187685;
@@ -43,27 +64,6 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 # doctoral theses with more than one (best-rank) author
-SELECT ?thesis ?thesisLabel (GROUP_CONCAT(?authorLabel; separator = \", \") AS ?authors)
-
-WHERE {
-  {
-  SELECT ?thesis WHERE {
-    ?thesis wdt:P31/(wdt:P279|wdt:P460)* wd:Q187685;
-            wdt:P50 ?author.
-  }
-  GROUP BY ?thesis
-  HAVING(COUNT(?author) > 1)
-}.
-  ?thesis wdt:P50 ?author.
-  SERVICE wikibase:label {
-    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr,de\".
-    ?thesis rdfs:label ?thesisLabel.
-    ?author rdfs:label ?authorLabel.
-  }
-}
-GROUP BY ?thesis ?thesisLabel
-ORDER BY DESC(COUNT(?author))""";
-  <http://example.org/bigdata_select> """# doctoral theses with more than one (best-rank) author
 SELECT ?thesis ?thesisLabel (GROUP_CONCAT(?authorLabel; separator = \", \") AS ?authors)
 WITH {
   SELECT ?thesis WHERE {

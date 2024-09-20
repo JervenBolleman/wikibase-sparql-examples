@@ -16,6 +16,22 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?research_site ?research_siteLabel ?count
+
+WHERE {
+  {
+  SELECT ?research_site (COUNT(?trial) AS ?count)  WHERE {
+    ?trial wdt:P31 wd:Q30612 .
+    { ?trial wdt:P6153 ?research_site . }
+    UNION
+    { ?trial wdt:P6153 [wdt:P749 ?research_site] . }  
+  }
+  GROUP BY ?research_site
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?research_site ?research_siteLabel ?count
+ORDER BY DESC(?count)""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?research_site ?research_siteLabel ?count
 WITH {
   SELECT ?research_site (COUNT(?trial) AS ?count)  WHERE {
     ?trial wdt:P31 wd:Q30612 .
@@ -36,22 +52,6 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?research_site ?research_siteLabel ?count
-
-WHERE {
-  {
-  SELECT ?research_site (COUNT(?trial) AS ?count)  WHERE {
-    ?trial wdt:P31 wd:Q30612 .
-    { ?trial wdt:P6153 ?research_site . }
-    UNION
-    { ?trial wdt:P6153 [wdt:P749 ?research_site] . }  
-  }
-  GROUP BY ?research_site
-}
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-GROUP BY ?research_site ?research_siteLabel ?count
-ORDER BY DESC(?count)""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT ?research_site ?research_siteLabel ?count
 WITH {
   SELECT ?research_site (COUNT(?trial) AS ?count)  WHERE {
     ?trial wdt:P31 wd:Q30612 .

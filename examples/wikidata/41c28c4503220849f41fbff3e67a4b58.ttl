@@ -18,6 +18,26 @@ PREFIX prov: <http://www.w3.org/ns/prov#>
 PREFIX dbo: <http://dbpedia.org/ontology/>
 
 SELECT DISTINCT ?author ?author_name ?page_name ?wd_item
+
+WHERE {
+  {
+  SELECT DISTINCT ?author ?author_name ?page_name
+  WHERE {
+    SERVICE <http://dbpedia.org/sparql> {
+      ?author rdf:type dbo:Writer;
+        prov:wasDerivedFrom ?derivedfrom.
+      ?author rdfs:label ?author_name. FILTER(LANG(?author_name) = \"en\")
+      BIND(STRBEFORE(STR(?derivedfrom), \"?\") AS ?page_name1)
+      BIND(URI(REPLACE(?page_name1, \"^http\", \"https\")) AS ?page_name)
+    }
+  } 
+  LIMIT 100
+}
+  ?page_name schema:about ?wd_item.
+}""";
+  <http://example.org/bigdata_select> """PREFIX dbo: <http://dbpedia.org/ontology/>
+
+SELECT DISTINCT ?author ?author_name ?page_name ?wd_item
 WITH {
   SELECT DISTINCT ?author ?author_name ?page_name
   WHERE {
@@ -40,26 +60,6 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX prov: <http://www.w3.org/ns/prov#>
 PREFIX dbo: <http://dbpedia.org/ontology/>
-
-SELECT DISTINCT ?author ?author_name ?page_name ?wd_item
-
-WHERE {
-  {
-  SELECT DISTINCT ?author ?author_name ?page_name
-  WHERE {
-    SERVICE <http://dbpedia.org/sparql> {
-      ?author rdf:type dbo:Writer;
-        prov:wasDerivedFrom ?derivedfrom.
-      ?author rdfs:label ?author_name. FILTER(LANG(?author_name) = \"en\")
-      BIND(STRBEFORE(STR(?derivedfrom), \"?\") AS ?page_name1)
-      BIND(URI(REPLACE(?page_name1, \"^http\", \"https\")) AS ?page_name)
-    }
-  } 
-  LIMIT 100
-}
-  ?page_name schema:about ?wd_item.
-}""";
-  <http://example.org/bigdata_select> """PREFIX dbo: <http://dbpedia.org/ontology/>
 
 SELECT DISTINCT ?author ?author_name ?page_name ?wd_item
 WITH {

@@ -11,7 +11,32 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?paper ?paperLabel ?paperDescription
+
+WITH
+{ 
+  SELECT ?item
+  {
+    ?item wdt:P31 wd:Q5633421
+    FILTER STRENDS(STR(?item), \"0\")
+  }
+} AS %i
+
+WITH
+{
+  SELECT ?item (SAMPLE(?p) AS ?paper)
+  {
+    INCLUDE %i
+    ?p wdt:P1433 ?item
+  }
+  GROUP BY ?item
+} AS %j
+
+{
+  INCLUDE %j
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } 
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
@@ -40,7 +65,11 @@ WITH
   INCLUDE %j
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } 
 }""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?paper ?paperLabel ?paperDescription
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?paper ?paperLabel ?paperDescription
 
 WITH
 { 

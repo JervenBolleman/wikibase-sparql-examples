@@ -15,7 +15,24 @@
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?field ?fieldLabel ?number_of_scientists ?of_which_males ?of_which_females ?of_which_others WITH {
+SELECT ?field ?fieldLabel ?number_of_scientists ?of_which_males ?of_which_females ?of_which_others  WHERE {
+  {
+SELECT ?field (COUNT(?scientist) AS ?number_of_scientists) (SUM(?males) AS ?of_which_males) (SUM(?females) AS ?of_which_females) (SUM(?others) AS ?of_which_others) {
+  ?scientist wdt:P31 wd:Q5 .
+  ?scientist wdt:P106/wdt:P279* wd:Q901 .
+  ?scientist wdt:P101 ?field .
+  ?scientist wdt:P21 ?gender .
+  BIND(IF(?gender=wd:Q6581097,1,0) AS ?males)
+  BIND(IF(?gender=wd:Q6581072,1,0) AS ?females)
+  BIND(IF(?gender!=wd:Q6581097 && ?gender!=wd:Q6581072,1,0) AS ?others)
+  FILTER NOT EXISTS { ?scientist wdt:P570 [] }
+}
+GROUP BY ?field
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de,fr,es,it,pl,hu,ru,ko,az,hy,nb,fi,be,et,tg,he\". } 
+}          
+ORDER BY DESC(?number_of_scientists) ?fieldLabel""";
+  <http://example.org/bigdata_select> """SELECT ?field ?fieldLabel ?number_of_scientists ?of_which_males ?of_which_females ?of_which_others WITH {
 SELECT ?field (COUNT(?scientist) AS ?number_of_scientists) (SUM(?males) AS ?of_which_males) (SUM(?females) AS ?of_which_females) (SUM(?others) AS ?of_which_others) {
   ?scientist wdt:P31 wd:Q5 .
   ?scientist wdt:P106/wdt:P279* wd:Q901 .
@@ -36,24 +53,7 @@ ORDER BY DESC(?number_of_scientists) ?fieldLabel""",
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?field ?fieldLabel ?number_of_scientists ?of_which_males ?of_which_females ?of_which_others  WHERE {
-  {
-SELECT ?field (COUNT(?scientist) AS ?number_of_scientists) (SUM(?males) AS ?of_which_males) (SUM(?females) AS ?of_which_females) (SUM(?others) AS ?of_which_others) {
-  ?scientist wdt:P31 wd:Q5 .
-  ?scientist wdt:P106/wdt:P279* wd:Q901 .
-  ?scientist wdt:P101 ?field .
-  ?scientist wdt:P21 ?gender .
-  BIND(IF(?gender=wd:Q6581097,1,0) AS ?males)
-  BIND(IF(?gender=wd:Q6581072,1,0) AS ?females)
-  BIND(IF(?gender!=wd:Q6581097 && ?gender!=wd:Q6581072,1,0) AS ?others)
-  FILTER NOT EXISTS { ?scientist wdt:P570 [] }
-}
-GROUP BY ?field
-}
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de,fr,es,it,pl,hu,ru,ko,az,hy,nb,fi,be,et,tg,he\". } 
-}          
-ORDER BY DESC(?number_of_scientists) ?fieldLabel""";
-  <http://example.org/bigdata_select> """SELECT ?field ?fieldLabel ?number_of_scientists ?of_which_males ?of_which_females ?of_which_others WITH {
+SELECT ?field ?fieldLabel ?number_of_scientists ?of_which_males ?of_which_females ?of_which_others WITH {
 SELECT ?field (COUNT(?scientist) AS ?number_of_scientists) (SUM(?males) AS ?of_which_males) (SUM(?females) AS ?of_which_females) (SUM(?others) AS ?of_which_others) {
   ?scientist wdt:P31 wd:Q5 .
   ?scientist wdt:P106/wdt:P279* wd:Q901 .

@@ -37,6 +37,64 @@ SELECT
 (CONCAT(
   REPLACE(STR(?item), \".*Q\", \"Q\"), \"|P921|\", REPLACE(STR(?value), \".*Q\", \"Q\") , \"|S887|Q69652283\"
 ) AS ?concatplus)
+
+{
+  {
+  SELECT ?item ?relitem ?statement ?qual_snacktype ?qual_value {
+#     VALUES ?item {wd:Q13406268}
+#     VALUES ?qual_dbvalue { wd:Q69652283 }
+    hint:Query hint:optimizer \"None\" .
+    {
+      ?statement pq:P887 ?qual_dbvalue .
+      ?item ?relation ?statement .
+      ?relation rdf:type owl:ObjectProperty .
+      ?relitem wikibase:claim ?relation .
+    } UNION {
+      ?statement rdf:type wdno:P887 .
+      ?item ?relation ?statement .
+      ?relation rdf:type owl:ObjectProperty .
+      ?relitem wikibase:claim ?relation .
+      FILTER(?relation != p:P887)
+    } UNION {
+      ?statement rdf:type wdno:P887 .
+      ?item p:P887 ?statement .
+      ?statement ps:P887 [] .
+      BIND(wd:P887 AS ?relitem)
+    }
+
+    BIND(COALESCE(IF(wikibase:isSomeValue(?qual_dbvalue), \"\", ?qual_dbvalue), \"\") AS ?qual_value)
+    BIND(COALESCE(IF(wikibase:isSomeValue(?qual_dbvalue), \"unknown\", \"concrete\"), \"novalue\") AS ?qual_snacktype)
+  } 
+}
+
+  ?statement wikibase:rank ?rank .
+  ?relitem wikibase:statementProperty ?ps .
+
+  OPTIONAL { ?statement ?ps ?dbvalue }
+
+  BIND(COALESCE(IF(wikibase:isSomeValue(?dbvalue), \"unknown\", \"concrete\"), \"novalue\") AS ?snacktype)
+  BIND(IF(wikibase:isSomeValue(?dbvalue), \"\", ?dbvalue) AS ?value)
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+  BIND(REPLACE(STR(?statement), \".*Q\", \"Q\") AS ?statement_qid) 
+}""";
+  <http://example.org/bigdata_select> """# This query finds all usages of property P887 as a qualifier.
+#
+# Important note: most SPARQL users don't need such level of complication!
+# If you want to get only concrete values with best rank, replace body with something like:
+# ?item ?relation [rdf:type wikibase:BestRank; pq:P887 ?value]
+#
+# Implementation note: it is not possible to distinguish between items where statement looks like:
+# P887: novalue with qualifier P887: novalue, AS both facts are stored in a form of:
+# (p:xxxx rdf:type wdno:P887)
+
+SELECT 
+
+# (CONCAT(\"-STATEMENT|\", STRBEFORE(STR(?statement_qid), \"-\"), \"$\", STRAFTER(STR(?statement_qid), (SUBSTR(STR(?statement_qid), STRLEN(STRBEFORE(STR(?statement_qid), \"-\")) +1, 1)))) AS ?concatminus)
+
+(CONCAT(
+  REPLACE(STR(?item), \".*Q\", \"Q\"), \"|P921|\", REPLACE(STR(?value), \".*Q\", \"Q\") , \"|S887|Q69652283\"
+) AS ?concatplus)
 WITH {
   SELECT ?item ?relitem ?statement ?qual_snacktype ?qual_value {
 #     VALUES ?item {wd:Q13406268}
@@ -88,64 +146,6 @@ PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 # This query finds all usages of property P887 as a qualifier.
-#
-# Important note: most SPARQL users don't need such level of complication!
-# If you want to get only concrete values with best rank, replace body with something like:
-# ?item ?relation [rdf:type wikibase:BestRank; pq:P887 ?value]
-#
-# Implementation note: it is not possible to distinguish between items where statement looks like:
-# P887: novalue with qualifier P887: novalue, AS both facts are stored in a form of:
-# (p:xxxx rdf:type wdno:P887)
-
-SELECT 
-
-# (CONCAT(\"-STATEMENT|\", STRBEFORE(STR(?statement_qid), \"-\"), \"$\", STRAFTER(STR(?statement_qid), (SUBSTR(STR(?statement_qid), STRLEN(STRBEFORE(STR(?statement_qid), \"-\")) +1, 1)))) AS ?concatminus)
-
-(CONCAT(
-  REPLACE(STR(?item), \".*Q\", \"Q\"), \"|P921|\", REPLACE(STR(?value), \".*Q\", \"Q\") , \"|S887|Q69652283\"
-) AS ?concatplus)
-
-{
-  {
-  SELECT ?item ?relitem ?statement ?qual_snacktype ?qual_value {
-#     VALUES ?item {wd:Q13406268}
-#     VALUES ?qual_dbvalue { wd:Q69652283 }
-    hint:Query hint:optimizer \"None\" .
-    {
-      ?statement pq:P887 ?qual_dbvalue .
-      ?item ?relation ?statement .
-      ?relation rdf:type owl:ObjectProperty .
-      ?relitem wikibase:claim ?relation .
-    } UNION {
-      ?statement rdf:type wdno:P887 .
-      ?item ?relation ?statement .
-      ?relation rdf:type owl:ObjectProperty .
-      ?relitem wikibase:claim ?relation .
-      FILTER(?relation != p:P887)
-    } UNION {
-      ?statement rdf:type wdno:P887 .
-      ?item p:P887 ?statement .
-      ?statement ps:P887 [] .
-      BIND(wd:P887 AS ?relitem)
-    }
-
-    BIND(COALESCE(IF(wikibase:isSomeValue(?qual_dbvalue), \"\", ?qual_dbvalue), \"\") AS ?qual_value)
-    BIND(COALESCE(IF(wikibase:isSomeValue(?qual_dbvalue), \"unknown\", \"concrete\"), \"novalue\") AS ?qual_snacktype)
-  } 
-}
-
-  ?statement wikibase:rank ?rank .
-  ?relitem wikibase:statementProperty ?ps .
-
-  OPTIONAL { ?statement ?ps ?dbvalue }
-
-  BIND(COALESCE(IF(wikibase:isSomeValue(?dbvalue), \"unknown\", \"concrete\"), \"novalue\") AS ?snacktype)
-  BIND(IF(wikibase:isSomeValue(?dbvalue), \"\", ?dbvalue) AS ?value)
-
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
-  BIND(REPLACE(STR(?statement), \".*Q\", \"Q\") AS ?statement_qid) 
-}""";
-  <http://example.org/bigdata_select> """# This query finds all usages of property P887 as a qualifier.
 #
 # Important note: most SPARQL users don't need such level of complication!
 # If you want to get only concrete values with best rank, replace body with something like:

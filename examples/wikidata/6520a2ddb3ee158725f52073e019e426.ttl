@@ -11,7 +11,26 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?date ?determination ?ref ?rank ?stat with {
+SELECT ?item (max(?date_) as ?date) 
+WHERE 
+{
+  ?item wdt:P31 wd:Q747074.
+  ?item p:P1082 ?stat.
+  ?stat pq:P585 ?date_.
+  } group by ?item } as %i
+where
+{
+  include %i
+  ?item p:P1082 ?stat.
+  ?stat pq:P585 ?date.
+  optional {?stat pq:P459 ?determination. }
+  optional {?stat prov:wasDerivedFrom/pr:P854 ?ref.}
+  filter not exists {    ?stat a wikibase:BestRank. }
+  ?stat wikibase:rank ?rank.      
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX prov: <http://www.w3.org/ns/prov#>
@@ -38,7 +57,15 @@ where
   ?stat wikibase:rank ?rank.      
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?date ?determination ?ref ?rank ?stat with {
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?date ?determination ?ref ?rank ?stat with {
 SELECT ?item (max(?date_) as ?date) 
 WHERE 
 {

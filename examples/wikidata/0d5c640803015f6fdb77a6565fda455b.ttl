@@ -15,6 +15,28 @@
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?item ?itemLabel ?town ?town_name 
+
+WITH {
+  SELECT DISTINCT ?town ?town_name WHERE {
+    ?town wdt:P17 wd:Q145 .
+    {?town wdt:P31 wd:Q1115575.}
+    UNION
+    {?town wdt:P31 wd:Q3957 .}
+    ?town rdfs:label ?town_name . filter(lang(?town_name)=\"en\")
+  } } AS %towns
+WHERE {
+   {{ 
+  SELECT ?item ?itemLabel ?town ?town_name WHERE {
+    ?item wdt:P31 wd:Q3507268.
+    ?item rdfs:label ?itemLabel . filter(lang(?itemLabel)=\"en\")
+    ?item wdt:P17 wd:Q145  .
+    FILTER NOT EXISTS { ?item wdt:P1001 []. }
+    BIND(REPLACE( ?itemLabel, \" Town Council\",\"\") as ?town_name)
+  } }} 
+   UNION 
+   {INCLUDE %towns}
+}""";
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?town ?town_name 
 WITH { 
   SELECT ?item ?itemLabel ?town ?town_name WHERE {
     ?item wdt:P31 wd:Q3507268.
@@ -40,28 +62,6 @@ WHERE {
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?item ?itemLabel ?town ?town_name 
-
-WITH {
-  SELECT DISTINCT ?town ?town_name WHERE {
-    ?town wdt:P17 wd:Q145 .
-    {?town wdt:P31 wd:Q1115575.}
-    UNION
-    {?town wdt:P31 wd:Q3957 .}
-    ?town rdfs:label ?town_name . filter(lang(?town_name)=\"en\")
-  } } AS %towns
-WHERE {
-   {{ 
-  SELECT ?item ?itemLabel ?town ?town_name WHERE {
-    ?item wdt:P31 wd:Q3507268.
-    ?item rdfs:label ?itemLabel . filter(lang(?itemLabel)=\"en\")
-    ?item wdt:P17 wd:Q145  .
-    FILTER NOT EXISTS { ?item wdt:P1001 []. }
-    BIND(REPLACE( ?itemLabel, \" Town Council\",\"\") as ?town_name)
-  } }} 
-   UNION 
-   {INCLUDE %towns}
-}""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?town ?town_name 
 WITH { 
   SELECT ?item ?itemLabel ?town ?town_name WHERE {
     ?item wdt:P31 wd:Q3507268.
