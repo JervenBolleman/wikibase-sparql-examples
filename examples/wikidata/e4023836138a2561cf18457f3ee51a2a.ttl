@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-e4023836138a2561cf18457f3ee51a2a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q9035>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:language-lexemesense-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX target: <http://www.wikidata.org/entity/Q9035>
 
 SELECT 
   ?senses_per_lexeme 
@@ -38,8 +46,35 @@ WHERE {
   ?example_lexeme wikibase:lemma ?example_lexemeLabel .
 }
 ORDER BY DESC(?senses_per_lexeme)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:language-lexemesense-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q9035>
+
+SELECT 
+  ?senses_per_lexeme 
+  ?lexemes
+  ?example_lexeme ?example_lexemeLabel
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)
+WITH {
+  SELECT 
+    (COUNT(?sense) AS ?senses_per_lexeme)
+    ?lexeme
+  WHERE {
+    ?lexeme dct:language target: .
+    OPTIONAL { ?lexeme ontolex:sense ?sense . }
+  }
+  GROUP BY ?lexeme
+} AS %lexemes
+WITH {
+  SELECT 
+    ?senses_per_lexeme
+    (COUNT(?lexeme) AS ?lexemes)
+    (SAMPLE(?lexeme) AS ?example_lexeme)
+  WHERE {
+    INCLUDE %lexemes
+  }
+  GROUP BY ?senses_per_lexeme
+} AS %senses
+WHERE {
+  INCLUDE %senses
+  ?example_lexeme wikibase:lemma ?example_lexemeLabel .
+}
+ORDER BY DESC(?senses_per_lexeme)""" .

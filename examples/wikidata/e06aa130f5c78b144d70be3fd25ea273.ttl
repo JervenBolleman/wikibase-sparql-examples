@@ -6,7 +6,19 @@
 
 <https://www.wikidata.org/#query-e06aa130f5c78b144d70be3fd25ea273> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:LineChart
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Japastorsanchez/CursoHumanistaWikidata>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:LineChart
 SELECT ?año ?poblacion ?pais ?paisLabel
 WITH
 {
@@ -26,9 +38,52 @@ WHERE
 {
     INCLUDE %results.
     SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],es\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:LineChart
+SELECT ?año ?poblacion ?pais ?paisLabel
+
+WHERE
+{
+    {
+    SELECT ?pais ?año (avg(?poblacion_valor) as ?poblacion)
+    WHERE
+    {
+          ?pais wdt:P463 wd:Q458 .
+          ?pais p:P1082 ?poblacion_statement.
+          ?poblacion_statement ps:P1082 ?poblacion_valor.
+          ?poblacion_statement pq:P585 ?fecha.
+          bind(str(YEAR(?fecha)) AS ?año)
+          FILTER(?pais!=wd:Q145)
+    }
+    group by ?pais ?año
+}.
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],es\". }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Japastorsanchez/CursoHumanistaWikidata>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#defaultView:LineChart
+SELECT ?año ?poblacion ?pais ?paisLabel
+WITH
+{
+    SELECT ?pais ?año (avg(?poblacion_valor) as ?poblacion)
+    WHERE
+    {
+          ?pais wdt:P463 wd:Q458 .
+          ?pais p:P1082 ?poblacion_statement.
+          ?poblacion_statement ps:P1082 ?poblacion_valor.
+          ?poblacion_statement pq:P585 ?fecha.
+          bind(str(YEAR(?fecha)) AS ?año)
+          FILTER(?pais!=wd:Q145)
+    }
+    group by ?pais ?año
+} AS %results
+WHERE
+{
+    INCLUDE %results.
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],es\". }
+}""" .

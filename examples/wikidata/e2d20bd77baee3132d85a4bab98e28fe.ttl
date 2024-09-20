@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-e2d20bd77baee3132d85a4bab98e28fe> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?ORCID with {select  ?item ?ORCID 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?ORCID with {select  ?item ?ORCID 
 WHERE 
 {
   SERVICE bd:slice {
@@ -20,8 +29,17 @@ where
   include %i    
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/12>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?ORCID with {select  ?item ?ORCID 
+WHERE 
+{
+  SERVICE bd:slice {
+       ?item wdt:P496 ?ORCID.
+    bd:serviceParam bd:slice.offset 1300000 . # Start at item number (not to be confused with QID)
+    bd:serviceParam bd:slice.limit 500000 . } # List this many items
+  minus {?item schema:description ?itemDescription . filter(lang(?itemDescription)=\"en\") }
+}  } as %i
+where
+{
+  include %i    
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+}""" .

@@ -6,7 +6,20 @@
 
 <https://www.wikidata.org/#query-ecc186a72571067ab6f4f6848d880b54> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?position_heldLabel ?start_time ?replacesLabel ?end_time ?replaced_byLabel ?end_causeLabel WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?position_heldLabel ?start_time ?replacesLabel ?end_time ?replaced_byLabel ?end_causeLabel WITH {
   SELECT DISTINCT ?item {
     ?item wdt:P39/wdt:P361 wd:Q112014 . # get positions that are part of (P361) Cabinet of the United Kingdom
     ?item p:P39 [pq:P580 ?startdate; rdf:type wikibase:BestRank] .  
@@ -24,9 +37,50 @@
   OPTIONAL { ?p39stm pq:P1534 ?end_cause }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY ?itemLabel ?start_time""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?position_heldLabel ?start_time ?replacesLabel ?end_time ?replaced_byLabel ?end_causeLabel  WHERE {
+  {
+  SELECT DISTINCT ?item {
+    ?item wdt:P39/wdt:P361 wd:Q112014 . # get positions that are part of (P361) Cabinet of the United Kingdom
+    ?item p:P39 [pq:P580 ?startdate; rdf:type wikibase:BestRank] .  
+    FILTER(YEAR(?startdate)>=1945)      # limit to start dates from 1945 
+  }
+} 
+  ?item p:P39 ?p39stm .
+  ?p39stm rdf:type wikibase:BestRank .   
+  ?p39stm ps:P39 ?position_held .
+  OPTIONAL { ?p39stm pq:P580 ?start_time }
+  OPTIONAL { ?p39stm pq:P1365 ?replaces }
+  OPTIONAL { ?p39stm pq:P582 ?end_time }
+  OPTIONAL { ?p39stm pq:P1366 ?replaced_by }
+  OPTIONAL { ?p39stm pq:P1534 ?end_cause }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY ?itemLabel ?start_time""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/03>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?position_heldLabel ?start_time ?replacesLabel ?end_time ?replaced_byLabel ?end_causeLabel WITH {
+  SELECT DISTINCT ?item {
+    ?item wdt:P39/wdt:P361 wd:Q112014 . # get positions that are part of (P361) Cabinet of the United Kingdom
+    ?item p:P39 [pq:P580 ?startdate; rdf:type wikibase:BestRank] .  
+    FILTER(YEAR(?startdate)>=1945)      # limit to start dates from 1945 
+  }
+} AS %ministers_from_1945 WHERE {
+  INCLUDE %ministers_from_1945 
+  ?item p:P39 ?p39stm .
+  ?p39stm rdf:type wikibase:BestRank .   
+  ?p39stm ps:P39 ?position_held .
+  OPTIONAL { ?p39stm pq:P580 ?start_time }
+  OPTIONAL { ?p39stm pq:P1365 ?replaces }
+  OPTIONAL { ?p39stm pq:P582 ?end_time }
+  OPTIONAL { ?p39stm pq:P1366 ?replaced_by }
+  OPTIONAL { ?p39stm pq:P1534 ?end_cause }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?itemLabel ?start_time""" .

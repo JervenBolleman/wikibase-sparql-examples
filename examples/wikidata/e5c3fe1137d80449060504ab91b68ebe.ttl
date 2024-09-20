@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-e5c3fe1137d80449060504ab91b68ebe> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q20980928>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:author>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q20980928>
 
 SELECT
   ?works
@@ -33,9 +41,63 @@ WHERE {
   INCLUDE %topics
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" . } 
 }
+ORDER BY DESC(?works)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q20980928>
+
+SELECT
+  ?works
+  (CONCAT(\"#author/\", SUBSTR(STR(target:), 32), \"/topic/\", SUBSTR(STR(?topic), 32)) AS ?worksUrl)
+
+  ?topic ?topicLabel
+  (CONCAT(\"#topic/\", SUBSTR(STR(?topic), 32)) AS ?topicUrl)
+  ?topicDescription
+
+  ?example_work ?example_workLabel
+  (CONCAT(\"#work/\", SUBSTR(STR(?example_work), 32)) AS ?example_workUrl)
+
+WHERE {
+  {
+  SELECT
+    (COUNT(?work) AS ?works)
+    ?topic
+    (SAMPLE(?work) AS ?example_work)
+  WHERE {
+    ?work wdt:P50 target: ;
+          wdt:P921 ?topic .
+  }
+  GROUP BY ?topic
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" . } 
+}
 ORDER BY DESC(?works)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:author>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q20980928>
+
+SELECT
+  ?works
+  (CONCAT(\"#author/\", SUBSTR(STR(target:), 32), \"/topic/\", SUBSTR(STR(?topic), 32)) AS ?worksUrl)
+
+  ?topic ?topicLabel
+  (CONCAT(\"#topic/\", SUBSTR(STR(?topic), 32)) AS ?topicUrl)
+  ?topicDescription
+
+  ?example_work ?example_workLabel
+  (CONCAT(\"#work/\", SUBSTR(STR(?example_work), 32)) AS ?example_workUrl)
+WITH {
+  SELECT
+    (COUNT(?work) AS ?works)
+    ?topic
+    (SAMPLE(?work) AS ?example_work)
+  WHERE {
+    ?work wdt:P50 target: ;
+          wdt:P921 ?topic .
+  }
+  GROUP BY ?topic
+} AS %topics
+WHERE {
+  INCLUDE %topics
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" . } 
+}
+ORDER BY DESC(?works)""" .

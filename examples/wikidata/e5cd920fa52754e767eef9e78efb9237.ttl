@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-e5cd920fa52754e767eef9e78efb9237> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:Table
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_COVID-19/Queries/SPARQL_Study>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Table
 SELECT ?count ?cited_work ?cited_workLabel
 WITH {
   SELECT (count(?work) as ?count) ?cited_work WHERE {
@@ -24,9 +33,46 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" . } 
 }
 ORDER BY DESC(?count)
+LIMIT 200""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Table
+SELECT ?count ?cited_work ?cited_workLabel
+
+WHERE {
+  {
+  SELECT (count(?work) as ?count) ?cited_work WHERE {
+    VALUES ?topic { wd:Q84263196 wd:Q81068910 wd:Q82069695 } 
+    
+    { ?work wdt:P921/wdt:P31*/wdt:P279* ?topic . }
+    union { ?work wdt:P921/wdt:P361+ ?topic . }
+    union { ?work wdt:P921/wdt:P1269+ ?topic . }
+    ?work wdt:P2860 ?cited_work .
+  }
+  GROUP BY ?cited_work
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" . } 
+}
+ORDER BY DESC(?count)
 LIMIT 200""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_COVID-19/Queries/SPARQL_Study>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#defaultView:Table
+SELECT ?count ?cited_work ?cited_workLabel
+WITH {
+  SELECT (count(?work) as ?count) ?cited_work WHERE {
+    VALUES ?topic { wd:Q84263196 wd:Q81068910 wd:Q82069695 } 
+    
+    { ?work wdt:P921/wdt:P31*/wdt:P279* ?topic . }
+    union { ?work wdt:P921/wdt:P361+ ?topic . }
+    union { ?work wdt:P921/wdt:P1269+ ?topic . }
+    ?work wdt:P2860 ?cited_work .
+  }
+  GROUP BY ?cited_work
+} AS %result
+WHERE {
+  INCLUDE %result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" . } 
+}
+ORDER BY DESC(?count)
+LIMIT 200""" .

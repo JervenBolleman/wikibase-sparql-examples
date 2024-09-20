@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-e160939815f2c064a17fb89d85a81e5c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?idnt ?numItems
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/05>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?idnt ?numItems
 WITH {
 SELECT ?idnt (COUNT(DISTINCT(?item)) AS ?numItems) WHERE {
   ?item   wdt:P5696 ?idnt.
@@ -18,9 +26,33 @@ WHERE {
   ?item   wdt:P5696 ?idnt.
   FILTER(?numItems > 1)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?idnt ?numItems
+
+WHERE {
+  {
+SELECT ?idnt (COUNT(DISTINCT(?item)) AS ?numItems) WHERE {
+  ?item   wdt:P5696 ?idnt.
+} 
+GROUP BY ?idnt
+}.
+  ?item   wdt:P5696 ?idnt.
+  FILTER(?numItems > 1)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/05>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?idnt ?numItems
+WITH {
+SELECT ?idnt (COUNT(DISTINCT(?item)) AS ?numItems) WHERE {
+  ?item   wdt:P5696 ?idnt.
+} 
+GROUP BY ?idnt
+} AS %1
+WHERE {
+  INCLUDE %1.
+  ?item   wdt:P5696 ?idnt.
+  FILTER(?numItems > 1)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

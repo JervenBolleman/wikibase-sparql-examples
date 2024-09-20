@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-e00f8f341476fb09c67d6945898f8de3> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?lang ?langLabel ?country ?countryLabel
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?lang ?langLabel ?country ?countryLabel
 with 
 { select ?item ?lang where
 { ?item wdt:P31 wd:Q10876391. #find language wikipedias
@@ -22,8 +31,19 @@ where
   include %c
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }  
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/11>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?lang ?langLabel ?country ?countryLabel
+with 
+{ select ?item ?lang where
+{ ?item wdt:P31 wd:Q10876391. #find language wikipedias
+  ?item wdt:P407 ?lang.       #get the wiki's 'language of work'
+} } as %w
+with
+{ select ?country ?lang where
+{ ?country wdt:P463 wd:Q1065. #id countries by their membership of the UN
+  ?country wdt:P37 ?lang.     #get the official languages of the country
+} } as %c
+where
+{ include %w
+  include %c
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }  
+}""" .

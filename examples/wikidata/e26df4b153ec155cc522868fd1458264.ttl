@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-e26df4b153ec155cc522868fd1458264> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?time ?count
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Dipsacus_fullonum>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?item ?time ?count
 WITH
 {
   SELECT ?time (COUNT(?time) AS ?count)
@@ -27,9 +37,52 @@ WHERE
   ?fullvalue wikibase:timePrecision 11 . # Precision is date
   ?fullvalue wikibase:timeValue ?time.
   MINUS { ?item (wdt:P31/wdt:P279*) wd:Q6888. } # exclude transit astronomiques
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?item ?time ?count
+
+WHERE
+{
+  {
+  SELECT ?time (COUNT(?time) AS ?count)
+  WHERE
+  {
+    ?item p:P585 /  psv:P585 ?fullvalue.
+    ?fullvalue wikibase:timePrecision 11 . # Precision is date
+    ?fullvalue wikibase:timeValue ?time.
+    MINUS { ?item (wdt:P31/wdt:P279*) wd:Q6888. } # exclude transit astronomiques
+  }
+  GROUP BY ?time
+  HAVING (?count > 1)
+}
+  ?item p:P585 / psv:P585 ?fullvalue.
+  ?fullvalue wikibase:timePrecision 11 . # Precision is date
+  ?fullvalue wikibase:timeValue ?time.
+  MINUS { ?item (wdt:P31/wdt:P279*) wd:Q6888. } # exclude transit astronomiques
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Dipsacus_fullonum>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?time ?count
+WITH
+{
+  SELECT ?time (COUNT(?time) AS ?count)
+  WHERE
+  {
+    ?item p:P585 /  psv:P585 ?fullvalue.
+    ?fullvalue wikibase:timePrecision 11 . # Precision is date
+    ?fullvalue wikibase:timeValue ?time.
+    MINUS { ?item (wdt:P31/wdt:P279*) wd:Q6888. } # exclude transit astronomiques
+  }
+  GROUP BY ?time
+  HAVING (?count > 1)
+} AS %get_duplicate_times
+WHERE
+{
+  INCLUDE %get_duplicate_times
+  ?item p:P585 / psv:P585 ?fullvalue.
+  ?fullvalue wikibase:timePrecision 11 . # Precision is date
+  ?fullvalue wikibase:timeValue ?time.
+  MINUS { ?item (wdt:P31/wdt:P279*) wd:Q6888. } # exclude transit astronomiques
+}""" .

@@ -6,7 +6,14 @@
 
 <https://www.wikidata.org/#query-ef176464ff18e930333754e132b01a82> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?item ?region ?hasc
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT DISTINCT ?item ?region ?hasc
 WITH
 {
   # Subquery to get all values of hasc in Germany  
@@ -26,9 +33,47 @@ WHERE
   ?item wdt:P131 * ?region .
   ?item wdt:P31 / wdt:P279 * wd:Q486972 . # ?item is a subclass of human settlement
   hint:Prior hint:gearing \"forward\" .
+}""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT DISTINCT ?item ?region ?hasc
+
+WHERE
+{
+  {
+  # Subquery to get all values of hasc in Germany  
+  SELECT ?region ?hasc
+  WHERE
+  {
+    ?region wdt:P8119 ?hasc .
+    ?region wdt:P17 wd:Q183 . # country is Germany
+  }
+  ORDER BY ?hasc
+  OFFSET 0
+  LIMIT 50
+}
+  ?item wdt:P131 * ?region .
+  ?item wdt:P31 / wdt:P279 * wd:Q486972 . # ?item is a subclass of human settlement
+  hint:Prior hint:gearing \"forward\" .
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/08>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?region ?hasc
+WITH
+{
+  # Subquery to get all values of hasc in Germany  
+  SELECT ?region ?hasc
+  WHERE
+  {
+    ?region wdt:P8119 ?hasc .
+    ?region wdt:P17 wd:Q183 . # country is Germany
+  }
+  ORDER BY ?hasc
+  OFFSET 0
+  LIMIT 50
+} AS %hasc
+WHERE
+{
+  INCLUDE %hasc
+  ?item wdt:P131 * ?region .
+  ?item wdt:P31 / wdt:P279 * wd:Q486972 . # ?item is a subclass of human settlement
+  hint:Prior hint:gearing \"forward\" .
+}""" .

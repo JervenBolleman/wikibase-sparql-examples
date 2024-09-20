@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-e690374386d8cc0926e1d0a7bbac8559> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX dcterms: <http://purl.org/dc/terms/>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Pathwaybot/query_examples>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX dcterms: <http://purl.org/dc/terms/>
 PREFIX wp: <http://vocabularies.wikipathways.org/wp#>
 
 SELECT DISTINCT ?sourceWD ?sourceWDLabel ?sourceSMILES ?targetWD ?targetWDLabel ?targetSMILES WITH {
@@ -28,9 +36,53 @@ SELECT DISTINCT ?sourceWD ?sourceWDLabel ?sourceSMILES ?targetWD ?targetWDLabel 
   OPTIONAL { ?targetWD wdt:P2017 ?targetSMILESiso }
   BIND (COALESCE(?targetSMILESiso, ?targetSMILEScan) AS ?targetSMILES)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX wp: <http://vocabularies.wikipathways.org/wp#>
+
+SELECT DISTINCT ?sourceWD ?sourceWDLabel ?sourceSMILES ?targetWD ?targetWDLabel ?targetSMILES  WHERE {
+  {
+  SELECT ?sourceWD ?targetWD WHERE {
+    SERVICE <http://sparql.wikipathways.org/sparql> {
+      ?pathway a wp:Pathway . 
+      ?interaction dcterms:isPartOf ?pathway .
+      ?interaction a wp:Interaction, wp:Conversion .
+      ?interaction wp:source ?source . ?source a wp:Metabolite; wp:bdbWikidata ?sourceWD .
+      ?interaction wp:target ?target . ?target a wp:Metabolite; wp:bdbWikidata ?targetWD .
+    }
+  }
+}
+  OPTIONAL { ?sourceWD wdt:P233 ?sourceSMILEScan }
+  OPTIONAL { ?sourceWD wdt:P2017 ?sourceSMILESiso }
+  BIND (COALESCE(?sourceSMILESiso, ?sourceSMILEScan) AS ?sourceSMILES)
+  OPTIONAL { ?targetWD wdt:P233 ?targetSMILEScan }
+  OPTIONAL { ?targetWD wdt:P2017 ?targetSMILESiso }
+  BIND (COALESCE(?targetSMILESiso, ?targetSMILEScan) AS ?targetSMILES)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Pathwaybot/query_examples>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX wp: <http://vocabularies.wikipathways.org/wp#>
+
+SELECT DISTINCT ?sourceWD ?sourceWDLabel ?sourceSMILES ?targetWD ?targetWDLabel ?targetSMILES WITH {
+  SELECT ?sourceWD ?targetWD WHERE {
+    SERVICE <http://sparql.wikipathways.org/sparql> {
+      ?pathway a wp:Pathway . 
+      ?interaction dcterms:isPartOf ?pathway .
+      ?interaction a wp:Interaction, wp:Conversion .
+      ?interaction wp:source ?source . ?source a wp:Metabolite; wp:bdbWikidata ?sourceWD .
+      ?interaction wp:target ?target . ?target a wp:Metabolite; wp:bdbWikidata ?targetWD .
+    }
+  }
+} AS %results WHERE {
+  INCLUDE %results
+  OPTIONAL { ?sourceWD wdt:P233 ?sourceSMILEScan }
+  OPTIONAL { ?sourceWD wdt:P2017 ?sourceSMILESiso }
+  BIND (COALESCE(?sourceSMILESiso, ?sourceSMILEScan) AS ?sourceSMILES)
+  OPTIONAL { ?targetWD wdt:P233 ?targetSMILEScan }
+  OPTIONAL { ?targetWD wdt:P2017 ?targetSMILESiso }
+  BIND (COALESCE(?targetSMILESiso, ?targetSMILEScan) AS ?targetSMILES)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

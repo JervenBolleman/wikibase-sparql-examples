@@ -6,7 +6,13 @@
 
 <https://www.wikidata.org/#query-ece6a1dc45766068373153c521909a05> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?first_letter  (COUNT(?first_letter) as ?count) (?count/?total*100 AS ?pct)
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX schema: <http://schema.org/>
+SELECT ?first_letter  (COUNT(?first_letter) as ?count) (?count/?total*100 AS ?pct)
 WITH
 { 
   SELECT (COUNT(?article) AS ?total)
@@ -22,9 +28,38 @@ WHERE
   ?article schema:isPartOf <https://is.wikipedia.org/>.
   BIND (SUBSTR(?title, 1, 1) AS ?first_letter)
 }
+GROUP BY ?first_letter ?total""",
+    """PREFIX schema: <http://schema.org/>
+SELECT ?first_letter  (COUNT(?first_letter) as ?count) (?count/?total*100 AS ?pct)
+
+WHERE
+{
+  { 
+  SELECT (COUNT(?article) AS ?total)
+  WHERE
+  {
+    ?article schema:isPartOf <https://is.wikipedia.org/>.
+  }
+}
+  ?article schema:name ?title.
+  ?article schema:isPartOf <https://is.wikipedia.org/>.
+  BIND (SUBSTR(?title, 1, 1) AS ?first_letter)
+}
 GROUP BY ?first_letter ?total""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/04>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?first_letter  (COUNT(?first_letter) as ?count) (?count/?total*100 AS ?pct)
+WITH
+{ 
+  SELECT (COUNT(?article) AS ?total)
+  WHERE
+  {
+    ?article schema:isPartOf <https://is.wikipedia.org/>.
+  }
+} AS %total
+WHERE
+{
+  INCLUDE %total
+  ?article schema:name ?title.
+  ?article schema:isPartOf <https://is.wikipedia.org/>.
+  BIND (SUBSTR(?title, 1, 1) AS ?first_letter)
+}
+GROUP BY ?first_letter ?total""" .

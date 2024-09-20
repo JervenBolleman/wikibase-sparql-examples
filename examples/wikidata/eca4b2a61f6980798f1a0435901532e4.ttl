@@ -6,7 +6,22 @@
 
 <https://www.wikidata.org/#query-eca4b2a61f6980798f1a0435901532e4> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Events/Faisons_des_%C3%A9tincelles_avec_SPARQL>,
+    <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
 SELECT DISTINCT ?coordinates ?line ?item ?itemLabel ?connectLabel ?image ?opening ?rgb
 
 WITH {
@@ -45,10 +60,102 @@ WITH {
 WHERE {
   { INCLUDE %stations }  UNION { INCLUDE %lines  } .
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
+SELECT DISTINCT ?coordinates ?line ?item ?itemLabel ?connectLabel ?image ?opening ?rgb
+
+
+
+WITH {
+  SELECT ?nextstation (sample(?lat2) as ?lat2) (sample(?lon2) as ?lon2) WHERE {
+    ?nextstation wdt:P31 wd:Q14562709 .
+    ?nextstation p:P625 / psv:P625 / wikibase:geoLatitude ?lat2 .
+    ?nextstation p:P625 / psv:P625 / wikibase:geoLongitude ?lon2 .
+  } GROUP BY ?nextstation
+} AS %nextstations
+
+WITH {
+  SELECT ?line ?connect ?rgb WHERE {
+    {
+  SELECT ?item (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) (sample(?lat1) as ?lat1) (sample(?lon1) as ?lon1) (sample(?opening) as ?opening) WHERE {
+    ?item wdt:P31 wd:Q14562709 .
+    ?item wdt:P625 ?coordinates  .
+    ?item p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 .
+    ?item p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
+    OPTIONAL { ?item wdt:P18 ?image }.
+    OPTIONAL { ?item wdt:P1619 ?opening }.
+  } GROUP BY ?item
+} .
+    INCLUDE %nextstations .
+    ?item p:P197 ?nextstationstatement .
+    ?nextstationstatement ps:P197 ?nextstation .
+    ?nextstationstatement pq:P81 ?connect . ?connect wdt:P361 wd:Q20075  . 
+    ?connect wdt:P465 ?rgb .
+    FILTER(STR(?item) < STR(?nextstation)) .    
+    BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
+    BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
+  }
+} AS %lines 
+ 
+WHERE {
+  { {
+  SELECT ?item (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) (sample(?lat1) as ?lat1) (sample(?lon1) as ?lon1) (sample(?opening) as ?opening) WHERE {
+    ?item wdt:P31 wd:Q14562709 .
+    ?item wdt:P625 ?coordinates  .
+    ?item p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 .
+    ?item p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
+    OPTIONAL { ?item wdt:P18 ?image }.
+    OPTIONAL { ?item wdt:P1619 ?opening }.
+  } GROUP BY ?item
+} }  UNION { INCLUDE %lines  } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Events/Faisons_des_%C3%A9tincelles_avec_SPARQL>,
-    <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/10>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
+SELECT DISTINCT ?coordinates ?line ?item ?itemLabel ?connectLabel ?image ?opening ?rgb
+
+WITH {
+  SELECT ?item (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) (sample(?lat1) as ?lat1) (sample(?lon1) as ?lon1) (sample(?opening) as ?opening) WHERE {
+    ?item wdt:P31 wd:Q14562709 .
+    ?item wdt:P625 ?coordinates  .
+    ?item p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 .
+    ?item p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
+    OPTIONAL { ?item wdt:P18 ?image }.
+    OPTIONAL { ?item wdt:P1619 ?opening }.
+  } GROUP BY ?item
+} AS %stations
+
+WITH {
+  SELECT ?nextstation (sample(?lat2) as ?lat2) (sample(?lon2) as ?lon2) WHERE {
+    ?nextstation wdt:P31 wd:Q14562709 .
+    ?nextstation p:P625 / psv:P625 / wikibase:geoLatitude ?lat2 .
+    ?nextstation p:P625 / psv:P625 / wikibase:geoLongitude ?lon2 .
+  } GROUP BY ?nextstation
+} AS %nextstations
+
+WITH {
+  SELECT ?line ?connect ?rgb WHERE {
+    INCLUDE %stations .
+    INCLUDE %nextstations .
+    ?item p:P197 ?nextstationstatement .
+    ?nextstationstatement ps:P197 ?nextstation .
+    ?nextstationstatement pq:P81 ?connect . ?connect wdt:P361 wd:Q20075  . 
+    ?connect wdt:P465 ?rgb .
+    FILTER(STR(?item) < STR(?nextstation)) .    
+    BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
+    BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
+  }
+} AS %lines 
+ 
+WHERE {
+  { INCLUDE %stations }  UNION { INCLUDE %lines  } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

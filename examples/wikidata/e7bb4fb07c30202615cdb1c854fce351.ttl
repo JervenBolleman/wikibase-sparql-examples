@@ -6,7 +6,18 @@
 
 <https://www.wikidata.org/#query-e7bb4fb07c30202615cdb1c854fce351> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:Table
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Table
 SELECT distinct ?item ?itemLabel ?itemDescription ?date_of_birth ?date_of_death
 
 WITH {
@@ -31,9 +42,62 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\". }
 }
 
+order by ?date_of_birth""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Table
+SELECT distinct ?item ?itemLabel ?itemDescription ?date_of_birth ?date_of_death
+
+
+
+WHERE {
+  {
+  SELECT ?item
+  WHERE
+  {
+    ?item rdfs:label \"Arthur Goldschmidt\"@en .
+    ?item wdt:P31 ?instance_of .
+  }
+}.
+ 
+  #OPTIONAL { ?item wdt:P19 ?place_of_birth }. 
+  #filter (?place_of_birth = wd:Q64)          # Berlin
+  #OPTIONAL { ?item wdt:P18 ?image. }        # image
+  OPTIONAL { ?item wdt:P569 ?date_of_birth }.
+  #OPTIONAL { ?item wdt:P570 ?date_of_death }.
+  #FILTER (?date_of_birth >= \"1902-02-13T00:00:00Z\"^^xsd:dateTime)  # born after
+  #FILTER (?date_of_birth <= \"1902-02-13T00:00:00Z\"^^xsd:dateTime)  # born before
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\". }
+}
+
 order by ?date_of_birth""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/09>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#defaultView:Table
+SELECT distinct ?item ?itemLabel ?itemDescription ?date_of_birth ?date_of_death
+
+WITH {
+  SELECT ?item
+  WHERE
+  {
+    ?item rdfs:label \"Arthur Goldschmidt\"@en .
+    ?item wdt:P31 ?instance_of .
+  }
+} AS %person
+
+WHERE {
+  INCLUDE %person.
+ 
+  #OPTIONAL { ?item wdt:P19 ?place_of_birth }. 
+  #filter (?place_of_birth = wd:Q64)          # Berlin
+  #OPTIONAL { ?item wdt:P18 ?image. }        # image
+  OPTIONAL { ?item wdt:P569 ?date_of_birth }.
+  #OPTIONAL { ?item wdt:P570 ?date_of_death }.
+  #FILTER (?date_of_birth >= \"1902-02-13T00:00:00Z\"^^xsd:dateTime)  # born after
+  #FILTER (?date_of_birth <= \"1902-02-13T00:00:00Z\"^^xsd:dateTime)  # born before
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\". }
+}
+
+order by ?date_of_birth""" .

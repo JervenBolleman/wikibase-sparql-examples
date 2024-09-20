@@ -6,7 +6,14 @@
 
 <https://www.wikidata.org/#query-eb75e19ae6c4511ff09f836848b296fc> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:LineChart
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_COVID-19/Queries/SPARQL_Study>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+#defaultView:LineChart
 SELECT ?age (COUNT(?person) AS ?count) WITH
 {
   SELECT DISTINCT * WHERE {
@@ -25,9 +32,44 @@ WHERE {
   FILTER(?age <= 120)
   }
 GROUP BY ?age
+ORDER BY DESC(?count)""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+#defaultView:LineChart
+SELECT ?age (COUNT(?person) AS ?count) 
+WHERE {
+  {
+  SELECT DISTINCT * WHERE {
+    ?person wdt:P31 wd:Q5.
+    ?person wdt:P570 ?dod.
+    ?person wdt:P569 ?dob.
+    FILTER(YEAR(?dod) > 1900)
+    FILTER(?dod > ?dob)
+    }
+  LIMIT 100000
+  }.
+  BIND(YEAR(?dod)-YEAR(?dob) as ?age)
+  FILTER(?age <= 120)
+  }
+GROUP BY ?age
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_COVID-19/Queries/SPARQL_Study>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#defaultView:LineChart
+SELECT ?age (COUNT(?person) AS ?count) WITH
+{
+  SELECT DISTINCT * WHERE {
+    ?person wdt:P31 wd:Q5.
+    ?person wdt:P570 ?dod.
+    ?person wdt:P569 ?dob.
+    FILTER(YEAR(?dod) > 1900)
+    FILTER(?dod > ?dob)
+    }
+  LIMIT 100000
+  }
+AS %d
+WHERE {
+  INCLUDE %d.
+  BIND(YEAR(?dod)-YEAR(?dob) as ?age)
+  FILTER(?age <= 120)
+  }
+GROUP BY ?age
+ORDER BY DESC(?count)""" .

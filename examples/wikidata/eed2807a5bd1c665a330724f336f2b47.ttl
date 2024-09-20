@@ -6,7 +6,20 @@
 
 <https://www.wikidata.org/#query-eed2807a5bd1c665a330724f336f2b47> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:scientificevent-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
   ?date
   ?deadline ?deadlineLabel
   ?short_name
@@ -38,9 +51,78 @@ WHERE {
   BIND(xsd:date(?datetime) AS ?date)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY(?date)""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
+  ?date
+  ?deadline ?deadlineLabel
+  ?short_name
+  ?event ?eventLabel (CONCAT(\"#scientificevent/\", SUBSTR(STR(?event), 32)) AS ?eventUrl)
+  ?location ?locationLabel (CONCAT(\"#location/\", SUBSTR(STR(?location), 32)) AS ?locationUrl)
+
+WHERE {
+  {
+  SELECT
+    ?datetime ?deadline ?event
+    (SAMPLE(?location_) AS ?location) 
+    (SAMPLE(?short_name_) AS ?short_name)
+  WHERE {
+    ?event p:P793 ?key_event_statement . 
+    ?key_event_statement ps:P793 ?deadline ; 
+                         pq:P585 ?datetime . 
+    ?deadline wdt:P279* wd:Q2404808 .
+    
+    # Subtract a day from now to get events on the now date
+    FILTER (NOW() - \"P1DT0H0M0.000S\"^^xsd:duration < ?datetime)
+    OPTIONAL { ?event wdt:P276 ?location_ }
+    OPTIONAL { ?event wdt:P1813 ?short_name_ }
+  }
+  GROUP BY ?datetime ?deadline ?event
+  ORDER BY(?datetime)
+  LIMIT 200  
+}
+  
+  BIND(xsd:date(?datetime) AS ?date)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY(?date)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:scientificevent-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT
+  ?date
+  ?deadline ?deadlineLabel
+  ?short_name
+  ?event ?eventLabel (CONCAT(\"#scientificevent/\", SUBSTR(STR(?event), 32)) AS ?eventUrl)
+  ?location ?locationLabel (CONCAT(\"#location/\", SUBSTR(STR(?location), 32)) AS ?locationUrl)
+WITH {
+  SELECT
+    ?datetime ?deadline ?event
+    (SAMPLE(?location_) AS ?location) 
+    (SAMPLE(?short_name_) AS ?short_name)
+  WHERE {
+    ?event p:P793 ?key_event_statement . 
+    ?key_event_statement ps:P793 ?deadline ; 
+                         pq:P585 ?datetime . 
+    ?deadline wdt:P279* wd:Q2404808 .
+    
+    # Subtract a day from now to get events on the now date
+    FILTER (NOW() - \"P1DT0H0M0.000S\"^^xsd:duration < ?datetime)
+    OPTIONAL { ?event wdt:P276 ?location_ }
+    OPTIONAL { ?event wdt:P1813 ?short_name_ }
+  }
+  GROUP BY ?datetime ?deadline ?event
+  ORDER BY(?datetime)
+  LIMIT 200  
+} AS %events
+WHERE {
+  INCLUDE %events
+  
+  BIND(xsd:date(?datetime) AS ?date)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY(?date)""" .

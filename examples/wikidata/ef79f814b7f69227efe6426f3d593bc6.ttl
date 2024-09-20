@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-ef79f814b7f69227efe6426f3d593bc6> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q1144593>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:depictedfeature>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q1144593>
 
 SELECT
   ?artworks
@@ -32,9 +42,63 @@ WHERE {
   INCLUDE %depicteds
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?artworks)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q1144593>
+
+SELECT
+  ?artworks
+
+  ?depicted ?depictedLabel
+  (CONCAT(\"#depicted/\", SUBSTR(STR(?depicted), 32)) AS ?depictedUrl)
+
+  ?example_artwork ?example_artworkLabel
+  (CONCAT(\"#artwork/\", SUBSTR(STR(?example_artwork), 32)) AS ?example_artworkUrl)
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(?artwork) AS ?artworks)
+    ?depicted
+    (SAMPLE(?artwork) AS ?example_artwork)
+  WHERE {
+    ?artwork p:P180 ?depicted_statement .
+    ?depicted_statement ps:P180 ?depicted ;
+                        pq:P1354 target: .
+  }
+  GROUP BY ?depicted
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?artworks)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:depictedfeature>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q1144593>
+
+SELECT
+  ?artworks
+
+  ?depicted ?depictedLabel
+  (CONCAT(\"#depicted/\", SUBSTR(STR(?depicted), 32)) AS ?depictedUrl)
+
+  ?example_artwork ?example_artworkLabel
+  (CONCAT(\"#artwork/\", SUBSTR(STR(?example_artwork), 32)) AS ?example_artworkUrl)
+WITH {
+  SELECT 
+    (COUNT(?artwork) AS ?artworks)
+    ?depicted
+    (SAMPLE(?artwork) AS ?example_artwork)
+  WHERE {
+    ?artwork p:P180 ?depicted_statement .
+    ?depicted_statement ps:P180 ?depicted ;
+                        pq:P1354 target: .
+  }
+  GROUP BY ?depicted
+} AS %depicteds
+WHERE {
+  INCLUDE %depicteds
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?artworks)""" .
