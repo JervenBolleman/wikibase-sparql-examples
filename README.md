@@ -9,3 +9,9 @@ Code used to do the crawling and fixing is in [sparql-examples-utils](https://gi
 
 Contributions are very welcome!
 
+# Queries are indetified by their MD5
+
+At this moment you can see them [in turtle](https://github.com/JervenBolleman/wikibase-sparql-examples/tree/main/examples/wikidata)
+
+
+
