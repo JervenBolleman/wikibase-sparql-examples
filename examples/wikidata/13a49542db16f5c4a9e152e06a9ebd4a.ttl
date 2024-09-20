@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-13a49542db16f5c4a9e152e06a9ebd4a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/3/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
   ?language
   ?languageLabel
   ?count
@@ -48,8 +56,45 @@ WITH {
 ORDER BY
   DESC(?count)
   ASC(LCASE(?languageLabel))""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/3/11>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT
+  ?language
+  ?languageLabel
+  ?count
+  ?langLemmas
+WITH {
+  SELECT DISTINCT ?language {
+    [] dct:language ?language.
+  }
+} AS %0
+WITH {
+  SELECT DISTINCT ?language ?langLemma {
+    INCLUDE %0.
+    []
+      dct:language ?language;
+      wikibase:lemma ?lemma.
+    BIND(LANG(?lemma) AS ?langLemma).
+  }
+} AS %1
+WITH {
+  SELECT ?language (COUNT(*) AS ?count) {
+    INCLUDE %1.
+  }
+  GROUP BY ?language
+} AS %2
+WITH {
+  SELECT
+    ?language
+    (GROUP_CONCAT(CONCAT(?langLemma); SEPARATOR = \", \") AS ?langLemmas)
+  {
+    INCLUDE %1.
+  }
+  GROUP BY ?language
+} AS %3
+{
+  INCLUDE %2.
+  INCLUDE %3.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\"}.
+}
+ORDER BY
+  DESC(?count)
+  ASC(LCASE(?languageLabel))""" .

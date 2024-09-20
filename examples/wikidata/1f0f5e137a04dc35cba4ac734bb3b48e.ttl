@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-1f0f5e137a04dc35cba4ac734bb3b48e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?obj ?objLabel ?att ?count WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?obj ?objLabel ?att ?count WITH {
   SELECT ?obj ?att (COUNT(?wikipage) AS ?count) WHERE {
     hint:Query hint:optimizer \"None\" .
     ?obj wdt:P31 wd:Q15633582 .
@@ -18,9 +28,35 @@
   INCLUDE %get
   SERVICE wikibase:label {
     bd:serviceParam wikibase:language \"en\" . } }
+ORDER BY desc(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?obj ?objLabel ?att ?count  WHERE {
+  {
+  SELECT ?obj ?att (COUNT(?wikipage) AS ?count) WHERE {
+    hint:Query hint:optimizer \"None\" .
+    ?obj wdt:P31 wd:Q15633582 .
+    ?obj wdt:P571 ?att .
+    ?wikipage schema:about ?obj .
+    ?wikipage schema:isPartOf/wikibase:wikiGroup \"wikipedia\" . }
+  GROUP BY ?obj ?att HAVING (?count >= 100)
+}
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" . } }
 ORDER BY desc(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/07>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?obj ?objLabel ?att ?count WITH {
+  SELECT ?obj ?att (COUNT(?wikipage) AS ?count) WHERE {
+    hint:Query hint:optimizer \"None\" .
+    ?obj wdt:P31 wd:Q15633582 .
+    ?obj wdt:P571 ?att .
+    ?wikipage schema:about ?obj .
+    ?wikipage schema:isPartOf/wikibase:wikiGroup \"wikipedia\" . }
+  GROUP BY ?obj ?att HAVING (?count >= 100)
+} AS %get WHERE {
+  INCLUDE %get
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" . } }
+ORDER BY desc(?count)""" .

@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-1b30a94be85dfdcbf32b324d6e7e2a2c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?natureLabel (COUNT(?nature) AS ?cnt) WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jean-Fr%C3%A9d%C3%A9ric/Wikidata_and_the_truth>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?natureLabel (COUNT(?nature) AS ?cnt) WITH {
   SELECT ?item WHERE {
     ?item wdt:P1120 ?deaths .
   } GROUP BY ?item HAVING(COUNT(?deaths) > 1)
@@ -15,9 +23,27 @@
   ?item wdt:P31 ?nature.
 
   SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+} GROUP BY ?natureLabel ORDER BY DESC(?cnt)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?natureLabel (COUNT(?nature) AS ?cnt)  WHERE {
+  {
+  SELECT ?item WHERE {
+    ?item wdt:P1120 ?deaths .
+  } GROUP BY ?item HAVING(COUNT(?deaths) > 1)
+} .
+  ?item wdt:P31 ?nature.
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
 } GROUP BY ?natureLabel ORDER BY DESC(?cnt)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jean-Fr%C3%A9d%C3%A9ric/Wikidata_and_the_truth>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?natureLabel (COUNT(?nature) AS ?cnt) WITH {
+  SELECT ?item WHERE {
+    ?item wdt:P1120 ?deaths .
+  } GROUP BY ?item HAVING(COUNT(?deaths) > 1)
+} AS %subquery WHERE {
+  INCLUDE %subquery .
+  ?item wdt:P31 ?nature.
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+} GROUP BY ?natureLabel ORDER BY DESC(?cnt)""" .

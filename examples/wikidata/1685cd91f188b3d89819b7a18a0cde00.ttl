@@ -6,7 +6,14 @@
 
 <https://www.wikidata.org/#query-1685cd91f188b3d89819b7a18a0cde00> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT (SAMPLE(?familyNameLabel_) AS ?familyNameLabel) ?astronauts ?items (CONCAT(SUBSTR(STR(?astronauts / ?items * 100), 1, 5), \"%\") AS ?percent) WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/family_names_shared_by_several_astronauts_ordered_by_overall_prevalence_in_Wikidata>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT (SAMPLE(?familyNameLabel_) AS ?familyNameLabel) ?astronauts ?items (CONCAT(SUBSTR(STR(?astronauts / ?items * 100), 1, 5), \"%\") AS ?percent) WITH {
   SELECT ?familyName (COUNT(DISTINCT ?astronaut) AS ?astronauts) WHERE {
     ?astronaut wdt:P31 wd:Q5;
                wdt:P450 ?mission;
@@ -26,9 +33,56 @@
   ?familyName wdt:P1705 ?familyNameLabel_.
 }
 GROUP BY ?familyName ?astronauts ?items
+ORDER BY DESC(?astronauts / ?items) ?familyNameLabel""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT (SAMPLE(?familyNameLabel_) AS ?familyNameLabel) ?astronauts ?items (CONCAT(SUBSTR(STR(?astronauts / ?items * 100), 1, 5), \"%\") AS ?percent)  WITH {
+  SELECT ?familyName (COUNT(*) AS ?items) WHERE {
+    {
+  SELECT ?familyName (COUNT(DISTINCT ?astronaut) AS ?astronauts) WHERE {
+    ?astronaut wdt:P31 wd:Q5;
+               wdt:P450 ?mission;
+               wdt:P734 ?familyName.
+  }
+  GROUP BY ?familyName
+  HAVING(?astronauts > 1)
+}.
+    ?item wdt:P734 ?familyName.
+  }
+  GROUP BY ?familyName
+} AS %names WHERE {
+  {
+  SELECT ?familyName (COUNT(DISTINCT ?astronaut) AS ?astronauts) WHERE {
+    ?astronaut wdt:P31 wd:Q5;
+               wdt:P450 ?mission;
+               wdt:P734 ?familyName.
+  }
+  GROUP BY ?familyName
+  HAVING(?astronauts > 1)
+}.
+  INCLUDE %names.
+  ?familyName wdt:P1705 ?familyNameLabel_.
+}
+GROUP BY ?familyName ?astronauts ?items
 ORDER BY DESC(?astronauts / ?items) ?familyNameLabel""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/family_names_shared_by_several_astronauts_ordered_by_overall_prevalence_in_Wikidata>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT (SAMPLE(?familyNameLabel_) AS ?familyNameLabel) ?astronauts ?items (CONCAT(SUBSTR(STR(?astronauts / ?items * 100), 1, 5), \"%\") AS ?percent) WITH {
+  SELECT ?familyName (COUNT(DISTINCT ?astronaut) AS ?astronauts) WHERE {
+    ?astronaut wdt:P31 wd:Q5;
+               wdt:P450 ?mission;
+               wdt:P734 ?familyName.
+  }
+  GROUP BY ?familyName
+  HAVING(?astronauts > 1)
+} AS %astronautNames WITH {
+  SELECT ?familyName (COUNT(*) AS ?items) WHERE {
+    INCLUDE %astronautNames.
+    ?item wdt:P734 ?familyName.
+  }
+  GROUP BY ?familyName
+} AS %names WHERE {
+  INCLUDE %astronautNames.
+  INCLUDE %names.
+  ?familyName wdt:P1705 ?familyNameLabel_.
+}
+GROUP BY ?familyName ?astronauts ?items
+ORDER BY DESC(?astronauts / ?items) ?familyNameLabel""" .

@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-1c52f32612c6a68b9bc7b491288f9acd> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q9035> 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:language-lexemedescriptor-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q9035> 
 
 SELECT 
   ?lexemes
@@ -33,9 +42,64 @@ WHERE{
   INCLUDE %descriptors
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?lexemes)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q9035> 
+
+SELECT 
+  ?lexemes
+
+  ?descriptor ?descriptorLabel
+  (CONCAT(\"#lexemedescriptor/\", SUBSTR(STR(?descriptor), 32)) AS ?descriptorUrl)
+  ?descriptorDescription
+
+  ?example_lexeme
+  (SUBSTR(STR(?example_lexeme), 32) AS ?example_lexemeLabel)
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)
+
+WHERE{
+  {
+  SELECT 
+    (COUNT(?lexeme) AS ?lexemes)
+    ?descriptor
+    (SAMPLE(?lexeme) AS ?example_lexeme)
+  WHERE {
+    ?lexeme wdt:P1343 ?descriptor ;
+            dct:language target: .
+  }
+  GROUP BY ?descriptor
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?lexemes)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:language-lexemedescriptor-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q9035> 
+
+SELECT 
+  ?lexemes
+
+  ?descriptor ?descriptorLabel
+  (CONCAT(\"#lexemedescriptor/\", SUBSTR(STR(?descriptor), 32)) AS ?descriptorUrl)
+  ?descriptorDescription
+
+  ?example_lexeme
+  (SUBSTR(STR(?example_lexeme), 32) AS ?example_lexemeLabel)
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)
+WITH {
+  SELECT 
+    (COUNT(?lexeme) AS ?lexemes)
+    ?descriptor
+    (SAMPLE(?lexeme) AS ?example_lexeme)
+  WHERE {
+    ?lexeme wdt:P1343 ?descriptor ;
+            dct:language target: .
+  }
+  GROUP BY ?descriptor
+} AS %descriptors
+WHERE{
+  INCLUDE %descriptors
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?lexemes)""" .

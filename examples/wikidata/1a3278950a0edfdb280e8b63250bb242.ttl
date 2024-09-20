@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-1a3278950a0edfdb280e8b63250bb242> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """select ?parlament ?parlamentLabel ?job ?jobLabel ?s
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+select ?parlament ?parlamentLabel ?job ?jobLabel ?s
   WITH {
      SELECT (COUNT(?sen) AS ?sens) ?job ?parlament  WHERE { 
       ?sen wdt:P39 ?parlament;
@@ -24,9 +33,53 @@ WHERE{
   INCLUDE %subquery
   FILTER(?s = ?sens)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }  
+} ORDER BY DESC(?s)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+select ?parlament ?parlamentLabel ?job ?jobLabel ?s
+                    
+WHERE{
+  {
+    SELECT ?parlament (MAX(?sens) AS ?s) WHERE{
+      {
+     SELECT (COUNT(?sen) AS ?sens) ?job ?parlament  WHERE { 
+      ?sen wdt:P39 ?parlament;
+          wdt:P106 ?job.
+      ?parlament wdt:P279* wd:Q486839  
+      FILTER (?job != wd:Q82955)
+    } GROUP BY ?job ?parlament HAVING (?sens > 1)
+  }
+    } GROUP BY ?parlament
+  } 
+  {
+     SELECT (COUNT(?sen) AS ?sens) ?job ?parlament  WHERE { 
+      ?sen wdt:P39 ?parlament;
+          wdt:P106 ?job.
+      ?parlament wdt:P279* wd:Q486839  
+      FILTER (?job != wd:Q82955)
+    } GROUP BY ?job ?parlament HAVING (?sens > 1)
+  }
+  FILTER(?s = ?sens)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }  
 } ORDER BY DESC(?s)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/01>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """select ?parlament ?parlamentLabel ?job ?jobLabel ?s
+  WITH {
+     SELECT (COUNT(?sen) AS ?sens) ?job ?parlament  WHERE { 
+      ?sen wdt:P39 ?parlament;
+          wdt:P106 ?job.
+      ?parlament wdt:P279* wd:Q486839  
+      FILTER (?job != wd:Q82955)
+    } GROUP BY ?job ?parlament HAVING (?sens > 1)
+  } AS %subquery                  
+WHERE{
+  {
+    SELECT ?parlament (MAX(?sens) AS ?s) WHERE{
+      INCLUDE %subquery
+    } GROUP BY ?parlament
+  } 
+  INCLUDE %subquery
+  FILTER(?s = ?sens)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }  
+} ORDER BY DESC(?s)""" .

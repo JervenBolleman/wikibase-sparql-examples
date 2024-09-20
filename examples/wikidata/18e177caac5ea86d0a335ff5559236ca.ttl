@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-18e177caac5ea86d0a335ff5559236ca> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?itemDescription ?sitelinks WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?itemDescription ?sitelinks WITH {
 SELECT ?item ?sitelinks {
   ?item wdt:P31 wd:Q5 .
   ?item wdt:P21 wd:Q6581072 .
@@ -21,9 +31,41 @@ LIMIT 1000
   include %i
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?sitelinks) ?itemLabel""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?itemDescription ?sitelinks  WHERE {
+  {
+SELECT ?item ?sitelinks {
+  ?item wdt:P31 wd:Q5 .
+  ?item wdt:P21 wd:Q6581072 .
+  ?item wikibase:sitelinks ?sitelinks .
+  FILTER(?sitelinks>40)
+  OPTIONAL { ?bewp schema:about ?item; schema:isPartOf <be.wikipedia.org/> }
+  FILTER(!BOUND(?bewp))
+}
+ORDER BY DESC(?sitelinks)
+LIMIT 1000
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?sitelinks) ?itemLabel""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/03>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?itemDescription ?sitelinks WITH {
+SELECT ?item ?sitelinks {
+  ?item wdt:P31 wd:Q5 .
+  ?item wdt:P21 wd:Q6581072 .
+  ?item wikibase:sitelinks ?sitelinks .
+  FILTER(?sitelinks>40)
+  OPTIONAL { ?bewp schema:about ?item; schema:isPartOf <be.wikipedia.org/> }
+  FILTER(!BOUND(?bewp))
+}
+ORDER BY DESC(?sitelinks)
+LIMIT 1000
+} AS %i WHERE {
+  include %i
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?sitelinks) ?itemLabel""" .

@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-10c1ecc4a893d626f5f9bbfb75f4b3d2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:Table
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Table
 SELECT ?count ?organization ?organizationLabel ?sample_author ?sample_authorLabel
 WITH {
   SELECT (count(DISTINCT ?work) as ?count) ?organization (SAMPLE(?author) AS ?sample_author) WHERE {
@@ -24,9 +33,46 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTOLANG],en\" . } 
 }
 GROUP BY ?count ?organization ?organizationLabel ?sample_author ?sample_authorLabel
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Table
+SELECT ?count ?organization ?organizationLabel ?sample_author ?sample_authorLabel
+
+WHERE {
+  {
+  SELECT (count(DISTINCT ?work) as ?count) ?organization (SAMPLE(?author) AS ?sample_author) WHERE {
+    ?work wdt:P6104 wd:Q56241615 .
+    ?work wdt:P921 ?topic . 
+    ?work wdt:P50 ?author .
+    ?author ( wdt:P108 | wdt:P463 | wdt:P1416 ) / wdt:P361* ?organization . 
+  }
+  GROUP BY ?organization ?sample_author
+  ORDER BY DESC(?count)
+  LIMIT 200
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTOLANG],en\" . } 
+}
+GROUP BY ?count ?organization ?organizationLabel ?sample_author ?sample_authorLabel
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#defaultView:Table
+SELECT ?count ?organization ?organizationLabel ?sample_author ?sample_authorLabel
+WITH {
+  SELECT (count(DISTINCT ?work) as ?count) ?organization (SAMPLE(?author) AS ?sample_author) WHERE {
+    ?work wdt:P6104 wd:Q56241615 .
+    ?work wdt:P921 ?topic . 
+    ?work wdt:P50 ?author .
+    ?author ( wdt:P108 | wdt:P463 | wdt:P1416 ) / wdt:P361* ?organization . 
+  }
+  GROUP BY ?organization ?sample_author
+  ORDER BY DESC(?count)
+  LIMIT 200
+} AS %result
+WHERE {
+  INCLUDE %result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTOLANG],en\" . } 
+}
+GROUP BY ?count ?organization ?organizationLabel ?sample_author ?sample_authorLabel
+ORDER BY DESC(?count)""" .

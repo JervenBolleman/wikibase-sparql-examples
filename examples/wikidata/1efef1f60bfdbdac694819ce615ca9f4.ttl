@@ -6,7 +6,14 @@
 
 <https://www.wikidata.org/#query-1efef1f60bfdbdac694819ce615ca9f4> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:Tree
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/3/3>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Tree
 SELECT
   ?randomQid
   ?typeName
@@ -69,9 +76,146 @@ WITH {
   INCLUDE %5.
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\"}.
 }
+ORDER BY DESC(?count) ASC(LCASE(?propertyLabel))""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Tree
+SELECT
+  ?randomQid
+  ?typeName
+  ?property
+  ?propertyLabel
+
+# We get the unique values for ?type, to avoid having to copmute
+# STRAFTER on the same values.
+WITH {
+  SELECT DISTINCT ?type {
+    {
+  SELECT ?property ?type {
+    ?property wikibase:propertyType ?type.
+  }
+}.
+  }
+} AS %1
+# We computer STRAFTER on the unique values for ?type
+WITH {
+  SELECT ?type ?typeName {
+    INCLUDE %1.
+    BIND(STRAFTER(STR(?type), STR(wikibase:)) AS ?typeName).
+  }
+} AS %2
+# We get the count of the properties with each type for sorting the results.
+WITH {
+  SELECT ?type (COUNT(*) AS ?count) {
+    {
+  SELECT ?property ?type {
+    ?property wikibase:propertyType ?type.
+  }
+}.
+  }
+  GROUP BY ?type
+} AS %3
+# This is a hacky way to get a unique identifier for each type. We
+# need this to happen so that the results are correctly grouped in
+# #defaultView:Tree. #defaultView:Tree doesn't do the grouping when
+# the top level of the rows are not Wikidata entities.
+#
+# I tried using UUID() and STRUUID() for getting a unique value, but
+# as I mentioned #defaultView:Tree only groups the items when the
+# identifier represent Wikidata entities (i.e. start with P, Q or L
+# and what follows are only numbers).
+WITH {
+  SELECT ?type (MAX(?Pid) AS ?maxPid) {
+    {
+  SELECT ?property ?type {
+    ?property wikibase:propertyType ?type.
+  }
+}.
+    BIND(STRAFTER(STR(?property), 'http://www.wikidata.org/entity/P') AS ?Pid).
+  }
+  GROUP BY ?type
+} AS %4
+# Convert the identifier that we hackily obtained into a Wikidata item
+# so that the top group is shown in #defaultView:Tree
+WITH {
+  SELECT ?type ?randomQid {
+    INCLUDE %4.
+    BIND(URI(CONCAT('http://www.wikidata.org/entity/P', ?maxPid)) AS ?randomQid).
+  }
+} AS %5
+{
+  {
+  SELECT ?property ?type {
+    ?property wikibase:propertyType ?type.
+  }
+}.
+  INCLUDE %2.
+  INCLUDE %3.
+  INCLUDE %5.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\"}.
+}
 ORDER BY DESC(?count) ASC(LCASE(?propertyLabel))""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/3/3>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#defaultView:Tree
+SELECT
+  ?randomQid
+  ?typeName
+  ?property
+  ?propertyLabel
+WITH {
+  SELECT ?property ?type {
+    ?property wikibase:propertyType ?type.
+  }
+} AS %0
+# We get the unique values for ?type, to avoid having to copmute
+# STRAFTER on the same values.
+WITH {
+  SELECT DISTINCT ?type {
+    INCLUDE %0.
+  }
+} AS %1
+# We computer STRAFTER on the unique values for ?type
+WITH {
+  SELECT ?type ?typeName {
+    INCLUDE %1.
+    BIND(STRAFTER(STR(?type), STR(wikibase:)) AS ?typeName).
+  }
+} AS %2
+# We get the count of the properties with each type for sorting the results.
+WITH {
+  SELECT ?type (COUNT(*) AS ?count) {
+    INCLUDE %0.
+  }
+  GROUP BY ?type
+} AS %3
+# This is a hacky way to get a unique identifier for each type. We
+# need this to happen so that the results are correctly grouped in
+# #defaultView:Tree. #defaultView:Tree doesn't do the grouping when
+# the top level of the rows are not Wikidata entities.
+#
+# I tried using UUID() and STRUUID() for getting a unique value, but
+# as I mentioned #defaultView:Tree only groups the items when the
+# identifier represent Wikidata entities (i.e. start with P, Q or L
+# and what follows are only numbers).
+WITH {
+  SELECT ?type (MAX(?Pid) AS ?maxPid) {
+    INCLUDE %0.
+    BIND(STRAFTER(STR(?property), 'http://www.wikidata.org/entity/P') AS ?Pid).
+  }
+  GROUP BY ?type
+} AS %4
+# Convert the identifier that we hackily obtained into a Wikidata item
+# so that the top group is shown in #defaultView:Tree
+WITH {
+  SELECT ?type ?randomQid {
+    INCLUDE %4.
+    BIND(URI(CONCAT('http://www.wikidata.org/entity/P', ?maxPid)) AS ?randomQid).
+  }
+} AS %5
+{
+  INCLUDE %0.
+  INCLUDE %2.
+  INCLUDE %3.
+  INCLUDE %5.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\"}.
+}
+ORDER BY DESC(?count) ASC(LCASE(?propertyLabel))""" .

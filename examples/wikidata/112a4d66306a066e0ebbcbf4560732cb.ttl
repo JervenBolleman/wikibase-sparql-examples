@@ -6,7 +6,22 @@
 
 <https://www.wikidata.org/#query-112a4d66306a066e0ebbcbf4560732cb> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:Map
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Talk:Q105849312>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map
 SELECT distinct ?const ?constLabel ?parent ?parentLabel ?start ?layer ?coords ?colour ?rgb
 with {
   SELECT ?colour ?rgb WHERE {
@@ -41,9 +56,85 @@ WHERE {
     INCLUDE %consts .
     INCLUDE %rgb_colours .
     SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+} order by ?start""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map
+SELECT distinct ?const ?constLabel ?parent ?parentLabel ?start ?layer ?coords ?colour ?rgb
+
+
+with {
+  SELECT distinct ?const  ?parent  ?start ?layer ?coords ?colour WHERE {
+    ?item p:P39 ?positionStatement . ?positionStatement ps:P39 ?term . ?term wdt:P279 wd:Q18018860 .
+    ?positionStatement pq:P768 ?const .
+    ?positionStatement prov:wasDerivedFrom ?ref . ?ref pr:P1614 ?refhop .
+    optional { ?const wdt:P131 ?parent .
+      optional { ?parent wdt:P625 ?coords } }
+    ?const wdt:P571 ?start .
+    FILTER (year(?start) > 1500) .
+    BIND (xsd:float(floor(year(?start)/10) - 151) AS ?colour) .
+    BIND (CONCAT(str(10 * floor(year(?start)/10)),'s') AS ?layer) .
+  }
+} AS %consts 
+
+WHERE {
+    INCLUDE %consts .
+    {
+  SELECT ?colour ?rgb WHERE {
+    VALUES ?sequence {wd:Q105849312} .     # desired colour progression
+    VALUES ?n {7} .                        # desired no of points either side of centre
+
+    ?sequence p:P527 ?stmt . ?stmt pq:P1545 ?seq . ?stmt pq:P465 ?rgb .
+    ?sequence p:P2670/pq:P1114 ?len .
+    BIND(((?len + 1.0)/2.0) AS ?centre) .
+    BIND (floor((?centre - 1.0) / xsd:float(?n)) AS ?step) .
+    BIND (?n + 1.0 + ((xsd:float(?seq) - ?centre)  / xsd:float(?step)) AS ?colour) .
+  
+    FILTER((?colour = floor(?colour)) && (?colour >= 1) && (?colour <= 1 + 2* ?n))
+  } ORDER BY ?colour} .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
 } order by ?start""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Talk:Q105849312>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#defaultView:Map
+SELECT distinct ?const ?constLabel ?parent ?parentLabel ?start ?layer ?coords ?colour ?rgb
+with {
+  SELECT ?colour ?rgb WHERE {
+    VALUES ?sequence {wd:Q105849312} .     # desired colour progression
+    VALUES ?n {7} .                        # desired no of points either side of centre
+
+    ?sequence p:P527 ?stmt . ?stmt pq:P1545 ?seq . ?stmt pq:P465 ?rgb .
+    ?sequence p:P2670/pq:P1114 ?len .
+    BIND(((?len + 1.0)/2.0) AS ?centre) .
+    BIND (floor((?centre - 1.0) / xsd:float(?n)) AS ?step) .
+    BIND (?n + 1.0 + ((xsd:float(?seq) - ?centre)  / xsd:float(?step)) AS ?colour) .
+  
+    FILTER((?colour = floor(?colour)) && (?colour >= 1) && (?colour <= 1 + 2* ?n))
+  } ORDER BY ?colour} 
+AS %rgb_colours
+
+with {
+  SELECT distinct ?const  ?parent  ?start ?layer ?coords ?colour WHERE {
+    ?item p:P39 ?positionStatement . ?positionStatement ps:P39 ?term . ?term wdt:P279 wd:Q18018860 .
+    ?positionStatement pq:P768 ?const .
+    ?positionStatement prov:wasDerivedFrom ?ref . ?ref pr:P1614 ?refhop .
+    optional { ?const wdt:P131 ?parent .
+      optional { ?parent wdt:P625 ?coords } }
+    ?const wdt:P571 ?start .
+    FILTER (year(?start) > 1500) .
+    BIND (xsd:float(floor(year(?start)/10) - 151) AS ?colour) .
+    BIND (CONCAT(str(10 * floor(year(?start)/10)),'s') AS ?layer) .
+  }
+} AS %consts 
+
+WHERE {
+    INCLUDE %consts .
+    INCLUDE %rgb_colours .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+} order by ?start""" .

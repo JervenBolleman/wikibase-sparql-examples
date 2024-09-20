@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-1727b1908e06bd38125b4582eab322d0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?n ?x ?xLabel ?c1 ?c1Label ?c2 ?c2Label ?class ?classLabel 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Project_chat/Archive/2018/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?n ?x ?xLabel ?c1 ?c1Label ?c2 ?c2Label ?class ?classLabel 
 WITH  {
    SELECT ?x ?c1 ?c2 ?class WHERE { 
        ?x wdt:P31 ?c1 .
@@ -22,9 +30,47 @@ WHERE {
   }
   INCLUDE %classes .
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } .
+} ORDER BY DESC(?n) ?x ?c1 ?c2 ?classes""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?n ?x ?xLabel ?c1 ?c1Label ?c2 ?c2Label ?class ?classLabel 
+
+WHERE {
+  {
+    SELECT (COUNT(DISTINCT (?x)) AS ?n) (MIN(?x) AS ?x) ?class WHERE {
+       {
+   SELECT ?x ?c1 ?c2 ?class WHERE { 
+       ?x wdt:P31 ?c1 .
+       ?c1 wdt:P31 ?c2 .
+       ?c2 wdt:P31 ?class .
+   } LIMIT 40000
+} 
+    } GROUP BY ?class 
+  }
+  {
+   SELECT ?x ?c1 ?c2 ?class WHERE { 
+       ?x wdt:P31 ?c1 .
+       ?c1 wdt:P31 ?c2 .
+       ?c2 wdt:P31 ?class .
+   } LIMIT 40000
+} .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } .
 } ORDER BY DESC(?n) ?x ?c1 ?c2 ?classes""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Project_chat/Archive/2018/02>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?n ?x ?xLabel ?c1 ?c1Label ?c2 ?c2Label ?class ?classLabel 
+WITH  {
+   SELECT ?x ?c1 ?c2 ?class WHERE { 
+       ?x wdt:P31 ?c1 .
+       ?c1 wdt:P31 ?c2 .
+       ?c2 wdt:P31 ?class .
+   } LIMIT 40000
+} AS %classes
+WHERE {
+  {
+    SELECT (COUNT(DISTINCT (?x)) AS ?n) (MIN(?x) AS ?x) ?class WHERE {
+       INCLUDE %classes 
+    } GROUP BY ?class 
+  }
+  INCLUDE %classes .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } .
+} ORDER BY DESC(?n) ?x ?c1 ?c2 ?classes""" .

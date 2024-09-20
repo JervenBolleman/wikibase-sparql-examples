@@ -6,7 +6,21 @@
 
 <https://www.wikidata.org/#query-10dc075482d9248e8cf28c8f4441c5b6> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?description ?image ?legend ?imageDate ?birthdate ?deathdate ?nationality ?sex ?occupation ?article WITH { 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?description ?image ?legend ?imageDate ?birthdate ?deathdate ?nationality ?sex ?occupation ?article WITH { 
   SELECT ?item ?itemLabel ?birthdate WHERE {
   ?item wdt:P31 wd:Q5;
     wdt:P569 ?birthdate.
@@ -35,8 +49,32 @@ WHERE
   INCLUDE %j
  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/03>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?description ?image ?legend ?imageDate ?birthdate ?deathdate ?nationality ?sex ?occupation ?article WITH { 
+  SELECT ?item ?itemLabel ?birthdate WHERE {
+  ?item wdt:P31 wd:Q5;
+    wdt:P569 ?birthdate.
+  hint:Prior hint:rangeSafe \"true\"^^xsd:boolean.
+  FILTER((\"1991-00-00\"^^xsd:dateTime <= ?birthdate) && (?birthdate < \"1992-00-00\"^^xsd:dateTime))
+} } as %i
+WITH { SELECT ?item ?itemLabel ?description ?image ?legend ?imageDate ?birthdate ?deathdate ?nationality ?sex ?occupation ?article
+WHERE {
+  INCLUDE %i
+  OPTIONAL { ?item wdt:P734 ?lastname. }
+  OPTIONAL { ?item wdt:P570 ?deathdate. }
+  OPTIONAL { ?item wdt:P27 ?nationality. }
+  OPTIONAL { ?item wdt:P21 ?sex. }
+  OPTIONAL { ?item wdt:P106 ?occupation. }
+  OPTIONAL {
+    ?item p:P18 ?stat.
+    ?stat ps:P18 ?image.
+    OPTIONAL { ?stat pq:P2096 ?legend. FILTER (langmatches(lang(?legend), \"en\")) }
+    OPTIONAL { ?stat pq:P585 ?imageDate. }
+  }
+  ?article schema:about ?item;
+      schema:isPartOf <https://en.wikipedia.org/>.
+} } as %j
+WHERE
+{
+  INCLUDE %j
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+}""" .

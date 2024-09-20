@@ -6,7 +6,14 @@
 
 <https://www.wikidata.org/#query-18428bea84748212f1cb6dbe4e147f1c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT * WITH { 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Contact_the_development_team/Archive/2019/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT * WITH { 
   SELECT DISTINCT ?item WHERE { ?item wdt:P279 wd:Q18602249 }
 } AS %all WITH {
   SELECT (COUNT(*) AS ?count) { INCLUDE %all }
@@ -24,8 +31,21 @@
   BIND( FLOOR( RAND() * ?count ) AS ?rnd ) .
   FILTER( ?rnd = ?i ) .
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Contact_the_development_team/Archive/2019/10>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT * WITH { 
+  SELECT DISTINCT ?item WHERE { ?item wdt:P279 wd:Q18602249 }
+} AS %all WITH {
+  SELECT (COUNT(*) AS ?count) { INCLUDE %all }
+} AS %count WITH {
+  SELECT (?item AS ?item2) WHERE { INCLUDE %all }
+} AS %all2 WITH {
+  SELECT ?item (SUM(?x) AS ?i) WHERE {
+    INCLUDE %all .
+    INCLUDE %all2 .
+    BIND( IF( STR( ?item ) > STR( ?item2 ), 1, 0 ) AS ?x ) .
+  } GROUP BY ?item
+} AS %main WHERE {
+  INCLUDE %main .
+  INCLUDE %count .
+  BIND( FLOOR( RAND() * ?count ) AS ?rnd ) .
+  FILTER( ?rnd = ?i ) .
+}""" .

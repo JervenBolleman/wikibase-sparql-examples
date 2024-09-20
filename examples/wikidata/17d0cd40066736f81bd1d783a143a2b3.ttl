@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-17d0cd40066736f81bd1d783a143a2b3> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?osoba ?osobaLabel (count(?prace) as ?count) WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Czech_Republic/Strategick%C3%A9_spolupr%C3%A1ce/N%C3%A1rodn%C3%AD_knihovna_%C4%8CR/NK/Validace_dat>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?osoba ?osobaLabel (count(?prace) as ?count) WITH {
   SELECT ?prace {
    
   ?autor wdt:P19/wdt:P17 wd:Q213 .
@@ -21,9 +30,40 @@
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"cs,en\". }
 } 
 GROUP BY ?osoba ?osobaLabel
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?osoba ?osobaLabel (count(?prace) as ?count)  WHERE {
+  {
+  SELECT ?prace {
+   
+  ?autor wdt:P19/wdt:P17 wd:Q213 .
+  ?autor wdt:P496 [] .
+  ?prace wdt:P50 ?autor .
+  } LIMIT 1000
+} .
+
+  ?prace wdt:P50 ?osoba .
+  minus {?osoba wdt:P691 [] .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"cs,en\". }
+} 
+GROUP BY ?osoba ?osobaLabel
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Czech_Republic/Strategick%C3%A9_spolupr%C3%A1ce/N%C3%A1rodn%C3%AD_knihovna_%C4%8CR/NK/Validace_dat>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?osoba ?osobaLabel (count(?prace) as ?count) WITH {
+  SELECT ?prace {
+   
+  ?autor wdt:P19/wdt:P17 wd:Q213 .
+  ?autor wdt:P496 [] .
+  ?prace wdt:P50 ?autor .
+  } LIMIT 1000
+} AS %prace WHERE {
+  INCLUDE %prace .
+
+  ?prace wdt:P50 ?osoba .
+  minus {?osoba wdt:P691 [] .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"cs,en\". }
+} 
+GROUP BY ?osoba ?osobaLabel
+ORDER BY DESC(?count)""" .

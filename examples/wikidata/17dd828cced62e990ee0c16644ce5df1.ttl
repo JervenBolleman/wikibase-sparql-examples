@@ -6,7 +6,18 @@
 
 <https://www.wikidata.org/#query-17dd828cced62e990ee0c16644ce5df1> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel (avg(?number) as ?passenger) (max(avg(?number) - ?number) as ?plus_minus) ?year 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel (avg(?number) as ?passenger) (max(avg(?number) - ?number) as ?plus_minus) ?year 
 with {
   select ?item ?statement ?year ?timevalue ?numberperperiod{
     ?item wdt:P238 ?IATA
@@ -37,8 +48,34 @@ where {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 } group by ?item ?itemLabel ?year 
   order by ?item desc (?year)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/04>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel (avg(?number) as ?passenger) (max(avg(?number) - ?number) as ?plus_minus) ?year 
+with {
+  select ?item ?statement ?year ?timevalue ?numberperperiod{
+    ?item wdt:P238 ?IATA
+    VALUES ?IATA {\"JNB\"}.
+    ?item p:P3872 ?statement.
+    ?statement pqv:P585 ?timevalue 
+               ; ps:P3872 ?numberperperiod
+               .
+    ?timevalue wikibase:timeValue ?date .
+               
+    MINUS { ?statement wikibase:rank wikibase:DeprecatedRank }
+    bind (YEAR(?date) AS ?year) 
+    FILTER (?year >1985) .
+  }
+} as %airport
+ 
+where {
+  {
+    select ?item ?year (sum(?numberperperiod) as ?number) {
+      include %airport .
+      ?timevalue wikibase:timePrecision ?prec filter ( ?prec > 9 )
+    } group by ?item ?year
+  } union {
+      ?timevalue wikibase:timePrecision 9 .
+    bind (?numberperperiod as ?number)
+      include %airport
+  } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} group by ?item ?itemLabel ?year 
+  order by ?item desc (?year)""" .

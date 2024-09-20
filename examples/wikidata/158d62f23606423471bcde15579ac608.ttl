@@ -6,7 +6,13 @@
 
 <https://www.wikidata.org/#query-158d62f23606423471bcde15579ac608> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:BarChart
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:actor>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+#defaultView:BarChart
 PREFIX target: <http://www.wikidata.org/entity/Q294647>
 
 SELECT
@@ -25,9 +31,45 @@ WITH {
 WHERE {
   INCLUDE %films
 }
+GROUP BY ?year_""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+#defaultView:BarChart
+PREFIX target: <http://www.wikidata.org/entity/Q294647>
+
+SELECT
+  (STR(?year_) AS ?year)
+  (COUNT(?film) AS ?films)
+
+WHERE {
+  {
+  SELECT
+    (YEAR(MIN(?release_datetimes)) AS ?year_)
+    ?film
+  WHERE {
+    ?film wdt:P161 target: ;
+          wdt:P577 ?release_datetimes .
+  }
+  GROUP BY ?film
+}
+}
 GROUP BY ?year_""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:actor>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#defaultView:BarChart
+PREFIX target: <http://www.wikidata.org/entity/Q294647>
+
+SELECT
+  (STR(?year_) AS ?year)
+  (COUNT(?film) AS ?films)
+WITH {
+  SELECT
+    (YEAR(MIN(?release_datetimes)) AS ?year_)
+    ?film
+  WHERE {
+    ?film wdt:P161 target: ;
+          wdt:P577 ?release_datetimes .
+  }
+  GROUP BY ?film
+} AS %films
+WHERE {
+  INCLUDE %films
+}
+GROUP BY ?year_""" .
