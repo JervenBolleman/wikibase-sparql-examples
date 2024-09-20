@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c9f35d77abcc02659aff6a80ae28242f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?itemLabel 
+WHERE {
+  hint:Query hint:optimizer \"None\".
+  {  
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:api \"Search\";
+                      wikibase:endpoint \"www.wikidata.org\";
+                      mwapi:srsearch \"Ruth\".
+      ?title wikibase:apiOutput mwapi:title.
+    }
+    BIND(IRI(CONCAT(STR(wd:), ?title)) AS ?item)
+    ?item rdfs:label ?itemLabel . filter(lang(?itemLabel)=\"en\")
+    FILTER NOT EXISTS { ?item wdt:P734 wd:Q37494439 .}
+    FILTER(regex(?itemLabel,\".+Ruth$\"))
+  }
+  UNION
+  {
+    ?item wdt:P734 wd:Q37494439 . # Surname is Ruth
+  }
+  MINUS
+  {
+    ?article schema:about ?item .
+    ?article schema:isPartOf <https://he.wikipedia.org/> . # No article at hewiki
+  }
+  ?item wdt:P31 wd:Q5
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

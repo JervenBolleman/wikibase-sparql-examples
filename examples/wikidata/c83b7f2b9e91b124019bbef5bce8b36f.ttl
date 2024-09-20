@@ -1,0 +1,52 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c83b7f2b9e91b124019bbef5bce8b36f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Nombre d'unités légales par catégorie juridique de niveau 3 (500+)
+SELECT ?catégorie ?nomfr ?count
+WITH
+{
+  SELECT ?catégorie ?nomfr (COUNT(?item) AS ?count_1)
+  WHERE
+  {
+    ?catégorie wdt:P31 wd:Q56427813; # catégorie juridique en France
+        wdt:P361 wd:Q112176282; # catégorie de niveau 3
+        wdt:P2561 ?nomfr. # nom de la catégorie
+    FILTER(LANG(?nomfr) = \"fr\"). # nom en français
+    ?item wdt:P1616 ?siren. # unité légale
+    {  ?item p:P1454 [ps:P1454 ?catégorie; pq:P1013 wd:Q87711223; prov:wasDerivedFrom [ pr:P248 wd:Q3509449]; prov:wasDerivedFrom [ pr:P5017 ?date] ]. } # catégorie
+    UNION
+    { ?item p:P1454 [ps:P1454 ?catégorie; pq:P1013 wd:Q87711223; prov:wasDerivedFrom [ pr:P248 wd:Q3509449]; prov:wasDerivedFrom [a wdno:P5017] ]. } # catégorie
+  }
+  GROUP BY ?catégorie ?nomfr
+} AS %all
+WHERE
+{
+  {
+    SELECT ?catégorie ?nomfr (?count_1 AS ?count) (?count as ?sortkey)
+    WHERE
+    {
+      INCLUDE %all
+      FILTER (?count_1 > 499) # minimum unités légales
+    }
+  }
+  UNION
+  {
+    SELECT (\"OTHER\" AS ?catégorie) (\"OTHER\" AS ?nomfr) (SUM(?count_1) AS ?count) (0 AS ?sortkey)
+    WHERE
+    {
+      INCLUDE %all
+      FILTER (?count_1 <= 499)
+    }    
+  }
+}
+ORDER BY DESC(?sortkey)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

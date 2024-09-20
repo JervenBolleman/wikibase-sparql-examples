@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-cae20a8c7bfd589d0b038bc0e44ad79c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?person ?personLabel ?_date_of_birth
+(GROUP_CONCAT(?_occupationLabel; separator=', ') AS ?occupation)
+(SAMPLE(?_countryLabel) AS ?country)
+
+WITH {
+  SELECT DISTINCT ?person {
+    ?person wdt:P570 ?death .
+    FILTER ( YEAR( ?death ) >= 1927 && YEAR( ?death ) < 1947 ) .
+    ?person wdt:P106/wdt:P279* wd:Q483501 . #person with occupation (P106) any subclass(P279) of artist (Q483501)
+  } # put a LIMIT here if it times out
+} AS %subquery WHERE {
+  INCLUDE %subquery .
+  OPTIONAL { ?person wdt:P27 ?_country } .
+  OPTIONAL { ?person wdt:P106 ?_occupation } .
+  OPTIONAL { ?person wdt:P569 ?_date_of_birth } .
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+    ?person rdfs:label ?personLabel .
+    ?_country rdfs:label ?_countryLabel .
+    ?_occupation rdfs:label ?_occupationLabel .
+  } .
+} GROUP BY ?person ?personLabel ?_date_of_birth""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

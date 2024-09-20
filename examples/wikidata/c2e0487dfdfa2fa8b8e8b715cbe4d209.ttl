@@ -1,0 +1,54 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c2e0487dfdfa2fa8b8e8b715cbe4d209> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Captains list for the Royal Navy
+SELECT DISTINCT ?person ?personLabel ?timeCaptain ?threeID
+{ 
+  # allow the report to work for different years
+  BIND (\"1741-03-01\"^^xsd:dateTime AS ?timeMin) .
+  BIND (\"1784-01-01\"^^xsd:dateTime AS ?timeReport) .
+  
+  # person in Royal Navy
+  ?person wdt:P241 wd:Q172771 .
+  
+  # human instead of fictional
+  ?person wdt:P31 wd:Q5 .
+  
+
+  # military rank -- should have a start time
+  # captain (Royal Navy) wd:Q5036514
+   
+  ?person p:P410 ?stmtCaptain .
+  ?stmtCaptain ps:P410 wd:Q5036514 .
+  ?stmtCaptain pq:P580 ?timeCaptain .
+  
+  # Three Decks ID
+  optional {
+      ?person wdt:P7389 ?threeID .
+  }
+  
+  # get time  of death (some have multiple death dates)
+  ?person wdt:P570 ?timeDeath .
+  filter ( ?timeReport <= ?timeDeath)  .
+  
+  filter ( ?timeMin <= ?timeCaptain) .
+  filter ( ?timeReport >= ?timeCaptain) .
+  
+  # occupation naval officer
+  # ?person wdt:P106 wd:Q10669499
+  
+  SERVICE wikibase:label {
+     bd:serviceParam wikibase:language \"en\" .
+  }
+  
+} ORDER BY ?timeCaptain""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Glrx>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

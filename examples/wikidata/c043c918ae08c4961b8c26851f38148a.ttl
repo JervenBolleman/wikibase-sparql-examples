@@ -1,0 +1,48 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c043c918ae08c4961b8c26851f38148a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map{\"hide\":[\"?coords\", \"?line\",\"?rgb\"]}
+SELECT ?station ?stationLabel ?coords ?line ?layer ?rgb WHERE {
+  ?station wdt:P31 wd:Q928830;
+    wdt:P17 wd:Q148;
+    wdt:P625 ?coords;
+    wdt:P81 ?subwayLine;
+    wdt:P197 ?pred.
+  MINUS { ?station (wdt:P576|wdt:P582|wdt:P3999) ?dispar. }
+  MINUS {
+    ?station wdt:P5817 ?interdit.
+    VALUES ?interdit {
+      wd:Q811683
+      wd:Q63065035
+      wd:Q12377751
+      wd:Q55653430
+      wd:Q30108381
+      wd:Q55570340
+      wd:Q11639308
+    }
+  }
+  ?pred wdt:P625 ?cds.
+  BIND(IF((xsd:double(?depth / 10 )) = (xsd:integer(?depth / 10 )), ?cds, \"\") AS ?coords)
+  ?pred (p:P625/psv:P625/wikibase:geoLatitude) ?lat1;
+    (p:P625/psv:P625/wikibase:geoLongitude) ?lon1.
+  ?station (p:P625/psv:P625/wikibase:geoLatitude) ?lat2;
+    (p:P625/psv:P625/wikibase:geoLongitude) ?lon2.
+  BIND(CONCAT(\"LINESTRING(\", STR(?lon1), \" \", STR(?lat1), \",\", STR(?lon2), \" \", STR(?lat2), \")\") AS ?str)
+  BIND(STRDT(?str, geo:wktLiteral) AS ?line)
+  ?subwayLine wdt:P465 ?rgb.
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"zh,fr\".
+    ?subwayLine rdfs:label ?layer.
+  } 
+}
+GROUP BY ?station ?stationLabel ?coords ?line ?layer ?rgb""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Project_chat/zh/Archive/2021>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

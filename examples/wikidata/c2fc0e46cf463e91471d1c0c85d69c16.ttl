@@ -1,0 +1,48 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c2fc0e46cf463e91471d1c0c85d69c16> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Sitios arqueólogicos ubicados en Perú y cultura a la que pertenecieron
+#defaultView:Map
+SELECT
+  ?coordenadas
+  ?item
+  ?itemLabel
+  ?cultura
+  ?culturaLabel
+# Primero, conseguimos las cosas ubicadas en Perú
+WITH {
+  SELECT DISTINCT ?item {
+    ?item wdt:P131* wd:Q419.
+  }
+} AS %0
+# Segundo, verificamos que son sitios arqueólogicos.
+WITH {
+  SELECT DISTINCT ?item {
+    INCLUDE %0.
+    ?item wdt:P31/wdt:P279* wd:Q839954.
+  }
+} AS %1
+WITH {
+  SELECT ?item ?cultura ?coordenadas {
+    INCLUDE %1.
+    ?item wdt:P2596 ?cultura;
+          wdt:P625 ?coordenadas.
+  }
+} AS %2
+{
+  INCLUDE %2.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"es,qu,en\"}.
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/de>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

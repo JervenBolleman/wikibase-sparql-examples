@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c100af78374e2ccb24194b4b0de408c3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Same results as before, but with museums ordered before objects.
+SELECT DISTINCT ?result ?resultLabel WHERE
+  {
+    {
+      ?museum wdt:P31/wdt:P279* wd:Q33506;
+        wdt:P17 wd:Q40.
+    }
+    UNION
+    {
+      ?museum wdt:P31/wdt:P279* wd:Q33506;
+        wdt:P17 wd:Q40.
+      ?object wdt:P276 ?museum.
+    }
+    BIND (COALESCE(?object, ?museum) AS ?result)
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,en\". }
+  }
+ORDER BY ?object""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

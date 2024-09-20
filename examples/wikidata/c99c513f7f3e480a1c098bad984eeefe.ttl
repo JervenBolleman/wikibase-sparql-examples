@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c99c513f7f3e480a1c098bad984eeefe> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT distinct ?signum ?sort ?item ?itemLabel ?citationLabel ?Litteraturbanken WHERE {
+  ?item wdt:P1261 ?signum.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+  FILTER(STRSTARTS(?signum, \"U \"))
+  BIND(STRAFTER(?signum, \"U \") AS ?sort)
+  ?item p:P1343 ?LitteraturbankenP;
+    ?Litt ?Litt_value.
+  ?Litt_value prov:wasDerivedFrom ?reference.
+  ?reference pr:P248 ?citation;
+    pr:P5123 ?litturl.
+  ?reference pr:P248 ?partof.
+  ?partof wdt:P361 wd:Q106007110  # Books in serie Q106007110
+  BIND(URI(CONCAT(\"https://litteraturbanken.se/forfattare/\", ?litturl)) AS ?Litteraturbanken)
+#  FILTER(xsd:integer(?sort) > 921)
+}
+ORDER BY (xsd:integer(?sort))""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

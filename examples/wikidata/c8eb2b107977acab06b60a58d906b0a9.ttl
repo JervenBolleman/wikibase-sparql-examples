@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c8eb2b107977acab06b60a58d906b0a9> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?child ?childLabel ?p1 ?p2
+WHERE
+{
+# variant 0: functional; note \"prop/direct\"
+# ?child <http://www.wikidata.org/prop/direct/P22> <http://www.wikidata.org/entity/Q1339>.
+# ?child <http://www.wikidata.org/prop/direct/P25> <http://www.wikidata.org/entity/Q57487>.
+
+# variant 00: functional; note 2 kinds of \"prop\"
+# ?child <http://www.wikidata.org/prop/P22>/<http://www.wikidata.org/prop/statement/P22> <http://www.wikidata.org/entity/Q1339>.
+# ?child <http://www.wikidata.org/prop/P25>/<http://www.wikidata.org/prop/statement/P25> <http://www.wikidata.org/entity/Q57487>
+
+# wikibase:directClaim - https://www.mediawiki.org/wiki/Wikibase/Indexing/RDF_Dump_Format#Properties
+
+# variant 1: functional, additional patterns, note \"entity\"
+# <http://www.wikidata.org/entity/P22> wikibase:directClaim ?p1 .
+# <http://www.wikidata.org/entity/P25> wikibase:directClaim ?p2 .
+  
+# ?child ?p1 <http://www.wikidata.org/entity/Q1339>.
+# ?child ?p2 <http://www.wikidata.org/entity/Q57487>.
+
+# variant 2: functional, property paths, note \"entity\"
+  BIND(<http://www.wikidata.org/entity/P22>/wikibase:directClaim as ?p1)
+  BIND(<http://www.wikidata.org/entity/P25>/wikibase:directClaim as ?p2)
+  
+  ?child ?p1 <http://www.wikidata.org/entity/Q1339>.
+  ?child ?p2 <http://www.wikidata.org/entity/Q57487>.
+  
+# variant 3: not, note \"entity\"
+# ?child <http://www.wikidata.org/entity/P22>/wikibase:directClaim <http://www.wikidata.org/entity/Q1339>.
+# ?child <http://www.wikidata.org/entity/P25>/wikibase:directClaim <http://www.wikidata.org/entity/Q57487>.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:D1gggg/Wikidata_model_and_SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

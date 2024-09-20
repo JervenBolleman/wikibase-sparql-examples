@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c1d5b054d476659dac6f540db330e8eb> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?position ?positionLabel ?p1_end ?p2_start 
+WHERE 
+{
+  ?item p:P39 ?statement1 .
+  ?statement1 ps:P39 ?position ; pqv:P582 [ wikibase:timePrecision \"11\"^^xsd:integer ; wikibase:timeValue ?p1_end ] .
+  ?position wdt:P279* wd:Q2285706 ; wdt:P1001 [ wdt:P31 wd:Q6256; ] .
+
+  ?item p:P39 ?statement2 .
+  ?statement2 ps:P39 ?position ; pq:P580 ?p2_start .
+  FILTER (?statement1 != ?statement2 && ?p2_start >= ?p1_end)
+  BIND ((?p2_start - ?p1_end) AS ?gap)
+  FILTER (?gap < 2)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?p2_start)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Bal%C3%BB>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

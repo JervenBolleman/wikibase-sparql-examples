@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c5698c10cc437ba5371c7822ace6d588> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?cas ?correct_pattern ?correct_checksum WHERE
+{
+  ?item wdt:P231 ?cas .
+  BIND(REGEX (str(?cas), '^[1-9][0-9]{1,6}-[0-9]{2}-[0-9]$') AS ?correct_pattern )
+  BIND(replace(str(?cas), \"-\",\"\") AS ?c)
+  BIND(STRLEN(?c) AS ?strlen) 
+  BIND(xsd:integer(substr(?c,?strlen,1)) AS ?val )
+  BIND(xsd:integer(substr(?c,?strlen-1,1)) AS ?x1 )
+  BIND(xsd:integer(substr(?c,?strlen-2,1)) AS ?x2 )
+  BIND(xsd:integer(substr(?c,?strlen-3,1)) AS ?x3 )
+  BIND(IF(?strlen>4,xsd:integer(substr(?c,?strlen-4,1)),0) AS ?x4 )
+  BIND(IF(?strlen>5,xsd:integer(substr(?c,?strlen-5,1)),0) AS ?x5 )
+  BIND(IF(?strlen>6,xsd:integer(substr(?c,?strlen-6,1)),0) AS ?x6 )
+  BIND(IF(?strlen>7,xsd:integer(substr(?c,?strlen-7,1)),0) AS ?x7 )
+  BIND(IF(?strlen>8,xsd:integer(substr(?c,?strlen-8,1)),0) AS ?x8 )
+  BIND(IF(?strlen>9,xsd:integer(substr(?c,?strlen-9,1)),0) AS ?x9 )
+  BIND(?x1+?x2*2+?x3*3+?x4*4+?x5*5+?x6*6+?x7*7+?x8*8+?x9*9 AS ?sum0)
+  BIND(?sum0-(xsd:integer(?sum0/10)*10) AS ?sum )
+  BIND(?sum=?val AS ?correct_checksum)
+#  FILTER(!?correct_pattern|| !?correct_checksum)
+}
+ORDER BY ?cas""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

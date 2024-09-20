@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ca0dbcb8bec69e2169ff0eaf4f99ec6e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:BarChart
+#title:Gender balance (%age women) for literary awards
+SELECT  ?award ?awardLabel (ROUND(?women * 1000/(?men + ?women) )/ 10 AS ?percent) WHERE {
+{  SELECT (COUNT(?recipient_male) AS ?men) (COUNT(?recipient_female) AS ?women) ?award WHERE {
+    ?award wdt:P31 wd:Q378427 .
+    { 
+      ?recipient_male wdt:P166 ?award .
+      ?recipient_male wdt:P21 wd:Q6581097 .
+    }
+    UNION 
+    {
+      ?recipient_female wdt:P166 ?award .
+      ?recipient_female wdt:P21 wd:Q6581072 .
+    }  
+  }
+  GROUP BY ?award HAVING(?men + ?women > 50)
+           }
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY ?percent""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/booker>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

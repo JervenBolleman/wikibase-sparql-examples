@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c1ad6e5d81d050bfb2d0ee5073a21c3b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX v: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+
+SELECT ?film ?ordinal ((MIN(YEAR(?pub))) AS ?year) ?actorLabel ((?year-YEAR(?birthday)) AS ?age) ?title ?filmLabel (GROUP_CONCAT(DISTINCT(?directorName);separator=\", \") AS ?director) (SAMPLE(?duration) AS ?duration) ((MIN(?pub)) AS ?publication) ?imdb WHERE {
+    ?film p:P179 ?series .
+    ?series v:P179 wd:Q26451486.
+    ?series pq:P1545 ?ordinal .
+    ?film p:P161 ?bond . ?bond pq:P453 wd:Q2009573 . ?bond v:P161 ?actor . FILTER(?actor != wd:Q888254)
+    ?actor wdt:P569 ?birthday .
+    ?film wdt:P345 ?imdb .
+    ?film wdt:P1476 ?title .
+    OPTIONAL{?film wdt:P57 ?dir . ?dir rdfs:label ?directorName .  FILTER(lang(?directorName) = \"en\")} .  
+    OPTIONAL {?film wdt:P2047 ?duration}
+  	OPTIONAL {?film wdt:P577 ?pub}
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" }
+}
+GROUP BY ?film ?filmLabel ?imdb ?ordinal ?title ?actor ?actorLabel ?birthday
+ORDER BY ASC(xsd:integer(?ordinal))""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jobu0101/API>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

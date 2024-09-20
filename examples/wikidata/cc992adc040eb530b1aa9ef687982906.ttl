@@ -1,0 +1,24 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-cc992adc040eb530b1aa9ef687982906> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Au 1er janvier 1999, il y avait 36 679 communes en France.
+SELECT ?commune 
+WHERE {
+  BIND ( \"1999-01-01\"^^xsd:dateTime as ?dateRecherche ) # Au 1er janvier 1999
+  { ?commune wdt:P31 wd:Q484170 . } UNION { VALUES ?commune {wd:Q90} } # commune de France
+    OPTIONAL { ?commune wdt:P571 ?dateCréation . } # date de création
+    OPTIONAL { ?commune wdt:P576 ?dateDissolution . } # date de dissolution
+    FILTER ( !BOUND(?dateCréation) || ?dateCréation <= ?dateRecherche ) # communes futures
+    FILTER ( !BOUND(?dateDissolution) || ?dateDissolution > ?dateRecherche ) # communes passées
+}
+ORDER BY (?commune)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_France/Communes/Liste_des_communes>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

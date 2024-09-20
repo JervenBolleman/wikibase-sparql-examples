@@ -1,0 +1,42 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ce95c22587d04dbbf466ce3ff1ea20ac> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?itemLabel #?itemAltLabel 
+?pseudonym 
+?ntaid
+?item2
+?item3 ?item3Label ?item3Description
+#?image
+
+WHERE
+{	
+  ?item p:P31/ps:P31 wd:Q5. #humans
+  ?item wdt:P27 wd:Q29999. #Dutch
+  ?item p:P1006/ps:P1006 ?ntaid. #authors
+  ?item p:P742/ps:P742 ?pseudonym.
+  #FILTER (?itemLabel = ?pseudonym).   # werkt niet
+  #OPTIONAL{?item wdt:P18 ?image.}
+  #?item p:P1006/p:P1006 [].
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+    wikibase:api \"EntitySearch\";
+    mwapi:search ?pseudonym; # Search for things named \"marja\"
+    mwapi:language \"nl\".
+    ?item2 wikibase:apiOutput mwapi:item
+  }
+  BIND(URI(CONCAT(\"http://www.wikidata.org/entity/\", ?item2)) AS ?item3) 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"nl,en\" } .
+
+}  
+ORDER BY ?itemLabel 
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:OlafJanssen/Sandbox>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

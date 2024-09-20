@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-cffd38564ec593530926e8551f9aac80> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+select ?siège ?siègeLabel (sample(?whereLabel) as ?whereLabel2) ?start ?tp_end ?tv_end ?end ?days {
+SELECT ?siège ?siègeLabel ?whereLabel ?start ?tp_end ?tv_end ?end ?days WHERE {
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+?siège wdt:P31 wd:Q188055.
+OPTIONAL { ?siège wdt:P580 ?start. }
+OPTIONAL { 
+           ?siège wdt:P582/psv:P582 ?p582node . 
+           ?p582node wikibase:timeValue ?tv_end .       # get the time value
+           ?p582node wikibase:timePrecision ?tp_end .   # get the time precision
+           BIND(
+             IF(?tp_end=9,?tv_end + \"P1Y\"^^xsd:duration - \"P1D\"^^xsd:duration,# set end date to 31 December if time precision is \"year\" (9)
+             IF(?tp_end=10,?tv_end + \"P1M\"^^xsd:duration - \"P1D\"^^xsd:duration,# set end date to 28th if time precision is \"month\" (10)
+             ?tv_end))
+              AS ?end).
+         }
+OPTIONAL { ?siège wdt:P276 ?where. } 
+OPTIONAL { ?siège p:P2047/psn:P2047/wikibase:quantityAmount ?lengthNorm.}
+BIND(COALESCE(?lengthNorm/86400,(?end - ?start+1)) as ?days)
+}
+}
+group by ?siège ?siègeLabel ?start ?tp_end ?tv_end ?end ?days
+order by ?whereLabel2 desc(year(?end))""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

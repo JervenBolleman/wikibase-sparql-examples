@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-cf61325213e1a0ee03410343b89e13f6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?instance ?instanceLabel (COALESCE(?instanceLabel, \" autres\") AS ?itemLabel) ?count {{
+    SELECT ?instance (COUNT(DISTINCT ?item) as ?count) {
+          ?item  wdt:P17 wd:Q142. 
+          ?item (wdt:P31/wdt:P279*) wd:Q16970 ; wdt:P31 ?instance.}
+    GROUP BY ?instance
+    HAVING (?count > 50)}
+  UNION {
+    SELECT (SUM(?count0) AS ?count) {{
+        SELECT ?instance (COUNT(DISTINCT ?item) as ?count0) {
+          ?item wdt:P17 wd:Q142. 
+          ?item (wdt:P31/wdt:P279*) wd:Q16970 ; wdt:P31 ?instance.}
+        GROUP BY ?instance
+        HAVING (?count0 <=50)}}}
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }}
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

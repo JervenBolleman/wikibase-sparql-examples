@@ -1,0 +1,43 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c3e9090d49a592a65cc3024dc09fdb26> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?regime ?regimeLabel ?date ?fini ?pred ?predLabel ?succ ?succLabel
+{
+  # instance of a regime
+  # republic regime in France (Q17152708) might be better but few use it
+  # some also use provisional government that is a subclass of regime
+  ?regime wdt:P31/wdt:P279* wd:Q5589178 .
+  
+  # country is France
+  # country is not quite right. some regimes do not use France
+  ?regime wdt:P17 wd:Q142 .
+  
+  # date of inception
+  # some use start date
+  ?regime wdt:P571 ?date .
+  
+  optional {
+    # abolished
+    # some use end date
+    ?regime wdt:P576 ?fini .
+
+    # these are very confused because they address different territories
+    # ?regime wdt:P155 ?pred .
+    # ?regime wdt:P156 ?succ .
+  }
+  
+  SERVICE wikibase:label {
+     bd:serviceParam wikibase:language \"en\" .
+  }
+  
+} ORDER BY ?date""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Glrx>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

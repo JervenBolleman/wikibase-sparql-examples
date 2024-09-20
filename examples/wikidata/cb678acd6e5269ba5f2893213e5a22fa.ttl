@@ -1,0 +1,53 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-cb678acd6e5269ba5f2893213e5a22fa> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Average gestation period of genera, color-coded by order
+#defaultView:BubbleChart
+SELECT ?genus (AVG(?period) AS ?averagePeriod) (SAMPLE(?label) AS ?genusLabel) (SAMPLE(?rgb_) AS ?rgb) WHERE {
+  {
+    BIND(\"en\" AS ?language)
+    # find species with gestation period, normalized to seconds (SI base unit)
+    ?species p:P3063/psn:P3063/wikibase:quantityAmount ?periodSeconds.
+    # convert back to days
+    BIND(?periodSeconds/(60*60*24) AS ?period)
+    # find genus
+    ?species wdt:P171* ?genus.
+    ?genus wdt:P105 wd:Q34740.
+    # find a good label – trivial name, else label, else “<no name>”
+    OPTIONAL {
+      ?genus wdt:P1843 ?trivialName.
+      FILTER(LANG(?trivialName) = ?language)
+    }
+    OPTIONAL {
+      ?genus rdfs:label ?genusLabel.
+      FILTER(LANG(?genusLabel) = ?language)
+    }
+    BIND(COALESCE(?trivialName, ?genusLabel, \"<no name>\"@en) AS ?label)
+    # find order
+    ?genus wdt:P171* ?order.
+    ?order wdt:P105 wd:Q36602.
+    # choose “random but deterministic” color per order; you can play around with \"-\" (can be any string) to find a pleasing resulting color distribution
+    BIND(UCASE(SUBSTR(SHA256(CONCAT(\"-\", STR(?order))), 1, 6)) AS ?rgb_)
+  } UNION {
+    # add scale
+    VALUES (?genus ?period ?label) {
+      (wd:Q23387 7 \"week\"@en)
+      (wd:Q5151 30.436875 \"month\"@en)
+      (wd:Q1643308 91.310625 \"3 months\"@en)
+      (wd:Q2269240 182.62125 \"6 months\"@en)
+      (wd:Q577 365.2425 \"year\"@en)
+    }
+    BIND(\"CCCCCC\" AS ?rgb_)
+  }
+}
+GROUP BY ?genus""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/gestation_periods>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

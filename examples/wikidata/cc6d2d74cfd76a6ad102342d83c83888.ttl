@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-cc6d2d74cfd76a6ad102342d83c83888> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# найпапулярнейшыя ў ВікіЗьвестках асобы, народжаныя на тэрыторыі Беларусі
+SELECT ?item ?itemLabel ?statements ?itemDescription (COUNT(DISTINCT ?sitelink) AS ?linkshere) WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],be-tarask\". }   # фарматаваньне метак вываду
+  BIND(xsd:integer(STRAFTER(STR(?item), \"Q\")) AS ?qid)                                        
+  ?item wikibase:statements ?statements.                                                      # дзеля падліку сьцьверджаньняў
+  OPTIONAL {
+    ?sitelink schema:about ?item.
+    ?sitelink schema:inLanguage ?lang.
+  }                                                                                           # дзеля падліку спасылак на элемэнт
+  ?item wdt:P31 wd:Q5.                                                                        # толькі людзі
+  { ?item wdt:P19 wd:Q184. }                                                                  # месца нараджэньня — Беларусь
+  UNION
+  {
+    ?item wdt:P19 ?pob.
+    ?pob wdt:P131* wd:Q184.
+  }                                                                                           # альбо месца нараджэньня знаходзіцца ў Беларусі
+}
+GROUP BY ?item ?statements ?itemLabel ?itemDescription
+ORDER BY DESC(?linkshere)
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Taravyvan_Adijene/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

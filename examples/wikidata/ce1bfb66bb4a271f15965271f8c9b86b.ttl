@@ -1,0 +1,50 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ce1bfb66bb4a271f15965271f8c9b86b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel (SUM(?in_en) AS ?Enlish_category) (SUM(?in_it) AS ?Italian_category)
+WHERE
+{
+  VALUES ?category { wd:Q7893678 }
+  [] schema:about ?category; schema:isPartOf <https://en.wikipedia.org/>; schema:name ?cat_title_en.
+  [] schema:about ?category; schema:isPartOf <https://it.wikipedia.org/>; schema:name ?cat_title_it.
+  {
+    SERVICE wikibase:mwapi
+    {
+      bd:serviceParam wikibase:api \"Generator\".
+      bd:serviceParam wikibase:endpoint \"en.wikipedia.org\".
+      bd:serviceParam mwapi:gcmtitle ?cat_title_en.
+      bd:serviceParam mwapi:generator \"categorymembers\".
+      bd:serviceParam mwapi:gcmprop \"ids\".
+      bd:serviceParam mwapi:gcmlimit \"max\".
+      ?item wikibase:apiOutputItem mwapi:item.
+    }
+    VALUES ?in_en { 1 } 
+  }
+  UNION
+  {
+    SERVICE wikibase:mwapi
+    {
+      bd:serviceParam wikibase:api \"Generator\".
+      bd:serviceParam wikibase:endpoint \"it.wikipedia.org\".
+      bd:serviceParam mwapi:gcmtitle ?cat_title_it.
+      bd:serviceParam mwapi:generator \"categorymembers\".
+      bd:serviceParam mwapi:gcmprop \"ids\".
+      bd:serviceParam mwapi:gcmlimit \"max\".
+      ?item wikibase:apiOutputItem mwapi:item.
+    }
+    VALUES ?in_it { 1 } 
+   }
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?item ?itemLabel
+HAVING (?Enlish_category = 0 || ?Italian_category = 0)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,74 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c7b1a640d31bb457baee35f10bb3cc52> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?file ?coord
+WITH
+{
+  SELECT ?out
+  WHERE
+  {
+    SERVICE <https://query.wikidata.org/bigdata/namespace/categories/sparql>
+    {
+      SERVICE mediawiki:categoryTree
+      {
+        bd:serviceParam mediawiki:start <https://commons.wikimedia.org/wiki/Category:Schools_in_Liberec_District> .
+        bd:serviceParam mediawiki:direction \"Reverse\" .
+        bd:serviceParam mediawiki:depth 3
+      }
+    }
+  }
+}
+AS %categories
+WITH
+{
+  SELECT ?contentUrl ?filename
+  WHERE
+  {
+    include %categories
+    BIND (wikibase:decodeUri(SUBSTR(STR(?out), 36)) AS ?title)
+    SERVICE <https://query.wikidata.org/sparql>
+    {
+      SERVICE wikibase:mwapi
+      {
+        bd:serviceParam wikibase:endpoint \"commons.wikipedia.org\" ;
+                        wikibase:api \"Generator\" ;
+                        mwapi:generator \"categorymembers\" ;
+                        mwapi:gcmtitle ?title ;
+                        mwapi:gcmlimit \"max\" ;
+                        mwapi:gcmnamespace \"6\" .
+        ?member wikibase:apiOutput mwapi:title
+      }
+      BIND (REPLACE(SUBSTR(STR(?member), 6), \" \", \"_\") AS ?filename)
+      BIND (MD5(?filename) AS ?MD5)
+      BIND (URI(CONCAT(\"https://upload.wikimedia.org/wikipedia/commons/\", SUBSTR(?MD5, 1, 1), \"/\",
+                       SUBSTR(?MD5, 1, 2), \"/\", ENCODE_FOR_URI(?filename))) AS ?contentUrl)
+    }
+  }
+} AS %images
+WITH
+{
+  SELECT ?file
+  WHERE
+  {
+    include %images
+    ?file schema:contentUrl ?contentUrl
+  }
+} AS %files
+WHERE
+{
+  include %files
+  OPTIONAL { ?file wdt:P1259 ?coord1 }
+  OPTIONAL { ?file wdt:P9149 ?coord2 }
+  BIND ((COALESCE(?coord2, ?coord1)) as ?coord )
+  FILTER BOUND(?coord)
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Dipsacus_fullonum>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

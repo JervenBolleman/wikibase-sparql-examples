@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c4461dfeeb39175d00a64748dcd582d4> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  ?item ?itemLabel 
+  (MIN(YEAR(?prize_date)) as ?prize_date_ ) 
+  (GROUP_CONCAT(DISTINCT ?countryLabel; separator=\", \") as ?country_ ) 
+  (GROUP_CONCAT(DISTINCT ?occupationLabel; separator=\", \") as ?Role_ )
+#  (GROUP_CONCAT(DISTINCT ?awardReceivedLabel; separator=\", \") as ?otherAwardsReceived_ ) 
+  (GROUP_CONCAT(DISTINCT ?VIAFLabel; separator=\", \") as ?VIAF_ ) 
+
+WHERE
+{
+    BIND( wd:Q260117 as ?prizeID )
+    ?item  wdt:P166 ?prizeID. 
+    OPTIONAL { ?item p:P166 ?premio . ?premio pq:P585 ?prize_date ; ps:P166 ?prizeID } 
+    OPTIONAL { ?item wdt:P413 ?occupation } 
+    OPTIONAL { ?item wdt:P166 ?awardReceived }  
+    OPTIONAL { ?item  wdt:P214 ?VIAF } 
+    OPTIONAL { ?item  wdt:P27  ?country } 
+ 
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"it,[AUTO_LANGUAGE],en\" .
+                           ?item rdfs:label ?itemLabel .
+                           ?occupation rdfs:label ?occupationLabel .
+                           ?awardReceived rdfs:label ?awardReceivedLabel .
+                           ?country rdfs:label ?countryLabel . 
+                           ?VIAF rdfs:label ?VIAFLabel . 
+                           }
+}
+GROUP BY ?item ?itemLabel 
+ORDER BY ?prize_date_""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Luckyz/UEFAMensPOTY>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

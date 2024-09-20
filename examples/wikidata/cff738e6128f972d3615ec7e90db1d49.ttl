@@ -1,0 +1,42 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-cff738e6128f972d3615ec7e90db1d49> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# select Australian women have an enwiki article with an image
+# but have no image on wikidata
+SELECT ?item ?itemLabel  ?article ?sitelink
+WHERE 
+{
+  {
+    ?item wdt:P21 wd:Q6581072. # is a women
+    ?item wdt:P27 wd:Q408.     # Is Australian
+    ?sitelink ^schema:name ?article .
+    ?article schema:about ?item ;
+             schema:isPartOf <https://en.wikipedia.org/> .
+  }
+MINUS    { ?item wdt:P18 ?image.}
+  {
+    SERVICE wikibase:mwapi
+    {
+      bd:serviceParam wikibase:api \"Search\" .
+      bd:serviceParam wikibase:endpoint \"en.wikipedia.org\" .
+      bd:serviceParam mwapi:srnamespace \"0\" .
+      bd:serviceParam mwapi:srlimit \"max\" .
+      bd:serviceParam mwapi:srwhat \"text\" .
+      bd:serviceParam mwapi:srsearch 'insource:\"image = \"' .
+      ?title wikibase:apiOutput mwapi:title .
+    }
+    BIND (STRLANG(?title, \"en\") as ?sitelink)
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

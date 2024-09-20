@@ -1,0 +1,22 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c241674624190448290669c3b873e198> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select ?x ?xLabel ?fmt ?re ?pat {
+  ?x wikibase:propertyType wikibase:ExternalId.
+  ?x wdt:P1630 ?fmt; p:P2302/pq:P1793 ?re
+  filter not exists {?x wdt:P8966 []}
+  bind(replace(?fmt,\"([^a-zA-Z0-9$])\",\"\\\\\\\\$1\") as ?fmt1) # escape regex-special chars
+  bind(replace(?re,\"\\\\\\\",\"\\\\\\\\\\\\\\\") as ?re1) # double up backslashes
+  bind(replace(?fmt1,\"\\\\$1\",concat(\"(\",?re1,\")\")) as ?pat)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} limit 50""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Property_talk:P8966>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

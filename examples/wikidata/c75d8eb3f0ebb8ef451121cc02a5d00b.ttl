@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c75d8eb3f0ebb8ef451121cc02a5d00b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX hint: <http://www.bigdata.com/queryHints#>
+
+SELECT ?place ?placeLabel 
+       ?workLabel ?geo 
+WHERE {
+  hint:Query hint:optimizer \"Runtime\" .
+  
+  wd:Q670930 wdt:P625 ?qgeo . 
+  SERVICE wikibase:around { 
+    ?place wdt:P625 ?geo . 
+    bd:serviceParam
+      wikibase:center ?qgeo ; 
+      wikibase:radius \"500\" . 
+  } 
+  ?work wdt:P840 ?place .
+  { ?work wdt:P31/wdt:P279* wd:Q7725634 . } union { ?work wdt:P31 wd:Q571 . }
+  SERVICE wikibase:label {
+    bd:serviceParam 
+      wikibase:language \"en,fr\" . } }""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Fnielsen/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

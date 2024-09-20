@@ -1,0 +1,72 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c76fcb04ba0dea26b1f0c30d9afeb762> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# expected_result_count: 991
+SELECT DISTINCT
+?qid
+?orgLabel
+?orgDescription
+?type
+?typeLabel
+?country
+WHERE {
+   BIND(wd:Q31 AS ?country)
+{
+  VALUES ?type {
+    wd:Q2288140 # Federal Scientific Institutes (13)
+    wd:Q107637441 # Public Institution of Social Security (12)
+    wd:Q3356161 # Public Interest Organizations (16)
+    wd:Q1846372 # Federal Public Service (11)
+    wd:Q1788820 # defence ministry (1)
+    wd:Q21004446 # Public Planning Service (3)
+    wd:Q17373496 # language areas (4)
+    wd:Q89934 # communities (3)
+    wd:Q83057 # regions (4)
+    wd:Q83116 # extant provinces (10)
+    wd:Q2621126 # police zones (182)
+    wd:Q3575878 # emergency zones (35)
+    wd:Q493522 # municipalities (581)
+    wd:Q190752 # supreme court (2)
+    wd:Q32766 # constitutional court (1)
+    wd:Q2570643 # senate (1)
+    wd:Q375928 # lower house (1)
+    wd:Q17627622 # community and regional parliament (5)
+}
+?org wdt:P31 ?type; wdt:P17 ?country .
+}
+UNION
+{
+  VALUES ?type {
+    wd:Q121856465 # delegations (8)
+    wd:Q112307194 # consulate generals (15)
+    wd:Q3917681 # embassies (83)
+}
+?org wdt:P31 ?type; wdt:P137 ?country .
+}
+UNION
+{
+  VALUES ?type {
+    wd:Q5244910 #  de facto embassy (1)
+  }
+  ?org wdt:P31 ?type; wdt:P17 wd:Q865; wdt:P137 ?country .
+}
+  MINUS { ?org wdt:P576 [] }
+  MINUS { ?org wdt:P1366 [] }
+  MINUS { ?org wdt:P582 [] }
+  MINUS { ?org wdt:P571 ?date . FILTER (DATATYPE(?date) = xsd:dateTime && ?date > now()) }
+
+  BIND(REPLACE(STR(?org), \"http://www.wikidata.org/entity/\", \"\") AS ?qid)
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,nl,fr,de\" }
+}
+ORDER BY ?type ?orgLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Govdirectory/Belgium>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

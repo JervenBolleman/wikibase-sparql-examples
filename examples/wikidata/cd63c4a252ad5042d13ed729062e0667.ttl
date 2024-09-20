@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-cd63c4a252ad5042d13ed729062e0667> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?taxonName WHERE {
+    ?item wdt:P225 ?taxonName .
+    ?item p:P225/pq:P574 ?publicationdate.
+    FILTER(year(?publicationdate) = 1758)
+    OPTIONAL{ ?item wdt:P566 ?basionym } .
+    OPTIONAL{ ?item wdt:P1403 ?firstcombination } .
+    OPTIONAL{ ?item wdt:P694 ?replacedsynonym } .
+    FILTER(!bound(?basionym) && !bound(?firstcombination) && !bound(?replacedsynonym))  
+    OPTIONAL {
+          ?article schema:about ?item .
+          ?article schema:inLanguage \"eu\" .
+          FILTER (SUBSTR(str(?article), 1, 25) = \"https://eu.wikipedia.org/\")
+    }
+    FILTER(bound(?article))  
+}
+ORDER BY ASC(?taxonName)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2016/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

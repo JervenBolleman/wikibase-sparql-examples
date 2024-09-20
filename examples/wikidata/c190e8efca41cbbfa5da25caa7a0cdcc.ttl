@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c190e8efca41cbbfa5da25caa7a0cdcc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?storeLabel ?url (GROUP_CONCAT(DISTINCT ?typeLabel;separator=\", \") AS ?types) ?subjectLabel
+WHERE {
+VALUES ?type {wd:Q5227308 wd:Q22692845 wd:Q7689673 wd:Q4117139
+                          wd:Q5281480 wd:Q212805 wd:Q5570651}
+?store wdt:P31/wdt:P279* ?type; 
+         wdt:P856 ?url;
+         wdt:P31 ?type
+MINUS {?store wdt:P576 []}
+OPTIONAL {?store wdt:P921 ?subject.}
+SERVICE wikibase:label {
+  bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+  ?type rdfs:label ?typeLabel. ?store rdfs:label ?storeLabel. ?subject rdfs:label ?subjectLabel
+                       }
+} GROUP BY ?storeLabel ?url ?subjectLabel ORDER BY UCASE(?storeLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

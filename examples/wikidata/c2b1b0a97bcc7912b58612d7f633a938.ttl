@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c2b1b0a97bcc7912b58612d7f633a938> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel_EN ?itemLabel_FR WITH {
+  SELECT DISTINCT ?item WHERE 
+{
+  hint:Query hint:optimizer \"None\".
+  {?item wdt:P131* wd:Q90 . }        #located in the Paris area
+  UNION
+  {wd:Q90 wdt:P625 ?parisLoc .    
+  SERVICE wikibase:around {          # or within 20km of Paris's coordinate
+      ?item wdt:P625 ?location . 
+      bd:serviceParam wikibase:center ?parisLoc . 
+      bd:serviceParam wikibase:radius \"20\" . 
+    } 
+  }
+  ?item wdt:P31/wdt:P279 wd:Q12280.  #is some sort of bridge
+  }
+} AS %i WHERE
+{
+  INCLUDE %i
+                                     #get labels, if they exist, in EN and FR
+  OPTIONAL {?item rdfs:label ?itemLabel_EN . filter(lang(?itemLabel_EN)=\"en\") }
+  OPTIONAL {?item rdfs:label ?itemLabel_FR . filter(lang(?itemLabel_FR)=\"fr\") }  
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

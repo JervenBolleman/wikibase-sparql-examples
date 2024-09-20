@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-cb93de80c4847f37a0657833d584fc1e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?statement ?prop ?propLabel ?valueLabel ?forLabel
+WITH
+{
+  SELECT ?item ?claim ?statement ?for
+  WHERE
+  {
+    ?item ?claim ?statement .
+    ?statement pq:P642 ?for .
+    FILTER (?claim != p:P31 && ?claim != p:P279 && ?claim != p:P2699)
+  }
+  LIMIT 1000
+} AS %query
+WHERE
+{
+  INCLUDE %query
+  ?prop wikibase:claim ?claim .
+  ?prop wikibase:statementProperty ?sp .
+  ?statement ?sp ?value .
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" .
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

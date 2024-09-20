@@ -1,0 +1,62 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-cdb014d4ef5ed9deda054c867fc3dddf> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+    ?airportName ?pageBanner ?logo ?icao ?iata ?faa ?website ?operator ?opening ?status ?elevation ?elevationUnitLabel ?image
+    ?runway ?runwayLabel ?lengthValue ?lengthUnitLabel ?widthValue ?widthUnitLabel ?materialLabel
+WHERE {
+    BIND(wd:Q8685 AS ?airport)  # JFK International Airport's Wikidata ID
+    # Fetching general airport information
+    OPTIONAL { ?airport wdt:P373 ?airportName. }
+    OPTIONAL { ?airport wdt:P948 ?pageBanner. }
+    OPTIONAL { ?airport wdt:P154 ?logo. }
+    OPTIONAL { ?airport wdt:P239 ?icao. }
+    OPTIONAL { ?airport wdt:P238 ?iata. }
+    OPTIONAL { ?airport wdt:P240 ?faa. }
+    OPTIONAL { ?airport wdt:P856 ?website. }
+    OPTIONAL { ?airport wdt:P137 ?operator. }
+    OPTIONAL { ?airport wdt:P571 ?opening. }
+    OPTIONAL { ?airport wdt:P5817 ?status. }
+    OPTIONAL {
+        ?airport p:P2044 ?elevationStatement.
+        ?elevationStatement psv:P2044 ?elevationValueNode.
+        ?elevationValueNode wikibase:quantityAmount ?elevation.
+        OPTIONAL {
+            ?elevationValueNode wikibase:quantityUnit ?elevationUnit.
+            ?elevationUnit rdfs:label ?elevationUnitLabel FILTER(LANG(?elevationUnitLabel) = \"en\")
+        }
+    }
+    OPTIONAL { ?airport wdt:P18 ?image. }
+    # Fetching runway specific information
+    OPTIONAL {
+        ?airport p:P529 ?runwayStatement.
+        ?runwayStatement ps:P529 ?runway.
+        # Accessing the runway label
+        OPTIONAL {
+            ?runway wdt:P1813 ?runwayLabel.
+        }
+        # Accessing the length qualifier
+        OPTIONAL {
+            ?runwayStatement pq:P2043 ?lengthValue.
+        }
+        # Accessing the width qualifier
+        OPTIONAL {
+            ?runwayStatement pq:P2049 ?widthValue.
+        }
+        # Accessing the material qualifier
+        OPTIONAL {
+            ?runwayStatement pq:P186 ?material.
+            OPTIONAL { ?material rdfs:label ?materialLabel FILTER(LANG(?materialLabel) = \"en\") }
+        }
+    }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

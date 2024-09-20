@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c92723337ca5afe8fd30a25df011cf3e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?itemLabel ?typeLabel ?classLabel WHERE {
+  VALUES ?country { wd:Q34 } #Change country here
+  ?item wdt:P31/wdt:P279* wd:Q2659904 ;
+        wdt:P17 ?country ;
+        wdt:P31 ?type .
+  MINUS { ?item p:P17 ?a ; p:P17 ?b . FILTER(STR(?a) < STR(?b)) } # Removes items run by several contries
+  OPTIONAL { ?item wdt:P137 ?operator  }
+  BIND(COALESCE(?operator,?country) AS ?op )
+  FILTER(?op = ?country) #Deselects (mostly) embassies of other countries in the country
+  MINUS {?item wdt:P361 ?partof. ?partof wdt:P576 []}
+  MINUS {?item wdt:P279 ?class. ?class wdt:P361 wd:Q15238777 }
+  MINUS {?item wdt:P279 ?class. ?class wdt:P576 [] }
+  MINUS {?item wdt:P576 []}
+  MINUS {?item wdt:P582 []}
+  MINUS {?item wdt:P2669 []}
+  MINUS {?type wdt:P576 []}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"sv,en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ainali/Social_media_for_public_organizations>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,42 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c7b720eef1af02808b2592628f540e85> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q9035>
+
+SELECT 
+  ?count
+  (CONCAT(\"#language/\", SUBSTR(STR(target:), 32), \"/language/\", SUBSTR(STR(?language), 32)) AS ?countUrl)
+
+  ?language ?languageLabel
+  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32)) AS ?languageUrl)
+
+  ?originating_example_lexeme ?originating_example_lexemeLabel
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?originating_example_lexeme), 32)) AS ?originating_example_lexemeUrl)
+WITH {
+  SELECT
+    (COUNT(?lexeme) AS ?count)
+    ?language
+    (SAMPLE(?originating_lexeme) AS ?originating_example_lexeme)
+  WHERE {
+    ?lexeme dct:language target: ;
+            wdt:P5191+ ?originating_lexeme .
+    ?originating_lexeme dct:language ?language .
+  }
+  GROUP BY ?language
+} AS %languages
+WHERE {
+  INCLUDE %languages
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?originating_example_lexeme wikibase:lemma ?originating_example_lexemeLabel .
+}
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:language-language-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

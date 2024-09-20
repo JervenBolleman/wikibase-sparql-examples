@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c6883892453f8d80c8e491f40e185ced> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?pays ?paysLabel (max(?value) as ?DateMax) (SUM(?number) AS ?numbers) WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q1248784;
+         wdt:P5817 wd:Q55654238;
+    p:P3872 ?statement.
+  ?statement pq:P585 ?value; ps:P3872 ?number.
+  FILTER((\"2019-12-31\"^^xsd:dateTime < ?value) && (\"2021-00-00\"^^xsd:dateTime > ?value))
+  MINUS {
+    ?item p:P3872 ?statement2.
+    ?statement2 pq:P585 ?value2.
+    FILTER((\"2020-12-31\"^^xsd:dateTime < ?value2) && (\"2022-00-00\"^^xsd:dateTime > ?value2))
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,en\". }
+  OPTIONAL { ?item wdt:P17 ?pays. }
+}
+GROUP BY ?item ?itemLabel ?pays ?paysLabel
+ORDER BY DESC(?paysLabel) desc(?numbers)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Bouzinac/Fr%C3%A9quentations>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c80640ca4c7082e280e2c0d4ed7a23d6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?language ?languageLabel ?statusLabel ?lexemes WITH {
+  SELECT ?language ?status (COUNT(?lexeme) AS ?lexemes) WHERE {
+    VALUES ?status {
+      wd:Q20672087 # 2 vulnerable
+      wd:Q20672088 # 3 definitely endangered
+      wd:Q20672089 # 4 severely endangered
+      wd:Q20672090 # 5 critically endangered
+      wd:Q20672091 # 6 extinct
+    }
+    ?language wdt:P1999 ?status.
+    OPTIONAL { ?lexeme dct:language ?language. }
+  }
+  GROUP BY ?language ?status
+} AS %results WHERE {
+  INCLUDE %results.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?lexemes) DESC(?statusLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/vulnerable,_endangered_or_extinct_languages_with_number_of_lexemes_in_Wikidata>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-cc7a12cb6f526df402869d211ea20e5a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Total de usos d'una propietat, mostrant a més altres propietats de cadascun dels valors totalitzats
+SELECT ?value ?valueLabel ?ct ?sampleitem ?sampleitemLabel ?propassoc
+WHERE
+{
+  {
+    SELECT ?value (count(*) as ?ct) (SAMPLE(?item) as ?sampleitem)
+    WHERE
+    {
+      ?item wdt:P1435 ?value.
+    }
+    GROUP BY ?value
+    ORDER BY DESC(?ct)
+    LIMIT 1000
+  }
+#mostrar la P1687 de cadascun dels valors totalitzats
+      ?value wdt:P1687 ?propassoc.
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ORDER BY DESC(?ct) ASC(?value)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Amadalvarez/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

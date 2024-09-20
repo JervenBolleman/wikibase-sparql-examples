@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c0255c1c48ebafae104322e777fc7389> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?country_label ?capital_label ?currency_label ?population ?flag_label ?flag_image ?determination_method_label #?flag_start_time 
+WHERE {
+  ?country wdt:P31 wd:Q3624078 . 
+  FILTER NOT EXISTS {?country wdt:P31 wd:Q3024240} 
+  FILTER NOT EXISTS {?country wdt:P31 wd:Q28171280} 
+  OPTIONAL { ?country wdt:P36 ?capital } . 
+  OPTIONAL {
+    ?country p:P36 [
+      ps:P36 ?capital;
+      pq:P459 ?determination_method]. 
+    ?determination_method rdfs:label ?determination_method_label . 
+    #FILTER(STR(?determination_method_label) != \"de jure\")
+    FILTER (LANG(?determination_method_label) = \"ru\") 
+  } . 
+  OPTIONAL { ?country wdt:P38 ?currency } . 
+  OPTIONAL { ?country wdt:P1082 ?population } . 
+  OPTIONAL { 
+    ?country p:P41 ?flagStatement . 
+    ?flagStatement wikibase:rank wikibase:PreferredRank .
+    ?flagStatement ps:P41 ?flag_image . 
+    #?flagStatement pq:P580 ?flag_start_time . 
+  } . 
+  SERVICE wikibase:label { 
+    ?country rdfs:label ?country_label . 
+    ?capital rdfs:label ?capital_label . 
+    ?currency rdfs:label ?currency_label . 
+    ?country rdfs:label ?flag_label .
+    bd:serviceParam wikibase:language \"en\" .
+  }
+}
+ORDER BY ?country_label""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c911e1c5e16d3ce9cd5f87b3ebe4c8df> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?en_label (SAMPLE(?img) AS ?image) (COUNT(DISTINCT ?label) AS ?labels) (COUNT(DISTINCT ?st) AS ?statements) (COUNT(DISTINCT ?sourced) AS ?with_ref)
+(COUNT(DISTINCT ?P1343) AS ?source_described) (COUNT(DISTINCT ?P973) AS ?url_described)
+{
+  ?item wdt:P31/wdt:P279* wd:Q14952 .
+  OPTIONAL { ?item wdt:P18 ?img } .
+  OPTIONAL { ?item rdfs:label ?en_label FILTER( LANG( ?en_label ) = 'en' ) } .
+  ?item rdfs:label ?label;
+        ?p ?st .
+  ?st wikibase:rank [] .
+  OPTIONAL {
+    ?st prov:wasDerivedFrom [] .
+    BIND( ?st AS ?sourced ) .
+  } .
+  OPTIONAL {
+    ?st ps:P1343 [] .
+    BIND( ?st AS ?P1343 ) .
+  } .
+  OPTIONAL {
+    ?st ps:P973 [] .
+    BIND( ?st AS ?P973 ) .
+  } .
+} GROUP BY ?item ?en_label""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c3a1bd9cd0fdc8c1fcbcdbfdfcb58620> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?id ?geo                (concat('[[:de:', '', '#', substr(str(?id),32,13), '|', ?idLabel, ']]', '\\\\n', '[[File:Wikidata-logo S.svg|16px|link=d:', substr(str(?id),32,13), ']]', (SAMPLE(?idBild))) as ?description)
+                ('building' as ?marker_symbol) ('small' as ?marker_size) ?marker_color
+    WHERE {?id wdt:P2817 ?list.
+           ?id wdt:P625 ?geo.
+           #VALUES ?list {wd:}.
+           VALUES ?list {wd:Q1859286}.
+           SERVICE wikibase:label { bd:serviceParam wikibase:language 'de,en' .
+                                   ?id rdfs:label ?idLabel . }
+           OPTIONAL { ?id wdt:P18 ?img .}
+           optional {?id p:P18 [a wdno:P18]. }
+           BIND(IF(BOUND(?img), concat('\\\\n', '[[File:', substr(str(?img), 52, 400), '|250px]]'), '') AS ?idBild) .
+           OPTIONAL {
+             ?id p:P1435 ?statement.
+             ?statement ps:P1435 wd:Q1188447.
+             ?statement pq:P582 ?end.}
+             bind(if(BOUND(?img), if(BOUND(?end), '#80F080', '#008000'), if(BOUND(?end), '#F08080', '#800000')) as ?marker_color).
+           ?link schema:about ?list .
+           ?link schema:isPartOf <https://de.wikipedia.org/> .}
+GROUP BY ?id ?geo ?link ?idLabel ?marker_color""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

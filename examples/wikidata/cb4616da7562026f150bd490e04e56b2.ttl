@@ -1,0 +1,43 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-cb4616da7562026f150bd490e04e56b2> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX schema: <http://schema.org/>
+#-------------------------------------------------------------------------------
+# Objekte in Torgau ohne deutsches Label
+#-------------------------------------------------------------------------------
+#defaultView:Table
+SELECT DISTINCT 
+?item ?label_de ?itemLabel ?itemDescription ?article ?image ?coordinates  
+WHERE {  
+?item wdt:P131 wd:Q12062. # in Torgau
+#Artikellink  
+OPTIONAL {
+    ?article schema:about ?item.
+    ?article schema:isPartOf <https://de.wikipedia.org/>.
+  }
+  # Commons-Link
+  OPTIONAL {?commons 	schema:about ?item ;
+           schema:isPartOf <https://commons.wikimedia.org/> .
+  }
+   OPTIONAL { ?item wdt:P18 ?image. }
+   OPTIONAL { ?item wdt:P625 ?coordinates. }
+  # kein deutsches Label
+  OPTIONAL {
+      ?item rdfs:label ?label_de.                                  # Label abspeichern
+      filter (lang(?label_de) = \"de\").                             # Label nur auf Deutsch filtern
+  }
+  FILTER(!BOUND(?label_de))                                        # Filter Objekte, die kein deutsches Label haben
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de,ru,es,fr,cs,pl,nl,dk\" }     # Label in anderen Sprachen anzeigen
+}
+order by ?itemLabel ?itemDescription  ?article ?coordinates ?image""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Lutzto>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

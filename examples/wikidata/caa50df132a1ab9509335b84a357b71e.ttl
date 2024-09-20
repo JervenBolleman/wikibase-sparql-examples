@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-caa50df132a1ab9509335b84a357b71e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?desc ?state ?stateLabel ?eyear ?member ?memberLabel 
+WHERE {
+  BIND(wd:Q22048 as ?state) # Odisha
+  BIND (wd:Q3532431 as ?name)
+  BIND (wd:Q3429959 as ?constituency)
+  ?item wdt:P31/wdt:P279* ?constituency. # constituency
+  ?item p:P131 ?statement . # get state name   
+  ?item wdt:P131 ?state .    
+   ?item p:P585 [
+     	ps:P585 ?eyear ;
+        pq:P991 ?member;
+   ].
+     
+  #Filter (year(?eyear) = 2014) .
+  #optional{?item wdt:P991 ?member  .}
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+   OPTIONAL {
+     ?item rdfs:label ?desc filter (lang(?desc) = \"en\").
+   }  
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MKar/Query>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

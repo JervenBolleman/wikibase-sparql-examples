@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-cc7baf05db9e556a9a55095ef25c0c59> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Search in category
+SELECT DISTINCT ?item ?itemLabel ?inst ?instLabel (GROUP_CONCAT(?endpoint; SEPARATOR=\", \") AS ?found_in)
+{
+  ?cat schema:about wd:Q8682545 .
+  ?cat schema:isPartOf ?wikimedia_site.
+  ?cat schema:name ?category_title.
+  BIND (STRBEFORE(STRAFTER(STR(?wikimedia_site), \"https://\"), \"/\") AS ?endpoint)
+  OPTIONAL
+  {
+    SERVICE wikibase:mwapi
+    {
+      bd:serviceParam wikibase:endpoint ?endpoint.
+      bd:serviceParam wikibase:api \"Generator\".
+      bd:serviceParam mwapi:generator \"categorymembers\".
+      bd:serviceParam mwapi:gcmtitle ?category_title.
+      bd:serviceParam mwapi:gcmlimit \"max\".
+      ?item wikibase:apiOutputItem mwapi:item.
+      ?title wikibase:apiOutput mwapi:title.
+    }
+  }
+  OPTIONAL { ?item wdt:P31 ?inst }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],it\". }
+}
+GROUP BY ?item ?itemLabel ?inst ?instLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

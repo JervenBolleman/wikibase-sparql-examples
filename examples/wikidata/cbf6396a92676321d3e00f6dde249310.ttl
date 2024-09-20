@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-cbf6396a92676321d3e00f6dde249310> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?res ?resLabel ?resDescription (GROUP_CONCAT(DISTINCT ?typeLabel;SEPARATOR=\" | \") AS ?types) (GROUP_CONCAT(DISTINCT ?hasCategoryOfResLabel;SEPARATOR=\" | \") AS ?lrmType)
+WHERE {
+  VALUES ?res {
+    wd:Q36322 # Jane Austen
+    wd:Q84 # London
+    wd:Q170583 # Pride and Prejudice (work)
+    wd:Q940014 # Pride and Prejudice (film)
+    wd:Q63296184 # Pride and Prejudice (manifestation)
+  }
+  OPTIONAL {
+    ?res wdt:P31 ?type .
+    ?res wdt:P31/wdt:P279* ?wdType .
+    ?wdType p:P1709 | p:P3950 [
+      ps:P1709 | ps:P3950 ?hasCategoryOfRes ;
+               pq:P1810 ?hasCategoryOfResLabel
+    ].
+    FILTER(STRSTARTS(STR(?hasCategoryOfRes), \"http://iflastandards.info/ns/lrm/lrmer/\"))
+  }
+  SERVICE wikibase:label { 
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?type rdfs:label ?typeLabel .
+    ?res rdfs:label ?resLabel .
+    ?res schema:description ?resDescription .
+  }
+}
+GROUP BY ?res ?resLabel ?resDescription #?hasCategoryOfRes ?hasCategoryOfResLabel
+ORDER BY ?res""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Realworldobject/LRMExamples>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

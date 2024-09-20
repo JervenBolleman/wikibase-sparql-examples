@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c109f17a9a62dd0f874f718afb9bc857> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?sample ?sampleLabel ?property ?propertyLabel ?qualifiers ?statements WHERE {
+  {
+    SELECT DISTINCT ?p ?qualifiers (SAMPLE(?item) AS ?sample) (COUNT(?stmt) AS ?statements) WHERE {
+      {
+        SELECT ?item ?p ?stmt (GROUP_CONCAT(?kv) AS ?qualifiers) WHERE {
+          {
+            SELECT ?item ?p ?stmt ?str ?kv WHERE {
+              {
+                SELECT ?item ?p ?stmt ?str (COUNT(?qval) AS ?values) WHERE {
+                  VALUES ?p {p:P1359}
+                  ?item ?p ?stmt .
+                  #?stmt pq:P642 ?qval0 .
+                  ?stmt ?pq ?qval .
+                  ?wdq wikibase:qualifier ?pq .
+                  BIND(STRAFTER(STR(?pq), \"/P\") AS ?str)
+                }
+                GROUP BY ?item ?p ?stmt ?str
+              }
+              BIND(CONCAT(?str, \":\", STR(?values)) AS ?kv)
+            }
+            ORDER BY DESC(STRLEN(?str)) DESC(?str) ?kv ?stmt ?p
+          }
+        }
+        GROUP BY ?item ?p ?stmt
+      }
+    }
+    GROUP BY ?p ?qualifiers
+  }
+  ?property wikibase:claim ?p .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY ?property DESC(?statements)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:SM5POR/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

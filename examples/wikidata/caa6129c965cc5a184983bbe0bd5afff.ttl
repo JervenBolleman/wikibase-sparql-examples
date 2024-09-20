@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-caa6129c965cc5a184983bbe0bd5afff> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Tree
+SELECT ?country ?countryLabel ?countryFlag ?championship ?championshipLabel ?year ?yearLabel ?race ?raceLabel
+WHERE {
+  #BIND(wd:Q38 as ?country)
+  ?championship wdt:P31 wd:Q2306612;
+                wdt:P17 ?country.
+  ?country wdt:P41 ?countryFlag.
+  
+  {
+    ?year wdt:P31 ?championship.
+  } UNION {
+    ?year wdt:P31 wd:Q27020041.
+    { 
+      ?year wdt:P3450 ?championship.
+#     } UNION {
+#       ?year rdfs:label ?itLabel.
+#       FILTER(LANG(?itLabel) = \"it\" && STRSTARTS(?itLabel, \"Campionato italiano di ciclismo su strada\")).
+    }
+  }
+  
+  OPTIONAL { { ?race wdt:P361 ?year. } UNION { ?year wdt:P527 ?race. } }
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr\". }
+}
+ORDER BY ?countryLabel ?championshipLabel ?yearLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Cycling/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

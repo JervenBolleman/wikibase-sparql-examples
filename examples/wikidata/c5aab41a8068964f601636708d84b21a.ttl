@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c5aab41a8068964f601636708d84b21a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?property ?propertyLabel ?value ?valueLabel ?unit ?unitLabel
+WITH {
+  SELECT ?statement WHERE { 
+	  ?statement prov:wasDerivedFrom/pr:P248 wd:Q105645500 .
+  }
+  LIMIT 2000
+} AS %statements 
+WITH {
+  SELECT ?item ?property ?value ?unit
+  WHERE {
+    INCLUDE %statements
+    ?item ?p ?statement .
+    ?property wikibase:claim ?p . 
+    ?statement ?a ?value .
+    ?item ?b ?value .  
+    OPTIONAL {?statement ?psv_statement_predicate ?psv_statement .
+    ?statement_predicate_property wikibase:statementValue ?psv_statement_predicate.
+    ?psv_statement wikibase:quantityUnit ?unit}
+  }
+} AS %result
+WHERE {
+  INCLUDE %result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . } 
+} 
+ORDER BY DESC(?itemLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

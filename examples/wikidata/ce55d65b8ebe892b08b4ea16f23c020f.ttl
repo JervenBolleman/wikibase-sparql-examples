@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ce55d65b8ebe892b08b4ea16f23c020f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?film ?filmLabel ?directorLabel (GROUP_CONCAT(DISTINCT ?genre_label; SEPARATOR = \" \") AS ?genres)
+  (MIN(?publicationDate) AS ?firstPublication)
+WHERE
+{
+  ?director rdfs:label \"Rob Minkoff\"@en.
+  ?film wdt:P57 ?director.                                                  # P57 =  film director
+  OPTIONAL {
+    ?film wdt:P136 ?genre.
+    ?genre rdfs:label ?genre_label.
+    FILTER((LANG(?genre_label)) = \"en\")
+  }
+  OPTIONAL { ?film wdt:P577 ?publicationDate. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+GROUP BY ?director ?directorLabel ?film ?filmLabel 
+LIMIT 10""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

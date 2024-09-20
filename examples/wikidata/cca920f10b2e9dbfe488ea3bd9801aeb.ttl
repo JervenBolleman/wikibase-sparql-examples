@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-cca920f10b2e9dbfe488ea3bd9801aeb> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?place ?placeLabel (min(?dist) as ?distance)  with {
+  SELECT ?item ?place ?dist
+WHERE 
+{
+  hint:Query hint:optimizer \"None\".
+  VALUES ?sea_thing {
+  wd:Q44782 #port
+  wd:Q283202 #harbour
+  }
+  ?item wdt:P131* wd:Q22. hint:Prior hint:gearing \"forward\".
+  ?item wdt:P31 ?sea_thing.
+  ?item wdt:P625 ?item_coord.
+  
+  ?place wdt:P131* wd:Q22. hint:Prior hint:gearing \"forward\".
+  ?place wdt:P31 wd:Q532.
+  ?place wdt:P625 ?place_coord .  
+  
+  BIND(geof:distance(?item_coord, ?place_coord) as ?dist)
+  } } as %i
+where
+{
+include %i
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} group by ?place ?placeLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

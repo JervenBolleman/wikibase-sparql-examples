@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ce9e2a0d0902aa0ad37a9c7ce9bc31c6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select ?item ?itemLabel ?genreLabel ?article ?name (lang(?name) as ?lang) ?category {
+  ?item wdt:P31 wd:Q5 ;
+        wdt:P106/wdt:P279* wd:Q266569 .
+  optional {
+    ?item wdt:P21 ?genre
+  }
+  filter (?genre != wd:Q6581097 ).
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?article schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> ; schema:name ?name
+
+
+  ########### find articles by their ratings on enwiki
+
+  # compute the name of the talk page on enwiki
+  bind (concat(\"Talk:\", ?name) as ?title)
+
+  # find the categories of the talkpage using mwapi
+  SERVICE wikibase:mwapi {
+      # Categories that contain these pages
+     bd:serviceParam wikibase:api \"Categories\";
+                      wikibase:endpoint \"en.wikipedia.org\";
+                      mwapi:titles  ?title.
+       # Output the page title and category
+      ?ocategory wikibase:apiOutput mwapi:category .  
+  }
+  values ?category { #### add relevant (sub?)categories if needed 
+    \"Category:Start-Class biography articles\" 
+    \"Category:Stub-Class biography articles\"
+    \"Category:C-Class biography articles\"
+  } filter (?category = ?ocategory)
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

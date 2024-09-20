@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c02b8e840bfc88fe738df04613e58d8e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX v: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+
+SELECT ?year (COUNT(?film) AS ?number) WHERE {
+  SELECT DISTINCT ?film (YEAR(?release) AS ?year)  WHERE {
+    ?film wdt:P31/wdt:P279* wd:Q11424 .
+    ?film p:P577 ?release_statement .
+    ?release_statement psv:P577/wikibase:timePrecision \"11\"^^xsd:integer .
+    ?release_statement v:P577 ?release .
+    ?release_statement pq:P291 wd:Q183 . FILTER NOT EXISTS{?release_statement wikibase:rank wikibase:DeprecatedRank}
+    FILTER NOT EXISTS {?release_statement pq:P400 ?platform}
+    FILTER NOT EXISTS {?release_statement pq:P437 ?distribution}
+    FILTER NOT EXISTS {?film wdt:P31 wd:Q506240}
+    SERVICE wikibase:label {bd:serviceParam wikibase:language \"de\"}
+  }
+}
+GROUP BY ?year
+ORDER BY ?year""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jobu0101/API>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

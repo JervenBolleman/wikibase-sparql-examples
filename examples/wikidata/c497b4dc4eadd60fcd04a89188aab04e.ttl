@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c497b4dc4eadd60fcd04a89188aab04e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: count couples with same gender (female)
+SELECT (count(distinct ?item) as ?count) WHERE {
+  ?item wdt:P26 ?item2 .
+  ?item wdt:P21 wd:Q6581072 . #female
+  ?item2 wdt:P21 wd:Q6581072 . #female
+  #?item wdt:P21 wd:Q6581097 . #male
+  #?item2 wdt:P21 wd:Q6581097 . #male
+  #?item wdt:P21 ?sex .
+  #?item2 wdt:P21 ?sex2 .
+  #filter (?sex = wd:Q6581097 && ?sex2 = wd:Q6581097 {{|}}{{|}} ?sex = wd:Q6581072 && ?sex2 = wd:Q6581072)
+  #filter not exists {?item wdt:P742 []}
+  filter (xsd:string(?item) > xsd:string(?item2) )
+  filter not exists {?item wdt:P91 wd:Q6636 }
+  #bind (replace(xsd:string(?item),\"http://www.wikidata.org/entity/\",\"\") as ?itemQid)
+
+  #SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\" } .
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Herzi_Pinki/Sparql>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

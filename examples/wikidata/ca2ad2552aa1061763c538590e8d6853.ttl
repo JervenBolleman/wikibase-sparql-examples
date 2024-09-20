@@ -1,0 +1,55 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ca2ad2552aa1061763c538590e8d6853> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Average lifespan by occupation
+# Select the desired columns and get labels
+SELECT ?occ ?occLabel ?avgAge ?avgBirthYear ?count
+WHERE
+{
+  {
+    # Group the people by their occupation and calculate age
+    SELECT
+      ?occ
+        (count(?p) as ?count)
+        (round(avg(?birthYear)) as ?avgBirthYear)
+        (avg(?deathYear - ?birthYear) as ?avgAge)
+    WHERE {
+      {
+        # Get people with occupation + birth/death dates; combine multiple birth/death dates using avg
+        SELECT
+          ?p
+            ?occ
+            (avg(year(?birth)) as ?birthYear)
+            (avg(year(?death)) as ?deathYear)
+        WHERE {
+           ?p  wdt:P31 wd:Q5 ;
+              wdt:P106 ?occ ;
+              p:P569/psv:P569 [
+                wikibase:timePrecision \"9\"^^xsd:integer ; # precision of at least year
+                wikibase:timeValue ?birth ;
+              ] ;
+              p:P570/psv:P570 [
+                wikibase:timePrecision \"9\"^^xsd:integer ; # precision of at least year
+                wikibase:timeValue ?death ;
+              ] .
+        }
+        GROUP BY ?p ?occ
+      }
+    }
+    GROUP BY ?occ
+  }
+ 
+  FILTER (?count > 300) # arbitrary number to weed out values with 'few' observations
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}
+ORDER BY ASC(?avgAge)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .
