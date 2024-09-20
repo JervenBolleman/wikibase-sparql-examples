@@ -21,6 +21,29 @@ WHERE {
     SELECT ?item (COUNT(DISTINCT ?item2) AS ?depCount) (COUNT(DISTINCT ?coord) AS ?_withCoord) (COUNT(DISTINCT ?img) AS ?_withImg) WHERE {
       ?commune wdt:P31/wdt:P279* wd:Q484170 .
       ?item2 wdt:P31/wdt:P279* wd:Q16970.
+      
+      ?item2 wdt:P131 ?commune.
+      ?commune wdt:P131 ?item .
+      ?item wdt:P2586 ?INSEE .
+      
+      OPTIONAL { ?item2 wdt:P625 ?coord } .
+      OPTIONAL { ?item2 wdt:P18 ?img } .
+    } GROUP BY ?item
+  } .
+  ?item wdt:P2586 ?INSEE .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\" } .
+}
+ORDER BY ?INSEE""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?INSEE ?itemLabel (CONCAT(\"[[Wikidata:WikiProject France/Églises/\",?INSEE,\"\\u007C\",?itemLabel,\"]]\") AS ?LIEN) ?depCount (IF(?_withCoord > ?depCount, 0, ?depCount - ?_withCoord) AS ?withoutCoord) (IF(?_withImg > ?depCount, 0, ?depCount - ?_withImg) AS ?withoutImg) (ROUND((IF(?_withCoord > ?depCount, ?depCount, ?_withCoord) / ?depCount) * 100 * 100) / 100 AS ?withCoord) (ROUND((IF(?_withImg > ?depCount, ?depCount, ?_withImg) / ?depCount) * 100 * 100) / 100 AS ?withImg)
+WHERE {
+  {
+    SELECT ?item (COUNT(DISTINCT ?item2) AS ?depCount) (COUNT(DISTINCT ?coord) AS ?_withCoord) (COUNT(DISTINCT ?img) AS ?_withImg) WHERE {
+      ?commune wdt:P31/wdt:P279* wd:Q484170 .
+      ?item2 wdt:P31/wdt:P279* wd:Q16970.
       hint:Prior hint:gearing \"forward\".
       ?item2 wdt:P131 ?commune.
       ?commune wdt:P131 ?item .

@@ -17,6 +17,45 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX dct: <http://purl.org/dc/terms/>
 # English-speaking people whose given and family names are a noun and an adjective (or vice versa)
 SELECT ?item ?givenNameLabel ?familyNameLabel WHERE {
+  
+  BIND(wd:Q3122156 AS ?item)
+  ?item wdt:P31 wd:Q5;
+        wdt:P735 ?givenName;
+        wdt:P734 ?familyName;
+        wdt:P103|wdt:P1412 wd:Q1860.
+  ?givenName wdt:P407 wd:Q1860;
+             wdt:P1705 ?givenNameLabel_.
+  ?familyName wdt:P407 wd:Q1860;
+              wdt:P1705 ?familyNameLabel_.
+  # original value may have had language code \"mul\", explicitly change to \"en\"
+  BIND(STRLANG(STR(?givenNameLabel_), \"en\") AS ?givenNameLabel)
+  BIND(STRLANG(STR(?familyNameLabel_), \"en\") AS ?familyNameLabel)
+  # names are typically title case, noun and adjective lemmas are typically lower case
+  BIND(LCASE(?givenNameLabel) AS ?_givenNameLabel)
+  BIND(LCASE(?familyNameLabel) AS ?_familyNameLabel)
+  {
+    ?adjective wikibase:lemma ?_givenNameLabel;
+               dct:language wd:Q1860;
+               wikibase:lexicalCategory/wdt:P279* wd:Q34698.
+    ?noun wikibase:lemma ?_familyNameLabel;
+          dct:language wd:Q1860;
+          wikibase:lexicalCategory/wdt:P279* wd:Q1084.
+  } UNION {
+    ?noun wikibase:lemma ?_givenNameLabel;
+          dct:language wd:Q1860;
+          wikibase:lexicalCategory/wdt:P279* wd:Q1084.
+    ?adjective wikibase:lemma ?_familyNameLabel;
+               dct:language wd:Q1860;
+               wikibase:lexicalCategory/wdt:P279* wd:Q34698.
+  }
+}
+LIMIT 10""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX dct: <http://purl.org/dc/terms/>
+# English-speaking people whose given and family names are a noun and an adjective (or vice versa)
+SELECT ?item ?givenNameLabel ?familyNameLabel WHERE {
   hint:Query hint:optimizer \"None\".
   BIND(wd:Q3122156 AS ?item)
   ?item wdt:P31 wd:Q5;

@@ -19,6 +19,28 @@ PREFIX p: <http://www.wikidata.org/prop/>
 SELECT ?qual ?qualLabel ?count WHERE {
   {
     SELECT ?qual (COUNT(DISTINCT ?item) AS ?count) WHERE {
+      
+      ?item p:P159 ?statement.
+      ?statement ?pq_qual ?pq_obj.
+      ?qual wikibase:qualifier ?pq_qual.
+    }
+    GROUP BY ?qual
+  }
+  OPTIONAL {
+    ?qual rdfs:label ?qualLabel.
+    FILTER((LANG(?qualLabel)) = \"ca\")
+  }
+}
+ORDER BY DESC (?count) (?qualLabel)
+LIMIT 20""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX p: <http://www.wikidata.org/prop/>
+#qualificadors de la P159 per una llista
+#   Ajustar valor de Pnnn a la propietat a analitzar els qualifs.
+SELECT ?qual ?qualLabel ?count WHERE {
+  {
+    SELECT ?qual (COUNT(DISTINCT ?item) AS ?count) WHERE {
       hint:Query hint:optimizer \"None\".
       ?item p:P159 ?statement.
       ?statement ?pq_qual ?pq_obj.

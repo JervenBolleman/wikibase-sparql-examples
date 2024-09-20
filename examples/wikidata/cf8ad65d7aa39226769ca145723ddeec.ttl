@@ -22,6 +22,31 @@ PREFIX p: <http://www.wikidata.org/prop/>
 #title:age of items
 SELECT ?date ?cumulativecount 
 {
+    
+    {   SELECT ?milestonep (COUNT(?item) as ?cumulativecount)
+        WHERE
+        {
+          { SELECT ?item { ?item wikibase:statements 0 . [] schema:about ?item ; schema:isPartOf <https://fr.wikipedia.org/> } }
+          BIND( xsd:integer( substr(str(?item), 33)) as ?qid)
+          wd:Q38074555 p:P1114 ?milestonep .
+          ?milestonep ps:P1114 ?milestone 
+          FILTER( ?milestone > ?qid ) 
+        }
+        GROUP BY ?milestonep
+    }          
+    ?milestonep pq:P585 ?date
+}""";
+  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+#defaultView:AreaChart
+#title:age of items
+SELECT ?date ?cumulativecount 
+{
     hint:Query hint:optimizer \"None\".
     {   SELECT ?milestonep (COUNT(?item) as ?cumulativecount)
         WHERE

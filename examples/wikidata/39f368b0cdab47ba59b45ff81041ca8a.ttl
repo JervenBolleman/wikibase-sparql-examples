@@ -31,6 +31,45 @@ WHERE {
   { SELECT DISTINCT ?item WHERE {
     ?item wdt:P31/wdt:P279* wd:Q11446;
       wdt:P8047 wd:Q20.
+    
+  } }
+  OPTIONAL { ?item wdt:P9659 ?srid . }
+  OPTIONAL { ?item wdt:P10355 ?mmid . }
+  OPTIONAL { ?item wdt:P729 ?sentry_ . }
+  FILTER (?sentry_ >= \"1990-00-00\"^^xsd:dateTime)
+
+  wd:P9659 wdt:P4354 ?srsfu_ . BIND(STRBEFORE(?srsfu_, \"$1\") AS ?srsfu)
+  wd:P10355 wdt:P4354 ?mmsfu_ . BIND(STRBEFORE(?mmsfu_, \"$1\") AS ?mmsfu)
+  BIND(REPLACE(?itemLabel, \"«\", \"\") AS ?itemLabel1)
+  BIND(REPLACE(?itemLabel1, \"»\", \"\") AS ?itemLabel2)
+  BIND(ENCODE_FOR_URI(?itemLabel2) AS ?itemLabel3)
+  BIND(ENCODE_FOR_URI(STRAFTER(?itemLabel2, \" \")) AS ?itemLabel4)
+
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"nb,en\" . 
+    ?item rdfs:label ?itemLabel .
+  }
+}""";
+  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Spørring for å finne båtomtaler på Skipsrevyen eller Maritimt Magasin.
+SELECT
+  ?item ?itemLabel 
+  (YEAR(?sentry_) AS ?sEntry)
+  ?srid
+  (COALESCE(IF(!BOUND(?srid), URI(CONCAT(?srsfu, ?itemLabel3)), \"\")) AS ?srSearch)
+  #(COALESCE(IF(!BOUND(?srid), URI(CONCAT(?srsfu, ?itemLabel4)), \"\")) AS ?altsrSearch)
+  ?mmid
+  (COALESCE(IF(!BOUND(?mmid), URI(CONCAT(?mmsfu, ?itemLabel3)), \"\")) AS ?mmSearch)
+  #(COALESCE(IF(!BOUND(?mmid), URI(CONCAT(?mmsfu, ?itemLabel4)), \"\")) AS ?altmmSearch)
+WHERE {
+  { SELECT DISTINCT ?item WHERE {
+    ?item wdt:P31/wdt:P279* wd:Q11446;
+      wdt:P8047 wd:Q20.
     hint:SubQuery hint:runOnce true .
   } }
   OPTIONAL { ?item wdt:P9659 ?srid . }

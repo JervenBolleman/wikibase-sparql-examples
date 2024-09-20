@@ -19,6 +19,26 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?item ?itemLabel ?familyname ?familynameLabel
 WHERE {
+  
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"Diodati haswbstatement:P31=Q5\".
+    ?title wikibase:apiOutput mwapi:title.
+  }
+  BIND(IRI(CONCAT(STR(wd:), ?title)) AS ?item)
+  ?item rdfs:label ?itemLabel. filter(lang(?itemLabel)=\"en\") 
+  FILTER(CONTAINS(LCASE(?itemLabel), \"diodati\"))
+  optional {?item wdt:P734 ?familyname. optional {?familyname rdfs:label ?familynameLabel. filter(lang(?familynameLabel)=\"en\") } } 
+}""";
+  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?familyname ?familynameLabel
+WHERE {
   hint:Query hint:optimizer \"None\".
   SERVICE wikibase:mwapi {
     bd:serviceParam wikibase:api \"Search\";

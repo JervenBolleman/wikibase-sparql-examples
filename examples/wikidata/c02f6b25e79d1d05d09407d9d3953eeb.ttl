@@ -19,6 +19,29 @@ PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?item ?label ?authorlabel (count(?lang) as ?numWikipediaLanguages) WHERE 
 { 
+  
+  VALUES ?item {wd:Q22263533}
+  VALUES ?type {wd:Q571 wd:Q7725634}
+  ?item wdt:P31 ?type .
+  ?item wdt:P577 ?date . 
+  ?item wdt:P50 ?author .
+  OPTIONAL {?author wdt:P1559 ?authorlabel . filter(lang(?authorlabel) = \"en\")}
+  FILTER (?date > \"1979-01-01T00:00:00Z\"^^xsd:dateTime) .
+  ?item rdfs:label ?label filter (lang(?label) = \"en\")
+  ?item wdt:P407 wd:Q652.
+  ?article schema:about ?item ;
+  schema:inLanguage ?lang ;
+  schema:isPartOf [ wikibase:wikiGroup \"wikipedia\" ] .
+} group by ?item ?label ?authorlabel
+ORDER BY DESC(?numWikipediaLanguages)""";
+  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?item ?label ?authorlabel (count(?lang) as ?numWikipediaLanguages) WHERE 
+{ 
   hint:Query hint:optimizer \"None\".
   VALUES ?item {wd:Q22263533}
   VALUES ?type {wd:Q571 wd:Q7725634}

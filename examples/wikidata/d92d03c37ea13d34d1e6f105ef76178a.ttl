@@ -23,6 +23,50 @@ WHERE {
     WHERE {
       ?item wdt:P31 wd:Q5 .
       ?item wikibase:sitelinks ?numOfSitelinks . 
+      
+      FILTER (?numOfSitelinks > 70) 
+      
+      OPTIONAL {
+        ?item wdt:P21 ?gender .
+        ?gender rdfs:label ?genderLabel .
+        FILTER(LANG(?genderLabel) = \"ckb\")
+      }
+      
+      OPTIONAL {
+        ?item wdt:P27 ?citizenship .
+        ?citizenship rdfs:label ?citizenshipLabel .
+        FILTER(LANG(?citizenshipLabel) = \"ckb\")
+      }
+      
+      OPTIONAL {
+        ?enwikiPage schema:about ?item ;
+                    schema:isPartOf <https://en.wikipedia.org/> ;
+                    schema:name ?enTitle .
+        BIND(CONCAT(\"[[:en:\", ?enTitle, \"|\", ?enTitle, \"]]\") AS ?enwiki)
+      }
+      
+      MINUS {
+        ?cat schema:isPartOf <https://ckb.wikipedia.org/> ;
+             schema:about ?item .
+      }
+    }
+  }
+}
+GROUP BY ?item ?enwiki ?numOfSitelinks ?genderLabel
+ORDER BY DESC(?numOfSitelinks) 
+LIMIT 100""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?item ?enwiki ?numOfSitelinks ?genderLabel (GROUP_CONCAT(DISTINCT ?citizenshipLabel; separator=\"؛ \") AS ?citizenships)
+WHERE {
+  {
+    SELECT DISTINCT ?item ?enwiki ?numOfSitelinks ?genderLabel ?citizenshipLabel
+    WHERE {
+      ?item wdt:P31 wd:Q5 .
+      ?item wikibase:sitelinks ?numOfSitelinks . 
       hint:Prior hint:rangeSafe \"true\" .
       FILTER (?numOfSitelinks > 70) 
       

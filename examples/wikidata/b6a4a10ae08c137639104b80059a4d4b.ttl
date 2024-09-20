@@ -27,6 +27,33 @@ WHERE {
    bd:serviceParam mwapi:srsearch \"haswbstatement:P31=Q11424 inlabel:'three'@en\" .
    ?item wikibase:apiOutputItem mwapi:title.
  }
+  ?item wdt:P577 ?publication_date. 
+  FILTER(\"1996-12-31\"^^xsd:dateTime < ?publication_date &&
+         ?publication_date < \"1998-00-00\"^^xsd:dateTime)
+  OPTIONAL {?item wdt:P345 ?imdb_code .}
+  OPTIONAL {?item wdt:P57 ?director .}
+  OPTIONAL {?item wdt:P58 ?screenwriter .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,it,es,de,fr,hu,ro\" . 
+                            ?item rdfs:label ?itemLabel .
+                            ?director rdfs:label ?directorLabel .
+                            ?screenwriter rdfs:label ?screenwriterLabel.} 
+} group by ?item ?itemLabel""";
+  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel (group_concat(distinct ?publication_date;separator=\"; \") as ?pd) (group_concat(distinct ?imdb_code;separator=\"; \") as ?imdb) (GROUP_CONCAT(distinct ?directorLabel;separator=\"; \") AS ?directors) (GROUP_CONCAT(distinct ?screenwriterLabel;separator=\"; \") AS ?screenwriter) 
+WHERE {
+ SERVICE wikibase:mwapi
+ {
+   bd:serviceParam wikibase:api \"Search\" .
+   bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+   bd:serviceParam mwapi:srnamespace \"0\" .
+   bd:serviceParam mwapi:srsearch \"haswbstatement:P31=Q11424 inlabel:'three'@en\" .
+   ?item wikibase:apiOutputItem mwapi:title.
+ }
   ?item wdt:P577 ?publication_date. hint:Prior hint:rangeSafe true.
   FILTER(\"1996-12-31\"^^xsd:dateTime < ?publication_date &&
          ?publication_date < \"1998-00-00\"^^xsd:dateTime)

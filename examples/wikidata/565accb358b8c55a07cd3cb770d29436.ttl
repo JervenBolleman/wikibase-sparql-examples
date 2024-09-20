@@ -18,7 +18,9 @@ PREFIX pr: <http://www.wikidata.org/prop/reference/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 # Utsagn på Wikidata med referanse fra dn.no
 SELECT ?statement ?subject ?subjectLabel ?property ?propertyLabel ?object ?objectLabel ?refURL
-WITH {
+
+WHERE {
+  {
   SELECT DISTINCT ?subject
   WHERE {
     {
@@ -45,11 +47,9 @@ WITH {
       }
     }
   }
-} AS %i
-WHERE {
-  INCLUDE %i .
+} .
   
-  hint:Query hint:optimizer \"None\".
+  
   
   ?subject ?p ?statement .
   ?statement prov:wasDerivedFrom/pr:P854 ?refURL .
@@ -60,8 +60,8 @@ WHERE {
   ?statement ?ps ?object .
   
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
-}""",
-    """PREFIX mwapi: <http://wikiba.se/ontology#>
+}""";
+  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX prov: <http://www.w3.org/ns/prov#>
 PREFIX pr: <http://www.wikidata.org/prop/reference/>
@@ -98,55 +98,6 @@ WHERE {
     }
   }
 } .
-  
-  hint:Query hint:optimizer \"None\".
-  
-  ?subject ?p ?statement .
-  ?statement prov:wasDerivedFrom/pr:P854 ?refURL .
-  FILTER (CONTAINS(str(?refURL), 'dn.no')) .
-  
-  ?property wikibase:claim ?p .
-  ?property wikibase:statementProperty ?ps .
-  ?statement ?ps ?object .
-  
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
-}""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX prov: <http://www.w3.org/ns/prov#>
-PREFIX pr: <http://www.wikidata.org/prop/reference/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-# Utsagn på Wikidata med referanse fra dn.no
-SELECT ?statement ?subject ?subjectLabel ?property ?propertyLabel ?object ?objectLabel ?refURL
-WITH {
-  SELECT DISTINCT ?subject
-  WHERE {
-    {
-      SERVICE wikibase:mwapi {
-        bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
-          wikibase:api \"Generator\";
-          mwapi:generator \"exturlusage\";
-          mwapi:geulimit \"500\";
-          mwapi:geuquery \"*.dn.no\";
-          mwapi:geuprotocol \"http\";
-          mwapi:geunamespace \"0\" .
-        ?subject wikibase:apiOutputItem mwapi:title.
-      }
-    } UNION {
-      SERVICE wikibase:mwapi {
-        bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
-          wikibase:api \"Generator\";
-          mwapi:generator \"exturlusage\";
-          mwapi:geulimit \"500\";
-          mwapi:geuquery \"*.dn.no\";
-          mwapi:geuprotocol \"https\";
-          mwapi:geunamespace \"0\" .
-        ?subject wikibase:apiOutputItem mwapi:title.
-      }
-    }
-  }
-} AS %i
-WHERE {
-  INCLUDE %i .
   
   hint:Query hint:optimizer \"None\".
   

@@ -11,88 +11,7 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  <http://example.org/bigdata_select> """SELECT
-  ?image
-  ?mainSubjects
-  ?depicts
-# Subquery for getting images that have a \"depict\" (P180) and a
-# \"main subject\" (P921) statements.
-#
-# A LIMIT is used to avoid searching all images in Wikimedia Commons
-# since that requires a lot of time. The subquery stops searching
-# when the given number of images are found. Change the number of
-# LIMIT as needed, but note that the higher the number, the longer
-# the subquery will take to finish.
-WITH {
-  SELECT DISTINCT ?image {
-    ?image p:P180 [];
-           p:P921 [].
-  }
-  LIMIT 10
-} AS %0
-#
-# Get value of \"depict\" statements
-#
-WITH {
-  SELECT DISTINCT ?image ?depict {
-    INCLUDE %0.
-    ?image p:P180 [ps:P180 ?depict].
-  }
-} AS %1
-#
-# Get value of the \"main subject\" statements
-#
-WITH {
-  SELECT DISTINCT ?image ?mainSubject {
-    INCLUDE %0.
-    ?image p:P921 [ps:P921 ?mainSubject].
-  }
-} AS %2
-#
-# Concatenate the \"depict\" statements
-#
-WITH {
-  SELECT
-    ?image
-    (GROUP_CONCAT(DISTINCT CONCAT(?depictLabel, \" (\", ?depictQid, \")\"); SEPARATOR = ', ') AS ?depicts)
-  {
-    INCLUDE %1.
-
-    BIND(SUBSTR(STR(?depict), 32) AS ?depictQid).
-
-    SERVICE <https://query.wikidata.org/sparql> {
-      SELECT ?depict ?depictLabel {
-        SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
-      }
-    }
-  }
-  GROUP BY ?image
-} AS %3
-#
-# Concatenate the \"main subject\" statements
-#
-WITH {
-  SELECT
-    ?image
-    (GROUP_CONCAT(DISTINCT CONCAT(?mainSubjectLabel, \" (\", ?mainSubjectQid, \")\"); SEPARATOR = ', ') AS ?mainSubjects)
-  {
-    INCLUDE %2.
-
-    BIND(SUBSTR(STR(?mainSubject), 32) AS ?mainSubjectQid).
-
-    SERVICE <https://query.wikidata.org/sparql> {
-      SELECT ?mainSubject ?mainSubjectLabel {
-        SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
-      }
-    }
-  }
-  GROUP BY ?image
-} AS %4
-{
-  INCLUDE %3.
-  INCLUDE %4.
-}""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
@@ -177,7 +96,7 @@ WITH {
   INCLUDE %3.
   INCLUDE %4.
 }""";
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>

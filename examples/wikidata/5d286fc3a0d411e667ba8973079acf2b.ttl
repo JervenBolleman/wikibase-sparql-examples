@@ -20,6 +20,33 @@ PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT distinct ?item ?itemLabel ?title ?name ?nameLabel ?institution?institutionLabel ?P971 ?P971Label ?P4224 where
 {
+  
+  SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:endpoint \"en.wikipedia.org\";
+                     wikibase:api \"Generator\";
+                     mwapi:generator \"categorymembers\";
+                     mwapi:gcmtitle \"Category:Academics by university or college in England\" ;         # specifically here
+                     mwapi:gcmprop \"ids|title|type\";
+                     mwapi:gcmlimit \"max\".
+     # out
+     ?name wikibase:apiOutput mwapi:title.        # en-wikipedia article / category name
+     ?item wikibase:apiOutputItem mwapi:item.            # wikidata QId for the person's item
+    }
+  ?item wdt:P31 wd:Q4167836 .
+  optional {?item wdt:P971 ?P971 . }
+  optional {?item wdt:P4224 ?P4224 . }
+  optional {?item p:P4224 [pq:P108 ?institution ]. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT distinct ?item ?itemLabel ?title ?name ?nameLabel ?institution?institutionLabel ?P971 ?P971Label ?P4224 where
+{
   hint:Query hint:optimizer \"None\".
   SERVICE wikibase:mwapi {
      bd:serviceParam wikibase:endpoint \"en.wikipedia.org\";

@@ -29,6 +29,31 @@ WHERE
   ?item p:P570 ?date_statement .
   ?date_statement a wikibase:BestRank . # With a date of death statement of best rank
   ?date_statement ps:P570 ?date .
+  
+  FILTER (?date < \"+1900-00-00T00:00:00Z\"^^xsd:dateTime) # Dead before year 1900
+  MINUS { ?item wdt:P31 wd:Q95074 . }
+  MINUS { ?date_statement prov:wasDerivedFrom [] . } # No reference for the date of death statement
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
+ORDER BY DESC (?date)
+LIMIT 1000""";
+  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#Women dead in Paris before 1900 without reference for the date
+SELECT ?item ?itemLabel ?date 
+WHERE 
+{
+  ?item wdt:P21 wd:Q6581072 . # female
+  ?item wdt:P20 / wdt:P131* wd:Q90 . # dead in Paris or a place located within Paris
+  ?item p:P570 ?date_statement .
+  ?date_statement a wikibase:BestRank . # With a date of death statement of best rank
+  ?date_statement ps:P570 ?date .
   hint:Prior hint:rangeSafe true .
   FILTER (?date < \"+1900-00-00T00:00:00Z\"^^xsd:dateTime) # Dead before year 1900
   MINUS { ?item wdt:P31 wd:Q95074 . }

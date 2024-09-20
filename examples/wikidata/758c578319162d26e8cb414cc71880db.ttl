@@ -11,120 +11,7 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  <http://example.org/bigdata_select> """SELECT ?period ?start_date ?end_date ?days ?MPs
-WITH
-{
-  # Find all who were MP's in 2021
-  SELECT ?MP ?start_time ?end_time
-  {
-    ?MP p:P39 ?pos_stm .
-    ?pos_stm ps:P39 wd:Q77685926 .
-    ?pos_stm pq:P580 ?start_time .
-    OPTIONAL { ?pos_stm pq:P582 ?end_time }
-    FILTER (?start_time < \"2022-01-01\"^^xsd:dateTime)
-    FILTER COALESCE(IF (BOUND(?end_time), 1/0, true),
-                    IF (?end_time > \"2021-01-01\"^^xsd:dateTime, true, 1/0),
-                    ?end_time = \"2021-01-01\"^^xsd:dateTime &&
-                      NOT EXISTS { ?MP p:P39 [ps:P39 wd:Q776859 ; pq:P580 \"2022-01-01\"^^xsd:dateTime ] }
-                   )
-  }
-} AS %MPs_in_2021
-WITH
-{
-  # Count MP's at 1 January 2021 including who started that day
-  SELECT (COUNT(?MP) AS ?MP_count_1_January)
-  {
-    INCLUDE %MPs_in_2021
-    FILTER (?start_time <= \"2021-01-01\"^^xsd:dateTime)
-  }
-} AS %MP_count_1_January
-WITH
-{
-  # List all MP's who started 2 January - 31 December (start 1 January is included in ?MP_count_1_January)
-  SELECT ?MP ?start_time
-  {
-    INCLUDE %MPs_in_2021
-    FILTER (?start_time > \"2021-01-01\"^^xsd:dateTime)
-  }
-} AS %MPs_started_2021
-WITH
-{
-  # List all MP's who ended 1 January - 30 December (end 31 December wont affect 2021 values)
-  SELECT ?MP ?end_time
-  {
-    INCLUDE %MPs_in_2021
-    FILTER (?end_time < \"2021-12-31\"^^xsd:dateTime)
-  }
-} AS %MPs_ended_2021
-WITH
-{
-  # List dates where something changes. Group by ?MP and ?date to eliminate change of parliamentary group etc. 
-  SELECT ?date ?change
-  {
-    { SELECT (?MP_count_1_January AS ?change) (\"2021-01-01\"^^xsd:dateTime AS ?date) { INCLUDE %MP_count_1_January } }
-    UNION
-    {
-      SELECT ?MP ?date (SUM(?change_) AS ?change)
-      {
-        { SELECT ?MP (1 AS ?change_) (?start_time AS ?date) { INCLUDE %MPs_started_2021 } }
-        UNION
-        { SELECT ?MP (-1 AS ?change_) (?end_time AS ?date) { INCLUDE %MPs_ended_2021 } }
-      }
-      GROUP BY ?MP ?date
-      HAVING (?change != 0)
-    }
-    UNION
-    { SELECT (\"2022-01-01\"^^xsd:dateTime AS ?date) (0 AS ?change) { } }
-  }
-} AS %change_dates
-WITH
-{
-  # Add 1 to end dates
-  SELECT (IF(?change < 0, ?date + \"P1D\"^^xsd:duration, ?date) AS ?adjusted_date) ?change { INCLUDE %change_dates }
-} AS %adjusted_change_dates
-WITH
-{
-  # Eliminate dates with no netto change (if different MP's started and ended same date)
-  SELECT ?adjusted_date (SUM(?change) AS ?changes_day_sum)
-  {
-    INCLUDE %adjusted_change_dates
-  }
-  GROUP BY ?adjusted_date
-  HAVING (?changes_day_sum != 0 || ?adjusted_date = \"2022-01-01\"^^xsd:dateTime)
-} AS %summed_day_changes
-WITH
-{
-  # Join the dates with themselves to number them
-  SELECT ?adjusted_date (SUM(?change2) AS ?members) (COUNT(?changes_day_sum) AS ?date_number)
-  {
-    INCLUDE %summed_day_changes
-    { SELECT (?adjusted_date AS ?date2) (?changes_day_sum AS ?change2) { INCLUDE %summed_day_changes } }
-    FILTER (?date2 <= ?adjusted_date)
-  }
-  GROUP BY ?adjusted_date
-  ORDER BY ?adjusted_date
-} AS %date_numbers
-WITH
-{
-  # Join dates with themselves using ?date_numbers as keys to get periods
-  SELECT ?period ?start_date ?end_date (xsd:integer(?end_date - ?start_date + 1) AS ?days) ?members
-  {
-    { SELECT (?adjusted_date AS ?start_date) ?members (?date_number AS ?period) { INCLUDE %date_numbers } }
-    { SELECT (?adjusted_date - \"P1D\"^^xsd:duration AS ?end_date) (?date_number - 1 AS ?period) { INCLUDE %date_numbers } }
-  }
-} AS %periods
-{
-  # Shows all periods and aggregated values
-  { SELECT ?period ?start_date ?end_date ?days (?members AS ?MPs) { INCLUDE %periods } }
-  UNION
-  { SELECT (\"Minimum\" AS ?period) (MIN(?members) AS ?MPs) { INCLUDE %periods } }
-  UNION
-  { SELECT (\"Maximum\" AS ?period) (MAX(?members) AS ?MPs) { INCLUDE %periods } }
-  UNION
-  { SELECT (\"Average\" AS ?period) (SUM(?members * ?days) / SUM(?days) AS ?MPs) { INCLUDE %periods } }
-}
-ORDER BY ?period""",
-    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
@@ -242,7 +129,7 @@ WITH
   { SELECT (\"Average\" AS ?period) (SUM(?members * ?days) / SUM(?days) AS ?MPs) { INCLUDE %periods } }
 }
 ORDER BY ?period""";
-  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>

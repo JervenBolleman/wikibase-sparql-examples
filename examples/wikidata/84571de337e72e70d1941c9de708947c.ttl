@@ -21,6 +21,32 @@ SELECT ?year ?number_of_works ?author_label WHERE {
     WHERE {
       {
         SELECT ?author ?year (COUNT(?work) AS ?number_of_works) WHERE {
+          
+          VALUES ?author {    wd:Q4484888  wd:Q63809637  wd:Q63808847  wd:Q63759170  }
+          ?work wdt:P50 ?author .
+          ?work wdt:P577 ?publication_date .
+          BIND(STR(YEAR(?publication_date)) AS ?year)
+        }
+        GROUP BY ?author ?year 
+      } 
+      ?author rdfs:label ?author_label_ .
+      FILTER (LANG(?author_label_) = 'en')
+    }
+  }
+  # Represent the author by name and Q identifier
+  BIND (CONCAT(?author_label_, \" (\", SUBSTR(STR(?author), 32), \")\") AS ?author_label)
+}
+ORDER BY ?year""";
+  <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+#defaultView:BarChart
+SELECT ?year ?number_of_works ?author_label WHERE {
+  {
+    SELECT ?year ?number_of_works ?author ?author_label_
+    WHERE {
+      {
+        SELECT ?author ?year (COUNT(?work) AS ?number_of_works) WHERE {
           hint:Query hint:optimizer \"None\".
           VALUES ?author {    wd:Q4484888  wd:Q63809637  wd:Q63808847  wd:Q63759170  }
           ?work wdt:P50 ?author .

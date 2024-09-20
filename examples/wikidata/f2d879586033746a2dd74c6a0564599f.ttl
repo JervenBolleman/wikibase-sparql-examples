@@ -22,6 +22,36 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 # WSJ articles contains a subject in title that is not set as a subject
 SELECT DISTINCT ?item ?itemLabel WHERE {
   ?item wdt:P1433 wd:Q164746.
+  
+  ?item (wdt:P31/(wdt:P279*)) wd:Q191067;
+    p:P1433 ?publishedIn;
+    rdfs:label ?label .
+  
+  OPTIONAL { ?publishedIn pq:P2322 ?articleId. }
+  OPTIONAL { ?item wdt:P953 ?url. }
+  OPTIONAL { ?item wdt:P577 ?date. }
+  OPTIONAL { ?item wdt:P921 ?currentSubjects. }
+  
+  FILTER(CONTAINS(?label, \"Iran\")) .
+  BIND( wd:Q794 as ?subject )
+  FILTER NOT EXISTS {
+    ?item wdt:P921 $subject .
+  } .  
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\". }
+}
+GROUP BY ?item ?itemLabel""";
+  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# WSJ articles contains a subject in title that is not set as a subject
+SELECT DISTINCT ?item ?itemLabel WHERE {
+  ?item wdt:P1433 wd:Q164746.
   hint:Prior hint:runFirst \"true\"^^xsd:boolean.
   ?item (wdt:P31/(wdt:P279*)) wd:Q191067;
     p:P1433 ?publishedIn;

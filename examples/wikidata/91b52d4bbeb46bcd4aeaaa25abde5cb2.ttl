@@ -11,65 +11,7 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  <http://example.org/bigdata_select> """#defaultView:Map;Table
-#------------------------------------------------------------------------------------
-# Straßenkarte zur Wartung der Eigenschaft \"physisch verbunden mit\"
-#------------------------------------------------------------------------------------
-
-SELECT  ?item ?itemLabel ?coord ?line 
-
-#########################################
-WITH {
-    SELECT ?item  ?coord #(\"9B0058\" as ?rgb) 
-    WHERE {
-        ?item wdt:P131 wd:Q1731 .      # Objekt liegt in Verwaltungseinheit Dresden (oder Subklasse)
-        VALUES ?instance_of { 
-            wd:Q34442      # Straße
-            wd:Q79007      # Innerortstraße
-            wd:Q21000333   # Einkaufsstraße 
-            wd:Q174782     # Platz
-            wd:Q537127     # Straßenbrücke
-            wd:Q3397519    # Spannbetonbrücke 
-            wd:Q1055465    # Balkenbrücke  
-        } 
-        ?item wdt:P31 ?instance_of .   # Objekt ist eine Instanz von Verkehrsobjekt (Straße, Platz,...)
-        ?item wdt:P625 ?coord .        # Objekt hat Koordinate
-    }
-} as %points
-
-#########################################
-WITH {
-    # Linien generieren 
-    SELECT ?line #(\"009b0d\" as ?rgb) 
-    WHERE {
-        INCLUDE %points .               # Gefundenen Punkte von oberen Abfrage übernehmen
-        ?item wdt:P2789 ?item2 .        # Objekt1 ist physisch verbunden mit Objekt2
-        ?item2 wdt:P625 ?coord2 .       # Objekt2 hat Koordinate
-
-        # Koordinate von Objekt1 auseinander nehmen
-        OPTIONAL{?item p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 . }
-        OPTIONAL{?item p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 . }
-          
-        # Koordinate von Objekt2 auseinander nehmen 
-        OPTIONAL{?item2 p:P625 / psv:P625 / wikibase:geoLatitude ?lat2 . }
-        OPTIONAL{?item2 p:P625 / psv:P625 / wikibase:geoLongitude ?lon2 . }
-      
-        # String für die Linie zusammenbauen
-        BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
-        BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
-    }
-} AS %lines 
-
-#########################################
-
-WHERE {
-  # jetzt Punkte und Linien für Ausgabe auf Karte ausgeben
- { INCLUDE %points }
- union
- { INCLUDE %lines }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,en\" }
-}""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
@@ -134,7 +76,7 @@ WHERE {
  { INCLUDE %lines }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,en\" }
 }""";
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX psv: <http://www.wikidata.org/prop/statement/value/>

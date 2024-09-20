@@ -32,6 +32,36 @@ WHERE {
     BIND(\"editor\" AS ?role)
   }
 
+  
+  ?work wdt:P577 ?publication_datetime .
+
+  BIND(YEAR(?publication_datetime) AS ?year_)
+  FILTER (!STRSTARTS(STR(?publication_datetime), \"http://www.wikidata.org/.well-known/genid/\"))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?year_ ?roleLabel
+ORDER BY ?year""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:BarChart
+PREFIX target: <http://www.wikidata.org/entity/Q18618629>
+
+SELECT
+  (STR(?year_) AS ?year)
+  (COUNT(?work) AS ?works)
+  ?roleLabel
+WHERE {
+  {
+    ?work wdt:P50 target: .
+    BIND(\"author\" AS ?role)
+  }
+  UNION
+  {
+    ?work wdt:P98 target: .
+    BIND(\"editor\" AS ?role)
+  }
+
   hint:Prior hint:runFirst true .
   ?work wdt:P577 ?publication_datetime .
 

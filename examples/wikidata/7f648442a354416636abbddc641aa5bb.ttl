@@ -26,6 +26,33 @@ WHERE {
   BIND (URI(CONCAT(\"https://\", ?language_code, \".wikipedia.org/\")) AS ?Wikipedia)
   ?sitelink schema:about ?player.
   ?sitelink schema:isPartOf ?Wikipedia.
+  ?Wikipedia ^wdt:P856/wdt:P407/wdt:P424 ?Wikipedia_language_code. 
+
+  # Find player's label in the language(s)
+  ?player rdfs:label ?playerLabel.
+  FILTER (LANG(?playerLabel) = ?Wikipedia_language_code)
+
+  # Find the country/ies and country code(s)
+  OPTIONAL { ?player wdt:P1532 ?represents. }
+  ?player wdt:P27 ?citizenship.
+  BIND (COALESCE(?represents, ?citizenship) AS ?country)
+  ?country wdt:P298 ?country_code.
+}""";
+  <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT DISTINCT ?player ?playerLabel ?Wikipedia ?Wikipedia_language_code ?sitelink ?country_code
+WHERE {
+  VALUES ?ATP_player_ID { \"H355\" }
+  VALUES ?language_code { \"no\" }
+
+  # Find the player
+  ?player wdt:P536 ?ATP_player_ID.
+
+  # Find the Wikipedia and its language(s)
+  BIND (URI(CONCAT(\"https://\", ?language_code, \".wikipedia.org/\")) AS ?Wikipedia)
+  ?sitelink schema:about ?player.
+  ?sitelink schema:isPartOf ?Wikipedia.
   ?Wikipedia ^wdt:P856/wdt:P407/wdt:P424 ?Wikipedia_language_code. hint:Prior hint:gearing \"forward\".
 
   # Find player's label in the language(s)

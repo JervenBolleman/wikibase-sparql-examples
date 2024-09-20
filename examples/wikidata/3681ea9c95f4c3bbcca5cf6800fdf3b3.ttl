@@ -17,6 +17,32 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel_en ?name ?itemLabel_it
 {
+  
+  SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:endpoint \"it.wikipedia.org\";
+                     wikibase:api \"Generator\";
+                     mwapi:generator \"categorymembers\";
+                     mwapi:gcmtitle \"Categoria:Politici italiani del XXI secolo\" ;         
+                     mwapi:gcmprop \"ids|title|type\";
+                     mwapi:gcmlimit \"max\";
+                     mwapi:prop \"pageprops|pageterms\";
+                     mwapi:wbptterms \"label\".
+     # out
+     ?name wikibase:apiOutput mwapi:title.      # it-wikipedia article / category name
+     ?item wikibase:apiOutputItem mwapi:item.      # wikidata QId for the person's item
+     ?itemLabel_it wikibase:apiOutput \"terms/label/term/text()\".      # Wikidata label in the language of the Wikipedia (it)
+    }
+  FILTER BOUND (?item)
+  FILTER (! BOUND (?itemLabel_it))
+  OPTIONAL { ?item rdfs:label ?itemLabel_en . filter(lang(?itemLabel_en)=\"en\") }
+  FILTER (str(?itemLabel_en) != ?name)
+}""";
+  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel_en ?name ?itemLabel_it
+{
   hint:Query hint:optimizer \"None\".
   SERVICE wikibase:mwapi {
      bd:serviceParam wikibase:endpoint \"it.wikipedia.org\";

@@ -11,36 +11,7 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  <http://example.org/bigdata_select> """select distinct (group_concat(?contLabel) as ?cc) ?country ?countryLabel ?country_pop ?city ?cityLabel ?isitcapital ?city_pop ?ratio with 
-{ select * 
- { ?city wdt:P31/wdt:P279* wd:Q515 ; 
-         wdt:P17 ?country ; 
-         wdt:P1082 ?city_pop . 
-  ?country wdt:P1082 ?country_pop } } AS %include
-with 
-{ select distinct ?continent ?country ?countryLabel ?country_pop ?city ?cityLabel ?isitcapital ?city_pop ?ratio where 
-{ 
-  { select ?country (max(?city_pop) AS ?city_pop) (max(?country_pop) as ?country_pop) 
-           {include %include } group by ?country
-  }
-  include %include
-
-  ?country wdt:P31 wd:Q3624078 .
-  #not a former country
-  FILTER NOT EXISTS {?country wdt:P31 wd:Q3024240}
-  #and no an ancient civilisation (needed to exclude ancient Egypt)
-  FILTER NOT EXISTS {?country wdt:P31 wd:Q28171280}
-  OPTIONAL { ?country wdt:P36 ?capital } .
-  bind(if(?capital=?city,\"yes\",\"no\") as ?isitcapital)
-  bind(((?city_pop*100) / ?country_pop) as ?ratio)
-  ?country wdt:P30 ?continent . 
-  service wikibase:label {bd:serviceParam wikibase:language 'en'}
-} order by desc(?city_pop) } as %i
-where
-{include %i
- ?continent rdfs:label ?contLabel . filter(lang(?contLabel)=\"en\")
-} group by ?country ?countryLabel ?country_pop ?city ?cityLabel ?isitcapital ?city_pop ?ratio""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -74,7 +45,7 @@ where
 {include %i
  ?continent rdfs:label ?contLabel . filter(lang(?contLabel)=\"en\")
 } group by ?country ?countryLabel ?country_pop ?city ?cityLabel ?isitcapital ?city_pop ?ratio""";
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>

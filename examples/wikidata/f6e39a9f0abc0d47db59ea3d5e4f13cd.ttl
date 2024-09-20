@@ -21,31 +21,20 @@ WHERE
 SELECT ?property (COUNT(?ppp) AS ?count)  # use a named subquery first to do the count
 WHERE 
 {
-  hint:Query hint:optimizer \"Runtime\" . 
-  hint:Query hint:maxParallel 50 .       # use a big hammer
+   
+         # use a big hammer
   ?item p:P580 [?ppp [] ].               # P580 statement with a qualifier or reference
   ?property wikibase:qualifier ?ppp.     # it's a qualifier & we get the property name
         } GROUP BY ?property }                             # get the label for the property here once we have a list of properties and counts
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],es,en\". }
 } ORDER BY DESC(?count)""";
-  <http://example.org/bigdata_select> """SELECT ?property ?propertyLabel ?count WITH {
-SELECT ?property (COUNT(?ppp) AS ?count)  # use a named subquery first to do the count
-WHERE 
-{
-  hint:Query hint:optimizer \"Runtime\" . 
-  hint:Query hint:maxParallel 50 .       # use a big hammer
-  ?item p:P580 [?ppp [] ].               # P580 statement with a qualifier or reference
-  ?property wikibase:qualifier ?ppp.     # it's a qualifier & we get the property name
-        } GROUP BY ?property } AS %i     # group this subquery to get a count
-WHERE
-{
-  INCLUDE %i                             # get the label for the property here once we have a list of properties and counts
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],es,en\". }
-} ORDER BY DESC(?count)""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?property ?propertyLabel ?count WITH {
+SELECT ?property ?propertyLabel ?count      # group this subquery to get a count
+WHERE
+{
+  {
 SELECT ?property (COUNT(?ppp) AS ?count)  # use a named subquery first to do the count
 WHERE 
 {
@@ -53,9 +42,6 @@ WHERE
   hint:Query hint:maxParallel 50 .       # use a big hammer
   ?item p:P580 [?ppp [] ].               # P580 statement with a qualifier or reference
   ?property wikibase:qualifier ?ppp.     # it's a qualifier & we get the property name
-        } GROUP BY ?property } AS %i     # group this subquery to get a count
-WHERE
-{
-  INCLUDE %i                             # get the label for the property here once we have a list of properties and counts
+        } GROUP BY ?property }                             # get the label for the property here once we have a list of properties and counts
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],es,en\". }
 } ORDER BY DESC(?count)""" .

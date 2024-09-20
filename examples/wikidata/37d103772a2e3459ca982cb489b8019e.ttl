@@ -21,6 +21,30 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 #-------------------------------------------------------------------------------
 #defaultView:Table
 SELECT ?item ?itemLabel ?article WHERE {
+                 # Enable top-to-bottom execution
+  SERVICE bd:slice {
+    ?item wdt:P31 wd:Q5 . # is human    
+    bd:serviceParam bd:slice.offset 0 .      # Offset einstellen
+    bd:serviceParam bd:slice.limit 50000 .   # X Datensätze abrufen
+  }      
+  ?article schema:about ?item.                 
+  ?article schema:isPartOf <https://de.wikipedia.org/>.   # has article in de.wikipedia.org
+  filter not exists {?item schema:description ?desc . filter(lang(?desc)=\"de\") } # Beschreibung auf Deutsch ist leer 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de\" }     # Beschreibung in anderen Sprachen anzeigen
+
+}
+order by ?itemLabel
+Limit 20""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#-------------------------------------------------------------------------------
+# Personen ohne deutsche Beschreibung, aber mit deutschem Artikel
+#-------------------------------------------------------------------------------
+#defaultView:Table
+SELECT ?item ?itemLabel ?article WHERE {
   hint:Query hint:optimizer \"None\" .               # Enable top-to-bottom execution
   SERVICE bd:slice {
     ?item wdt:P31 wd:Q5 . # is human    

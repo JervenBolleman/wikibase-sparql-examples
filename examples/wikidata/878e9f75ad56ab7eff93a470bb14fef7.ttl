@@ -38,6 +38,33 @@ SELECT ?parent_taxon ?parent_taxon_name (COUNT(DISTINCT ?compound) AS ?count) WH
     _:b40 sachem:query ?smiles;
       sachem:cutoff ?CUTOFF.
   }
+  
+  ?compound wdt:P703/wdt:P171 ?parent_taxon.
+  ?parent_taxon wdt:P225 ?parent_taxon_name.
+}
+GROUP BY ?parent_taxon ?parent_taxon_name
+ORDER BY DESC (?count)""";
+  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+#title: How many compounds are structurally similar to compounds labeled as antibiotics? Results are grouped by the parent taxon of the organism they were found in.
+PREFIX sachem: <http://bioinfo.uochb.cas.cz/rdf/v1.0/sachem#> # prefixes needed for structural similarity search
+PREFIX idsm: <https://idsm.elixir-czech.cz/sparql/endpoint/>
+SELECT ?parent_taxon ?parent_taxon_name (COUNT(DISTINCT ?compound) AS ?count) WHERE {
+  SERVICE idsm:wikidata {
+    VALUES ?CUTOFF {
+      \"0.9\"^^xsd:double
+    }
+    SERVICE <https://query.wikidata.org/bigdata/namespace/wdq/sparql> {
+      VALUES ?MESH {
+        \"D000900\"
+      }
+      ?antibiotic ((wdt:P279*)/wdt:P2868/wdt:P486) ?MESH;
+        wdt:P233 ?smiles.
+    }
+    ?compound sachem:similarCompoundSearch _:b40.
+    _:b40 sachem:query ?smiles;
+      sachem:cutoff ?CUTOFF.
+  }
   hint:Prior hint:runFirst \"true\"^^xsd:boolean.
   ?compound wdt:P703/wdt:P171 ?parent_taxon.
   ?parent_taxon wdt:P225 ?parent_taxon_name.

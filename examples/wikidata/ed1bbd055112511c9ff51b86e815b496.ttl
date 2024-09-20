@@ -18,6 +18,46 @@ PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?file ?title ?P180 ?P180Label ?article ?sitelink
+
+WHERE
+{
+  {
+  SELECT ?file ?title
+  WHERE
+  {
+    SERVICE wikibase:mwapi
+    {
+      bd:serviceParam wikibase:api \"Generator\" .
+      bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+      bd:serviceParam mwapi:gcmtitle \"Category:Finland framstäldt i teckningar\" .
+      bd:serviceParam mwapi:generator \"categorymembers\" .
+      bd:serviceParam mwapi:gcmtype \"file\" .
+      bd:serviceParam mwapi:gcmlimit \"max\" .
+      ?title wikibase:apiOutput mwapi:title .
+      ?pageid wikibase:apiOutput \"@pageid\" .
+    }
+    BIND (URI(CONCAT('https://commons.wikimedia.org/entity/M', ?pageid)) AS ?file)
+  }
+}
+  OPTIONAL {?file wdt:P180 ?P180 .     
+    OPTIONAL {
+      SERVICE <https://query.wikidata.org/sparql> {
+      OPTIONAL {?article schema:about ?P180 ;
+        schema:isPartOf <https://sv.wikipedia.org/> ; 
+        schema:name ?sitelink .}
+      SERVICE wikibase:label {
+        bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" .
+        ?P180 rdfs:label ?P180Label . }        
+      }
+    }
+  }
+}""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?file ?title ?P180 ?P180Label ?article ?sitelink
 WITH
 {
   SELECT ?file ?title
@@ -55,46 +95,6 @@ WHERE
 }""",
     """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX schema: <http://schema.org/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?file ?title ?P180 ?P180Label ?article ?sitelink
-
-WHERE
-{
-  {
-  SELECT ?file ?title
-  WHERE
-  {
-    SERVICE wikibase:mwapi
-    {
-      bd:serviceParam wikibase:api \"Generator\" .
-      bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
-      bd:serviceParam mwapi:gcmtitle \"Category:Finland framstäldt i teckningar\" .
-      bd:serviceParam mwapi:generator \"categorymembers\" .
-      bd:serviceParam mwapi:gcmtype \"file\" .
-      bd:serviceParam mwapi:gcmlimit \"max\" .
-      ?title wikibase:apiOutput mwapi:title .
-      ?pageid wikibase:apiOutput \"@pageid\" .
-    }
-    BIND (URI(CONCAT('https://commons.wikimedia.org/entity/M', ?pageid)) AS ?file)
-  }
-}
-  OPTIONAL {?file wdt:P180 ?P180 .     
-    OPTIONAL {
-      SERVICE <https://query.wikidata.org/sparql> {
-      OPTIONAL {?article schema:about ?P180 ;
-        schema:isPartOf <https://sv.wikipedia.org/> ; 
-        schema:name ?sitelink .}
-      SERVICE wikibase:label {
-        bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" .
-        ?P180 rdfs:label ?P180Label . }        
-      }
-    }
-  }
-}""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>

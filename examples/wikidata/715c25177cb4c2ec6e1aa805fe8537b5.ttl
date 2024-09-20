@@ -19,6 +19,34 @@ WHERE {
 
 SELECT ?given (COUNT(DISTINCT ?item) AS ?count)
 WHERE {
+  
+  ?item wdt:P21 wd:Q6581072 . # is female
+  ?item wdt:P735 ?given .
+  
+  ?given wdt:P31 wd:Q12308941 . # has male given name'
+  FILTER NOT EXISTS { ?given wdt:P31 wd:Q11879590 . } # not unisex
+
+  # filter out The Peerage entries, too many wrong entries,
+  # it should be handled separately
+  OPTIONAL { ?item wdt:P4638 ?thepeerageid . }
+  FILTER(!BOUND(?thepeerageid))
+      
+  # Prioritize cases with sitelinks at the moment
+  ?item wikibase:sitelinks ?linkcount .
+  FILTER (?linkcount >= 1)
+}
+GROUP BY ?given
+
+}
+ORDER BY DESC(?count)""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT ?given ?count
+WHERE {
+
+SELECT ?given (COUNT(DISTINCT ?item) AS ?count)
+WHERE {
   hint:Query hint:optimizer \"None\" .
   ?item wdt:P21 wd:Q6581072 . # is female
   ?item wdt:P735 ?given .

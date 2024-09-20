@@ -20,6 +20,40 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?item ?itemLabel 
 WHERE {
+  
+  {  
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:api \"Search\";
+                      wikibase:endpoint \"www.wikidata.org\";
+                      mwapi:srsearch \"Ruth\".
+      ?title wikibase:apiOutput mwapi:title.
+    }
+    BIND(IRI(CONCAT(STR(wd:), ?title)) AS ?item)
+    ?item rdfs:label ?itemLabel . filter(lang(?itemLabel)=\"en\")
+    FILTER NOT EXISTS { ?item wdt:P734 wd:Q37494439 .}
+    FILTER(regex(?itemLabel,\".+Ruth$\"))
+  }
+  UNION
+  {
+    ?item wdt:P734 wd:Q37494439 . # Surname is Ruth
+  }
+  MINUS
+  {
+    ?article schema:about ?item .
+    ?article schema:isPartOf <https://he.wikipedia.org/> . # No article at hewiki
+  }
+  ?item wdt:P31 wd:Q5
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel 
+WHERE {
   hint:Query hint:optimizer \"None\".
   {  
     SERVICE wikibase:mwapi {

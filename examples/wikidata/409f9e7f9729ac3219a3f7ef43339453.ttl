@@ -28,6 +28,28 @@ SELECT ?givenName ?givenNameLabel (COUNT(DISTINCT ?character) AS ?count) ?author
     bd:serviceParam wikibase:language \"en\".
     ?givenName rdfs:label ?givenNameLabel.
     ?language rdfs:label ?languageLabel.
+  } 
+  BIND(IF(BOUND(?authorSpeaksLanguage), ?languageLabel, \"other\"@en) AS ?authorClassification)
+}
+GROUP BY ?givenName ?givenNameLabel ?authorClassification
+ORDER BY DESC(?count)""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:BarChart
+SELECT ?givenName ?givenNameLabel (COUNT(DISTINCT ?character) AS ?count) ?authorClassification WHERE {
+  BIND(wd:Q150 AS ?language)
+  ?character wdt:P31/wdt:P279* wd:Q95074;
+             (wdt:P27/wdt:P37)|wdt:P103|wdt:P1412 ?language;
+             wdt:P735 ?givenName;
+             wdt:P170 ?author.
+  OPTIONAL { ?author (wdt:P27/wdt:P37)|wdt:P103|wdt:P1412 ?language. BIND(1 AS ?authorSpeaksLanguage) }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\".
+    ?givenName rdfs:label ?givenNameLabel.
+    ?language rdfs:label ?languageLabel.
   } hint:Prior hint:runLast false.
   BIND(IF(BOUND(?authorSpeaksLanguage), ?languageLabel, \"other\"@en) AS ?authorClassification)
 }

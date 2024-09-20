@@ -30,6 +30,28 @@ SELECT ?personLabel ?followers ?channelLabel WHERE {
     ?person wdt:P106 wd:Q937857 .
     ?person wdt:P8687 ?followers_ .
     } GROUP BY ?person
+  } 
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\" .}
+} ORDER BY DESC (?followers)""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?personLabel ?followers ?channelLabel WHERE {
+  ?person p:P8687 ?stat . 
+  ?stat ps:P8687 ?followers .
+  ?stat ?predicate ?value . 
+  ?property wikibase:qualifier ?predicate .
+  ?property wdt:P1629 ?channel .
+  filter not exists {wd:P585 wikibase:qualifier ?predicate.}
+  {
+    SELECT DISTINCT ?person (max(?followers_) as ?followers) WHERE
+    {
+    ?person wdt:P106 wd:Q937857 .
+    ?person wdt:P8687 ?followers_ .
+    } GROUP BY ?person
   } hint:Prior hint:runFirst true .
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\" .}
 } ORDER BY DESC (?followers)""" .

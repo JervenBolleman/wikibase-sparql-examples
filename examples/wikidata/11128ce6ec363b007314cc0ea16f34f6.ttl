@@ -20,6 +20,43 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Map{\"hide\":\"?geo\"}
 select ?image ?item ?itemLabel ?locationLabel ?viewer ?geo
 where {
+  
+  #
+  # company items (directly linked)
+  ?statement ps:P4293 ?pm20Id .
+  filter(strstarts(?pm20Id, 'co/'))
+  ?item p:P4293 ?statement .
+  filter (not exists {
+      ?statement pq:P4390 [] .
+    })
+  # with country
+  ?item wdt:P17 ?country .
+  optional {
+    ?item wdt:P159 ?headquarters .
+  }
+  bind(coalesce(?headquarters, ?country) as ?location)
+  #
+  # restrict to items with online accessible articles
+  ?item p:P4293/pq:P5592 ?workCount .
+  filter(?workCount > 0)
+  # geo coordinates for location
+  ?location wdt:P625 ?geo .
+  # optional image
+  optional { ?item wdt:P18 ?image . }
+  # viewer link
+  bind(uri(concat('https://pm20.zbw.eu/dfgview/', ?pm20Id)) as ?viewer)
+  # add labels
+  service wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en, de, fr, es, nl, pl, ru\". }
+}""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map{\"hide\":\"?geo\"}
+select ?image ?item ?itemLabel ?locationLabel ?viewer ?geo
+where {
   hint:Query hint:optimizer \"None\" .
   #
   # company items (directly linked)

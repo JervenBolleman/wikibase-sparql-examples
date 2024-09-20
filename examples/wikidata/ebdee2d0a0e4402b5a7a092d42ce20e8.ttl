@@ -16,6 +16,37 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Table
 SELECT DISTINCT ?iri ?prop ?propLabel ?id ?item ?itemLabel WHERE {
+  
+  VALUES ( ?test_url ) { 
+            ( \"https://quickstats.censusdata.abs.gov.au/census_services/getproduct/census/2016/quickstat/SSC11428\" )
+            ( \"http://plantnet.rbgsyd.nsw.gov.au/cgi-bin/NSWfl.pl?page=nswfl&lvl=sp&name=Hibbertia~spanantha\" )
+            ( \"https://www.lions.com.au/players/7\" )
+            ( \"https://reiseauskunft.bahn.de/bin/bhftafel.exe/en?input=8400285&boardType=dep&time=actual&productsDefault=1111101&start=yes\" )
+  }
+  BIND( IRI(?test_url) AS ?iri ).
+     
+  {?prop wdt:P1630 ?formatter_url .}
+  UNION
+  {?prop wdt:P3303 ?formatter_url .}
+  
+  FILTER (CONTAINS( ?formatter_url, \"$1\" ) ) 
+  BIND (STRBEFORE( ?formatter_url, \"$1\" ) AS ?f_url_start )
+  BIND (STRAFTER( ?formatter_url, \"$1\" ) AS ?f_url_end )
+  
+  FILTER(STRSTARTS( ?test_url, ?f_url_start ))
+  FILTER(STRENDS( ?test_url, ?f_url_end ))
+  
+  BIND ( SUBSTR( ?test_url, 1+STRLEN(?f_url_start), STRLEN(?test_url)-STRLEN(?f_url_start)-STRLEN(?f_url_end) ) AS ?id )
+  
+  ?prop wikibase:directClaim ?propRel .
+  ?item ?propRel ?id .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+}""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Table
+SELECT DISTINCT ?iri ?prop ?propLabel ?id ?item ?itemLabel WHERE {
   hint:Query hint:optimizer \"None\".
   VALUES ( ?test_url ) { 
             ( \"https://quickstats.censusdata.abs.gov.au/census_services/getproduct/census/2016/quickstat/SSC11428\" )

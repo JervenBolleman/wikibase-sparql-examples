@@ -11,55 +11,7 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel
-       ?rank1
-       (GROUP_CONCAT(DISTINCT CONCAT(?qual1, \": \", IF(BOUND(?qvalue1Label), ?qvalue1Label, STR(?qvalue1))); SEPARATOR=\"; \") AS ?qualifiers1)
-       ?rank2
-       (GROUP_CONCAT(DISTINCT CONCAT(?qual2, \": \", IF(BOUND(?qvalue2Label), ?qvalue2Label, STR(?qvalue2))); SEPARATOR=\"; \") AS ?qualifiers2)
-WITH
-{
-  SELECT ?item
-  WHERE
-  {
-    ?item p:P227 [].
-  }
-  GROUP BY ?item
-  HAVING (COUNT(?item) > 1)
-} AS %multiple_GND1
-WITH
-{
-  SELECT ?item ?GND_statement1 ?GND_statement2
-  WHERE
-  {
-    INCLUDE %multiple_GND1
-    ?item wdt:P31 wd:Q5. # only humans
-    ?item p:P227 ?GND_statement1.
-    ?item p:P227 ?GND_statement2.
-    FILTER (?GND_statement1 != ?GND_statement2)
-    FILTER (STR(?GND_statement1) < STR(?GND_statement2))
-  }
-} AS %multiple_GND2
-WHERE
-{
-  INCLUDE %multiple_GND2
-  ?sitelink schema:about ?item.
-  ?sitelink schema:isPartOf <https://de.wikipedia.org/>.
-  ?GND_statement1 wikibase:rank ?rank1.
-  ?GND_statement2 wikibase:rank ?rank2.
-  OPTIONAL { ?GND_statement1 ?qualifier1 ?qvalue1. ?qualifierproperty1 wikibase:qualifier ?qualifier1. }
-  OPTIONAL { ?GND_statement2 ?qualifier2 ?qvalue2. ?qualifierproperty2 wikibase:qualifier ?qualifier2. }
-  SERVICE wikibase:label
-  {
-    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de\".
-    ?item rdfs:label ?itemLabel.
-    ?qualifierproperty1 rdfs:label ?qual1.
-    ?qualifierproperty2 rdfs:label ?qual2.
-    ?qvalue1 rdfs:label ?qvalue1Label.
-    ?qvalue2 rdfs:label ?qvalue2Label.
-  }
-}
-GROUP BY ?item ?itemLabel ?GND_statement1 ?GND_statement2 ?rank1 ?rank2""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
@@ -114,7 +66,7 @@ WHERE
   }
 }
 GROUP BY ?item ?itemLabel ?GND_statement1 ?GND_statement2 ?rank1 ?rank2""";
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>

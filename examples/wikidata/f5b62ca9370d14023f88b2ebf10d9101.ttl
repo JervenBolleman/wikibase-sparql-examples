@@ -17,6 +17,33 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?item ?label ?authorlabel (COUNT(?anotherItem) AS ?inbound_links) WHERE {
+  
+  VALUES ?type {
+    wd:Q571
+    wd:Q7725634
+  }
+  ?item wdt:P31 ?type;
+    wdt:P577 ?date;
+    wdt:P50 ?author.
+  ?author wdt:P1559 ?authorlabel.
+  FILTER((LANG(?label)) = \"en\")
+  
+  FILTER(?date > \"1979-01-01T00:00:00Z\"^^xsd:dateTime)
+  ?item rdfs:label ?label.
+  FILTER((LANG(?label)) = \"en\")
+  ?item wdt:P495 wd:Q38.
+  OPTIONAL {?anotherItem ?predicate ?item .
+  ?property wikibase:directClaim ?predicate .}
+
+}
+GROUP BY ?item ?label ?authorlabel
+ORDER BY DESC (?inbound_links)""";
+  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?item ?label ?authorlabel (COUNT(?anotherItem) AS ?inbound_links) WHERE {
   hint:Query hint:optimizer \"None\".
   VALUES ?type {
     wd:Q571

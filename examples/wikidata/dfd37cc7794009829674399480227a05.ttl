@@ -21,6 +21,30 @@ PREFIX p: <http://www.wikidata.org/prop/>
 # Run this from WCQS - https://commons-query.wikimedia.org/
 SELECT ?exoplanet ?label_en ?image ?file ?creator_ns ?creator_wu ?creator_url
 WHERE {
+  
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?exoplanet wdt:P31 wd:Q44559 ;
+      wdt:P18 ?image .
+    OPTIONAL { ?exoplanet rdfs:label ?label_en . FILTER(LANG(?label_en)=\"en\") }
+  }
+  ?file schema:url ?image .
+  OPTIONAL {
+    ?file p:P170 ?cst .
+    OPTIONAL { ?cst pq:P2093 ?creator_ns . }
+    OPTIONAL { ?cst pq:P4174 ?creator_wu . }
+    OPTIONAL { ?cst pq:P2699 ?creator_url . }
+  }
+}""";
+  <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+# Federation with correlation - Get byline for Commons images
+# Run this from WCQS - https://commons-query.wikimedia.org/
+SELECT ?exoplanet ?label_en ?image ?file ?creator_ns ?creator_wu ?creator_url
+WHERE {
   hint:Query hint:optimizer \"None\" .
   SERVICE <https://query.wikidata.org/sparql> {
     ?exoplanet wdt:P31 wd:Q44559 ;

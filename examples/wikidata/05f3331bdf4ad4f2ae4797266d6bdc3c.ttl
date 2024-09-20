@@ -25,6 +25,33 @@ WHERE
     { SELECT ?item ?itemLabel ?itemDescription ?title ?genreLabel ?locationLabel 
     WHERE 
     {
+        
+        ?item wdt:P449 wd:Q907311.
+        OPTIONAL {?item wdt:P1476 ?title }  
+        OPTIONAL {?item wdt:P136 ?genre. }
+        OPTIONAL {?item wdt:P840 ?location. } 
+        MINUS { ?item wdt:P31 wd:Q21191270 }
+        MINUS { ?item wdt:P31 wd:Q3464665 }
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+    }
+   }
+}          
+GROUP BY ?item ?itemLabel ?itemDescription
+ORDER BY ?title""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
+  ?item ?itemLabel ?itemDescription 
+  (SAMPLE(?title) as ?title) 
+  (GROUP_CONCAT(DISTINCT ?genreLabel; separator= \", \") as ?genres) 
+  (GROUP_CONCAT(DISTINCT ?locationLabel; separator= \", \") as ?narrlocs) 
+WHERE
+{
+    { SELECT ?item ?itemLabel ?itemDescription ?title ?genreLabel ?locationLabel 
+    WHERE 
+    {
         hint:Query hint:optimizer \"None\".
         ?item wdt:P449 wd:Q907311.
         OPTIONAL {?item wdt:P1476 ?title }  

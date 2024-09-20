@@ -20,6 +20,29 @@ PREFIX p: <http://www.wikidata.org/prop/>
 #defaultView:AreaChart
 SELECT ?date ?cumulativecount 
 {
+    
+    {   SELECT ?milestonep (COUNT(?item) as ?cumulativecount)              # cumulative count of items meeting the filtering criteria below
+        WHERE
+        {
+          { SELECT ?item { ?item wdt:P5008 wd:Q15304953 .}  LIMIT 100000 } # items within scope of the project
+          BIND( xsd:integer( substr(str(?item), 33)) as ?qid)              # get the QID of the item
+          wd:Q38074555 p:P1114 ?milestonep .                               # get list of QID milestones
+          ?milestonep ps:P1114 ?milestone .
+          FILTER( ?milestone > ?qid )                                      # only consider milestones newer than the item
+        }
+        GROUP BY ?milestonep
+    }          
+    ?milestonep pq:P585 ?date                                              # get the date when the QID milestone was reached
+}""";
+  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+#defaultView:AreaChart
+SELECT ?date ?cumulativecount 
+{
     hint:Query hint:optimizer \"None\".
     {   SELECT ?milestonep (COUNT(?item) as ?cumulativecount)              # cumulative count of items meeting the filtering criteria below
         WHERE

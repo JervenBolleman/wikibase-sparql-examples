@@ -44,6 +44,48 @@ MINUS {
           UNION {?item wdt:P137 ?operator. ?operator wdt:P17 ?extra} # operator 
           ?extra rdfs:label ?extralist. FILTER (LANG(?extralist) = \"en\") 
  
+        }  
+      } 
+      ORDER BY ASC(?item_label) ASC(?extralist) 
+    } 
+    GROUP BY ?item ?item_label ?modified 
+    ORDER BY ASC(?item_label) 
+  } 
+  BIND(IF(?officialname = \"\",?item_label,?officialname) AS ?label) 
+}""";
+  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?label ?item ?itemDescription ?extra ?modified WHERE {
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"en-GB,en,mul,fr,de,es,pt,pl,nl,cs\". } 
+  { SELECT DISTINCT ?item (GROUP_CONCAT(DISTINCT ?extralist; SEPARATOR = \"#\") AS ?extra) 
+  (GROUP_CONCAT(DISTINCT ?officialnamelist; SEPARATOR = \" / \") AS ?officialname) ?item_label ?modified WHERE { 
+    SELECT DISTINCT ?item ?extralist ?officialnamelist ?item_label ?modified WHERE { 
+?item wdt:P31/wdt:P279* wd:Q177597. # naval vessel 
+MINUS { 
+    {?item wdt:P31 wd:Q575727} # museum ship 
+  UNION 
+    {?item wdt:P366 wd:Q575727} 
+} 
+?item wdt:P137 ?navy. ?navy wdt:P17 wd:Q30. 
+        ?item schema:dateModified ?modified . 
+        FILTER(BOUND(?modified) && DATATYPE(?modified) = xsd:dateTime). 
+        OPTIONAL {?item wdt:P1448 ?officialnamelist. FILTER (LANG(?officialnamelist) = \"mul\")} 
+        ?item rdfs:label ?item_label. FILTER (LANG(?item_label) = \"en\") 
+        OPTIONAL { 
+                {?item wdt:P31  ?extra} # instance 
+          UNION {?item wdt:P279 ?extra} # subclass 
+          UNION {?item wdt:P17  ?extra} # country 
+          UNION {?item wdt:P27  ?extra} # country of citizenship 
+          UNION {?item wdt:P495 ?extra} # country of origin 
+          UNION {?item wdt:P710 ?extra} # participant 
+          UNION {?item wdt:P137 ?operator. ?operator wdt:P17 ?extra} # operator 
+          ?extra rdfs:label ?extralist. FILTER (LANG(?extralist) = \"en\") 
+ 
         } hint:Prior hint:runLast true. 
       } 
       ORDER BY ASC(?item_label) ASC(?extralist) 

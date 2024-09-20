@@ -21,6 +21,29 @@ SELECT ?item ?date1 ?point1 ?date2 ?point2 ?diff WHERE {
   ?statement1 psv:P1087 ?pnode1; pqv:P585 ?node1 .
   ?statement2 psv:P1087 ?pnode2; pqv:P585 ?node2 .
   ?node1 wikibase:timePrecision 10 .
+  ?node1 wikibase:timeValue ?date1 . 
+  ?node2 wikibase:timePrecision 10 .
+  ?node2 wikibase:timeValue ?date2 . 
+  FILTER( ?date1 < ?date2 ) .
+  BIND( ?date2 - ?date1 AS ?timedelta ) .
+  FILTER( 28.0 <= ?timedelta && ?timedelta <= 31.0 ) .
+  ?pnode1 wikibase:quantityAmount ?point1 . 
+  ?pnode2 wikibase:quantityAmount ?point2 . 
+  #FILTER( ?point1 != ?point2 ) .
+  BIND( ABS( ?point2 - ?point1 ) AS ?diff ) .
+}
+ORDER BY DESC(?diff)
+LIMIT 100""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?item ?date1 ?point1 ?date2 ?point2 ?diff WHERE {
+  ?item p:P1087 ?statement1, ?statement2 .
+  FILTER( ?statement1 != ?statement2 ) .
+  ?statement1 psv:P1087 ?pnode1; pqv:P585 ?node1 .
+  ?statement2 psv:P1087 ?pnode2; pqv:P585 ?node2 .
+  ?node1 wikibase:timePrecision 10 .
   ?node1 wikibase:timeValue ?date1 . hint:Prior hint:rangeSafe true .
   ?node2 wikibase:timePrecision 10 .
   ?node2 wikibase:timeValue ?date2 . hint:Prior hint:rangeSafe true .

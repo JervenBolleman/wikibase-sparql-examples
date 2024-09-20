@@ -11,43 +11,7 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?coord ?item2 ?item2Label ?coord2 ?dist
-WITH
-{
-  SELECT DISTINCT ?item (SAMPLE(?coord_) AS ?coord)
-  {
-    ?item wdt:P31 / wdt:P279 * wd:Q12323 . # Instance of Dam or subclass
-    ?item wdt:P17 wd:Q17 . # In Japan
-    ?item wdt:P625 ?coord_ .
-    BIND (geof:longitude(?coord_) AS ?long)
-    FILTER (?long > 136)
-    FILTER (?long < 138)
-  }
-  GROUP BY ?item
-} AS %items
-WITH
-{
-  SELECT ?item ?coord ?item2 ?coord2 ?dist
-  {
-    INCLUDE %items
-    {
-      SELECT (?item AS ?item2) (?coord AS ?coord2) { INCLUDE %items }
-    }
-    FILTER (STR(?item) < STR(?item2))
-    BIND(geof:distance(?coord, ?coord2) as ?dist)
-    FILTER (?dist <= 10)
-  }
-} AS %dists
-{
-  INCLUDE %dists
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,ja\" }
-}
-ORDER BY ?dist""",
-    """PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+  sh:select """PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -84,7 +48,7 @@ WITH
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,ja\" }
 }
 ORDER BY ?dist""";
-  sh:select """PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+  <http://example.org/bigdata_select> """PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>

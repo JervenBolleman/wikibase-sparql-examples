@@ -12,44 +12,7 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  <http://example.org/bigdata_select> """SELECT ?place ?placeLabel ?elev ?ulabel #?unit ?prepr ?ulabel_ #?sense ?lexeme ?form
-WITH {
-  SELECT ?place (SAMPLE(?elev_st_) AS ?elev_st)
-  WHERE {
-    #?place wdt:P17 wd:Q34 . # Reduce the working set.
-    #?place wdt:P31 wd:Q8502 .
-
-    ?place p:P2044 ?elev_st_ .
-    ?elev_st_ a wikibase:BestRank .
-  }
-  GROUP BY ?place
-  LIMIT 100
-} AS %i
-WITH {
-  SELECT ?place ?elev_st ?elev ?unit ?ulabel_ (SAMPLE(?prepr_) AS ?prepr) #?sense ?form ?lexeme
-  WHERE {
-    INCLUDE %i
-
-    ?elev_st psv:P2044 [ wikibase:quantityAmount ?elev; wikibase:quantityUnit ?unit ] .
-    ?unit rdfs:label ?ulabel_. FILTER(LANG(?ulabel_)=\"sv\")
-
-    OPTIONAL { 
-      ?sense wdt:P5137 ?unit . 
-      ?lexeme ontolex:sense ?sense . 
-      ?lexeme ontolex:lexicalForm ?form. 
-      ?lexeme dct:language wd:Q9027 .
-      ?form wikibase:grammaticalFeature wd:Q146786 .
-      ?form ontolex:representation ?prepr_ .
-    }
-  }
-  GROUP BY ?place ?elev_st ?elev ?unit ?ulabel_ #?sense ?form ?lexeme
-} AS %f
-WHERE {
-  INCLUDE %f
-  BIND(IF(ABS(?elev) >= 2, ?prepr, ?ulabel_) AS ?ulabel)
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"sv,en\" }
-}""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -95,7 +58,7 @@ WHERE {
   BIND(IF(ABS(?elev) >= 2, ?prepr, ?ulabel_) AS ?ulabel)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"sv,en\" }
 }""";
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>

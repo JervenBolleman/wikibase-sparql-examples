@@ -22,6 +22,32 @@ SELECT ?item ?INSEE ?itemLabel (CONCAT(\"[[Wikidata:WikiProject France/Églises/
 WHERE {
   {
     SELECT ?item (COUNT(DISTINCT ?item2) AS ?depCount) (COUNT(DISTINCT ?coord) AS ?_withCoord) WHERE {
+      
+      ?item2 wdt:P131+ wd:Q142;
+             wdt:P31/wdt:P279* wd:Q16970;
+             wdt:P131 ?commune .
+      ?commune p:P131 ?stmt .
+      ?stmt ps:P131 ?item .
+      MINUS { ?stmt pq:P582 [] } .
+      ?item wdt:P2586 [] .
+      OPTIONAL { ?item2 wdt:P625 ?coord } .
+    } GROUP BY ?item
+  } .
+  ?item wdt:P2586 ?INSEE .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\" } .
+}
+ORDER BY ?INSEE""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?INSEE ?itemLabel (CONCAT(\"[[Wikidata:WikiProject France/Églises/\",?INSEE,\"\\u007C\",?itemLabel,\"]]\") AS ?LIEN) ?depCount (CONCAT(STR(ROUND((IF(?_withCoord > ?depCount, ?depCount, ?_withCoord) / ?depCount) * 100 * 100) / 100), \"%\") AS ?withCoord)
+WHERE {
+  {
+    SELECT ?item (COUNT(DISTINCT ?item2) AS ?depCount) (COUNT(DISTINCT ?coord) AS ?_withCoord) WHERE {
       hint:Query hint:optimizer \"None\".
       ?item2 wdt:P131+ wd:Q142;
              wdt:P31/wdt:P279* wd:Q16970;

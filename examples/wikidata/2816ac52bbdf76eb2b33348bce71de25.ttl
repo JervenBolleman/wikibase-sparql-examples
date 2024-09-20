@@ -20,6 +20,46 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 #villages with tewiki or enwiki articles but without wikidata in OSM in a specific district
 #defaultView:Map
 SELECT DISTINCT ?2011censuscode ?wd_label_village ?wd_label_village_te ?wd_qid_village ?wd_loc_village ?wd_label_mandal ?wd_qid_mandal WHERE {
+  
+  wd:Q110714862 wdt:P150 ?mandal.
+  ?village wdt:P131 ?mandal;
+    (wdt:P31/(wdt:P279*)) wd:Q56436498;
+    wdt:P625 ?wd_loc_village.
+  BIND(?mandal AS ?wd_mandal)
+  OPTIONAL { ?village wdt:P5578 ?2011censuscode. }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\".
+    ?village rdfs:label ?wd_label_village.
+    ?wd_mandal rdfs:label ?wd_label_mandal.
+  }
+  OPTIONAL {
+    ?village rdfs:label ?wd_label_village_te.
+    FILTER((LANG(?wd_label_village_te)) = \"te\")
+  }
+  OPTIONAL {
+    ?article schema:about ?village;
+      schema:isPartOf <https://te.wikipedia.org/>;
+      schema:name ?page_titleTE.
+  }
+  OPTIONAL {
+    ?article schema:about ?village;
+      schema:isPartOf <https://en.wikipedia.org/>;
+      schema:name ?page_titleEN.
+  }
+  FILTER((BOUND(?page_titleEN))|| (BOUND(?page_titleTE)))
+  BIND(REPLACE(STR(?village), \"^.*/([^/]*)$\", \"$1\") AS ?wd_qid_village)
+  BIND(REPLACE(STR(?wd_mandal), \"^.*/([^/]*)$\", \"$1\") AS ?wd_qid_mandal)
+}
+ORDER BY (?2011censuscode) (?wd_label_mandal) (?wd_label_village)""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#villages with tewiki or enwiki articles but without wikidata in OSM in a specific district
+#defaultView:Map
+SELECT DISTINCT ?2011censuscode ?wd_label_village ?wd_label_village_te ?wd_qid_village ?wd_loc_village ?wd_label_mandal ?wd_qid_mandal WHERE {
   hint:Query hint:optimizer \"None\".
   wd:Q110714862 wdt:P150 ?mandal.
   ?village wdt:P131 ?mandal;

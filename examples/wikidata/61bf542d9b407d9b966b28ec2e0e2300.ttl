@@ -20,6 +20,46 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 #When changing district, ensure the change is made in the MINUS subquery also
 #defaultView:Map
 SELECT DISTINCT ?censuscode  ?villagematch ?wd_label_village ?wd_label_village_te ?wd_qid_village ?wd_loc_village ?wd_label_mandal WHERE {
+  
+  ?village (wdt:P131*) wd:Q110714853;
+    wdt:P131 ?wd_mandal;
+    (wdt:P31/(wdt:P279*)) wd:Q56436498;
+    wdt:P625 ?wd_loc_village.
+  OPTIONAL { ?village wdt:P5578 ?censuscode. }
+  MINUS {
+    ?village (wdt:P131*) wd:Q110714853;
+      (wdt:P31/(wdt:P279*)) wd:Q56436498;
+      wdt:P625 _:b4.
+    SERVICE <https://sophox.org/sparql> {
+      ?osmid <https://wiki.openstreetmap.org/wiki/Key:wikidata> ?village;
+        <https://www.openstreetmap.org/meta/loc> ?osmloc.
+    }
+  }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\".
+    ?village rdfs:label ?wd_label_village.
+    ?wd_mandal rdfs:label ?wd_label_mandal.
+  }
+  OPTIONAL {
+    ?village rdfs:label ?wd_label_village_te.
+    FILTER((LANG(?wd_label_village_te)) = \"te\")
+  }
+  BIND(STR(?village) AS ?wdstring1)
+  BIND(STRAFTER(?wdstring1, \"http://www.wikidata.org/entity/\") AS ?wd_qid_village)
+  BIND(STR(?wd_mandal) AS ?wdstring2)
+  BIND(STRAFTER(?wdstring2, \"http://www.wikidata.org/entity/\") AS ?wd_qid_mandal)
+  BIND(CONCAT(?wd_qid_mandal, \" \", ?wd_label_village) AS ?villagematch)
+}
+ORDER BY (?censuscode)""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#villages without wikidata in OSM in a district with mandal and village string as match element
+#When changing district, ensure the change is made in the MINUS subquery also
+#defaultView:Map
+SELECT DISTINCT ?censuscode  ?villagematch ?wd_label_village ?wd_label_village_te ?wd_qid_village ?wd_loc_village ?wd_label_mandal WHERE {
   hint:Query hint:optimizer \"None\".
   ?village (wdt:P131*) wd:Q110714853;
     wdt:P131 ?wd_mandal;

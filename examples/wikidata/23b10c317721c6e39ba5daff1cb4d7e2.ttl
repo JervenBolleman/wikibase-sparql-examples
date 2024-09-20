@@ -20,6 +20,31 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?title ?item ?article_it
 WHERE
 {
+  
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:api \"Search\" .
+    bd:serviceParam wikibase:endpoint \"it.wikipedia.org\" .
+    bd:serviceParam mwapi:srnamespace \"0\" .
+    bd:serviceParam mwapi:srsearch 'deepcat:\"Cantanti lirici italiani\"' .
+    ?title wikibase:apiOutput mwapi:title .
+  }
+  BIND (STRLANG(?title, \"it\") AS ?title_it)
+  ?article_it schema:name ?title_it .
+  ?article_it schema:about ?item .
+  ?article_it schema:isPartOf <https://it.wikipedia.org/> .
+  ?item wdt:P31 wd:Q5 .
+  MINUS { ?item wdt:P106 [] } 
+}""";
+  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?title ?item ?article_it
+WHERE
+{
   hint:Query hint:optimizer \"None\".
   SERVICE wikibase:mwapi
   {

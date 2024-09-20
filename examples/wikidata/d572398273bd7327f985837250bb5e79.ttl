@@ -20,6 +20,29 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT (CONCAT(SAMPLE(?fileName), \"|[[w:se:\", ?itemLabel, \"|<span style=color:red>\", STR(?itemLabel), \"</span>]]\") as ?string)  WHERE {
   ?item wdt:P31 wd:Q5 ; # human
      wdt:P106 wd:Q639669 ; # occupation: musician
+     wikibase:sitelinks ?linkcount . 
+  OPTIONAL {?item wdt:P18 ?image.}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"se,nb,nn,da,en\". 
+                         ?item rdfs:label ?itemLabel.} 
+  BIND(REPLACE(wikibase:decodeUri(STR(?image)), \"http://commons.wikimedia.org/wiki/Special:FilePath/\", \"File:\") as ?fileName) .
+  FILTER (?linkcount > 50) 
+  MINUS {
+   ?wse schema:about ?item . 
+   ?wse schema:isPartOf <https://se.wikipedia.org/>.
+   } # No article at sewiki 
+}
+GROUP BY ?itemLabel
+ORDER BY DESC(MAX(?linkcount))
+LIMIT 100""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT (CONCAT(SAMPLE(?fileName), \"|[[w:se:\", ?itemLabel, \"|<span style=color:red>\", STR(?itemLabel), \"</span>]]\") as ?string)  WHERE {
+  ?item wdt:P31 wd:Q5 ; # human
+     wdt:P106 wd:Q639669 ; # occupation: musician
      wikibase:sitelinks ?linkcount . hint:Prior hint:rangeSafe true .
   OPTIONAL {?item wdt:P18 ?image.}
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"se,nb,nn,da,en\". 

@@ -11,7 +11,62 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT distinct ?lname ?fname ?person ?personLabel ?ucd
+  WITH { SELECT distinct ?person ?lname ?fname WHERE {
+      VALUES (?fname ?lname) {
+(\"Ursula\" \"Abbott\")
+(\"Norman\" \"Akesson\")
+(\"Henry\" \"Alder\")
+(\"V.\" \"Algazi\")
+(\"R.\" \"Allard\")
+(\"Thomas\" \"Allen\")
+(\"Maynard\" \"Amerine\")
+(\"David\" \"Anderson\")
+(\"Gary\" \"Anderson\")
+(\"Lawrence\" \"Andrews\")
+(\"Samuel\" \"Armistead\")
+(\"Floyd\" \"Ashton\")
+(\"Daniel\" \"Axelrod\")
+(\"John\" \"Ayer\")
+(\"Oscar\" \"Bacon\")
+(\"R.\" \"Baldwin\")
+(\"Michael\" \"Barbour\")
+(\"David\" \"Barnette\")
+(\"Edward\" \"Barrett\")
+(\"Donald\" \"Bath\")
+(\"Arnold\" \"Bauer\")
+(\"Herbert\" \"Bauer\")
+      }
+    bind(concat(?fname,\" \",?lname) as ?s)
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+                    wikibase:api \"Generator\";
+                    mwapi:generator \"search\";
+                    mwapi:gsrsearch ?s;
+                    mwapi:gsrlimit \"max\".
+     ?person wikibase:apiOutputItem mwapi:title.
+   } } } as %SEARCH {
+    include %SEARCH .
+  hint:Query hint:optimizer \"None\".
+            
+  ?person wdt:P31 wd:Q5;
+          wdt:P734/wdt:P1705 ?ln;
+          wdt:P735/wdt:P1705 ?fn;
+          .
+  filter(xsd:string(?ln) = ?lname)
+  filter(xsd:string(?fn) = ?fname)
+  OPTIONAL {
+    bind(wd:Q129421 as ?ucd)
+    ?person wdt:P108 ?ucd.
+    }
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} order by ?lname ?fname ?person""",
+    """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -67,7 +122,8 @@ SELECT distinct ?lname ?fname ?person ?personLabel ?ucd
     }
    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 } order by ?lname ?fname ?person""";
-  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+  sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>

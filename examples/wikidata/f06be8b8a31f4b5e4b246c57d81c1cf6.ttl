@@ -11,7 +11,28 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Chart of P921 usage
+# Note: this chart is based on https://www.wikidata.org/wiki/Template:Property_uses
+# which is updated once a day by PLbot
+
+#defaultView:LineChart
+SELECT ?day ?count WITH { SELECT (\".+\\\\|921=(\\\\d+).+\" as ?r) (\"|921=\" as ?p)
+  (IF(CONTAINS(?r1, ?p), xsd:integer(REPLACE(?r1, ?r, \"$1\")), -1) AS ?c1) (xsd:dateTime(?t1) AS ?d1)
+  { SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:api \"Generator\" ; wikibase:endpoint \"www.wikidata.org\" ; mwapi:generator \"allpages\" ; 
+                      mwapi:gapfrom \"Property_uses\" ; mwapi:gapto \"Property_uses\" ; mwapi:gapnamespace \"10\" ; 
+                      mwapi:prop \"revisions\" ; mwapi:rvprop \"content|timestamp\" ; mwapi:rvlimit \"50\" ; mwapi:rvuser \"PLbot\" .
+      ?t1 wikibase:apiOutput \"revisions/rev[1]/@timestamp\" . ?r1 wikibase:apiOutput \"revisions/rev[1]/text()\" .
+    }
+  }
+} as %revs {
+  {BIND(?c1 AS ?count) BIND(?d1 AS ?day) INCLUDE %revs} 
+  FILTER(?count != -1)
+}""",
+    """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
@@ -33,7 +54,8 @@ SELECT ?day ?count WITH { SELECT (\".+\\\\|921=(\\\\d+).+\" as ?r) (\"|921=\" as
   {BIND(?c1 AS ?count) BIND(?d1 AS ?day) INCLUDE %revs} 
   FILTER(?count != -1)
 }""";
-  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+  sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 # Chart of P921 usage

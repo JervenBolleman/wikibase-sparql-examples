@@ -17,6 +17,31 @@ PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT distinct ?item ?itemLabel ?article_name where
 {
+  
+  SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:endpoint \"en.wikipedia.org\";                # wikipedia 1
+                     wikibase:api \"Generator\";
+                     mwapi:generator \"categorymembers\";
+                     mwapi:gcmtitle \"Category:Humanitarian aid\" ;         # category
+                     mwapi:gcmprop \"title\";
+                     mwapi:gcmlimit \"max\".
+     ?article_name wikibase:apiOutput mwapi:title.        
+     ?item wikibase:apiOutputItem mwapi:item.     
+     ?ns wikibase:apiOutput \"@ns\".
+     }
+  filter(BOUND(?item))
+  filter(?ns=\"0\")
+  filter not exists { ?article schema:about ?item ;
+  schema:isPartOf <https://de.wikipedia.org/> ;                           # wikipedia 2
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY ?itemLabel""";
+  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT distinct ?item ?itemLabel ?article_name where
+{
   hint:Query hint:optimizer \"None\".
   SERVICE wikibase:mwapi {
      bd:serviceParam wikibase:endpoint \"en.wikipedia.org\";                # wikipedia 1

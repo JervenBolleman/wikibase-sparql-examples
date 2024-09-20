@@ -17,6 +17,33 @@ PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?item ?itemLabel ?sitelink ?article
 WHERE {
+  
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"en.wikipedia.org\";
+                    mwapi:srsearch \"water pollution\".
+   ?name wikibase:apiOutput mwapi:title.     
+  }
+  
+  BIND (URI(CONCAT('https://en.wikipedia.org/wiki/', ?name)) AS ?article)
+
+  # have an en wiki article
+  ?article schema:about ?item ;
+  schema:isPartOf <https://en.wikipedia.org/> ;
+  schema:name ?sitelink .         
+  
+  #lack a sitelink to somewhere else
+  filter not exists {?article2 schema:about ?item ;
+                     schema:isPartOf <https://de.wikipedia.org/> .}
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?sitelink ?article
+WHERE {
   hint:Query hint:optimizer \"None\".
   SERVICE wikibase:mwapi {
     bd:serviceParam wikibase:api \"Search\";

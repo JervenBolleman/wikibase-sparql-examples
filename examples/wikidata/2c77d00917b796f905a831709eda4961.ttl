@@ -20,6 +20,31 @@ WHERE
 {
   {
     SELECT ?qual (COUNT(DISTINCT ?item) AS ?count) WHERE {
+         
+         ?item p:P1120 ?statement .
+         ?statement ?pq_qual ?pq_obj .
+         ?qual wikibase:qualifier ?pq_qual .
+    }  GROUP BY ?qual
+  } .
+BIND (REPLACE(STR(?qual), \"http://www.wikidata.org/entity/\", \"\", \"i\") as ?qualID).  
+BIND (URI(CONCAT (\"https://query.wikidata.org/#SELECT%20%3Fitem%20%3FitemLabel%20%3FtipusLabel%20%3FqualLabel%20%20WHERE%20%7B%0A%20%20%3Fitem%20wdt%3AP31%20%3Ftipus%3B%20p%3A\",
+              \"P1120\",
+              \"%20%5Bpq%3A\",
+              ?qualID,
+              \"%20%3Fqual%5D.%0A%20%20SERVICE%20wikibase%3Alabel%20%7B%20bd%3AserviceParam%20wikibase%3Alanguage%20%22%5BAUTO_LANGUAGE%5D%2Cen%22.%20%7D%0A%7D%0Alimit%20100\"  
+              ))  as ?llapis)
+}
+ORDER BY DESC(?count) ASC(?qualLabel)
+LIMIT 20""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX p: <http://www.wikidata.org/prop/>
+#title:Qualifiers for P1120. 
+# Canviar P1120 per la propietat a analitzar, als DOS punts del codi
+SELECT DISTINCT ?qual ?qualLabel ?count ?llapis
+WHERE
+{
+  {
+    SELECT ?qual (COUNT(DISTINCT ?item) AS ?count) WHERE {
          hint:Query hint:optimizer \"None\" .
          ?item p:P1120 ?statement .
          ?statement ?pq_qual ?pq_obj .

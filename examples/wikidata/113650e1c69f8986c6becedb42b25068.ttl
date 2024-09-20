@@ -24,6 +24,48 @@ SELECT
       (GROUP_CONCAT(DISTINCT  ?gameJALabel ; separator = \", \") AS  ?gameJALabels)
       (GROUP_CONCAT(DISTINCT  ?hepbJALabel ; separator = \", \") AS  ?hepbJALabels)
       WHERE {
+        
+
+        ?game wdt:P136/wdt:P279* wd:Q744038.	# any subclass of role-playing video game
+        ?game wdt:P31 wd:Q7889.             # instance of video game
+
+        # English label
+        ?game rdfs:label ?gameENLabel.
+        FILTER(LANG(?gameENLabel) = \"en\"). # we mainly want English labels
+
+        # Japanese or Chinese label
+        OPTIONAL {
+          ?game rdfs:label ?gameJALabel.
+          FILTER((LANG(?gameJALabel) = \"ja\") || (LANG(?gameJALabel) = \"zh\")).  # we optionally want Japanese or Chinese labels (for Japanese or Chinese games, only, preferably)
+        }
+
+        # we also want hepburn or pinyin transliterations
+        OPTIONAL {?game wdt:P2125   ?hepburn}
+        OPTIONAL {?game wdt:P1721    ?pinyin}
+
+        # labels
+        SERVICE wikibase:label {
+          bd:serviceParam wikibase:language \"en\".
+            ?hepburn rdfs:label  ?hepbJALabel.
+             ?pinyin rdfs:label  ?pinyinLabel.
+        }
+      }
+    GROUP BY $game
+    ORDER BY asc (?dateYears) ASC (?gameENLabels)
+    #limit 100""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Need to get the series too.
+SELECT
+      #MIN(?dateYear) AS     ?dateYears)
+      (GROUP_CONCAT(DISTINCT     ?dateYear ; separator = \", \") AS     ?dateYears)
+      (GROUP_CONCAT(DISTINCT  ?gameENLabel ; separator = \", \") AS  ?gameENLabels)
+      (GROUP_CONCAT(DISTINCT  ?gameJALabel ; separator = \", \") AS  ?gameJALabels)
+      (GROUP_CONCAT(DISTINCT  ?hepbJALabel ; separator = \", \") AS  ?hepbJALabels)
+      WHERE {
         hint:Query hint:optimizer \"None\".
 
         ?game wdt:P136/wdt:P279* wd:Q744038.	# any subclass of role-playing video game

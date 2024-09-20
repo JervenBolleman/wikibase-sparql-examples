@@ -17,6 +17,25 @@ PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?item ?itemLabel ?itemDescription
 WHERE {
+  
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"church\".
+    ?item wikibase:apiOutputItem mwapi:title .
+  }
+  ?item schema:description ?itemDescription . filter(lang(?itemDescription)=\"en\") 
+
+#  FILTER (lcase(str(?itemDescription)) =\"church\") # - just find lower case church
+  FILTER (contains(?itemDescription,\"church\")) # - any case of church, somewhere in the description
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+}""";
+  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?itemDescription
+WHERE {
   hint:Query hint:optimizer \"None\".
   SERVICE wikibase:mwapi {
     bd:serviceParam wikibase:api \"Search\";

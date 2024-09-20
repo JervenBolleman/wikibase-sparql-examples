@@ -65,6 +65,74 @@ SELECT distinct  ?surname  ?a ?b ?c ?d ?surnameLabel  ?commcat   ?person ?person
  #  ?person   wdt:P373   ?commcatper .    # comm cat
  #  ?person   wdt:P18    ?image .         # comm cat 
     
+      #???????
+  #  tell the optimizer that fields doesn’t mix dates, strings, integers or other data types, which simplifies the range comparison
+
+#g   FILTER (?death < \"1900-01-01\"^^xsd:dateTime)                                              # death     3N  65  act 
+#g   FILTER (?death > \"1900-01-01\"^^xsd:dateTime && ?death < \"1950-01-01\"^^xsd:dateTime)       #  death    4N  72  act 
+#g   FILTER (?death > \"1950-01-01\"^^xsd:dateTime && ?death < \"2024-01-01\"^^xsd:dateTime)       #  birth    0N  106 act
+    
+#g   FILTER (?birth < \"1900-01-01\"^^xsd:dateTime)                                              #  birth    7N  175 act 
+#g   FILTER (?birth > \"1900-01-01\"^^xsd:dateTime && ?birth < \"1950-01-01\"^^xsd:dateTime)       #  birth    0N  97  act
+#g   FILTER (?birth > \"1950-01-01\"^^xsd:dateTime && ?birth < \"2024-01-01\"^^xsd:dateTime)       #  birth    1N  235 act
+  
+  
+       SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } 
+}""";
+  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT distinct  ?surname  ?a ?b ?c ?d ?surnameLabel  ?commcat   ?person ?personLabel  ?familyLabel 
+{
+     {  ?surname   wdt:P31             ?family  .      }
+     {  ?surname   wdt:P31/wdt:P279*   wd:Q101352  .    }    #/wdt:P279*
+  
+     { ?surname   rdfs:label ?label FILTER(lang(?label) = 'en') .     }
+  
+#g       filter (regex (?label , \"^[A-B].*\"  ))                      # 7 act
+#g        filter (regex (?label , \"^C.*\"  ))                      # 5 act
+#g        filter (regex (?label , \"^D.*\"  ))                      # 4 act
+#g        filter (regex (?label , \"^[A-E].*\"  ))                                  # 0 act
+#g        filter (regex (?label , \"^F.*\"  ))                                  # 0 act  
+#g        filter (regex (?label , \"^G.*\"  ))                      # 2 act
+#g        filter (regex (?label , \"^H.*\"  ))                      # 5 act    
+#g        filter (regex (?label , \"^I.*\"  ))                      # 1 act
+#g        filter (regex (?label , \"^J.*\"  ))                                  # 0 act
+#g        filter (regex (?label , \"^K.*\"  ))                      # 4 act
+#g        filter (regex (?label , \"^[L-N].*\"  ))                  # 12 act
+#g        filter (regex (?label , \"^O.*\"  ))                      # 3 act
+#g        filter (regex (?label , \"^[P-Q].*\"  ))                  # 4 act
+#g        filter (regex (?label , \"^[R-T].*\"  ))                  # 11 act
+#g        filter (regex (?label , \"^[U-Z].*\"  ))                  # 7 act
+#g        filter (regex (?label , \"^[A-Z].*\"  ))                               # 64 act
+  
+ #     minus { ?commsu schema:about ?surname ; schema:isPartOf <https://commons.wikimedia.org/> .  }  
+ #     { ?surname   wdt:P407     wd:Q9043  .  }        # lingua norway
+
+      filter not exists { ?surname   wdt:P373   ?commcat  . }
+ 
+ 
+     { ?commper schema:about ?person ; schema:isPartOf <https://commons.wikimedia.org/> .  } 
+  
+   { ?person wdt:P569 ?birth .   }      # birth date
+# { ?person wdt:P570 ?death .   }      # death date
+  
+   { ?person   wdt:P31    wd:Q5 .   }       # é pessoa
+
+          { ?person   wdt:P734   ?surname .    }   union   # tem famyli name   <======
+          { ?person   wdt:P1950   ?surname .    }  union   # tem second famyli name   <======
+          { ?person   wdt:P9139   ?surname .    }         # tem first famyli name   <======
+  
+
+ #  ?person   wdt:P27     wd:Q183  .      # pais ou continente         ortugal   # /wdt:P361*  
+ #  ?person   wdt:P21    wd:Q6581072 .    # mulher
+ #  ?person   wdt:P373   ?commcatper .    # comm cat
+ #  ?person   wdt:P18    ?image .         # comm cat 
+    
   hint:Prior hint:rangeSafe true .    #???????
   #  tell the optimizer that fields doesn’t mix dates, strings, integers or other data types, which simplifies the range comparison
 

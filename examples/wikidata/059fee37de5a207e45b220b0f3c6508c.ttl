@@ -15,6 +15,27 @@
 PREFIX wd: <http://www.wikidata.org/entity/>
 #title:Proprietà mancanti
 SELECT ?type (COUNT(DISTINCT ?tipograf ) AS ?count) WHERE {
+  
+  ?tipograf wdt:P5323 wd:Q118466009; wdt:P106 ?attività.
+  values ?attività { wd:Q175151 wd:Q1229025 wd:Q998550 wd:Q2516866 wd:Q40881196 }
+  Optional {?tipograf wdt:P2031 ?din}.
+  Optional {?tipograf wdt:P2032 ?dfi}.
+  Optional {?tipograf wdt:P937  ?llav}.
+  BIND(IF(BOUND(?din) && BOUND(?dfi)&& BOUND(?llav),\"all\",     
+       IF(BOUND(?llav) && BOUND(?dfi),\"senza data di inizio\",
+       IF(BOUND(?din) && BOUND(?llav),\"senza data di fine\",
+       IF(BOUND(?dfi) && BOUND(?din),\"senza luogo di lavoro\",
+       IF(BOUND(?din),\"solo data di inizio\",
+       IF(BOUND(?dfi),\"solo data di fine\",
+       IF(BOUND(?llav),\"solo luogo di lavoro\",
+       \"none\"))))))) AS ?type)
+}
+GROUP BY ?type
+ORDER BY ?type""";
+  <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+#title:Proprietà mancanti
+SELECT ?type (COUNT(DISTINCT ?tipograf ) AS ?count) WHERE {
   hint:Query hint:optimizer \"Runtime\".
   ?tipograf wdt:P5323 wd:Q118466009; wdt:P106 ?attività.
   values ?attività { wd:Q175151 wd:Q1229025 wd:Q998550 wd:Q2516866 wd:Q40881196 }

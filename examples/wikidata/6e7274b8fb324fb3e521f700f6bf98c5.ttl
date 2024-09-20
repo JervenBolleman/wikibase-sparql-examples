@@ -24,6 +24,58 @@ SELECT
       (GROUP_CONCAT(DISTINCT     ?dateYear ; separator = \", \") AS     ?dateYears)
       (GROUP_CONCAT(DISTINCT  ?gameENLabel ; separator = \", \") AS  ?gameENLabels)
       WHERE {
+        
+        # test values
+        VALUES ?game {
+          wd:Q4850488    # Baldur's Gate III: The Black Hound (should have \"no value\" due to being cancelled)
+          wd:Q4931588    # Bob's Game (should have \"no value\" due to not being released yet)
+          wd:Q5315330    # Dunjonquest (1979)
+          wd:Q5250229    # Deep Labyrinth (should have multiple dates)
+          wd:Q1462499    # Starflight (1986, has multiple genres)
+          wd:Q23647080   # God Wars: Beyond Time (should have blank date since the property does not exist)
+        }
+              {?game wdt:P136 wd:Q744038}   # regular RPGs
+        UNION {?game wdt:P136 wd:Q1529437}  # tactical RPGs
+        UNION {?game wdt:P136 wd:Q1422746}  # action RPGs
+        UNION {?game wdt:P136 wd:Q1143132}  # roguelikes
+        ?game wdt:P31 wd:Q7889.             # instance of video game
+
+        ?game rdfs:label ?gameENLabel.
+        FILTER(LANG(?gameENLabel) = \"en\").  # we mainly want English labels
+
+
+        ?game p:P577 ?statementNode.
+        OPTIONAL {?statementNode ps:P577 ?date}
+        OPTIONAL {?statementNode rdf:type ?statementNodeType FILTER (?statementNodeType IN (wdno:P577))}
+        BIND(COALESCE(DATATYPE(?date) = xsd:dateTime  , false) as ?check1). # real date?
+        BIND(COALESCE((wdno:P577 = ?statementNodeType), false) as ?check2). # no value?
+        BIND(COALESCE(isBlank(?date)                  , false) as ?check3). # unknown?
+        BIND(IF(?check1, YEAR(?date), IF(?check2, \"no value\", IF(?check3, \"unknown\", \"error\"))) as ?dateYear).
+
+
+#        OPTIONAL {?game wdt:P577       ?date}
+#        ?game <http://www.wikidata.org/prop/P577> ?whaat.
+#        OPTIONAL {?whaat rdf:type ?typeOfStatementNode}
+#        BIND(IF(isBlank(?whaat), \"unknown value\", IF(?typeOfStatementNode = IRI(\"http://www.wikidata.org/prop/novalue/P577\"), \"no value\", YEAR(?date))) as ?dateYear).
+#        BIND(YEAR(?date) AS ?dateYear).    # faster substitute
+
+      }
+    GROUP BY $game
+    ORDER BY asc (?dateYears) ASC (?gameENLabels)
+    #limit 100""";
+  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT
+      #(MIN(?dateYear) AS     ?dateYears)
+      (GROUP_CONCAT(DISTINCT     ?dateYear ; separator = \", \") AS     ?dateYears)
+      (GROUP_CONCAT(DISTINCT  ?gameENLabel ; separator = \", \") AS  ?gameENLabels)
+      WHERE {
         hint:Query hint:optimizer \"None\".
         # test values
         VALUES ?game {
