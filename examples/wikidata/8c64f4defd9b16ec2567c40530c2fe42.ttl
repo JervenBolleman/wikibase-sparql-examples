@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-8c64f4defd9b16ec2567c40530c2fe42> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?wikipedia_articles ?wikiquote_articles
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?wikipedia_articles ?wikiquote_articles
 WITH
 {
   SELECT ?item (COUNT(DISTINCT ?wikipedia_article) AS ?wikipedia_articles)
@@ -30,9 +40,58 @@ WHERE
   INCLUDE %sub
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
 }
+ORDER BY DESC(?wikiquote_articles)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?wikipedia_articles ?wikiquote_articles
+
+WHERE
+{
+  {
+  SELECT ?item (COUNT(DISTINCT ?wikipedia_article) AS ?wikipedia_articles)
+        (COUNT(DISTINCT ?wikiquote_article) AS ?wikiquote_articles)
+  WHERE
+  {
+    ?item wdt:P31 wd:Q5.
+    ?item wdt:P106 wd:Q482980.
+    OPTIONAL {
+      ?wikipedia_article schema:about ?item.
+      ?wikipedia_article schema:isPartOf/wikibase:wikiGroup \"wikipedia\".
+    }
+    ?wikiquote_article schema:about ?item.
+    ?wikiquote_article schema:isPartOf/wikibase:wikiGroup \"wikiquote\".
+  }
+  GROUP BY ?item
+  HAVING (?wikiquote_articles > ?wikipedia_articles)
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+}
 ORDER BY DESC(?wikiquote_articles)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/03>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?wikipedia_articles ?wikiquote_articles
+WITH
+{
+  SELECT ?item (COUNT(DISTINCT ?wikipedia_article) AS ?wikipedia_articles)
+        (COUNT(DISTINCT ?wikiquote_article) AS ?wikiquote_articles)
+  WHERE
+  {
+    ?item wdt:P31 wd:Q5.
+    ?item wdt:P106 wd:Q482980.
+    OPTIONAL {
+      ?wikipedia_article schema:about ?item.
+      ?wikipedia_article schema:isPartOf/wikibase:wikiGroup \"wikipedia\".
+    }
+    ?wikiquote_article schema:about ?item.
+    ?wikiquote_article schema:isPartOf/wikibase:wikiGroup \"wikiquote\".
+  }
+  GROUP BY ?item
+  HAVING (?wikiquote_articles > ?wikipedia_articles)
+} AS %sub
+WHERE
+{
+  INCLUDE %sub
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+}
+ORDER BY DESC(?wikiquote_articles)""" .

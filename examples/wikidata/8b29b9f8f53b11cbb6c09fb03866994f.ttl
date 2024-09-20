@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-8b29b9f8f53b11cbb6c09fb03866994f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q87126473>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:film>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q87126473>
 
 SELECT
   ?score
@@ -34,9 +42,65 @@ WHERE {
   INCLUDE %films
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?score)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q87126473>
+
+SELECT
+  ?score
+
+  ?film ?filmLabel
+  (CONCAT(\"#film/\", SUBSTR(STR(?film), 32)) AS ?filmUrl)
+  ?filmDescription
+
+WHERE {
+  {
+  SELECT
+    (SUM(?score_) AS ?score)
+    ?film
+  WHERE {
+    { [] ^wdt:P161 ?film, target: }  # actor
+    UNION 
+    { [] ^wdt:P57 ?film, target: }  # director
+    
+    BIND(1 AS ?score_)
+    FILTER (target: != ?film)
+  }
+  GROUP BY ?film
+  ORDER BY DESC(?score)
+  LIMIT 500
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?score)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:film>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q87126473>
+
+SELECT
+  ?score
+
+  ?film ?filmLabel
+  (CONCAT(\"#film/\", SUBSTR(STR(?film), 32)) AS ?filmUrl)
+  ?filmDescription
+WITH {
+  SELECT
+    (SUM(?score_) AS ?score)
+    ?film
+  WHERE {
+    { [] ^wdt:P161 ?film, target: }  # actor
+    UNION 
+    { [] ^wdt:P57 ?film, target: }  # director
+    
+    BIND(1 AS ?score_)
+    FILTER (target: != ?film)
+  }
+  GROUP BY ?film
+  ORDER BY DESC(?score)
+  LIMIT 500
+} AS %films
+WHERE {
+  INCLUDE %films
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?score)""" .

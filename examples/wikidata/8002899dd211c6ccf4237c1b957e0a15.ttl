@@ -6,7 +6,14 @@
 
 <https://www.wikidata.org/#query-8002899dd211c6ccf4237c1b957e0a15> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?sitelinks
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?sitelinks
 WITH { SELECT ?item ?sitelinks WHERE {
   #Minimum sitelinks
   ?item wikibase:sitelinks ?sitelinks . hint:Prior hint:rangeSafe true .
@@ -19,9 +26,34 @@ WITH { SELECT ?item ?sitelinks WHERE {
 WHERE {
   INCLUDE %i
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE], en\" . }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?sitelinks
+
+WHERE {
+  { SELECT ?item ?sitelinks WHERE {
+  #Minimum sitelinks
+  ?item wikibase:sitelinks ?sitelinks . hint:Prior hint:rangeSafe true .
+  FILTER (?sitelinks > 20 )
+
+  #Random stuff
+  #BIND(RAND() AS ?random) . # Doesn't work
+  BIND(SHA512(CONCAT(STR(RAND()), STR(?item))) AS ?random) .
+} ORDER BY ?random LIMIT 100 }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE], en\" . }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/04>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?sitelinks
+WITH { SELECT ?item ?sitelinks WHERE {
+  #Minimum sitelinks
+  ?item wikibase:sitelinks ?sitelinks . hint:Prior hint:rangeSafe true .
+  FILTER (?sitelinks > 20 )
+
+  #Random stuff
+  #BIND(RAND() AS ?random) . # Doesn't work
+  BIND(SHA512(CONCAT(STR(RAND()), STR(?item))) AS ?random) .
+} ORDER BY ?random LIMIT 100 } AS %i
+WHERE {
+  INCLUDE %i
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE], en\" . }
+}""" .

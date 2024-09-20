@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-8485e1dac9c30bb3973b954f07f3363b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?number_of_corecipients ?award ?awardLabel
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MKar/Query>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?number_of_corecipients ?award ?awardLabel
  WITH {
      SELECT ?award (COUNT(?recipient) AS ?number_of_corecipients) WHERE {
     ?recipient wdt:P166 wd:Q6596243 .
@@ -19,9 +28,36 @@
      INCLUDE %result 
      SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }  
  }
+ ORDER BY DESC(?number_of_corecipients)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?number_of_corecipients ?award ?awardLabel
+ 
+ WHERE {
+     {
+     SELECT ?award (COUNT(?recipient) AS ?number_of_corecipients) WHERE {
+    ?recipient wdt:P166 wd:Q6596243 .
+	?recipient wdt:P166 ?award .
+			       FILTER (?award != wd:Q6596243)
+     }
+     GROUP BY ?award
+ } 
+     SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }  
+ }
  ORDER BY DESC(?number_of_corecipients)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MKar/Query>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?number_of_corecipients ?award ?awardLabel
+ WITH {
+     SELECT ?award (COUNT(?recipient) AS ?number_of_corecipients) WHERE {
+    ?recipient wdt:P166 wd:Q6596243 .
+	?recipient wdt:P166 ?award .
+			       FILTER (?award != wd:Q6596243)
+     }
+     GROUP BY ?award
+ } AS %result
+ WHERE {
+     INCLUDE %result 
+     SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }  
+ }
+ ORDER BY DESC(?number_of_corecipients)""" .

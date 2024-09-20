@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-8d7202e555d4b0257159485ed2bc0763> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?company ?companyLabel ?hqLocationLabel ?territorialEntityLabel
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?company ?companyLabel ?hqLocationLabel ?territorialEntityLabel
 WITH
 {
   SELECT ?company
@@ -25,9 +34,47 @@ WHERE
   ?territorialEntity wdt:P31 wd:Q35657 . # territorial entity is instance of 'state'
   
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?company ?companyLabel ?hqLocationLabel ?territorialEntityLabel
+
+
+WHERE 
+{    
+  {
+  SELECT ?company
+  WHERE
+  {
+    ?company wdt:P17 wd:Q30 .
+    FILTER (?company IN (wd:Q95, wd:Q37156)) #Google/IBM
+  }
+}
+  ?company wdt:P159 ?hqLocation . # company headquarted location
+  ?hqLocation wdt:P131+ ?territorialEntity . # located in territorial entity
+  ?territorialEntity wdt:P31 wd:Q35657 . # territorial entity is instance of 'state'
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/04>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?company ?companyLabel ?hqLocationLabel ?territorialEntityLabel
+WITH
+{
+  SELECT ?company
+  WHERE
+  {
+    ?company wdt:P17 wd:Q30 .
+    FILTER (?company IN (wd:Q95, wd:Q37156)) #Google/IBM
+  }
+} AS %sub
+
+WHERE 
+{    
+  INCLUDE %sub
+  ?company wdt:P159 ?hqLocation . # company headquarted location
+  ?hqLocation wdt:P131+ ?territorialEntity . # located in territorial entity
+  ?territorialEntity wdt:P31 wd:Q35657 . # territorial entity is instance of 'state'
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

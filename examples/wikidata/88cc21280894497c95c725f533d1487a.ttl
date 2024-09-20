@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-88cc21280894497c95c725f533d1487a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# ?item1 is human, have FAST ID and English label
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/05>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+# ?item1 is human, have FAST ID and English label
 # ?item2 is human and sitelink to ruwiki
 # ?item1 and ?item2 are born and died the same date
 SELECT ?item1 ?FAST_ID ?label_en ?birth ?death ?item2 ?ruwiki_sitelink
@@ -33,9 +42,63 @@ WHERE
   ?item2 wdt:P31 wd:Q5. #Human
   ?ruwiki_sitelink schema:about ?item2 .
   ?ruwiki_sitelink schema:isPartOf <https://ru.wikipedia.org/>.
+}""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+# ?item1 is human, have FAST ID and English label
+# ?item2 is human and sitelink to ruwiki
+# ?item1 and ?item2 are born and died the same date
+SELECT ?item1 ?FAST_ID ?label_en ?birth ?death ?item2 ?ruwiki_sitelink
+
+WHERE
+{
+  {
+  SELECT ?item1 ?FAST_ID ?label_en
+  WHERE
+  {
+    ?item1 wdt:P31 wd:Q5. #Human
+    ?item1 wdt:P2163 ?FAST_ID.
+    ?item1 rdfs:label ?label_en.
+    FILTER (LANG(?label_en) = \"en\")
+  }
+  LIMIT 1000
+}
+  ?item1 wdt:P569 ?birth.
+  ?item2 wdt:P569 ?birth.
+  ?item1 wdt:P570 ?death.
+  ?item2 wdt:P570 ?death.
+  FILTER (?item1 != ?item2)
+  ?item2 wdt:P31 wd:Q5. #Human
+  ?ruwiki_sitelink schema:about ?item2 .
+  ?ruwiki_sitelink schema:isPartOf <https://ru.wikipedia.org/>.
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/05>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """# ?item1 is human, have FAST ID and English label
+# ?item2 is human and sitelink to ruwiki
+# ?item1 and ?item2 are born and died the same date
+SELECT ?item1 ?FAST_ID ?label_en ?birth ?death ?item2 ?ruwiki_sitelink
+WITH
+{
+  SELECT ?item1 ?FAST_ID ?label_en
+  WHERE
+  {
+    ?item1 wdt:P31 wd:Q5. #Human
+    ?item1 wdt:P2163 ?FAST_ID.
+    ?item1 rdfs:label ?label_en.
+    FILTER (LANG(?label_en) = \"en\")
+  }
+  LIMIT 1000
+} AS %get_humans_with_FAST_ID
+WHERE
+{
+  INCLUDE %get_humans_with_FAST_ID
+  ?item1 wdt:P569 ?birth.
+  ?item2 wdt:P569 ?birth.
+  ?item1 wdt:P570 ?death.
+  ?item2 wdt:P570 ?death.
+  FILTER (?item1 != ?item2)
+  ?item2 wdt:P31 wd:Q5. #Human
+  ?ruwiki_sitelink schema:about ?item2 .
+  ?ruwiki_sitelink schema:isPartOf <https://ru.wikipedia.org/>.
+}""" .

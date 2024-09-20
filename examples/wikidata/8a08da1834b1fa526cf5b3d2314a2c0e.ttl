@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-8a08da1834b1fa526cf5b3d2314a2c0e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# Denkmale of the Bundesländer Denkmalliste currently in wikidata
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:1ucyp/Queries/Denkmale_of_the_Bundesl%C3%A4nder_Denkmalliste_currently_in_wikidata>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Denkmale of the Bundesländer Denkmalliste currently in wikidata
 SELECT ?Denkmal ?DenkmalLabel ?property ?propertyLabel ?jurisdiction ?jurisdictionLabel ?coord
 WITH {
   SELECT ?property ?propertyLabel ?jurisdiction ?jurisdictionLabel ?wdt WHERE {
@@ -30,9 +40,59 @@ WHERE {
       bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de\".
       ?Denkmal rdfs:label ?DenkmalLabel.
     }  
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Denkmale of the Bundesländer Denkmalliste currently in wikidata
+SELECT ?Denkmal ?DenkmalLabel ?property ?propertyLabel ?jurisdiction ?jurisdictionLabel ?coord
+
+WHERE {
+  {
+  SELECT ?property ?propertyLabel ?jurisdiction ?jurisdictionLabel ?wdt WHERE {
+    ?property a wikibase:Property;
+              wdt:P31 wd:Q18618628; 
+              wdt:P17 wd:Q183;
+              wikibase:directClaim ?wdt.
+    OPTIONAL { ?property wdt:P1001 ?jurisdiction. }
+    SERVICE wikibase:label {
+      bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+      ?property rdfs:label ?propertyLabel.
+      ?jurisdiction rdfs:label ?jurisdictionLabel.
+    }
+  }
+}.
+  ?Denkmal ?wdt ?id.
+  OPTIONAL { ?Denkmal wdt:P625 ?coord. } 
+    SERVICE wikibase:label {
+      bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de\".
+      ?Denkmal rdfs:label ?DenkmalLabel.
+    }  
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:1ucyp/Queries/Denkmale_of_the_Bundesl%C3%A4nder_Denkmalliste_currently_in_wikidata>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """# Denkmale of the Bundesländer Denkmalliste currently in wikidata
+SELECT ?Denkmal ?DenkmalLabel ?property ?propertyLabel ?jurisdiction ?jurisdictionLabel ?coord
+WITH {
+  SELECT ?property ?propertyLabel ?jurisdiction ?jurisdictionLabel ?wdt WHERE {
+    ?property a wikibase:Property;
+              wdt:P31 wd:Q18618628; 
+              wdt:P17 wd:Q183;
+              wikibase:directClaim ?wdt.
+    OPTIONAL { ?property wdt:P1001 ?jurisdiction. }
+    SERVICE wikibase:label {
+      bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+      ?property rdfs:label ?propertyLabel.
+      ?jurisdiction rdfs:label ?jurisdictionLabel.
+    }
+  }
+} AS %properties
+WHERE {
+  INCLUDE %properties.
+  ?Denkmal ?wdt ?id.
+  OPTIONAL { ?Denkmal wdt:P625 ?coord. } 
+    SERVICE wikibase:label {
+      bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de\".
+      ?Denkmal rdfs:label ?DenkmalLabel.
+    }  
+}""" .

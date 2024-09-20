@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-86e53e585d756d941e2d0a429677d29b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:AreaChart
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+#defaultView:AreaChart
 SELECT
   (str(?y) as ?year)
   # (COUNT(DISTINCT ?f) as ?count_f) (COUNT(DISTINCT ?m) as ?count_m) (COUNT(DISTINCT ?item) as ?count_all)
@@ -30,8 +40,27 @@ WHERE
 }
 GROUP BY ?y
 ORDER BY ?y""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/07>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#defaultView:AreaChart
+SELECT
+  (str(?y) as ?year)
+  # (COUNT(DISTINCT ?f) as ?count_f) (COUNT(DISTINCT ?m) as ?count_m) (COUNT(DISTINCT ?item) as ?count_all)
+  ( ROUND( COUNT(DISTINCT ?f) / COUNT(DISTINCT ?item) * 100) as ?pc_f) 
+WITH
+{
+   SELECT DISTINCT ?y { [] wdt:P5176 [] ; wdt:P1181 ?y . FILTER(?y > 1970 && ?y < 2021 )  }
+} as %yy  
+WHERE 
+{
+  INCLUDE %yy
+  hint:Query hint:optimizer \"None\".
+  ?pos ps:P39 wd:Q10655178 .
+  ?pos pq:P580 ?start .
+  OPTIONAL { ?pos pq:P582 ?end }
+  BIND( COALESCE( YEAR(?end), YEAR(NOW()) ) as ?yend) 
+  FILTER( ?y >= YEAR(?start) && ?y <= ?yend ) 
+  ?item p:P39 ?pos .
+  OPTIONAL { ?item wdt:P21 wd:Q6581097 . BIND(?item as ?m) }
+  OPTIONAL { ?item wdt:P21 wd:Q6581072 . BIND(?item as ?f) }
+}
+GROUP BY ?y
+ORDER BY ?y""" .

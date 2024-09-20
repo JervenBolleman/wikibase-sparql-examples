@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-8df54be60bfed2460da536f388d8dec9> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?letter1 ?letter2 ?count (?count / ?total * 100 AS ?pct)
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?letter1 ?letter2 ?count (?count / ?total * 100 AS ?pct)
 WITH
 {
   SELECT ?letter1 ?letter2 (COUNT(*) AS ?count)
@@ -46,9 +56,114 @@ WHERE
   INCLUDE %letters
   INCLUDE %total
 }
+ORDER BY DESC(?count)""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?letter1 ?letter2 ?count (?count / ?total * 100 AS ?pct)
+
+WITH
+{
+  SELECT (SUM(?count) AS ?total)
+  WHERE
+  {
+    {
+  SELECT ?letter1 ?letter2 (COUNT(*) AS ?count)
+  WHERE
+  {
+    ?item wdt:P31 wd:Q5 . # Humans
+    VALUES ?countries { wd:Q38 wd:Q238 }. # Italy + San Marino
+    ?item wdt:P27 ?countries . # Italians
+    ?item wdt:P21 wd:Q6581097 . # male
+   # ?item wdt:P21 wd:Q6581072 . # female
+
+    ?item p:P735 ?name1_statement . # Given name
+    ?name1_statement ps:P735 / wdt:P1705 ?name1 . # Native label for name
+    OPTIONAL { ?name1_statement pq:P1545 ?ordinal1 . }
+    FILTER (! BOUND(?ordinal1) || ?ordinal1 = \"1\") # Use the only name (no ordinal value) or name #1
+
+    ?item p:P734 ?name2_statement . # Family name
+    ?name2_statement ps:P734 / wdt:P1705 ?name2 . # Native label for name
+    OPTIONAL { ?name2_statement pq:P1545 ?ordinal2 . }
+    FILTER (! BOUND(?ordinal2) || ?ordinal2 = \"1\") # Use the only name (no ordinal value) or name #1
+
+    BIND (SUBSTR(STR(?name1), STRLEN(?name1)) AS ?letter1)
+    BIND (SUBSTR(STR(?name2), STRLEN(?name2)) AS ?letter2)
+  }
+  GROUP BY ?letter1 ?letter2
+}
+  }
+} AS %total
+WHERE
+{
+  {
+  SELECT ?letter1 ?letter2 (COUNT(*) AS ?count)
+  WHERE
+  {
+    ?item wdt:P31 wd:Q5 . # Humans
+    VALUES ?countries { wd:Q38 wd:Q238 }. # Italy + San Marino
+    ?item wdt:P27 ?countries . # Italians
+    ?item wdt:P21 wd:Q6581097 . # male
+   # ?item wdt:P21 wd:Q6581072 . # female
+
+    ?item p:P735 ?name1_statement . # Given name
+    ?name1_statement ps:P735 / wdt:P1705 ?name1 . # Native label for name
+    OPTIONAL { ?name1_statement pq:P1545 ?ordinal1 . }
+    FILTER (! BOUND(?ordinal1) || ?ordinal1 = \"1\") # Use the only name (no ordinal value) or name #1
+
+    ?item p:P734 ?name2_statement . # Family name
+    ?name2_statement ps:P734 / wdt:P1705 ?name2 . # Native label for name
+    OPTIONAL { ?name2_statement pq:P1545 ?ordinal2 . }
+    FILTER (! BOUND(?ordinal2) || ?ordinal2 = \"1\") # Use the only name (no ordinal value) or name #1
+
+    BIND (SUBSTR(STR(?name1), STRLEN(?name1)) AS ?letter1)
+    BIND (SUBSTR(STR(?name2), STRLEN(?name2)) AS ?letter2)
+  }
+  GROUP BY ?letter1 ?letter2
+}
+  INCLUDE %total
+}
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/09>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?letter1 ?letter2 ?count (?count / ?total * 100 AS ?pct)
+WITH
+{
+  SELECT ?letter1 ?letter2 (COUNT(*) AS ?count)
+  WHERE
+  {
+    ?item wdt:P31 wd:Q5 . # Humans
+    VALUES ?countries { wd:Q38 wd:Q238 }. # Italy + San Marino
+    ?item wdt:P27 ?countries . # Italians
+    ?item wdt:P21 wd:Q6581097 . # male
+   # ?item wdt:P21 wd:Q6581072 . # female
+
+    ?item p:P735 ?name1_statement . # Given name
+    ?name1_statement ps:P735 / wdt:P1705 ?name1 . # Native label for name
+    OPTIONAL { ?name1_statement pq:P1545 ?ordinal1 . }
+    FILTER (! BOUND(?ordinal1) || ?ordinal1 = \"1\") # Use the only name (no ordinal value) or name #1
+
+    ?item p:P734 ?name2_statement . # Family name
+    ?name2_statement ps:P734 / wdt:P1705 ?name2 . # Native label for name
+    OPTIONAL { ?name2_statement pq:P1545 ?ordinal2 . }
+    FILTER (! BOUND(?ordinal2) || ?ordinal2 = \"1\") # Use the only name (no ordinal value) or name #1
+
+    BIND (SUBSTR(STR(?name1), STRLEN(?name1)) AS ?letter1)
+    BIND (SUBSTR(STR(?name2), STRLEN(?name2)) AS ?letter2)
+  }
+  GROUP BY ?letter1 ?letter2
+} AS %letters
+WITH
+{
+  SELECT (SUM(?count) AS ?total)
+  WHERE
+  {
+    INCLUDE %letters
+  }
+} AS %total
+WHERE
+{
+  INCLUDE %letters
+  INCLUDE %total
+}
+ORDER BY DESC(?count)""" .

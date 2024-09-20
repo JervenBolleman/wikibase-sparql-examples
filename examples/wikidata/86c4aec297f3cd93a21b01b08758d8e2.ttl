@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-86c4aec297f3cd93a21b01b08758d8e2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# Get median year for discovery of elements
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Get median year for discovery of elements
 SELECT ?item ?itemLabel ?year ?lower_or_equal_values ?higher_or_equal_values
 WITH
 {
@@ -49,8 +58,46 @@ WHERE
 }
 ORDER BY ?lower_or_equal_values
 LIMIT 1""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/07>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """# Get median year for discovery of elements
+SELECT ?item ?itemLabel ?year ?lower_or_equal_values ?higher_or_equal_values
+WITH
+{
+  SELECT ?item ?year
+  WHERE
+  {
+    ?item wdt:P31 wd:Q11344 .
+    ?item wdt:P575 ?time_of_discovery .
+    BIND (YEAR(?time_of_discovery) AS ?year)        
+  }
+} AS %data_set
+WITH
+{
+  SELECT ?item ?year (COUNT(?year2) AS ?lower_or_equal_values)
+  WHERE
+  {
+    INCLUDE %data_set
+    { SELECT (?year AS ?year2) WHERE { INCLUDE %data_set } }
+    FILTER (?year2 <= ?year)
+  }
+  GROUP BY ?item ?year
+} AS %lower_or_equal_values
+WITH
+{
+  SELECT ?item ?year (COUNT(?year2) AS ?higher_or_equal_values)
+  WHERE
+  {
+    INCLUDE %data_set
+    { SELECT (?year AS ?year2) WHERE { INCLUDE %data_set } }
+    FILTER (?year2 >= ?year)
+  }
+  GROUP BY ?item ?year
+} AS %higher_or_equal_values
+WHERE
+{
+  INCLUDE %lower_or_equal_values
+  INCLUDE %higher_or_equal_values
+  FILTER (?higher_or_equal_values <= ?lower_or_equal_values)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ORDER BY ?lower_or_equal_values
+LIMIT 1""" .

@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-89865c0dbdef4f503a816c2ee71e8586> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# US governors by eye color
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/US_governors_by_eye_color>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# US governors by eye color
 #defaultView:Map{ \"hide\": [\"?rgb\", \"?shape\"] }
 SELECT ?state ?stateLabel ?governor ?governorLabel ?eyeColor ?eyeColorLabel (?eyeColorRgb AS ?rgb) ?shape
 WITH {
@@ -26,9 +35,50 @@ WHERE {
             wdt:P1340 ?eyeColor.
   INCLUDE %eyeColorsRgb.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# US governors by eye color
+#defaultView:Map{ \"hide\": [\"?rgb\", \"?shape\"] }
+SELECT ?state ?stateLabel ?governor ?governorLabel ?eyeColor ?eyeColorLabel (?eyeColorRgb AS ?rgb) ?shape
+
+WHERE {
+  ?state wdt:P31 wd:Q35657;
+         wdt:P6 ?governor;
+         wdt:P3896 ?shape.
+  ?governor wdt:P31 wd:Q5;
+            wdt:P1340 ?eyeColor.
+  {
+  SELECT ?eyeColor (SAMPLE(?eyeColorRgb) AS ?eyeColorRgb) WHERE {
+    [] wdt:P1340 ?eyeColor.
+    OPTIONAL { ?eyeColor wdt:P465 ?eyeColorDirectRgb. }
+    OPTIONAL { ?eyeColor wdt:P462/wdt:P465 ?eyeColorIndirectRgb. }
+    BIND(COALESCE(?eyeColorDirectRgb, ?eyeColorIndirectRgb) AS ?eyeColorRgb)
+  }
+  GROUP BY ?eyeColor
+}.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/US_governors_by_eye_color>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """# US governors by eye color
+#defaultView:Map{ \"hide\": [\"?rgb\", \"?shape\"] }
+SELECT ?state ?stateLabel ?governor ?governorLabel ?eyeColor ?eyeColorLabel (?eyeColorRgb AS ?rgb) ?shape
+WITH {
+  SELECT ?eyeColor (SAMPLE(?eyeColorRgb) AS ?eyeColorRgb) WHERE {
+    [] wdt:P1340 ?eyeColor.
+    OPTIONAL { ?eyeColor wdt:P465 ?eyeColorDirectRgb. }
+    OPTIONAL { ?eyeColor wdt:P462/wdt:P465 ?eyeColorIndirectRgb. }
+    BIND(COALESCE(?eyeColorDirectRgb, ?eyeColorIndirectRgb) AS ?eyeColorRgb)
+  }
+  GROUP BY ?eyeColor
+} AS %eyeColorsRgb
+WHERE {
+  ?state wdt:P31 wd:Q35657;
+         wdt:P6 ?governor;
+         wdt:P3896 ?shape.
+  ?governor wdt:P31 wd:Q5;
+            wdt:P1340 ?eyeColor.
+  INCLUDE %eyeColorsRgb.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

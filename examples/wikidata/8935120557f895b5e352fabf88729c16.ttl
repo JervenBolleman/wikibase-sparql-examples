@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-8935120557f895b5e352fabf88729c16> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q115325270>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:lexemedescriptor>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q115325270>
 
 SELECT 
   (?lexemes AS ?overlapping_lexemes)
@@ -34,9 +43,66 @@ WHERE {
   ?example_lexeme wikibase:lemma ?example_lexemeLabel ;
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?lexemes)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q115325270>
+
+SELECT 
+  (?lexemes AS ?overlapping_lexemes)
+
+  ?descriptor ?descriptorLabel
+  (CONCAT(\"#lexemedescriptor/\", SUBSTR(STR(?descriptor), 32)) AS ?descriptorUrl)
+  ?descriptorDescription
+
+  ?example_lexeme ?example_lexemeLabel
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?lexeme), 32)) AS ?lexemeUrl)
+
+WHERE {
+  {
+  SELECT
+    (COUNT(?lexeme) AS ?lexemes)
+    ?descriptor
+    (SAMPLE(?lexeme) AS ?example_lexeme)
+  WHERE {
+    ?lexeme wdt:P1343 target:, ?descriptor ;
+            dct:language [] .
+    FILTER (target: != ?descriptor)
+  }
+  GROUP BY ?descriptor
+}
+  ?example_lexeme wikibase:lemma ?example_lexemeLabel ;
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?lexemes)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:lexemedescriptor>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q115325270>
+
+SELECT 
+  (?lexemes AS ?overlapping_lexemes)
+
+  ?descriptor ?descriptorLabel
+  (CONCAT(\"#lexemedescriptor/\", SUBSTR(STR(?descriptor), 32)) AS ?descriptorUrl)
+  ?descriptorDescription
+
+  ?example_lexeme ?example_lexemeLabel
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?lexeme), 32)) AS ?lexemeUrl)
+WITH {
+  SELECT
+    (COUNT(?lexeme) AS ?lexemes)
+    ?descriptor
+    (SAMPLE(?lexeme) AS ?example_lexeme)
+  WHERE {
+    ?lexeme wdt:P1343 target:, ?descriptor ;
+            dct:language [] .
+    FILTER (target: != ?descriptor)
+  }
+  GROUP BY ?descriptor
+} AS %descriptors
+WHERE {
+  INCLUDE %descriptors
+  ?example_lexeme wikibase:lemma ?example_lexemeLabel ;
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?lexemes)""" .

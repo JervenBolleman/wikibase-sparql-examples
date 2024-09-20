@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-855a16792b947dc39769c776ff7d808d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#title:Identifiers and count of manuscripts
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Manuscripts/Data_Model>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+#title:Identifiers and count of manuscripts
 SELECT ?id ?idlabel (COUNT(?item) AS ?count) WITH {
   SELECT DISTINCT ?item WHERE {
     ?item wdt:P31/wdt:P279* wd:Q87167.
@@ -17,9 +26,32 @@ SELECT ?id ?idlabel (COUNT(?item) AS ?count) WITH {
   ?item ?p [ ?ps ?value ] .
   ?id rdfs:label ?idlabel FILTER (lang(?idlabel) = \"en\").
 } GROUP BY ?id ?idlabel
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+#title:Identifiers and count of manuscripts
+SELECT ?id ?idlabel (COUNT(?item) AS ?count)  WHERE {
+  {
+  SELECT DISTINCT ?item WHERE {
+    ?item wdt:P31/wdt:P279* wd:Q87167.
+  }
+} .
+  ?id wikibase:propertyType wikibase:ExternalId; wikibase:claim ?p; wikibase:statementProperty ?ps.
+  ?item ?p [ ?ps ?value ] .
+  ?id rdfs:label ?idlabel FILTER (lang(?idlabel) = \"en\").
+} GROUP BY ?id ?idlabel
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Manuscripts/Data_Model>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#title:Identifiers and count of manuscripts
+SELECT ?id ?idlabel (COUNT(?item) AS ?count) WITH {
+  SELECT DISTINCT ?item WHERE {
+    ?item wdt:P31/wdt:P279* wd:Q87167.
+  }
+} AS %subquery WHERE {
+  INCLUDE %subquery .
+  ?id wikibase:propertyType wikibase:ExternalId; wikibase:claim ?p; wikibase:statementProperty ?ps.
+  ?item ?p [ ?ps ?value ] .
+  ?id rdfs:label ?idlabel FILTER (lang(?idlabel) = \"en\").
+} GROUP BY ?id ?idlabel
+ORDER BY DESC(?count)""" .
