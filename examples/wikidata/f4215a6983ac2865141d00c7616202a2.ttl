@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-f4215a6983ac2865141d00c7616202a2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?isni ?isniLink ?gnd ?gndLink ?loc ?locLink
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Project_chat/Archive/2018/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?isni ?isniLink ?gnd ?gndLink ?loc ?locLink
 WITH {
   SELECT ?item ?itemLabel ?isni ?gnd ?loc WHERE {
     ?item wdt:P31 wd:Q5 .
@@ -30,9 +39,58 @@ WITH {
   BIND(IRI(REPLACE(?gndFormatterUrl, \"\\\\$1\", ?gnd)) AS ?gndLink)
   BIND(IRI(REPLACE(?locFormatterUrl, \"\\\\$1\", ?loc)) AS ?locLink)
 }
+ORDER BY DESC(?gnd) DESC(?loc)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?isni ?isniLink ?gnd ?gndLink ?loc ?locLink
+
+WITH {
+  SELECT * WHERE {
+    wd:P213 wdt:P1630 ?isniFormatterUrl.
+    wd:P227 wdt:P1630 ?gndFormatterUrl.
+    wd:P244 wdt:P1630 ?locFormatterUrl.
+  }
+} AS %urls WHERE {
+  {
+  SELECT ?item ?itemLabel ?isni ?gnd ?loc WHERE {
+    ?item wdt:P31 wd:Q5 .
+    ?item wdt:P213 ?isni .
+    MINUS {?item wdt:P214 [] .}
+    OPTIONAL {?item wdt:P227 ?gnd.}
+    OPTIONAL {?item wdt:P244 ?loc.}
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+  }
+}.
+  INCLUDE %urls.
+  BIND(IRI(REPLACE(?isniFormatterUrl, \"\\\\$1\", ?isni)) AS ?isniLink)
+  BIND(IRI(REPLACE(?gndFormatterUrl, \"\\\\$1\", ?gnd)) AS ?gndLink)
+  BIND(IRI(REPLACE(?locFormatterUrl, \"\\\\$1\", ?loc)) AS ?locLink)
+}
 ORDER BY DESC(?gnd) DESC(?loc)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Project_chat/Archive/2018/04>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?isni ?isniLink ?gnd ?gndLink ?loc ?locLink
+WITH {
+  SELECT ?item ?itemLabel ?isni ?gnd ?loc WHERE {
+    ?item wdt:P31 wd:Q5 .
+    ?item wdt:P213 ?isni .
+    MINUS {?item wdt:P214 [] .}
+    OPTIONAL {?item wdt:P227 ?gnd.}
+    OPTIONAL {?item wdt:P244 ?loc.}
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+  }
+} AS %results
+WITH {
+  SELECT * WHERE {
+    wd:P213 wdt:P1630 ?isniFormatterUrl.
+    wd:P227 wdt:P1630 ?gndFormatterUrl.
+    wd:P244 wdt:P1630 ?locFormatterUrl.
+  }
+} AS %urls WHERE {
+  INCLUDE %results.
+  INCLUDE %urls.
+  BIND(IRI(REPLACE(?isniFormatterUrl, \"\\\\$1\", ?isni)) AS ?isniLink)
+  BIND(IRI(REPLACE(?gndFormatterUrl, \"\\\\$1\", ?gnd)) AS ?gndLink)
+  BIND(IRI(REPLACE(?locFormatterUrl, \"\\\\$1\", ?loc)) AS ?locLink)
+}
+ORDER BY DESC(?gnd) DESC(?loc)""" .

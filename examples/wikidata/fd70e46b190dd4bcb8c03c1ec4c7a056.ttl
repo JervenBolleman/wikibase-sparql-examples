@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-fd70e46b190dd4bcb8c03c1ec4c7a056> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:Graph
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:actor>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Graph
 PREFIX target: <http://www.wikidata.org/entity/Q294647>
 
 SELECT DISTINCT
@@ -29,9 +37,55 @@ WITH {
 WHERE {
   INCLUDE %actors
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Graph
+PREFIX target: <http://www.wikidata.org/entity/Q294647>
+
+SELECT DISTINCT
+  ?actor1 ?actor1Label
+  ?actor2 ?actor2Label
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(?film) AS ?films)
+    ?actor1
+    ?actor2
+  WHERE {
+    ?film wdt:P161 target:, ?actor1, ?actor2 .
+    FILTER (target: != ?actor1)
+    FILTER (target: != ?actor2)
+    FILTER (?actor1 != ?actor2)
+  }
+  GROUP BY ?actor1 ?actor2
+  HAVING (?films > 1)
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:actor>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#defaultView:Graph
+PREFIX target: <http://www.wikidata.org/entity/Q294647>
+
+SELECT DISTINCT
+  ?actor1 ?actor1Label
+  ?actor2 ?actor2Label
+WITH {
+  SELECT 
+    (COUNT(?film) AS ?films)
+    ?actor1
+    ?actor2
+  WHERE {
+    ?film wdt:P161 target:, ?actor1, ?actor2 .
+    FILTER (target: != ?actor1)
+    FILTER (target: != ?actor2)
+    FILTER (?actor1 != ?actor2)
+  }
+  GROUP BY ?actor1 ?actor2
+  HAVING (?films > 1)
+} AS %actors
+WHERE {
+  INCLUDE %actors
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-fa410ce7d086d5ecd6062cf66dad89a5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:BubbleChart
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:publisher>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:BubbleChart
 
 PREFIX target: <http://www.wikidata.org/entity/Q7894897>
 
@@ -27,9 +35,51 @@ WHERE {
   INCLUDE %languages
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?works)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:BubbleChart
+
+PREFIX target: <http://www.wikidata.org/entity/Q7894897>
+
+SELECT 
+  ?works
+  ?language ?languageLabel
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(?work) AS ?works)
+    ?language
+  WHERE {
+    ?work wdt:P123 target: ;
+          wdt:P407 ?language .
+  }
+  GROUP BY ?language
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?works)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:publisher>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#defaultView:BubbleChart
+
+PREFIX target: <http://www.wikidata.org/entity/Q7894897>
+
+SELECT 
+  ?works
+  ?language ?languageLabel
+WITH {
+  SELECT 
+    (COUNT(?work) AS ?works)
+    ?language
+  WHERE {
+    ?work wdt:P123 target: ;
+          wdt:P407 ?language .
+  }
+  GROUP BY ?language
+} AS %languages
+WHERE {
+  INCLUDE %languages
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?works)""" .

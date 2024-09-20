@@ -6,7 +6,20 @@
 
 <https://www.wikidata.org/#query-fd2be44196aafeb17640b7089399997b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:Map{\"hide\":\"?rgb\"}
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Herzi_Pinki/Sparql/Coordinate_Me>,
+    <https://www.wikidata.org//wiki/User:Herzi_Pinki/Sparql>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map{\"hide\":\"?rgb\"}
 SELECT ?item ?itemLabel ?itemDescription (GROUP_CONCAT(DISTINCT ?whereLabel; SEPARATOR=', ') AS ?whereLabels) (SAMPLE(?image) AS ?image) ?coord ?rgb ?layer WITH {
   SELECT DISTINCT ?item WHERE {
     ?item wdt:P17|wdt:P131* wd:Q684847 .
@@ -28,10 +41,57 @@ SELECT ?item ?itemLabel ?itemDescription (GROUP_CONCAT(DISTINCT ?whereLabel; SEP
   BIND(IF(EXISTS { ?item p:P18 [] }, '0000ff', 'ff0000') AS ?rgb) .
   BIND(IF(EXISTS { ?item p:P18 [] }, 'With image', 'Without image') AS ?layer) .
   SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE,de,en]' }
+} GROUP BY ?item ?itemLabel ?itemDescription ?whereLabels ?coord ?rgb ?layer ORDER BY ASC(?item)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map{\"hide\":\"?rgb\"}
+SELECT ?item ?itemLabel ?itemDescription (GROUP_CONCAT(DISTINCT ?whereLabel; SEPARATOR=', ') AS ?whereLabels) (SAMPLE(?image) AS ?image) ?coord ?rgb ?layer  WHERE {
+  {
+  SELECT DISTINCT ?item WHERE {
+    ?item wdt:P17|wdt:P131* wd:Q684847 .
+  }
+} .
+  ?item wdt:P31 [] .
+  ?item p:P625 ?coordStatement .
+  ?coordStatement ps:P625 ?coord .
+  OPTIONAL {
+    ?item wdt:P131 ?where .
+    OPTIONAL {
+      ?where rdfs:label ?whereLiteral .
+      FILTER(LANG(?whereLiteral) = 'de') .
+    }
+  }
+  BIND(IF(BOUND(?where), IF(BOUND(?whereLiteral), ?whereLiteral, STRAFTER(STR(?where), 'entity/')), 'no P131') AS ?whereLabel) .
+  OPTIONAL { ?item wdt:P18 ?image }
+  BIND(IF(EXISTS { ?item p:P18 [] }, '0000ff', 'ff0000') AS ?rgb) .
+  BIND(IF(EXISTS { ?item p:P18 [] }, 'With image', 'Without image') AS ?layer) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE,de,en]' }
 } GROUP BY ?item ?itemLabel ?itemDescription ?whereLabels ?coord ?rgb ?layer ORDER BY ASC(?item)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Herzi_Pinki/Sparql/Coordinate_Me>,
-    <https://www.wikidata.org//wiki/User:Herzi_Pinki/Sparql>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#defaultView:Map{\"hide\":\"?rgb\"}
+SELECT ?item ?itemLabel ?itemDescription (GROUP_CONCAT(DISTINCT ?whereLabel; SEPARATOR=', ') AS ?whereLabels) (SAMPLE(?image) AS ?image) ?coord ?rgb ?layer WITH {
+  SELECT DISTINCT ?item WHERE {
+    ?item wdt:P17|wdt:P131* wd:Q684847 .
+  }
+} AS %subquery1 WHERE {
+  INCLUDE %subquery1 .
+  ?item wdt:P31 [] .
+  ?item p:P625 ?coordStatement .
+  ?coordStatement ps:P625 ?coord .
+  OPTIONAL {
+    ?item wdt:P131 ?where .
+    OPTIONAL {
+      ?where rdfs:label ?whereLiteral .
+      FILTER(LANG(?whereLiteral) = 'de') .
+    }
+  }
+  BIND(IF(BOUND(?where), IF(BOUND(?whereLiteral), ?whereLiteral, STRAFTER(STR(?where), 'entity/')), 'no P131') AS ?whereLabel) .
+  OPTIONAL { ?item wdt:P18 ?image }
+  BIND(IF(EXISTS { ?item p:P18 [] }, '0000ff', 'ff0000') AS ?rgb) .
+  BIND(IF(EXISTS { ?item p:P18 [] }, 'With image', 'Without image') AS ?layer) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE,de,en]' }
+} GROUP BY ?item ?itemLabel ?itemDescription ?whereLabels ?coord ?rgb ?layer ORDER BY ASC(?item)""" .

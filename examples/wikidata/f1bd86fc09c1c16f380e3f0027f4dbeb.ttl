@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-f1bd86fc09c1c16f380e3f0027f4dbeb> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?item ?gender ?country ?occupation
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+SELECT DISTINCT ?item ?gender ?country ?occupation
 WITH { SELECT ?country WHERE { wd:Q72829598 wdt:P527+ ?country . } } AS %get_countries  
 WHERE
 {
@@ -29,9 +37,55 @@ WHERE
   {
     [] schema:about ?item ; schema:isPartOf <https://es.wikipedia.org/> .
   }
+}""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+SELECT DISTINCT ?item ?gender ?country ?occupation
+  
+WHERE
+{
+  ?item wdt:P31 wd:Q5 . # humans
+  VALUES ?gender { wd:Q6581072 wd:Q1052281 wd:Q48270 }
+  ?item wdt:P21 ?gender .
+  { SELECT ?country WHERE { wd:Q72829598 wdt:P527+ ?country . } }
+  ?item wdt:P27 ?country .
+  ?item wdt:P106 ?occupation .
+  {
+    ?occupation wdt:P279* wd:Q483501 .
+    hint:Prior hint:gearing \"forward\" .
+  }
+  UNION
+  {
+    ?occupation wdt:P279* wd:Q482980 .
+    hint:Prior hint:gearing \"forward\" .
+  }
+  FILTER NOT EXISTS
+  {
+    [] schema:about ?item ; schema:isPartOf <https://es.wikipedia.org/> .
+  }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/01>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?gender ?country ?occupation
+WITH { SELECT ?country WHERE { wd:Q72829598 wdt:P527+ ?country . } } AS %get_countries  
+WHERE
+{
+  ?item wdt:P31 wd:Q5 . # humans
+  VALUES ?gender { wd:Q6581072 wd:Q1052281 wd:Q48270 }
+  ?item wdt:P21 ?gender .
+  INCLUDE %get_countries
+  ?item wdt:P27 ?country .
+  ?item wdt:P106 ?occupation .
+  {
+    ?occupation wdt:P279* wd:Q483501 .
+    hint:Prior hint:gearing \"forward\" .
+  }
+  UNION
+  {
+    ?occupation wdt:P279* wd:Q482980 .
+    hint:Prior hint:gearing \"forward\" .
+  }
+  FILTER NOT EXISTS
+  {
+    [] schema:about ?item ; schema:isPartOf <https://es.wikipedia.org/> .
+  }
+}""" .

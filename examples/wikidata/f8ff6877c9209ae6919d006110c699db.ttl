@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-f8ff6877c9209ae6919d006110c699db> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """select distinct ?item ?itemLabel ?iata ?icao ?instanceLabel with {select ?item (count(distinct ?instance) as ?ic)  WHERE {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+select distinct ?item ?itemLabel ?iata ?icao ?instanceLabel with {select ?item (count(distinct ?instance) as ?ic)  WHERE {
   ?item wdt:P31/wdt:P279* wd:Q1248784.
   ?item wdt:P31 ?instance.
   } group by ?item } as %i where {
@@ -21,8 +30,18 @@
   minus {?item wdt:P576 ?date.}   
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
 } order by ?itemLabel""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/08>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """select distinct ?item ?itemLabel ?iata ?icao ?instanceLabel with {select ?item (count(distinct ?instance) as ?ic)  WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q1248784.
+  ?item wdt:P31 ?instance.
+  } group by ?item } as %i where {
+  include %i
+  filter (?ic >1)
+  optional {?item wdt:P31 ?instance.}
+  optional {?item wdt:P238 ?iata .}
+  optional {?item wdt:P239 ?icao .}
+  minus {?item wdt:P31 wd:Q1311670.}
+  minus {?item wdt:P31 wd:Q7373622.}
+  minus {?item wdt:P31 wd:Q502074.}
+  minus {?item wdt:P576 ?date.}   
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} order by ?itemLabel""" .

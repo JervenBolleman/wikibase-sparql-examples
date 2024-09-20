@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-fb1683b6e5690c695cf47cf312b55d96> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#title: Habitats and habitat types by number of species, with examples
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Ecology>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#title: Habitats and habitat types by number of species, with examples
 SELECT 
   DISTINCT 
   ?type ?typeLabel 
@@ -26,9 +35,50 @@ WHERE {
 }
 GROUP BY ?type ?typeLabel ?count ?sample ?sampleLabel 
 ORDER BY DESC(?count)
+LIMIT 200""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#title: Habitats and habitat types by number of species, with examples
+SELECT 
+  DISTINCT 
+  ?type ?typeLabel 
+  ?count ?sample ?sampleLabel
+
+WHERE {
+  {
+  SELECT DISTINCT ?type (COUNT(?item_) AS ?count) (SAMPLE(?item_) AS ?sample)  
+  WHERE {
+    ?item_ wdt:P2974 ?habitat .
+    ?item_ wdt:P105 wd:Q7432 .
+    ?habitat wdt:P31|wdt:P279 ?type .
+  }
+  GROUP BY ?type ?count ?sample
+} 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }  
+}
+GROUP BY ?type ?typeLabel ?count ?sample ?sampleLabel 
+ORDER BY DESC(?count)
 LIMIT 200""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Ecology>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#title: Habitats and habitat types by number of species, with examples
+SELECT 
+  DISTINCT 
+  ?type ?typeLabel 
+  ?count ?sample ?sampleLabel
+WITH {
+  SELECT DISTINCT ?type (COUNT(?item_) AS ?count) (SAMPLE(?item_) AS ?sample)  
+  WHERE {
+    ?item_ wdt:P2974 ?habitat .
+    ?item_ wdt:P105 wd:Q7432 .
+    ?habitat wdt:P31|wdt:P279 ?type .
+  }
+  GROUP BY ?type ?count ?sample
+} AS %items
+WHERE {
+  INCLUDE %items 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }  
+}
+GROUP BY ?type ?typeLabel ?count ?sample ?sampleLabel 
+ORDER BY DESC(?count)
+LIMIT 200""" .

@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-f9acd927f4e382edfea0e930c10f4178> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#title:Most common properties (excluding external ids) for a type of item on a given Wikipedia
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+#title:Most common properties (excluding external ids) for a type of item on a given Wikipedia
 SELECT ?id (COUNT(DISTINCT ?item)*100/?total AS ?percent) # ?idlabel
 WITH { SELECT $WIKIPEDIA $TYPE WHERE {
   VALUES $WIKIPEDIA  { <https://ary.wikipedia.org/> }
@@ -33,8 +43,30 @@ WHERE {
 } GROUP BY ?id ?total # ?idlabel
 ORDER BY DESC(?percent)
 LIMIT 20""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/10>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#title:Most common properties (excluding external ids) for a type of item on a given Wikipedia
+SELECT ?id (COUNT(DISTINCT ?item)*100/?total AS ?percent) # ?idlabel
+WITH { SELECT $WIKIPEDIA $TYPE WHERE {
+  VALUES $WIKIPEDIA  { <https://ary.wikipedia.org/> }
+  VALUES $TYPE { wd:Q5398426 }
+  } } AS %constants
+WITH {
+ SELECT ?item WHERE {
+  INCLUDE %constants
+  ?item wdt:P31/wdt:P279? $TYPE .
+   ?arwp schema:about ?item ; schema:isPartOf $WIKIPEDIA
+ } } AS %list
+WITH { SELECT (COUNT(?item) AS ?total) WHERE {
+  INCLUDE %constants
+  ?item wdt:P31/wdt:P279? $TYPE .
+   ?arwp schema:about ?item ; schema:isPartOf $WIKIPEDIA
+ } } AS %total
+WHERE {
+  include %list .
+  include %total .
+  ?item ?p [] .
+  ?id wikibase:claim ?p FILTER(?id != wd:P31).
+  MINUS { ?id wikibase:propertyType wikibase:ExternalId }
+ #  ?id rdfs:label ?idlabel FILTER (lang(?idlabel) = \"en\")
+} GROUP BY ?id ?total # ?idlabel
+ORDER BY DESC(?percent)
+LIMIT 20""" .

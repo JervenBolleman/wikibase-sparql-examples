@@ -6,7 +6,18 @@
 
 <https://www.wikidata.org/#query-fc3d5ef6054cc89ee90881a0a888b651> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:Map{\"hide\":\"?rgb\"}
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Herzi_Pinki/Sparql>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map{\"hide\":\"?rgb\"}
 #title:items in Austria with #countries (border check)
 SELECT ?item ?itemLabel ?itemDescription ?coord ?anz ?rgb ?layer WITH {
   SELECT DISTINCT ?item (COUNT(DISTINCT ?country) as ?anz) WHERE {
@@ -25,9 +36,50 @@ SELECT ?item ?itemLabel ?itemDescription ?coord ?anz ?rgb ?layer WITH {
   BIND(IF(?anz = 1, '60ff60', 'ff0000') AS ?rgb) .
   BIND(IF(?anz = 1, 'inside (single P17)', 'border (multiple P17)') AS ?layer) .
   SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE,de,en]' }
+} GROUP BY ?item ?itemLabel ?itemDescription ?coord ?anz ?rgb ?layer""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map{\"hide\":\"?rgb\"}
+#title:items in Austria with #countries (border check)
+SELECT ?item ?itemLabel ?itemDescription ?coord ?anz ?rgb ?layer  WHERE {
+  {
+  SELECT DISTINCT ?item (COUNT(DISTINCT ?country) as ?anz) WHERE {
+    ?item wdt:P17 wd:Q40 . #16
+    #?item wdt:P131*/wdt:P279* wd:Q1973 .
+    ?item wdt:P31 wd:Q8502 .
+    ?item wdt:P625 [] .
+    ?item wdt:P17 ?country .
+  }
+  GROUP BY ?item
+} .
+  ?item wdt:P31 [] .
+  ?item p:P625 ?coordStatement .
+  ?coordStatement ps:P625 ?coord .
+  BIND(IF(?anz = 1, '60ff60', 'ff0000') AS ?rgb) .
+  BIND(IF(?anz = 1, 'inside (single P17)', 'border (multiple P17)') AS ?layer) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE,de,en]' }
 } GROUP BY ?item ?itemLabel ?itemDescription ?coord ?anz ?rgb ?layer""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Herzi_Pinki/Sparql>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#defaultView:Map{\"hide\":\"?rgb\"}
+#title:items in Austria with #countries (border check)
+SELECT ?item ?itemLabel ?itemDescription ?coord ?anz ?rgb ?layer WITH {
+  SELECT DISTINCT ?item (COUNT(DISTINCT ?country) as ?anz) WHERE {
+    ?item wdt:P17 wd:Q40 . #16
+    #?item wdt:P131*/wdt:P279* wd:Q1973 .
+    ?item wdt:P31 wd:Q8502 .
+    ?item wdt:P625 [] .
+    ?item wdt:P17 ?country .
+  }
+  GROUP BY ?item
+} AS %subquery1 WHERE {
+  INCLUDE %subquery1 .
+  ?item wdt:P31 [] .
+  ?item p:P625 ?coordStatement .
+  ?coordStatement ps:P625 ?coord .
+  BIND(IF(?anz = 1, '60ff60', 'ff0000') AS ?rgb) .
+  BIND(IF(?anz = 1, 'inside (single P17)', 'border (multiple P17)') AS ?layer) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE,de,en]' }
+} GROUP BY ?item ?itemLabel ?itemDescription ?coord ?anz ?rgb ?layer""" .

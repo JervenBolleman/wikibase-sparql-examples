@@ -6,7 +6,14 @@
 
 <https://www.wikidata.org/#query-ffe8da5e2b317f160654f54d9de48748> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?unit ?count ?real_unit ?real_unitLabel
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Contact_the_development_team/Query_Service_and_search/Archive/2020/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?unit ?count ?real_unit ?real_unitLabel
 WITH
 {
   SELECT ?unit (COUNT(?unit) AS ?count)
@@ -23,9 +30,41 @@ WHERE
   FILTER (! BOUND(?sitelinks))
   BIND (IRI(REPLACE(STR(?unit), \"P\", \"Q\")) AS ?real_unit)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?unit ?count ?real_unit ?real_unitLabel
+
+WHERE
+{
+  {
+  SELECT ?unit (COUNT(?unit) AS ?count)
+  WHERE
+  { 
+    ?value wikibase:quantityUnit ?unit .
+  }
+  GROUP BY (?unit)
+}
+  OPTIONAL { ?unit wikibase:sitelinks ?sitelinks . }
+  FILTER (! BOUND(?sitelinks))
+  BIND (IRI(REPLACE(STR(?unit), \"P\", \"Q\")) AS ?real_unit)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Contact_the_development_team/Query_Service_and_search/Archive/2020/04>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?unit ?count ?real_unit ?real_unitLabel
+WITH
+{
+  SELECT ?unit (COUNT(?unit) AS ?count)
+  WHERE
+  { 
+    ?value wikibase:quantityUnit ?unit .
+  }
+  GROUP BY (?unit)
+} AS %get_all_units
+WHERE
+{
+  INCLUDE %get_all_units
+  OPTIONAL { ?unit wikibase:sitelinks ?sitelinks . }
+  FILTER (! BOUND(?sitelinks))
+  BIND (IRI(REPLACE(STR(?unit), \"P\", \"Q\")) AS ?real_unit)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}""" .

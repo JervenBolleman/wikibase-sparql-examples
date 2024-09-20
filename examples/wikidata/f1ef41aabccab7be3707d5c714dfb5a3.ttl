@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-f1ef41aabccab7be3707d5c714dfb5a3> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?vymezeni ?vymezeni2 ?vymezeni3 (group_concat(?nkcr; separator=\", \") as ?nkcr_ids) (COUNT(?nkcr) as ?itemcount) WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Czech_Republic/Strategick%C3%A9_spolupr%C3%A1ce/N%C3%A1rodn%C3%AD_knihovna_%C4%8CR/NK/Validace_dat>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?item ?vymezeni ?vymezeni2 ?vymezeni3 (group_concat(?nkcr; separator=\", \") as ?nkcr_ids) (COUNT(?nkcr) as ?itemcount) WITH {
 
 SELECT * WHERE {
   ?item p:P691 ?statement .
@@ -23,8 +33,20 @@ WHERE {
 
 GROUP BY ?item ?vymezeni ?vymezeni2 ?vymezeni3
 HAVING(?itemcount>1)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Czech_Republic/Strategick%C3%A9_spolupr%C3%A1ce/N%C3%A1rodn%C3%AD_knihovna_%C4%8CR/NK/Validace_dat>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?vymezeni ?vymezeni2 ?vymezeni3 (group_concat(?nkcr; separator=\", \") as ?nkcr_ids) (COUNT(?nkcr) as ?itemcount) WITH {
+
+SELECT * WHERE {
+  ?item p:P691 ?statement .
+  ?statement ps:P691 ?nkcr ; wikibase:rank ?rank filter(?rank != wikibase:DeprecatedRank).
+} } as %items 
+
+WHERE {
+  include %items
+  optional {?statement pq:P1810 ?vymezeni .}
+  optional {?statement pq:P407 ?vymezeni2 .}
+  optional {?statement pq:P518 ?vymezeni3 .}
+  minus {?statement pq:P3831 wd:Q1263068 .}
+ } 
+
+GROUP BY ?item ?vymezeni ?vymezeni2 ?vymezeni3
+HAVING(?itemcount>1)""" .

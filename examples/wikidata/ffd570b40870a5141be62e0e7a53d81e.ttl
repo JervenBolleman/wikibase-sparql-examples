@@ -6,7 +6,19 @@
 
 <https://www.wikidata.org/#query-ffd570b40870a5141be62e0e7a53d81e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?country ?countryLabel ?item ?itemLabel ?level ?expected ?found ?samenumber
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_Country_subdivision/Items>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?country ?countryLabel ?item ?itemLabel ?level ?expected ?found ?samenumber
 WITH {
   SELECT ?item ?expected ?country ?level (COUNT(DISTINCT ?place) AS ?found) {
     ?item wdt:P279* ?acs ; wdt:P17 ?country.
@@ -27,9 +39,55 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
   BIND(IF(?expected = ?found, \"✓\", \"✘\") AS ?samenumber).
 } 
+ORDER BY ?countryLabel ?level DESC(?expected) ?itemLabel""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?country ?countryLabel ?item ?itemLabel ?level ?expected ?found ?samenumber
+
+WHERE {
+  {
+  SELECT ?item ?expected ?country ?level (COUNT(DISTINCT ?place) AS ?found) {
+    ?item wdt:P279* ?acs ; wdt:P17 ?country.
+    FILTER NOT EXISTS { ?country wdt:P576 [] }
+    ?acs p:P279 [ ps:P279 wd:Q1799794 ; pq:P1545 ?level ] .
+    
+    OPTIONAL { ?item wdt:P1114 ?expected }    
+    OPTIONAL { 
+      ?place p:P31 ?placeStatement .
+      ?placeStatement ps:P31 ?item.
+      FILTER NOT EXISTS { ?placeStatement wdt:P582 [] }
+    }  
+  } 
+  GROUP BY ?item ?expected ?country ?level
+}.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  BIND(IF(?expected = ?found, \"✓\", \"✘\") AS ?samenumber).
+} 
 ORDER BY ?countryLabel ?level DESC(?expected) ?itemLabel""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_Country_subdivision/Items>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?country ?countryLabel ?item ?itemLabel ?level ?expected ?found ?samenumber
+WITH {
+  SELECT ?item ?expected ?country ?level (COUNT(DISTINCT ?place) AS ?found) {
+    ?item wdt:P279* ?acs ; wdt:P17 ?country.
+    FILTER NOT EXISTS { ?country wdt:P576 [] }
+    ?acs p:P279 [ ps:P279 wd:Q1799794 ; pq:P1545 ?level ] .
+    
+    OPTIONAL { ?item wdt:P1114 ?expected }    
+    OPTIONAL { 
+      ?place p:P31 ?placeStatement .
+      ?placeStatement ps:P31 ?item.
+      FILTER NOT EXISTS { ?placeStatement wdt:P582 [] }
+    }  
+  } 
+  GROUP BY ?item ?expected ?country ?level
+} AS %subdivisions
+WHERE {
+  include %subdivisions.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  BIND(IF(?expected = ?found, \"✓\", \"✘\") AS ?samenumber).
+} 
+ORDER BY ?countryLabel ?level DESC(?expected) ?itemLabel""" .

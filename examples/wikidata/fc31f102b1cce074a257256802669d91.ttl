@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-fc31f102b1cce074a257256802669d91> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# Most common classes for \"depicts\" (P180) on Commons
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Most common classes for \"depicts\" (P180) on Commons
 SELECT (SUM(?count) AS ?sum) ?class ?class_label (SAMPLE(?value) AS ?instance) (SAMPLE(?value_label) AS ?instance_label) (SAMPLE(?example) AS ?sample)
 
 WITH { 
@@ -29,9 +37,55 @@ WHERE {
       OPTIONAL {?class rdfs:label ?class_label FILTER (lang(?class_label) = 'en') } .
     }
 } GROUP BY ?class ?class_label 
+ORDER BY DESC(?sum)""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Most common classes for \"depicts\" (P180) on Commons
+SELECT (SUM(?count) AS ?sum) ?class ?class_label (SAMPLE(?value) AS ?instance) (SAMPLE(?value_label) AS ?instance_label) (SAMPLE(?example) AS ?sample)
+
+
+ 
+WHERE {
+    { 
+  SELECT (COUNT(DISTINCT(?file)) AS ?count) ?value (SAMPLE(?file) AS ?example) WHERE {
+     service bd:sample {
+       ?file wdt:P180 ?value . 
+        bd:serviceParam bd:sample.limit 1000 .
+        bd:serviceParam bd:sample.sampleType \"RANDOM\" .
+     }  
+  } GROUP BY ?value
+  ORDER BY DESC(?count)
+#  LIMIT 2000           
+} .
+    service <https://query.wikidata.org/sparql> {
+      ?value wdt:P31 ?class
+      OPTIONAL {?value rdfs:label ?value_label FILTER (lang(?value_label) = 'en') } .
+      OPTIONAL {?class rdfs:label ?class_label FILTER (lang(?class_label) = 'en') } .
+    }
+} GROUP BY ?class ?class_label 
 ORDER BY DESC(?sum)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/04>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """# Most common classes for \"depicts\" (P180) on Commons
+SELECT (SUM(?count) AS ?sum) ?class ?class_label (SAMPLE(?value) AS ?instance) (SAMPLE(?value_label) AS ?instance_label) (SAMPLE(?example) AS ?sample)
+
+WITH { 
+  SELECT (COUNT(DISTINCT(?file)) AS ?count) ?value (SAMPLE(?file) AS ?example) WHERE {
+     service bd:sample {
+       ?file wdt:P180 ?value . 
+        bd:serviceParam bd:sample.limit 1000 .
+        bd:serviceParam bd:sample.sampleType \"RANDOM\" .
+     }  
+  } GROUP BY ?value
+  ORDER BY DESC(?count)
+#  LIMIT 2000           
+} AS %values
+ 
+WHERE {
+    INCLUDE %values .
+    service <https://query.wikidata.org/sparql> {
+      ?value wdt:P31 ?class
+      OPTIONAL {?value rdfs:label ?value_label FILTER (lang(?value_label) = 'en') } .
+      OPTIONAL {?class rdfs:label ?class_label FILTER (lang(?class_label) = 'en') } .
+    }
+} GROUP BY ?class ?class_label 
+ORDER BY DESC(?sum)""" .
