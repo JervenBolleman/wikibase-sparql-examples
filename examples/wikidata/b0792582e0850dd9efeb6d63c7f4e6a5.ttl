@@ -6,7 +6,14 @@
 
 <https://www.wikidata.org/#query-b0792582e0850dd9efeb6d63c7f4e6a5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?song ?female_name ?title (LANG(?title) AS ?title_language) ?note
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT ?song ?female_name ?title (LANG(?title) AS ?title_language) ?note
 WITH
 {
   SELECT DISTINCT ?song ?title
@@ -30,9 +37,61 @@ WITH
     ?female_name wdt:P31 wd:Q11879590 . hint:Prior hint:runLast true. 
     BIND (\"match one to multiple\" AS ?note)
   }
+}""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT ?song ?female_name ?title (LANG(?title) AS ?title_language) ?note
+
+{
+  {
+    {
+  SELECT DISTINCT ?song ?title
+  {
+    ?song wdt:P31 / wdt:P279 * wd:Q105543609 .
+    ?song wdt:P1476 ?title .
+  }
+}
+    ?female_name wdt:P1705 ?title .
+    ?female_name wdt:P31 wd:Q11879590 .
+  }
+  UNION
+  {
+    {
+  SELECT DISTINCT ?song ?title
+  {
+    ?song wdt:P31 / wdt:P279 * wd:Q105543609 .
+    ?song wdt:P1476 ?title .
+  }
+}
+    FILTER (LANG(?title) != \"mul\")
+    BIND (STRLANG(STR(?title), \"mul\") AS ?title_mul)
+    ?female_name wdt:P1705 ?title_mul .
+    ?female_name wdt:P31 wd:Q11879590 . hint:Prior hint:runLast true. 
+    BIND (\"match one to multiple\" AS ?note)
+  }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/09>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?song ?female_name ?title (LANG(?title) AS ?title_language) ?note
+WITH
+{
+  SELECT DISTINCT ?song ?title
+  {
+    ?song wdt:P31 / wdt:P279 * wd:Q105543609 .
+    ?song wdt:P1476 ?title .
+  }
+} AS %songs
+{
+  {
+    INCLUDE %songs
+    ?female_name wdt:P1705 ?title .
+    ?female_name wdt:P31 wd:Q11879590 .
+  }
+  UNION
+  {
+    INCLUDE %songs
+    FILTER (LANG(?title) != \"mul\")
+    BIND (STRLANG(STR(?title), \"mul\") AS ?title_mul)
+    ?female_name wdt:P1705 ?title_mul .
+    ?female_name wdt:P31 wd:Q11879590 . hint:Prior hint:runLast true. 
+    BIND (\"match one to multiple\" AS ?note)
+  }
+}""" .

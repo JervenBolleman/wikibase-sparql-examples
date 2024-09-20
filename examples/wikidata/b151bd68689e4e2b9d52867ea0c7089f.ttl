@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-b151bd68689e4e2b9d52867ea0c7089f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?mdod with 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?mdod with 
 { select DISTINCT ?item WHERE 
   {
     ?item wdt:P31/wdt:P279* ?pq . 
@@ -30,8 +40,27 @@ where
   FILTER(?mdod < \"1918-01-01T00:00:01\"^^xsd:dateTime) .
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/01>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?mdod with 
+{ select DISTINCT ?item WHERE 
+  {
+    ?item wdt:P31/wdt:P279* ?pq . 
+    VALUES ?pq { wd:Q386724  wd:Q42848 } 
+    ?item wdt:P577 ?dop . 
+    hint:Prior hint:rangeSafe true .
+    FILTER (?dop < \"1924-01-01T00:00:01\"^^xsd:dateTime)
+    FILTER (?dop > \"1800-01-01T00:00:01\"^^xsd:dateTime)
+    FILTER NOT EXISTS { ?item wdt:P6216 [] }  
+  } } as %i with {
+select ?item (max(?dod) as ?mdod) where  
+{
+  include %i  
+  ?item wdt:P50|wdt:P170|wdt:P655|wdt:P84|wdt:P110|wdt:P287 ?creator .
+  ?creator wdt:P570 ?dod .
+} group by ?item  } as %j
+where
+{
+  include %j
+  hint:Prior hint:rangeSafe true .
+  FILTER(?mdod < \"1918-01-01T00:00:01\"^^xsd:dateTime) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

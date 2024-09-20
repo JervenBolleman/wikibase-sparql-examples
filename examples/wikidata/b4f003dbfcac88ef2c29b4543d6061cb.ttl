@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-b4f003dbfcac88ef2c29b4543d6061cb> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
   DISTINCT 
   ?item ?itemLabel ?sitelinks
 WITH {
@@ -23,9 +32,44 @@ WHERE {
 }
 GROUP BY ?item ?itemLabel ?sitelinks
 ORDER BY DESC(?sitelinks)
+LIMIT 200""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
+  DISTINCT 
+  ?item ?itemLabel ?sitelinks
+
+WHERE {
+  {
+  SELECT DISTINCT ?item ?sitelinks
+  WHERE {
+    ?item wdt:P6104 wd:Q56241615 .  
+    ?item wikibase:sitelinks ?sitelinks.
+  }
+  GROUP BY ?item ?sitelinks
+} 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }  
+}
+GROUP BY ?item ?itemLabel ?sitelinks
+ORDER BY DESC(?sitelinks)
 LIMIT 200""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT 
+  DISTINCT 
+  ?item ?itemLabel ?sitelinks
+WITH {
+  SELECT DISTINCT ?item ?sitelinks
+  WHERE {
+    ?item wdt:P6104 wd:Q56241615 .  
+    ?item wikibase:sitelinks ?sitelinks.
+  }
+  GROUP BY ?item ?sitelinks
+} AS %items
+WHERE {
+  INCLUDE %items 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }  
+}
+GROUP BY ?item ?itemLabel ?sitelinks
+ORDER BY DESC(?sitelinks)
+LIMIT 200""" .

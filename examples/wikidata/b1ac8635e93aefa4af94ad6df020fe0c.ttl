@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-b1ac8635e93aefa4af94ad6df020fe0c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?palace ?palaceLabel (SAMPLE(?P18_image) AS ?image_from_Wikidata) (SAMPLE(?Commons_image) AS ?image_from_Commons) ?coords
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?palace ?palaceLabel (SAMPLE(?P18_image) AS ?image_from_Wikidata) (SAMPLE(?Commons_image) AS ?image_from_Commons) ?coords
 WITH
 {
   SELECT ?palace ?palaceLabel ?P18_image ?coords
@@ -27,9 +35,50 @@ WHERE
   INCLUDE %get_items
   OPTIONAL { ?Commons_image wdt:P180 ?palace. }
 }
+GROUP BY ?palace ?palaceLabel ?coords""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?palace ?palaceLabel (SAMPLE(?P18_image) AS ?image_from_Wikidata) (SAMPLE(?Commons_image) AS ?image_from_Commons) ?coords
+
+WHERE
+{
+  {
+  SELECT ?palace ?palaceLabel ?P18_image ?coords
+  WHERE
+  {
+    SERVICE <https://query.wikidata.org/sparql>
+    {
+      ?palace wdt:P31 wd:Q16560;
+              wdt:P17 wd:Q45.
+      OPTIONAL { ?palace wdt:P625 ?coords. }
+      OPTIONAL { ?palace wdt:P18 ?P18_image. }
+      OPTIONAL { ?palace rdfs:label ?palaceLabel. FILTER (LANG(?palaceLabel) = \"pt\") }
+    }
+  }
+}
+  OPTIONAL { ?Commons_image wdt:P180 ?palace. }
+}
 GROUP BY ?palace ?palaceLabel ?coords""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/10>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?palace ?palaceLabel (SAMPLE(?P18_image) AS ?image_from_Wikidata) (SAMPLE(?Commons_image) AS ?image_from_Commons) ?coords
+WITH
+{
+  SELECT ?palace ?palaceLabel ?P18_image ?coords
+  WHERE
+  {
+    SERVICE <https://query.wikidata.org/sparql>
+    {
+      ?palace wdt:P31 wd:Q16560;
+              wdt:P17 wd:Q45.
+      OPTIONAL { ?palace wdt:P625 ?coords. }
+      OPTIONAL { ?palace wdt:P18 ?P18_image. }
+      OPTIONAL { ?palace rdfs:label ?palaceLabel. FILTER (LANG(?palaceLabel) = \"pt\") }
+    }
+  }
+} AS %get_items
+WHERE
+{
+  INCLUDE %get_items
+  OPTIONAL { ?Commons_image wdt:P180 ?palace. }
+}
+GROUP BY ?palace ?palaceLabel ?coords""" .

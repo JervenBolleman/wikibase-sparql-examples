@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-bf646367cdf2ba4a0d7ba5388c3657cf> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:Graph
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+#defaultView:Graph
 SELECT DISTINCT ?item ?itemLabel ?link ?rgb 
 WITH {
   SELECT DISTINCT ?item ?itemLabel ?link
@@ -34,9 +43,66 @@ WHERE {
   }
   # The idea is to highlight DBs linked from Wikidata, but that does not seem to work
   BIND(IF(BOUND(?property),\"FFA500\",\"\") AS ?rgb).
+}""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+#defaultView:Graph
+SELECT DISTINCT ?item ?itemLabel ?link ?rgb 
+
+WHERE {
+  {
+  SELECT DISTINCT ?item ?itemLabel ?link
+  WHERE {
+    VALUES ?toggle {
+      \"true\"^^xsd:boolean
+      \"false\"^^xsd:boolean
+    }
+    ?item1 (wdt:P31/(wdt:P279*)) wd:Q55341040;
+      wdt:P10568 ?item2;
+      rdfs:label ?item1Label.
+    ?item2 rdfs:label ?item2Label.
+    FILTER((LANG(?itemLabel)) = \"en\")
+    FILTER((LANG(?item2Label)) = \"en\")
+    # I saw that in the examples, no idea whether that’s really necessary instead of SELECTing ?item1 and ?item2
+    BIND(IF(?toggle, ?item1, ?item2) AS ?item)
+    BIND(IF(?toggle, ?item1Label, ?item2Label) AS ?itemLabel)
+    BIND(IF(?toggle, \"\", ?item1) AS ?link)
+  }
+}
+  OPTIONAL {
+    ?item wdt:P1687 ?property.
+  }
+  # The idea is to highlight DBs linked from Wikidata, but that does not seem to work
+  BIND(IF(BOUND(?property),\"FFA500\",\"\") AS ?rgb).
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/11>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#defaultView:Graph
+SELECT DISTINCT ?item ?itemLabel ?link ?rgb 
+WITH {
+  SELECT DISTINCT ?item ?itemLabel ?link
+  WHERE {
+    VALUES ?toggle {
+      \"true\"^^xsd:boolean
+      \"false\"^^xsd:boolean
+    }
+    ?item1 (wdt:P31/(wdt:P279*)) wd:Q55341040;
+      wdt:P10568 ?item2;
+      rdfs:label ?item1Label.
+    ?item2 rdfs:label ?item2Label.
+    FILTER((LANG(?itemLabel)) = \"en\")
+    FILTER((LANG(?item2Label)) = \"en\")
+    # I saw that in the examples, no idea whether that’s really necessary instead of SELECTing ?item1 and ?item2
+    BIND(IF(?toggle, ?item1, ?item2) AS ?item)
+    BIND(IF(?toggle, ?item1Label, ?item2Label) AS ?itemLabel)
+    BIND(IF(?toggle, \"\", ?item1) AS ?link)
+  }
+} AS %items
+WHERE {
+  INCLUDE %items
+  OPTIONAL {
+    ?item wdt:P1687 ?property.
+  }
+  # The idea is to highlight DBs linked from Wikidata, but that does not seem to work
+  BIND(IF(BOUND(?property),\"FFA500\",\"\") AS ?rgb).
+}""" .

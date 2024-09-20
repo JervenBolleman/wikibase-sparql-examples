@@ -6,7 +6,14 @@
 
 <https://www.wikidata.org/#query-b7aee6a90c583710ee4f4e8bb46bd93c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX      dbpprop:  <http://dbpedia.org/property/>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Salgo60/ListeriaNobelData3>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX      dbpprop:  <http://dbpedia.org/property/>
 PREFIX      foaf:  <http://xmlns.com/foaf/0.1/>
 SELECT ?NobelId ?item ?LaureateNobelUri ?NobelBirth  ?WDBirth ?NobelDeath ?WDDeath 
 with
@@ -43,8 +50,40 @@ with
   )
 }
  order by desc(xsd:integer(?NobelId))""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Salgo60/ListeriaNobelData3>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX      dbpprop:  <http://dbpedia.org/property/>
+PREFIX      foaf:  <http://xmlns.com/foaf/0.1/>
+SELECT ?NobelId ?item ?LaureateNobelUri ?NobelBirth  ?WDBirth ?NobelDeath ?WDDeath 
+with
+{SELECT ?NobelId ?item ?LaureateNobelUri ?NobelBirth ?NobelDeath ?WDBirth ?WDDeath{
+  SERVICE <http://data.nobelprize.org/sparql>  {
+      SELECT distinct ?NobelId ?LaureateNobelUri ?NobelBirth ?NobelDeath ?NobelGender WHERE {        
+      ?LaureateNobelUri <http://data.nobelprize.org/terms/laureateAward> ?NobelAwardid.
+      BIND(REPLACE(str(?LaureateNobelUri),\"http://data.nobelprize.org/resource/laureate/\",\"\") AS ?NobelId)
+      OPTIONAL{ ?LaureateNobelUri foaf:birthday ?NobelBirth}
+      OPTIONAL{ ?LaureateNobelUri dbpprop:dateOfDeath ?NobelDeath}
+      }
+   }
+  } 
+ } as %i where
+{
+  include %i
+  ?item wdt:P2888 ?LaureateNobelUri . 
+  OPTIONAL{ ?item wdt:P569 ?birthDate.}
+  OPTIONAL{ ?item wdt:P570 ?diedDate.}
+  BIND (SUBSTR(CONCAT(\"0\",STR(DAY(?birthDate))),STRLEN(STR(DAY(?birthDate))),2) AS ?birthDay)
+  BIND (SUBSTR(CONCAT(\"0\",STR(MONTH(?birthDate))),STRLEN(STR(MONTH(?birthDate))),2) AS ?birthMonth)
+  BIND (CONCAT(STR(YEAR(?birthDate)),\"-\",?birthMonth,\"-\",?birthDay) AS ?WDBirth)
+  BIND (SUBSTR(CONCAT(\"0\",STR(DAY(?diedDate))),STRLEN(STR(DAY(?diedDate))),2) AS ?diedDay)
+  BIND (SUBSTR(CONCAT(\"0\",STR(MONTH(?diedDate))),STRLEN(STR(MONTH(?diedDate))),2) AS ?diedMonth)
+  BIND (CONCAT(STR(YEAR(?diedDate)),\"-\",?diedMonth,\"-\",?diedDay) AS ?WDDeath)
+  FILTER (
+        !(BOUND(?NobelBirth) = BOUND(?WDBirth))
+    ||
+        !(BOUND(?NobelDeath) = BOUND(?WDDeath))
+    ||
+        !(str(?WDBirth) = str(?NobelBirth))
+    ||
+        !(str(?WDDeath) = str(?NobelDeath))
+  )
+}
+ order by desc(xsd:integer(?NobelId))""" .

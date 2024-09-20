@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-bd008f9b0789b3d8b8b8a5daadaae861> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?property ?propertyLabel ?items ?statements
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Informatics/Software/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?property ?propertyLabel ?items ?statements
 WITH {
   SELECT DISTINCT ?item WHERE {
     { ?item wdt:P1324 ?sourcecode . }
@@ -30,8 +38,27 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 }
 ORDER BY DESC(?statements)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Informatics/Software/Queries>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?property ?propertyLabel ?items ?statements
+WITH {
+  SELECT DISTINCT ?item WHERE {
+    { ?item wdt:P1324 ?sourcecode . }
+    UNION
+    { ?item wdt:P277 ?proglang . }
+  }
+  LIMIT 200000
+  } AS %items 
+WITH {
+  SELECT DISTINCT ?property (COUNT(DISTINCT ?item) AS ?items) (COUNT(*) AS ?statements) WHERE {
+  INCLUDE %items.
+    ?item ?p [ ] .
+    ?property a wikibase:Property;
+                wikibase:claim ?p.
+  }
+  GROUP BY ?property 
+  } AS %results 
+WHERE {
+  INCLUDE %results.
+  FILTER (?statements > 50)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY DESC(?statements)""" .

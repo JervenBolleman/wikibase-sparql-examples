@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-bb249f372992ac8dafa265b3a94d9583> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?parlLabel ?parl_start ?item ?itemLabel ?dob 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?parlLabel ?parl_start ?item ?itemLabel ?dob 
   WITH {
     SELECT ?item ?parl ?dob WHERE {
         ?item wdt:P39 ?parl .
@@ -25,9 +34,54 @@ WHERE {
   ?parl wdt:P571 ?parl_start .
       
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} ORDER BY ?parl_start""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?parlLabel ?parl_start ?item ?itemLabel ?dob 
+  
+
+WHERE {
+  {
+    SELECT ?parl (MAX(?dob) AS ?dob) WHERE {
+      {
+    SELECT ?item ?parl ?dob WHERE {
+        ?item wdt:P39 ?parl .
+        ?parl wdt:P279 wd:Q16707842 .
+        ?item wdt:P569 ?dob .
+    }
+  } .
+    } GROUP BY ?parl
+  }
+  {
+    SELECT ?item ?parl ?dob WHERE {
+        ?item wdt:P39 ?parl .
+        ?parl wdt:P279 wd:Q16707842 .
+        ?item wdt:P569 ?dob .
+    }
+  } .
+  ?parl wdt:P571 ?parl_start .
+      
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 } ORDER BY ?parl_start""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/02>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?parlLabel ?parl_start ?item ?itemLabel ?dob 
+  WITH {
+    SELECT ?item ?parl ?dob WHERE {
+        ?item wdt:P39 ?parl .
+        ?parl wdt:P279 wd:Q16707842 .
+        ?item wdt:P569 ?dob .
+    }
+  } AS %sub_query_results
+
+WHERE {
+  {
+    SELECT ?parl (MAX(?dob) AS ?dob) WHERE {
+      INCLUDE %sub_query_results .
+    } GROUP BY ?parl
+  }
+  INCLUDE %sub_query_results .
+  ?parl wdt:P571 ?parl_start .
+      
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} ORDER BY ?parl_start""" .

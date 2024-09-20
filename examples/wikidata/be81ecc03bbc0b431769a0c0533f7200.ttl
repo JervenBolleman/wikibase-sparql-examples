@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-be81ecc03bbc0b431769a0c0533f7200> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?tournament ?tournamentLabel ?tInstance ?tInstanceLabel ?tClass ?tClassLabel ?event ?eventLabel WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/tennis/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?tournament ?tournamentLabel ?tInstance ?tInstanceLabel ?tClass ?tClassLabel ?event ?eventLabel WITH {
   SELECT DISTINCT ?event ?tournament WHERE {
     ?event wdt:P31/wdt:P279* wd:Q46190676; wdt:P361 ?tournament .
     MINUS { ?tournament wdt:P31 wd:Q47345468 }
@@ -18,9 +27,34 @@
   OPTIONAL { ?tournament wdt:P279 ?tInstance }
 #  FILTER(!BOUND(?tClass)) .
   SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE],en,it,es,de' }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?tournament ?tournamentLabel ?tInstance ?tInstanceLabel ?tClass ?tClassLabel ?event ?eventLabel  WHERE {
+  {
+  SELECT DISTINCT ?event ?tournament WHERE {
+    ?event wdt:P31/wdt:P279* wd:Q46190676; wdt:P361 ?tournament .
+    MINUS { ?tournament wdt:P31 wd:Q47345468 }
+    MINUS { ?tournament wdt:P31/wdt:P279* wd:Q13219666 }
+  }
+} .
+  OPTIONAL { ?tournament wdt:P31 ?tInstance }
+  OPTIONAL { ?tournament wdt:P279 ?tInstance }
+#  FILTER(!BOUND(?tClass)) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE],en,it,es,de' }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/tennis/queries>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?tournament ?tournamentLabel ?tInstance ?tInstanceLabel ?tClass ?tClassLabel ?event ?eventLabel WITH {
+  SELECT DISTINCT ?event ?tournament WHERE {
+    ?event wdt:P31/wdt:P279* wd:Q46190676; wdt:P361 ?tournament .
+    MINUS { ?tournament wdt:P31 wd:Q47345468 }
+    MINUS { ?tournament wdt:P31/wdt:P279* wd:Q13219666 }
+  }
+} AS %s WHERE {
+  INCLUDE %s .
+  OPTIONAL { ?tournament wdt:P31 ?tInstance }
+  OPTIONAL { ?tournament wdt:P279 ?tInstance }
+#  FILTER(!BOUND(?tClass)) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE],en,it,es,de' }
+}""" .

@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-bc2c589e47a009392b10519e9498abbb> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/1/13>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT
   ?total
   ?with
   ?without
@@ -24,9 +32,45 @@ WITH {
   INCLUDE %0.
   INCLUDE %1.
   BIND((?total - ?with) AS ?without)
+}""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT
+  ?total
+  ?with
+  ?without
+
+WITH {
+  SELECT (COUNT(*) AS ?total) {
+    [] wdt:P5831 [].
+  }
+} AS %1
+{
+  {
+  SELECT (COUNT(*) AS ?with) {
+    [] p:P5831 [pq:P443 []]
+  }
+}.
+  INCLUDE %1.
+  BIND((?total - ?with) AS ?without)
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/1/13>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT
+  ?total
+  ?with
+  ?without
+WITH {
+  SELECT (COUNT(*) AS ?with) {
+    [] p:P5831 [pq:P443 []]
+  }
+} AS %0
+WITH {
+  SELECT (COUNT(*) AS ?total) {
+    [] wdt:P5831 [].
+  }
+} AS %1
+{
+  INCLUDE %0.
+  INCLUDE %1.
+  BIND((?total - ?with) AS ?without)
+}""" .

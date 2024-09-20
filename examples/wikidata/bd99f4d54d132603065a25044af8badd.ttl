@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-bd99f4d54d132603065a25044af8badd> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:podcast-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
   ?count
   (CONCAT(\"#language/\", SUBSTR(STR(?language), 32), \"/podcast\") AS ?countUrl)
 
@@ -31,9 +40,60 @@ WHERE {
   INCLUDE %languages
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
+  ?count
+  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32), \"/podcast\") AS ?countUrl)
+
+  ?language ?languageLabel
+  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32)) AS ?languageUrl)
+
+  ?example_podcast ?example_podcastLabel
+  (CONCAT(\"#podcast/\", SUBSTR(STR(?example_podcast), 32)) AS ?example_podcastUrl)
+
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(?podcast) AS ?count)
+    ?language
+    (SAMPLE(?podcast) AS ?example_podcast)
+  WHERE {
+    ?podcast wdt:P31 / wdt:P279* wd:Q24634210 ;
+             wdt:P364| wdt:P407 ?language 
+  }
+  GROUP BY ?language
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:podcast-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT
+  ?count
+  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32), \"/podcast\") AS ?countUrl)
+
+  ?language ?languageLabel
+  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32)) AS ?languageUrl)
+
+  ?example_podcast ?example_podcastLabel
+  (CONCAT(\"#podcast/\", SUBSTR(STR(?example_podcast), 32)) AS ?example_podcastUrl)
+
+WITH {
+  SELECT 
+    (COUNT(?podcast) AS ?count)
+    ?language
+    (SAMPLE(?podcast) AS ?example_podcast)
+  WHERE {
+    ?podcast wdt:P31 / wdt:P279* wd:Q24634210 ;
+             wdt:P364| wdt:P407 ?language 
+  }
+  GROUP BY ?language
+} AS %languages
+WHERE {
+  INCLUDE %languages
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?count)""" .
