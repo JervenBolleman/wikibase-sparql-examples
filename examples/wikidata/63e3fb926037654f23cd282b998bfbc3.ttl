@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-63e3fb926037654f23cd282b998bfbc3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?person ?personLabel ?givenName ?occupation
+WHERE {
+  {
+    SELECT ?person
+    WHERE
+    {
+      {
+        { ?person wdt:P31/wdt:P279* wd:Q5. }
+        UNION
+        { ?hasSitelink schema:about ?person; schema:isPartOf <https://de.wikipedia.org/>. }
+      }
+      ?person wdt:P509 wd:Q175111.
+    }
+  }
+  {
+    { OPTIONAL { ?person wdt:P735 ?givenNameItem. } }
+    UNION
+    { OPTIONAL { ?person wdt:P106 ?occupationItem. } }
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\". ?person rdfs:label ?personLabel. ?givenNameItem rdfs:label ?givenName. ?occupationItem rdfs:label ?occupation. }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

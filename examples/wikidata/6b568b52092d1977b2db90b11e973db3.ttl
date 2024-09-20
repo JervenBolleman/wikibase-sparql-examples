@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6b568b52092d1977b2db90b11e973db3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?itemDescription ?somePositionLabel ?died ?kind WITH {
+  SELECT ?item (MAX(?died_) AS ?died) (SAMPLE(?kind_) AS ?kind) (SAMPLE(?position) AS ?somePosition) {
+    hint:SubQuery hint:optimizer \"None\".
+    # death in battle or killed in action
+    { ?item wdt:P1196 wd:Q18663901. BIND(\"death in battle\"@en AS ?kind_) } UNION
+    { ?item wdt:P509|wdt:P1347 wd:Q210392. BIND(\"killed in action\"@en AS ?kind_) }
+    # suitable item
+    ?item wdt:P31 wd:Q5;
+          wdt:P570 ?died_.
+    # head of state or government
+    {
+      VALUES ?class { wd:Q2285706 wd:Q48352 }
+      ?item wdt:P39 ?position.
+      ?position wdt:P279* ?class.
+    } UNION {
+      ?state wdt:P6 ?item.
+      OPTIONAL { ?state wdt:P1313 ?position_. }
+      BIND(COALESCE(?position_, wd:Q2285706) AS ?position)
+    } UNION {
+      ?state wdt:P35 ?item.
+      OPTIONAL { ?state wdt:P1906 ?position_. }
+      BIND(COALESCE(?position_, wd:Q48352) AS ?position)
+    }
+  }
+  GROUP BY ?item ?died_
+} AS %results WHERE {
+  INCLUDE %results.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?died)
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/heads_of_state_or_government_who_died_in_battle>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

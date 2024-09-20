@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-63d1c132a9e3283f4c0e8931e4dbf083> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?statements ?linkcount ?itemLabel ?spouceLabel 
+(GROUP_CONCAT(DISTINCT ?chld_label ;separator=', ') AS ?childs)
+WHERE {
+	?item wdt:P31 wd:Q5 . 	# item = humans only
+    ?item wdt:P40 ?chld .
+	?chld rdfs:label ?chld_label 
+          FILTER (lang(?chld_label) = \"or\") . # to get only Odia labels
+  { ?item wdt:P19 wd:Q22048 }		# place of birth = Odisha (Q22048) 
+	UNION  { ?item wdt:P19 ?pob . ?pob wdt:P131* wd:Q22048 } 	# OR place of birth within Odisha. 
+	UNION {?item wdt:P103 wd:Q33810 }		# native language = Odia
+	UNION {?item wdt:P1412 wd:Q33810 }      # OR language spoken/ written/ signed = Odia
+ OPTIONAL { ?item wdt:P26 ?spouce  }
+ ?item wikibase:statements ?statements . # for counting statements
+  OPTIONAL { ?item wikibase:sitelinks ?linkcount. }  #count sitelinks
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE], en\".}	# for generating label	
+}
+GROUP BY ?item ?statements ?linkcount ?itemLabel ?spouceLabel ?chldLabel 
+ORDER BY DESC (?linkcount)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MKar/Query>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

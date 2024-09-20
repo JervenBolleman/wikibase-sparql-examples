@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6d8a0733451c435c2937cd2b9436b684> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?actor ?actorLabel ?characterLabel ?count WITH {
+  SELECT ?actor ?character (COUNT(DISTINCT ?film) AS ?count) WHERE {
+    ?film wdt:P31/wdt:P279* wd:Q11424;
+          p:P161 [
+            ps:P161 ?actor;
+            pq:P453 ?character
+          ].
+    FILTER(?actor != ?character)
+    ?character wdt:P31 wd:Q5;
+               wdt:P39 ?position.
+  }
+  GROUP BY ?actor ?character
+  HAVING(?count > 1)
+  ORDER BY DESC(?count)
+  LIMIT 100
+} AS %results WHERE {
+  INCLUDE %results.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?count)
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/actors_who_played_the_same_real_politician_the_most_times>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

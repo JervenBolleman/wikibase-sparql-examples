@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-63794bceb3b91077e03a166b3aa7927e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Être humains non-dieux d'au moins 18 ans mesurant moins de 1 mètre.
+SELECT DISTINCT ?taille ?item ?naissance ?date ?P585test
+WHERE
+{
+?item wdt:P31 wd:Q5 ;
+       wdt:P569 ?naissance ;
+       p:P2048 ?t .
+ ?t psn:P2048 ?tm ; #unité SI
+    rdf:type wikibase:BestRank .
+optional {?t pq:P585 ?date.}
+ ?tm wikibase:quantityAmount ?taille .
+ ?tm wikibase:quantityUnit ?unit.
+ FILTER (?taille < 1) #moins de 1 mètre
+ BIND(YEAR(NOW()) AS ?year)
+ BIND(IF(!BOUND(?date),?year,YEAR(?date)) as ?P585test)
+ FILTER (?P585test - YEAR(?naissance) >= 18) #au moins 18 ans
+ FILTER( ?item NOT IN (wd:Q15397819, wd:Q13406268, wd:Q4115189, wd:Q190) ) . # bac à sable et pas un-e dieu|déesse
+}
+ORDER BY (?taille)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Simon_Villeneuve/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

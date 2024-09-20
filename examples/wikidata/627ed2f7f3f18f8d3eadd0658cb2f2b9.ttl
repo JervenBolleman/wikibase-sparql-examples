@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-627ed2f7f3f18f8d3eadd0658cb2f2b9> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q126810823>
+
+SELECT 
+  ?overlap
+
+  ?attestor ?attestorLabel
+  (CONCAT(\"#lexemeattestor/\", SUBSTR(STR(?attestor), 32)) AS ?attestorUrl)
+
+  ?example_lexeme ?example_lexemeLabel
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)
+WITH {
+  SELECT 
+    (COUNT(?lexeme) AS ?overlap)
+    ?attestor
+    (SAMPLE(?lexeme) AS ?example_lexeme)
+  WHERE {
+    ?lexeme wdt:P5323 target:, ?attestor .
+    FILTER (?attestor != target:)
+  }
+  GROUP BY ?attestor
+} AS %attestors
+WHERE {
+  INCLUDE %attestors
+  ?example_lexeme wikibase:lemma ?example_lexemeLabel . 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?overlap)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:lexemeattestor>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

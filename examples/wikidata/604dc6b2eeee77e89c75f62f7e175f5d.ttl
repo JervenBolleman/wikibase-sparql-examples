@@ -1,0 +1,42 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-604dc6b2eeee77e89c75f62f7e175f5d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q294647>
+
+SELECT
+  ?coappearances
+
+  ?actor ?actorLabel
+  (CONCAT(\"#actor/\", SUBSTR(STR(?actor), 32)) AS ?actorUrl)
+  ?actorDescription
+
+  ?example_film ?example_filmLabel
+  (CONCAT(\"#film/\", SUBSTR(STR(?example_film), 32)) AS ?example_filmUrl)
+WITH {
+  SELECT
+    (COUNT(?film) AS ?coappearances)
+    ?actor
+    (SAMPLE(?film) AS ?example_film)
+  WHERE {
+    ?film wdt:P161 ?actor, target: .
+    FILTER (target: != ?actor)
+  }
+  GROUP BY ?actor
+  ORDER BY DESC(?coappearances)
+  LIMIT 500
+} AS %actors
+WHERE {
+  INCLUDE %actors
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?coappearances)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:actor>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

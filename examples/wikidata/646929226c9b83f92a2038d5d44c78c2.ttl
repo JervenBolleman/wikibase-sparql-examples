@@ -1,0 +1,77 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-646929226c9b83f92a2038d5d44c78c2> a sh:SPARQLExecutable,
+    sh:SPARQLConstructExecutable;
+  sh:construct """CONSTRUCT {
+  ?prop rdf:type owl:ObjectProperty;
+         rdfs:label ?propLabel;
+        #  rdfs:domain ?domain;
+        #  rdfs:range ?range;
+         schema:description ?propDescription;
+         skos:altLabel ?propAlias;
+         owl:equivalentProperty ?equivalentProp;
+         rdfs:subPropertyOf ?superProp;
+         owl:inverseOf ?inverseProp.
+  # ?domain rdf:type owl:Class;
+  #         rdfs:label ?domainLabel;
+  #         owl:unionOf ( ?domainElement) .
+  # ?range rdf:type owl:Class;
+  #        rdfs:label ?rangeLabel;
+  #        owl:unionOf ( ?rangeElement ).
+} WHERE {
+  {
+    ?prop wdt:P31/wdt:P279* wd:Q27525351.
+  } UNION {
+    ?prop wdt:P6104 wd:Q5830855.
+  }
+  
+  VALUES ?type { # https://www.wikidata.org/wiki/Help:Data_type#Technical_details
+    wikibase:WikibaseItem wikibase:ExternalId
+  }
+  ?prop wikibase:propertyType ?type;
+        rdfs:label ?propLabel FILTER(lang(?propLabel) = 'en').
+  
+  # BIND(IRI(REPLACE(
+  #     STR(?prop),
+  #     'http://www.wikidata.org/entity/',
+  #     'https://raw.githubusercontent.com/Danysan1/unibo-ke-matching-ontologies/main/wikidata/ontology/domain/'
+  #   )) AS ?domain).
+  # BIND(REPLACE(STR(?prop),'http://www.wikidata.org/entity/','domain of ') AS ?domainLabel).
+  # OPTIONAL {
+  #   ?prop p:P2302 [
+  #     ps:P2302 wd:Q21503250;
+  #     pq:P2308 ?domainElement;
+  #     pq:P2309 wd:Q21503252
+  #   ].
+  # }
+
+  # BIND(IRI(REPLACE(
+  #     STR(?prop),
+  #     'http://www.wikidata.org/entity/',
+  #     'https://raw.githubusercontent.com/Danysan1/unibo-ke-matching-ontologies/main/wikidata/ontology/range/'
+  #   )) AS ?range).
+  # BIND(REPLACE(STR(?prop),'http://www.wikidata.org/entity/','range of ') AS ?rangeLabel).
+  # OPTIONAL {
+  #   ?prop p:P2302 [
+  #     ps:P2302 wd:Q21510865;
+  #     pq:P2308 ?rangeElement;
+  #     pq:P2309 wd:Q21503252
+  #   ].
+  # }
+
+  OPTIONAL { ?prop schema:description ?propDescription FILTER(lang(?propDescription) = 'en'). }
+  OPTIONAL { ?prop skos:altLabel ?propAlias FILTER(lang(?propAlias) = 'en'). }
+  OPTIONAL { ?prop wdt:P1628 ?equivalentProp. }
+  OPTIONAL { ?prop wdt:P1647 ?superProp. }
+  OPTIONAL { ?prop wdt:P1696 ?inverseProp. }
+}
+ORDER BY ?prop""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Danysan1/Polifonia-Wikidata_matching>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

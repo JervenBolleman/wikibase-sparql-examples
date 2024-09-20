@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-65a8b9a46299afe0f4ffb2bf2e194f40> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select ?property ?pid ?propertyLabel ?cntPreExistingItems ?cntNewItems ?cntTotal
+where {
+  {  
+    select (sum(?old) as ?cntPreExistingItems)
+    ((count(?item) - ?cntPreExistingItems) as ?cntNewItems) (count(?item) as ?cntTotal) ?relation 
+    where {
+
+      ?item ?relation [rdf:type wikibase:BestRank; prov:wasDerivedFrom/pr:P4293 ?ref_value ] .
+      
+      # restrict to companies archive
+      filter(strstarts(?ref_value, 'co/'))
+      
+      # check if the item was created before start of the PM20 companies' linking phase
+      # at 2021-04-26, first new item Q106647030
+      bind(xsd:integer(strafter(str(?item), concat(str(wd:), 'Q'))) as ?qidNum)
+      bind(if(?qidNum < 106647030, 1, 0) as ?old)
+    }
+    group by ?relation
+    having (?cntTotal > 1)
+  }
+  
+  ?property wikibase:claim ?relation .
+  
+  bind(strafter(str(?property), 'http://www.wikidata.org/entity/') as ?pid)
+  service wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+order by desc(?cntTotal)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_20th_Century_Press_Archives/Use_cases>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

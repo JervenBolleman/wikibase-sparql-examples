@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-65a7d1a3f86da93e2619bf7787834e0b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map{\"hide\":[\"?coor\"]}
+# query by Jura1, 2020-11-12
+SELECT ?fileLabel ?fileDescription ?image ?coor
+WHERE 
+{
+  hint:Query hint:optimizer \"None\".
+  SERVICE <https://query.wikidata.org/sparql> { wd:Q2079 wdt:P625 ?center }  
+  SERVICE wikibase:around {
+      ?file wdt:P1259 ?coor.
+      bd:serviceParam wikibase:center ?center .
+      bd:serviceParam wikibase:radius \"1\". # 1 kilometer around
+  }  
+  ?file schema:contentUrl ?url .
+  bind(iri(concat(\"http://commons.wikimedia.org/wiki/Special:FilePath/\", wikibase:decodeUri(substr(str(?url),53)))) AS ?image)  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

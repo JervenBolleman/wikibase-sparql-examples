@@ -1,0 +1,48 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-647ce4ae2789eff1a5e9d0aede9a33b2> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Tree
+select ?reqPropKind ?reqPropKindDesc ?reqProp ?reqPropDesc ?constraintStatus ?constraintStatusDesc ?prop ?propDesc {
+  ?reqPropKind wdt:P279* wd:Q107417492.
+  ?reqProp wdt:P31 ?reqPropKind.
+  ?prop p:P2302 [
+    ps:P2302 wd:Q21503247;
+    pq:P2306 ?reqProp;
+    pq:P2316 ?constraintStatus;
+  ].
+  
+  ?reqPropKind rdfs:label ?reqPropKindLabel.
+  FILTER(lang(?reqPropKindLabel) = \"en\")
+  
+  ?reqProp rdfs:label ?reqPropLabel.
+  FILTER(lang(?reqPropLabel) = \"en\")
+  
+  ?constraintStatus rdfs:label ?constraintStatusLabel.
+  FILTER(lang(?constraintStatusLabel) = \"en\")
+  BIND(
+    IF(?constraintStatus = <http://www.wikidata.org/entity/Q62026391>, \"is suggested to be used\", 
+      IF(?constraintStatus = <http://www.wikidata.org/entity/Q21502408>, \"is mandated to be used\",
+        \"is implied in a constraint that applies\"
+      )
+    )
+    AS ?constraintStatusPhraseStr
+  )
+  
+  ?prop rdfs:label ?propLabel.
+  FILTER(lang(?propLabel) = \"en\")
+
+  BIND(CONCAT(\"Property of kind “\", ?reqPropKindLabel, \"”, namely …\") as ?reqPropKindDesc)
+  BIND(CONCAT(\"“\", ?reqPropLabel, \"” (\", str(?reqProp), \"), …\") as ?reqPropDesc)
+  BIND(CONCAT(?constraintStatusPhraseStr, \" (\", str(?constraintStatus), \") on items that have property …\") as ?constraintStatusDesc)
+  BIND(CONCAT(\"“\", ?propLabel, \"” (\", str(?prop), \").\") as ?propDesc)
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_LGBT/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

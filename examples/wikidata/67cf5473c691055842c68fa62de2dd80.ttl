@@ -1,0 +1,50 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-67cf5473c691055842c68fa62de2dd80> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Genera of species with no habitat statements
+SELECT 
+  DISTINCT
+    ?topicparent ?taxonname (COUNT(DISTINCT ?item) AS ?count)
+
+WHERE {
+  hint:Query hint:optimizer \"None\".
+  
+{  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"habitat and haswbstatement:P31=Q13442814 -haswbstatement:P921=Q52105\".
+      ?page_title wikibase:apiOutput mwapi:title.
+  }
+ }
+UNION
+{  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"habitat -and haswbstatement:P31=Q13442814 -haswbstatement:P921=Q52105\".
+      ?page_title wikibase:apiOutput mwapi:title.
+  }
+ }
+  BIND(IRI(CONCAT(STR(wd:), ?page_title)) AS ?item)
+  
+  ?item wdt:P1476 ?title.
+  FILTER REGEX(LCASE(?title), \"habitat\").
+
+  ?item wdt:P921 ?topic.
+  ?topic wdt:P171 ?topicparent .
+  ?topicparent wdt:P105 wd:Q34740 .
+  ?topicparent wdt:P225 ?taxonname .
+  FILTER NOT EXISTS { ?topic wdt:P2974 [] } .
+  
+}
+GROUP BY ?topicparent ?taxonname
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Ecology>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

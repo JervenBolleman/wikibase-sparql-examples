@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-60526a3d4e1889497069e205654de0d0> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT  ?redirect_from ?redirect_to  ?count
+
+WITH { 
+  SELECT (COUNT(DISTINCT(?file)) AS ?count) ?redirect_from  {
+     ?file wdt:P180 ?redirect_from . 
+  } GROUP BY ?redirect_from
+  ORDER BY ASC(?count)
+  LIMIT 50          
+} AS %values
+ 
+WHERE {
+  INCLUDE %values .
+  SERVICE <https://query.wikidata.org/sparql> {
+      ?redirect_from owl:sameAs ?redirect_to .
+      #FILTER( ?redirect_from != ?redirect_to  ) .
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

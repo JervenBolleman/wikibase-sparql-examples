@@ -1,0 +1,21 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-64abf8f7a6fabd8a8370734d7f9af079> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select ?item ?itemLabel ?descr ?count
+with { select ?item ?descr { ?item wdt:P4342 ?odnb1 ; schema:description ?descr . filter (lang(?descr) = 'en') } } as %people 
+with { select (count(?item) as ?count) ?descr { include %people } group by ?descr having(?count>1)}  as %previous
+where {
+  include %people .
+  include %previous .
+  service wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} order by desc(?count) # asc(xsd:integer(substr(str(?item),33)))""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Premeditated/sandbox>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

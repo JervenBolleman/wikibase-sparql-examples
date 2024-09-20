@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-692b0e0bce07057696807ae161d9007f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT
+  ?method ?methodLabel ?tadirahID
+  (?methodColor AS ?rgb)
+  ?tool ?toolLabel ?toolDesc
+  ?image # order is relevant for the graph display.
+WITH {
+  SELECT DISTINCT
+    ?tool ?method ?methodColor
+  WHERE {
+    # select all items that have a TaDiRAH ID
+    ?method wdt:P9309 ?tadirahID.
+    BIND(\"7eb8ff\" AS ?methodColor) # set rgb colour for method nodes
+    # select all items which are linked to the methods through `has use`
+    ?tool wdt:P366 ?method;
+      # limit tools to software in the broadest sense
+      wdt:P31/wdt:P279* wd:Q7397.
+    }
+  LIMIT 3000
+} AS %tools
+WHERE {
+  INCLUDE %tools
+  # retrieve the logos and images for those tools that have them
+  OPTIONAL { ?tool (wdt:P154| wdt:P18) ?image .}
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?tool rdfs:label ?toolLabel;
+      schema:description ?toolDesc.
+    ?method rdfs:label ?methodLabel.
+  }
+}
+ORDER BY ?toolLabel
+LIMIT 5000""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_DH_Tool_Registry/How_to_Use>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

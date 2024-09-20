@@ -1,0 +1,47 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-69f27e495fb0911c59e2e49486cd6936> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q128933830>
+
+SELECT
+  ?description ?descriptionLabel ?descriptionUrl
+  ?value ?valueLabel ?valueUrl ?valueDescription
+
+  ?wikidata ?wikidataUrl
+WHERE {
+  {
+    BIND(1 AS ?order)
+    BIND(wd:Q464980 AS ?description)
+    BIND(\"#exhibition\" AS ?descriptionUrl)
+    
+    BIND(target: AS ?value)
+
+    BIND(CONCAT(SUBSTR(STR(target:), 32), \"&nbsp;↗\") AS ?wikidata)
+    BIND(CONCAT(\"https://www.wikidata.org/wiki/\", SUBSTR(STR(target:), 32)) AS ?wikidataUrl)
+  }
+  UNION
+  {
+    BIND(2 AS ?order)
+    
+    BIND(wd:Q6256 AS ?description)
+    BIND(\"#country\" AS ?descriptionUrl)
+    
+    target: wdt:P17 ?value
+    BIND(CONCAT(\"#country/\", SUBSTR(STR(?value), 32)) AS ?valueUrl)
+
+    BIND(CONCAT(SUBSTR(STR(?value), 32), \"&nbsp;↗\") AS ?wikidata)
+    BIND(CONCAT(\"https://www.wikidata.org/wiki/\", SUBSTR(STR(?value), 32)) AS ?wikidataUrl)
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,cz,da,de,fr,nb,nn,sv\". }
+} 
+ORDER BY ?order""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:exhibition>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

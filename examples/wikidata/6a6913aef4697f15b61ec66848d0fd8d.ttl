@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6a6913aef4697f15b61ec66848d0fd8d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title:Chancellors of the Exchequer and time served in office
+SELECT ?item ?itemLabel ?start ?end ?image ?link ?partyLabel ?ps_start ?ps_end WHERE {
+  ?item p:P39 ?s.
+  ?s ps:P39 wd:Q531471.
+  ?s pq:P580 ?start. 
+  OPTIONAL {?s pq:P582 ?end.}
+  OPTIONAL {?item wdt:P18 ?image.}
+  OPTIONAL {?item wdt:P1417 ?id.}
+  OPTIONAL {?item p:P102 ?ps.
+            ?ps ps:P102 ?party. 
+            OPTIONAL {?ps pq:P580 ?ps_start.} 
+            OPTIONAL {?ps pq:P582 ?ps_end.}
+           }      
+  BIND(IF(BOUND(?id), URI(CONCAT(\"https://www.britannica.com/\",?id)) , ?item) AS ?link)
+  FILTER(?start > ?ps_start || !BOUND(?ps_start))
+  FILTER(?start < ?ps_end || !BOUND(?ps_end))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY ?start""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

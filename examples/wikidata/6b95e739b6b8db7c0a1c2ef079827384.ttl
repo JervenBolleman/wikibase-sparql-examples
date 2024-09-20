@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6b95e739b6b8db7c0a1c2ef079827384> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+SELECT ?label (SAMPLE(?coord) AS ?where) ?subj (?typeLabel AS ?layer) ?image WHERE
+{ ?subj wdt:P31/wdt:P279? ?type ;
+      wdt:P625 ?coord ;
+      wdt:P31 ?type ;
+      rdfs:label ?label filter (lang(?label) = \"en\").
+MINUS { ?subj wdt:P4102 ?atlas }
+OPTIONAL{ ?subj wdt:P18 ?image } 
+?type wdt:P279? wd:Q744099 ;
+    rdfs:label ?typeLabel filter (lang(?typeLabel) = \"en\").
+?subj p:P625/psv:P625 ?loc. # coordinate-location statement
+  ?loc wikibase:geoLatitude ?lat .
+  ?loc wikibase:geoLongitude ?long .
+   FILTER (?lat > 49) FILTER (?lat < 63)
+   FILTER (?long > -10.5) FILTER (?long < 2.02) 
+} GROUP BY ?label ?subj ?typeLabel ?image""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/hillforts>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

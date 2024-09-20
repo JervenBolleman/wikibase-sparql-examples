@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-67a9eecf411696cd12d9ea532237b7b6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Find works with a public domain date (P3893) in the calendar year in which the query is run
+SELECT ?work ?workLabel ?type ?typeLabel ?date ?articles ?now ?then WHERE {
+  ?work p:P3893/psv:P3893 ?date_node .
+  ?date_node wikibase:timeValue ?date .
+  BIND(xsd:dateTime(concat(str(year(now())),\"-01-01T00:00:00Z\")) as ?now) 
+  BIND(xsd:dateTime(concat(str(year(now()+\"P1Y\"^^xsd:duration)),\"-01-01T00:00:00Z\")) as ?then) 
+#  FILTER( ?date >= \"2021-01-01T00:00:00\"^^xsd:dateTime && ?date < \"2022-01-01T00:00:00\"^^xsd:dateTime )
+  FILTER( ?date >= ?now && ?date < ?then )
+  ?work wdt:P31 ?type ;
+           wikibase:sitelinks ?articles .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en,de,it,es,nl\" . }
+}
+# Order by number or articles on Wikimedia sites
+ORDER BY DESC(?articles)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

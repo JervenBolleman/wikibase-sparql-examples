@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-64f645a46709d533c027c171ba616017> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Armenien citiziens that have an article in EN or RU wiki but not in HY
+SELECT ?item ?itemLabel (COUNT(distinct ?article) as ?count)
+{
+    {
+        SELECT ?item
+        {
+            {
+                hint:Query hint:optimizer \"None\" .   
+                ?item wdt:P31 wd:Q5  .
+                ?item wdt:P27 wd:Q399 .
+                MINUS {?sitelinkhy schema:about ?item . ?sitelinkhy schema:isPartOf <https://hy.wikipedia.org/>}
+            }
+          ?article schema:about ?item .
+              {
+            ?article schema:isPartOf <https://ru.wikipedia.org/>
+              }
+             UNION 
+              {
+            ?article schema:isPartOf <https://en.wikipedia.org/>
+              }
+        }
+    }
+    ?article schema:about ?item .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,ru\" }
+}
+GROUP BY ?item ?itemLabel
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Armenia/Maintenance_Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

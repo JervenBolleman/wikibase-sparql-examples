@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6de41ee02614bb44e03e5b39dc84b72b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# ?items with P8303 statements of all ranks with novalue or somevalue, and P577 at 2020-08-12 or earlier
+SELECT ?item ?itemLabel ?release_date ?value
+{
+  ?item wdt:P577 ?release_date .
+  hint:Prior hint:rangeSafe true .
+  FILTER ( ?release_date <= \"+2020-08-12T00:00:00Z\"^^xsd:dateTime )
+  ?item p:P8303 ?statement .
+  {
+    ?statement a wdno:P8303 .
+    BIND (\"novalue\" as ?value)
+  }
+  UNION
+  {
+    ?statement ps:P8303 ?v .
+    FILTER wikibase:isSomeValue(?v)
+    BIND (\"somevalue\" as ?value)
+  }      
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

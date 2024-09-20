@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6ab8dafe501efebd16b0dae4b38bb202> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT 
+  ?municipalities
+  (CONCAT(\"#country/\", SUBSTR(STR(?country), 32), \"/municipality\") AS ?municipalitiesUrl)
+
+  ?country ?countryLabel
+  (CONCAT(\"#country/\", SUBSTR(STR(?country), 32)) AS ?countryUrl)
+  ?countryDescription
+WITH {
+  SELECT 
+    (COUNT(?municipality) AS ?municipalities)
+    ?country
+  WHERE {
+    ?municipality wdt:P31 / wdt:P279* wd:Q15284 ;
+                  wdt:P17 ?country
+  }
+  GROUP BY ?country
+} AS %countries
+WHERE {
+  INCLUDE %countries
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?municipalities)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:municipality-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

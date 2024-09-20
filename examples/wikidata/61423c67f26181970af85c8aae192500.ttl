@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-61423c67f26181970af85c8aae192500> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target1: <http://www.wikidata.org/entity/Q6053150>
+PREFIX target2: <http://www.wikidata.org/entity/Q125207937>
+
+SELECT
+  ?year
+
+  ?event ?eventLabel
+  (CONCAT(\"#scientificevent/\", SUBSTR(STR(?event), 32)) AS ?eventUrl)
+
+  ?person ?personLabel
+  (CONCAT(\"#author/\", SUBSTR(STR(?person), 32)) AS ?personUrl)
+  ?personDescription
+WHERE {
+  ?event wdt:P179 target1: ;
+         p:P664 ?organizer_statement .
+  ?organizer_statement ps:P664 ?person ;
+                        pq:P3831 target2: .
+  OPTIONAL {
+    ?event wdt:P580| wdt:P585 ?datetime .
+    BIND(YEAR(?datetime) AS ?year)
+  }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?year)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:scientificeventseries-organizationalrole>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,47 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-613d083e43808b82786d2c81011270e8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Circonscriptions ayant rencontrées un changement de député
+SELECT ?depute ?deputeNom ?circonscriptionNom ?dateDebutMandat ?dateFinMandat
+WHERE {
+  ?depute wdt:P39 wd:Q3044918 ; p:P39 ?mandat .
+  ?mandat pq:P2937 wd:Q112567597 ; pq:P768 ?circonscription .
+  OPTIONAL { ?mandat pq:P580 ?dateDebutMandat } .
+  OPTIONAL { ?mandat pq:P582 ?dateFinMandat } .
+  
+  # Ceci donne la dernière date significative, soit de fin de mandat, soit de début si le mandat n’est pas terminé
+  BIND( IF(BOUND(?dateFinMandat), ?dateFinMandat, ?dateDebutMandat) AS ?dateEvenement) .
+  
+  # Ceci élimine les mandats remplacés au lendemain par le suppléant, commenter ces 4 lignes pour inclure ces mandats dans le résultat
+  # NB : la partie non-croisée du FILTER NOT EXISTS (i.e. avec pq:P582 ?dateFinMandat) est censée afficher les mandats terminés par le suppléant non-remplacés au lendemain, mais je ne suis pas sûr que ça fonctionne et il n’y a pas de données pour vérifier ce cas)
+  BIND( ?dateDebutMandat + \"-P1D\"^^xsd:duration AS ?dateVeilleDebutMandat ) .
+  BIND( IF(BOUND(?dateFinMandat), ?dateFinMandat + \"P1D\"^^xsd:duration, \"1980-01-01T00:00:00Z\"^^xsd:dateTime) AS ?dateLendemainFinMandat ) .
+  FILTER NOT EXISTS { [] wdt:P39 wd:Q3044918 ; p:P39 [ pq:P2937 wd:Q112567597 ; pq:P580 ?dateLendemainFinMandat ; pq:P768 ?circonscription ] } .
+  FILTER NOT EXISTS { [] wdt:P39 wd:Q3044918 ; p:P39 [ pq:P2937 wd:Q112567597 ; pq:P582 ?dateVeilleDebutMandat ; pq:P768 ?circonscription ] .
+    [] wdt:P39 wd:Q3044918 ; p:P39 [ pq:P2937 wd:Q112567597 ; pq:P582 ?dateFinMandat ; pq:P768 ?circonscription ] } .
+  
+  {
+    SELECT ?circonscription (MAX(?mandatDateFin) AS ?dateFinDernierMandat)
+    WHERE {
+      # Circonscriptions avec un mandat terminé…
+      [] wdt:P39 wd:Q3044918 ; p:P39 [
+              pq:P2937 wd:Q112567597 ; pq:P582 ?mandatDateFin ; pq:P768 ?circonscription
+      ] .
+    }
+    GROUP BY ?circonscription
+  }
+  OPTIONAL { ?depute rdfs:label ?deputeNom . FILTER( LANG(?deputeNom) = \"fr\" ) } .
+  OPTIONAL { ?circonscription rdfs:label ?circonscriptionNom . FILTER( LANG(?circonscriptionNom) = \"fr\" ) } .
+}
+ORDER BY ?dateEvenement ?dateFinDernierMandat ?circonscriptionNom ?dateDebutMandat # ordre chronologique pur
+#ORDER BY ?dateFinDernierMandat ?circonscriptionNom ?dateDebutMandat # ordre chronologique groupé par circonscription""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Seb35>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

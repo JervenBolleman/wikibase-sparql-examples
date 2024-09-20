@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6b244d32fdf1a7fcb50c70c43905e9d0> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Astronauti italiani in ordine di tempo di permanenza nello spazio
+SELECT ?item ?itemLabel ?timeinspace ?unitLabel ?wikiarticle 
+WHERE {
+  ?item wdt:P106 wd:Q11631.                  # Astronuati
+  ?item wdt:P31 wd:Q5.                       # umani (i.e. non di fantasia)
+  ?item wdt:P27 wd:Q38.                      # Nazionalità italiana
+  
+  OPTIONAL { ?item wdt:P2873 ?timeinspace }  # Tempo nello spazio
+  OPTIONAL { ?item p:P2873/psv:P2873 [       # Unità di tempo
+            wikibase:quantityUnit ?unit 
+            ]
+  }
+  FILTER (?timeinspace > 0).
+  OPTIONAL {                                 # Articolo su Wikipedia
+      ?wikiarticle schema:about ?item .
+      ?wikiarticle schema:inLanguage \"en\" .
+      FILTER (SUBSTR(str(?wikiarticle), 1, 25) = \"https://en.wikipedia.org/\")
+    }
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC (?timeinspace)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:FabC>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-687bc4869084a7480774349a17d29f64> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?property ?propertyLabel ?amount ?min ?max WITH {
+  SELECT ?property ?propertyLabel ?p ?psv ?pqv ?prv ?min ?max WHERE {
+    ?property wikibase:propertyType wikibase:Quantity; wikibase:claim ?p; wikibase:statementValue ?psv; wikibase:qualifierValue ?pqv; wikibase:referenceValue ?prv .
+    ?property p:P2302 [ ps:P2302 wd:Q21510860; pq:P2313 ?min; pq:P2312 ?max ] .
+    FILTER(?property NOT IN (wd:P1106)) .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+  }
+} AS %subquery WHERE {
+  INCLUDE %subquery .
+  ?item ?p [ ?psv [ wikibase:quantityAmount ?amount ] ] .
+  FILTER(?amount < ?min|| ?amount > ?max) .
+  FILTER(?item NOT IN (wd:Q4115189)) .
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/misc/quantity_data_type>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

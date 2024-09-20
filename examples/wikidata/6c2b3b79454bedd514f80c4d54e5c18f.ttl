@@ -1,0 +1,50 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6c2b3b79454bedd514f80c4d54e5c18f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?itemLabel ?riveLabel ?confluentLabel ?locationLabel ?locationCoord ?sourceLabel ?sourceLocationLabel ?sourceCoord ?longueur ?regionLabel
+  WHERE { {?item (wdt:P403)* wd:Q60974 }     # affluents et sous-affluents de la rivière des outaouais 
+    OPTIONAL {?item p:P403 [ pq:P31 ?rive ] }              # qualificatif rive de la confluence
+    OPTIONAL {?item wdt:P403 ?confluent }
+    OPTIONAL {?item p:P403 [ pq:P131 ?location ] }         # qualificatif unité administrative   
+    OPTIONAL {?item p:P403 [ pq:P625 ?locationCoord ] }    # qualificatif coordonnés de la confluence 
+    OPTIONAL {?item wdt:P885 ?source }
+    OPTIONAL {?item p:P885 [ pq:P131 ?sourceLocation ] }              
+    OPTIONAL {?item p:P885 [ pq:P625 ?sourceCoord ] }                
+    OPTIONAL {?item wdt:P885 ?tempCo .                     # Chercher les coordonnées de la source
+              ?tempCo wdt:P625 ?sourceCoord }              
+    OPTIONAL {?item wdt:P885 ?tempLoc .                    # Chercher la localisation de la source
+              ?tempLoc wdt:P131 ?sourceLocation }
+    OPTIONAL {?item wdt:P131 ?temp .                       # Chercher la région niveau 3
+              {?temp wdt:P31/wdt:P279* wd:Q3327873}        #  municipalité
+              ?temp wdt:P131 ?temp3 . ?temp3 wdt:P31 wd:Q204613 . # a une MRC
+              ?temp3 wdt:P131 ?region }
+    OPTIONAL {?item wdt:P131 ?temp2 .                      # Chercher la région niveau 2
+              {?temp2 wdt:P31 wd:Q204613}                  #  municipalité régionale de comté 
+              union {?temp2 wdt:P31 wd:Q3518817 . ?temp2 wdt:P31 wd:Q27676416} # ville et territoire équivalent
+              union {?temp2 wdt:P31 wd:Q2826814} .         #  agglomération du Québec
+              ?temp2 wdt:P131 ?region } 
+    OPTIONAL {?item wdt:P131 ?temp1 .                      # Chercher région niveau 1
+              {?temp1 wdt:P31 wd:Q1989278}                 #  région administrative du Québec
+              union {?temp1 wdt:P31 wd:Q16295254}          #  municipalité supérieur Ontario 
+              union {?temp1 wdt:P31 wd:Q14763130}          #  district Ontario
+              union {?temp1 wdt:P31 wd:Q14763041}          #  comté de l'Ontario
+              union {?temp1 wdt:P31 wd:Q17344046} .        #  territoire non organisé de l'Ontario
+              ?item wdt:P131 ?region }    
+    OPTIONAL {?item wdt:P131 ?location }
+    OPTIONAL {?item wdt:P131 ?sourceLocation } 
+    OPTIONAL {?item wdt:P625 ?locationCoord } 
+    OPTIONAL {?item wdt:P2043 ?longueur } .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\" . }  # français sinon anglais
+}
+ORDER BY (?itemLabel) 
+LIMIT 500""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:YanikB/Brouillon>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

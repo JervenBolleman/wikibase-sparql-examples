@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6621b46d56a96ffd00fc93a19b7b271a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select (count(distinct ?wd) as ?total)
+(?total - sum(?new) as ?preExistingItems)
+(sum(?new) as ?itemsCreated)
+(concat(str(round(sum(?new) / count(distinct ?id)*1000)/10), ' %') as ?percentageCreated)
+where {
+  # items with link to pm20 company folder
+  ?statement ps:P4293 ?id .
+  filter(strstarts(?id, 'co/'))
+  ?wd p:P4293 ?statement .
+
+  # don't take into account related matches (mapping relation type)
+  optional {
+      ?statement pq:P4390 ?relType .
+  }
+  filter(!bound(?relType) || ?relType!=wd:Q39894604)
+
+  # count only folders with documents
+  ?statement pq:P5592 ?docCount .
+  
+  # check if the item was created after start of the PM20 companies' linking phase
+  # at 2021-04-26, first new item Q106647030
+  bind(xsd:integer(strafter(str(?wd), concat(str(wd:), 'Q'))) as ?qidNum)
+  bind(if(?qidNum >= 106647030, 1, 0) as ?new)
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_20th_Century_Press_Archives/Use_cases>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

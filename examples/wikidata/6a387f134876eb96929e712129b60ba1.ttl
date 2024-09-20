@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6a387f134876eb96929e712129b60ba1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Diseases without \"medical speciality\", prefix of MeSH ID
+#defaultView:BubbleChart
+
+SELECT ?code ?codeLabel ?count
+WHERE 
+{
+  {
+    SELECT ?code (COUNT(?item) AS ?count)    
+WHERE {
+        ?item wdt:P31 wd:Q12136 .
+        ?item wdt:P486 ?meshid  .
+        OPTIONAL { ?item wdt:P1995 ?dummy0 }
+         FILTER(!bound(?dummy0))
+        BIND(SUBSTR(?meshid,1,3) AS ?code)
+        }
+  GROUP BY ?code 
+  }
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+ORDER BY DESC(?count)
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiFactMine/Core_SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

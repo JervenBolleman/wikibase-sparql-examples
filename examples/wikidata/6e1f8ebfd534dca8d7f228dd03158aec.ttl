@@ -1,0 +1,43 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6e1f8ebfd534dca8d7f228dd03158aec> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?type 
+ (COUNT(DISTINCT ?instance) AS ?count)
+ ?Label_en
+ (group_concat(distinct ?Alias_en;separator=\"; \") as ?Aliases_en) #Concatenate the values in order not to get several rows per type.
+ (group_concat(distinct ?institutionType1_en;separator=\"; \") as ?institutionTypes1_en) 
+ (group_concat(distinct ?institutionType2_en;separator=\"; \") as ?institutionTypes2_en)
+ (group_concat(distinct ?institutionType3_en;separator=\"; \") as ?institutionTypes3_en)
+ (group_concat(distinct ?institutionType4_en;separator=\"; \") as ?institutionTypes4_en)
+WHERE {
+ ?type wdt:P279* wd:Q166118 .
+ OPTIONAL { ?instance wdt:P31 ?type }  
+ OPTIONAL { ?type rdfs:label ?Label_en . FILTER (lang(?Label_en) = \"en\") }
+ OPTIONAL { ?type skos:altLabel ?Alias_en . FILTER (lang(?Alias_en) = \"en\") }
+ OPTIONAL { ?type wdt:P279+ ?institutionType1 . ?institutionType1 wdt:P279/^wdt:P279 wd:Q33506 . ?institutionType1 rdfs:label ?institutionType1_en . FILTER (lang(?institutionType1_en) = \"en\") }
+ OPTIONAL { ?type wdt:P279+ ?institutionType1 . ?institutionType1 wdt:P279/^wdt:P279 wd:Q166118 . ?institutionType1 rdfs:label ?institutionType1_en . FILTER (lang(?institutionType1_en) = \"en\") }
+ OPTIONAL { ?type wdt:P279+ ?institutionType1 . ?institutionType1 wdt:P279/^wdt:P279 wd:Q7075 . ?institutionType1 rdfs:label ?institutionType1_en . FILTER (lang(?institutionType1_en) = \"en\") }
+ OPTIONAL { ?type wdt:P279+ ?institutionType2 . ?institutionType2 wdt:P279 wd:Q33506 . ?institutionType2 rdfs:label ?institutionType2_en . FILTER (lang(?institutionType2_en) = \"en\") }
+ OPTIONAL { ?type wdt:P279+ ?institutionType2 . ?institutionType2 wdt:P279 wd:Q166118 . ?institutionType2 rdfs:label ?institutionType2_en . FILTER (lang(?institutionType2_en) = \"en\") }
+ OPTIONAL { ?type wdt:P279+ ?institutionType2 . ?institutionType2 wdt:P279 wd:Q7075 . ?institutionType2 rdfs:label ?institutionType2_en . FILTER (lang(?institutionType2_en) = \"en\") }
+ OPTIONAL { ?type wdt:P279+ ?institutionType3 . ?institutionType3 wdt:P279/wdt:P279 wd:Q33506 . ?institutionType3 rdfs:label ?institutionType3_en . FILTER (lang(?institutionType3_en) = \"en\") }
+ OPTIONAL { ?type wdt:P279+ ?institutionType3 . ?institutionType3 wdt:P279/wdt:P279 wd:Q166118 . ?institutionType3 rdfs:label ?institutionType3_en . FILTER (lang(?institutionType3_en) = \"en\") }
+ OPTIONAL { ?type wdt:P279+ ?institutionType3 . ?institutionType3 wdt:P279/wdt:P279 wd:Q7075 . ?institutionType3 rdfs:label ?institutionType3_en . FILTER (lang(?institutionType3_en) = \"en\") }
+ OPTIONAL { ?type wdt:P279+ ?institutionType4 . ?institutionType4 wdt:P279/wdt:P279/wdt:P279 wd:Q33506 . ?institutionType4 rdfs:label ?institutionType4_en . FILTER (lang(?institutionType4_en) = \"en\") }
+ OPTIONAL { ?type wdt:P279+ ?institutionType4 . ?institutionType4 wdt:P279/wdt:P279/wdt:P279 wd:Q166118 . ?institutionType4 rdfs:label ?institutionType4_en . FILTER (lang(?institutionType4_en) = \"en\") }
+ OPTIONAL { ?type wdt:P279+ ?institutionType4 . ?institutionType4 wdt:P279/wdt:P279/wdt:P279 wd:Q7075 . ?institutionType4 rdfs:label ?institutionType4_en . FILTER (lang(?institutionType4_en) = \"en\") }
+}
+GROUP BY ?type 						#List all the variables for which the values are not concatenated!
+  ?count
+  ?Label_en 
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Heritage_institutions/Typology>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-65aaa299e24c15d0e50be712bb30f49b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# can we federate UK parliament data and Wikidata?
+# this search finds everything in Wikidata with a Parliament data ID
+# then looks them up in Parliament to see if it knows the connection
+PREFIX parliament:<https://id.parliament.uk/schema/>
+
+SELECT DISTINCT ?item ?itemLabel ?wdid ?parlid WHERE {
+  ?item wdt:P6213 ?wdid .
+  # anything in Wikidata with a Parliament data ID
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  optional 
+  {
+    SERVICE <https://api.parliament.uk/sparql> { ?item parliament:wikidataResourceHasEquivalentWikidataThing ?parlid }
+  }
+  # compare Parliament search at https://api.parliament.uk/s/3851ffb0
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/parlidata>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

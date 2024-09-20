@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6cb9b5756437945e83b32b43e1ebc61a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+#List of episodes with aggregated comma-separated guests
+SELECT DISTINCT ?episode ?numero_episode ?date ?episodeLabel (GROUP_CONCAT(DISTINCT ?guestLabel; SEPARATOR = \", \") AS ?liste_invites)
+WHERE {
+  ?episode (wdt:P31/wdt:P279*) wd:Q1983062.
+  ?episode p:P179 ?statement.
+  OPTIONAL { ?episode wdt:P5030 ?guest. }
+  ?episode wdt:P577 ?date.
+  ?statement ps:P179 wd:Q2030903.
+  ?statement pq:P1545 ?numero_episode.
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en,fr\".
+    ?guest rdfs:label ?guestLabel.
+    ?episode rdfs:label ?episodeLabel.
+  }
+}
+GROUP BY ?episode ?numero_episode ?date ?episodeLabel
+ORDER BY DESC(xsd:integer(?numero_episode))""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Deansfa/SPARQL>, <https://www.wikidata.org//wiki/User:Deansfa>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

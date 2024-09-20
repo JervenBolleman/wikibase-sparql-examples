@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-661f15d98b332f0d639072a0085fe9c9> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX v: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+
+SELECT (SAMPLE(?matchNR) AS ?matchNR) ?match ?matchLabel (SAMPLE(?pit) AS ?day) (GROUP_CONCAT(DISTINCT(?teamName);separator=\" vs. \") AS ?teams) (SUBSTR(SAMPLE(?stage),16,100) AS ?stage) (SAMPLE(?winnerName) AS ?winner) WHERE {
+  ?match wdt:P361 ?partof . ?partof rdfs:label ?stage . FILTER(lang(?stage) = \"en\")
+  ?match p:P179 ?matchSeries . ?matchSeries v:P179 wd:Q189571 . ?matchSeries pq:P1545 ?matchNR .
+  OPTIONAL{?match wdt:P585 ?pit}
+  OPTIONAL{?match wdt:P1346 ?winner . ?winner wdt:P1532 ?wCountry . ?wCountry rdfs:label ?winnerName . FILTER(lang(?winnerName) = \"en\")}
+  OPTIONAL{?match wdt:P710 ?team . ?team wdt:P1532 ?tCountry . ?tCountry rdfs:label ?teamName . FILTER(lang(?teamName) = \"en\")} .
+  SERVICE wikibase:label{bd:serviceParam wikibase:language \"en,de\"}
+}
+GROUP BY ?match ?matchLabel
+ORDER BY ASC(xsd:integer(?matchNR))""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jobu0101/API>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

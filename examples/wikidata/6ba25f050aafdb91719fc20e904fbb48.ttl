@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6ba25f050aafdb91719fc20e904fbb48> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Female rock musicians
+SELECT  ?person 
+        ?personLabel 
+        ?page_titleDE # breaks
+ (GROUP_CONCAT(DISTINCT(?genreLabel); separator=\", \") as ?genres)
+
+ WHERE {
+  ?genre wdt:P31 wd:Q188451.
+  ?genre wdt:P279* wd:Q11399.
+  
+  ?person wdt:P31 wd:Q5;
+    wdt:P21 wd:Q6581072;
+    wdt:P106 wd:Q639669;
+    wdt:P136 ?genre.
+?article schema:about ?person ; schema:isPartOf <https://de.wikipedia.org/> ;  schema:name ?page_titleDE .
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\".
+                          ?person rdfs:label ?personLabel.
+                          ?genre  rdfs:label ?genreLabel.}
+}
+GROUP BY ?person ?personLabel ?page_titleDE 
+LIMIT 1000""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/05>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6a0433a52a2396d7ca9f95a07ab596e6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?fileFormat ?fileFormatLabel
+  (GROUP_CONCAT(DISTINCT(?familyLabel); separator=\", \") as ?familyList)
+  (GROUP_CONCAT(DISTINCT(?extension); separator=\", \") as ?extensionList)
+  (GROUP_CONCAT(DISTINCT(?internetMediaType); separator=\", \") as ?internetMediaTypeList)
+WHERE {
+  ?fileFormat wdt:P31/wdt:P279* wd:Q235557 .
+  ?fileFormat rdfs:label ?fileFormatLabel filter (lang(?fileFormatLabel) = \"en\") .
+  OPTIONAL {
+    ?fileFormat wdt:P361 ?family .
+    ?family wdt:P31/wdt:P279* wd:Q26085352 .
+    ?family rdfs:label ?familyLabel filter (lang(?familyLabel) = \"en\") } .
+  OPTIONAL {
+    ?fileFormat wdt:P1195 ?extension } .
+  OPTIONAL {
+    ?fileFormat wdt:P1163 ?internetMediaType } .
+}
+GROUP BY ?fileFormat ?fileFormatLabel
+ORDER BY DESC(?familyList) ASC(?fileFormatLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Pixeldomain/FileTypeQueries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

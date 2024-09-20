@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6c8dd8b3b96323cf37a447f375c01550> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Deportistas españolas con artículos en español pero no en francés
+# Spanish sportswomen with pages in Spanish but not in French
+
+PREFIX schema: <http://schema.org/>
+
+SELECT ?item ?itemLabel ?linkcount WHERE {
+    ?item wdt:P31 wd:Q5 .
+    ?item wdt:P21 wd:Q6581072 .
+    ?item wdt:P27 wd:Q29 .
+    ?item wdt:P106 wd:Q2066131 .
+    ?item wikibase:sitelinks ?linkcount .
+    ?article_ schema:about ?item .
+    ?article_ schema:inLanguage \"es\" .
+    ?article_ schema:isPartOf <https://es.wikipedia.org/> .
+    
+  FILTER (?linkcount >= 1) .
+  FILTER NOT EXISTS {
+    ?article schema:about ?item .
+    ?article schema:inLanguage \"fr\" .
+    ?article schema:isPartOf <https://fr.wikipedia.org/> 
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es, fr\" }
+}
+GROUP BY ?item ?itemLabel ?linkcount
+ORDER BY ASC(?linkcount)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ivanhercaz/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,71 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-63a21299bb3f4e94e28a46da3d084920> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:BarChart
+
+PREFIX target: <http://www.wikidata.org/entity/Q18507561>
+
+SELECT
+  (STR(?year_) AS ?year)
+  (SUM(?count_) AS ?count)
+  ?kind
+WHERE {
+  {
+    VALUES ?year_ { 2004 2005 2006 2007 2008 2009 2010 2011 2012 2013
+                    2014 2015 2016 2017 2018 2019 2020 2021 2022 2023 }
+    BIND(0 AS ?count_)
+    BIND(\"_\" AS ?kind)
+  }
+  UNION 
+  {
+    SELECT
+      ?year_
+      (COUNT(DISTINCT ?citing_work) AS ?count_)
+      ?kind
+    WHERE {
+      ?citing_work wdt:P2860 target: .
+  
+      # Detect self-citations
+      BIND(IF(EXISTS { target: wdt:P50 ?selfauthor . ?citing_work  wdt:P50 ?selfauthor } ,
+        \"detected incoming self-citations\",
+        \"citations from others or non-detected self-citations\") AS ?kind)
+
+      # Year of citation
+      ?citing_work wdt:P577 ?date .
+      BIND(YEAR(?date) AS ?year_)
+    }
+    GROUP BY ?year_ ?kind
+  }
+  UNION 
+  {
+    SELECT
+      ?year_
+      (COUNT(DISTINCT ?cited_work) AS ?count_)
+      ?kind
+    WHERE {
+      target: wdt:P2860 ?cited_work .
+  
+      # Detect self-citations
+      BIND(IF(EXISTS { ?cited_work wdt:P50 ?selfauthor . target: wdt:P50 ?selfauthor },
+        \"detected outgoing self-citations\",
+        \"outgoing citations to others or non-detected self-citations\") AS ?kind)
+
+      # Year of citation
+      ?cited_work wdt:P577 ?date .
+      BIND(YEAR(?date) AS ?year_)
+    }
+    GROUP BY ?year_ ?kind
+  }
+}
+GROUP BY ?year_ ?kind
+ORDER BY DESC(?year_)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:work>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

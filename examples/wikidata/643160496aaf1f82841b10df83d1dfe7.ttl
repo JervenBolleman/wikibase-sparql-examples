@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-643160496aaf1f82841b10df83d1dfe7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Tools for Digital Humanities: most frequent TaDiRAH classes
+#defaultView:BubbleChart
+SELECT DISTINCT
+  ?tadirahID
+  (COUNT(DISTINCT ?tool) AS ?toolCount)
+  (URI( CONCAT (\"https://reasonator.toolforge.org/?&q=\", STRAFTER(STR(?method), STR(wd:) ))) as ?link) # link to the wikidata item through reasonator
+  ?methodDesc
+WITH {
+  SELECT DISTINCT
+    ?tool ?method ?tadirahID
+  WHERE {
+  # select all items that have a TaDiRAH ID and are therefore assumed to be methods
+  ?method wdt:P9309 ?tadirahID.
+  # select all items which are linked to these methods through `has use`
+  ?tool wdt:P366 ?method;
+    # limit tools to software in the broadest sense
+    wdt:P31/wdt:P279* wd:Q7397.
+    }
+  LIMIT 3000
+} AS %tools
+WHERE {
+  INCLUDE %tools
+   SERVICE wikibase:label {
+     bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+     ?method rdfs:label ?methodLabel.
+     ?method schema:description ?methodDesc.
+   }
+}
+GROUP BY ?tadirahID ?link ?method ?methodDesc
+ORDER BY DESC(?toolCount)
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_DH_Tool_Registry/How_to_Use>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

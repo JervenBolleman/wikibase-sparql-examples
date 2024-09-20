@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6a299c05c5c9c2a8c509b8af1188e3fb> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Biographies by death date with article on cawiki
+SELECT ?item ?articlename ?itemLabel ?itemDescription ?sl ?ca
+WHERE {
+#   VALUES ?dod {\"+2022-11-20\"^^xsd:dateTime}
+    ?item wdt:P570 ?dod . hint:Prior hint:rangeSafe true.
+    ?item wikibase:sitelinks ?sl .
+    ?item ^schema:about ?article .
+    ?article schema:isPartOf <https://ca.wikipedia.org/>;
+    schema:name ?articlename .
+    FILTER(\"2022-11-01\"^^xsd:dateTime <= ?dod &&
+           ?dod < \"2022-11-12\"^^xsd:dateTime)  
+  SERVICE wikibase:label
+    {
+      bd:serviceParam wikibase:language \"ca\" .
+      ?item rdfs:label ?itemLabel .
+      ?item schema:description ?itemDescription .
+    }
+  BIND(REPLACE(?itemLabel, \"^.*(?<! [Vv][ao]n| [Dd][aeiu]| [Dd][e][lns]| [Ll][ae]) (?!([SJ]r\\\\.?|[XVI]+)$)\", \"\") AS ?sortname)  
+} ORDER BY ASC(UCASE(?sortname)) ASC(UCASE(?itemLabel))""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

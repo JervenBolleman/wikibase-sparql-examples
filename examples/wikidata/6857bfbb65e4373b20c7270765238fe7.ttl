@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6857bfbb65e4373b20c7270765238fe7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Recherche dans Wikidata les éléments qui sont des GLAM (ou l'une de ses sous-classes) et qui ont pour pays la Suisse.
+  SELECT distinct ?item ?itemLabel (group_concat(distinct ?locLabel) as ?locLabel1) ?cantonLabel ?ISIL ?GLAM
+  WHERE 
+  {
+     ?item wdt:P31/wdt:P279* wd:Q1030034 .
+     ?item wdt:P17 wd:Q39 .
+    OPTIONAL  { ?item wdt:P791 ?ISIL }
+    OPTIONAL {  ?item wdt:P3066 ?GLAM }
+    OPTIONAL {  ?item wdt:P131 ?loc . FILTER NOT EXISTS { ?loc wdt:P31 wd:Q23058 } }
+    OPTIONAL {  ?item wdt:P131* ?canton . ?canton wdt:P31 wd:Q23058  }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,de,it,en,rm,es\". }
+  } group by ?item ?itemLabel ?cantonLabel ?ISIL ?GLAM
+  ORDER BY (fn:lower-case(str(?cantonLabel)))  (fn:lower-case(str(?itemLabel)))""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:Events/GLAM_%26_Wikimedia_CH>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

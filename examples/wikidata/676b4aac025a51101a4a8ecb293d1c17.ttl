@@ -1,0 +1,43 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-676b4aac025a51101a4a8ecb293d1c17> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?itemLabel ?lastname ?lastnameLabel with {
+  SELECT (COUNT(*) AS ?count) ?lastname WHERE {
+    ?person wdt:P27 wd:Q20 . hint:Prior hint:runFirst true.
+    ?person wdt:P734 ?lastname . 
+  } GROUP BY ?lastname HAVING (?count>99) } as %i
+
+WITH { SELECT ?lastname ?lastnameLabel WHERE
+{
+  INCLUDE %i
+  ?lastname rdfs:label ?lastnameLabel. filter(lang(?lastnameLabel)=\"nn\") 
+} } as %j
+
+WHERE
+{
+  INCLUDE %j
+          
+  hint:Query hint:optimizer \"None\".
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch ?lastnameLabel.
+    ?item wikibase:apiOutputItem mwapi:title .
+  }
+  
+  ?item wdt:P31 wd:Q5.
+  FILTER NOT EXISTS { ?item wdt:P734 []. }
+  FILTER NOT EXISTS { ?item wdt:P27 []. }
+  ?item rdfs:label ?itemLabel .  filter(lang(?itemLabel)=\"en\") filter(strends(str(?itemLabel),?lastnameLabel))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],nn,en\". }
+} ORDER BY ?lastnameLabel ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

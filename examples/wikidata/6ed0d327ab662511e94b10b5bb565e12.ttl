@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6ed0d327ab662511e94b10b5bb565e12> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?w (COUNT(*) AS ?c) WHERE {
+  {
+    VALUES (?title) {
+      (\"a test string to find a way to find the longest three (or so) substrings in a given string, though I would be fine with something like MAX(?substring) as well\")
+      (\"being able to extract n-grams for n > 1 would be great too\")
+      (\" another test string that starts and ends with space characters \")
+      (\"writing documentation is useful\")
+      (\"more documentation can be even more useful\")
+      (\"OneWordTitleInCamelCase\")
+      (\"Thanks for your help!\")
+    }
+  }
+  BIND(REPLACE(?title, \"^.*?(\\\\b\\\\w{3,}\\\\b).*$\", \"$1\") AS ?w1)
+  BIND(REPLACE(STRAFTER(?title, ?w1), \"^.*?(\\\\b\\\\w{3,}\\\\b).*$\", \"$1\") AS ?w2)
+  BIND(REPLACE(STRAFTER(?title, ?w2), \"^.*?(\\\\b\\\\w{3,}\\\\b).*$\", \"$1\") AS ?w3)
+#  FILTER(?w1 != ?w2 && ?w1 != ?w3 && ?w2 != ?w3)
+  VALUES ?w_ { 1 2 3 }
+  BIND(IF(?w_ = 1, ?w1, IF(?w_ = 2, ?w2, ?w3)) AS ?w)
+#  FILTER(REGEX(?w, \"^\\\\w+$\")) # no idea why this is necessary
+}
+GROUP BY ?w
+ORDER BY DESC(STRLEN(?w))""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

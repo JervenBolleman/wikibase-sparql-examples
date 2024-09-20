@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6c82677095ecb251d53875b693638419> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#--------------------------------------------------------------------------------------------
+# Preußischer optischer Telegraf (für interne Weiterverarbeitung zur tsv für \"Historic.Place)
+#--------------------------------------------------------------------------------------------
+#defaultView:Map;Table
+SELECT DISTINCT ?lon ?lat ?item ?itemLabel ?itemDescription ?start_date ?image ?coordinates ?URL1 ?URL2 (URI(CONCAT(\"Category:\", ?wikimedia)) as ?wikimedia_commons) ?wikipedia {
+  ?item p:P361/ps:P361 wd:Q870831 ; 
+  OPTIONAL {?item p:P625 ?coordinate.
+  ?coordinate psv:P625 ?coordinate_node.
+  ?coordinate_node wikibase:geoLatitude ?lat.
+  ?coordinate_node wikibase:geoLongitude ?lon. }
+  OPTIONAL { ?item wdt:P625 ?coordinates. }
+  OPTIONAL { ?item wdt:P571 ?inception. }
+  OPTIONAL { ?item wdt:P18 ?image. }
+  OPTIONAL { ?item wdt:P373 ?wikimedia. }
+  OPTIONAL { ?item wdt:P973 ?URL1. 
+             FILTER(REGEX(STR(?URL1), \"www.optische-telegraphie.de\")) . }
+  OPTIONAL { ?item wdt:P973 ?URL2. 
+             FILTER(REGEX(STR(?URL2), \"www.optischertelegraph4.de\")) . }  
+ 
+  OPTIONAL { ?sitelink schema:about ?item.
+             FILTER(REGEX(STR(?sitelink), \"de.wikipedia.org/wiki/\"))}      # nur deutsche Wikipedia-Artikel
+  BIND((bound(?sitelink) ) AS ?has_de_sitelink).                         # true/false - wenn de-Artikel vorhanden   
+
+  BIND(URI(CONCAT(\"https://de.wikipedia.org/wiki/Preu%C3%9Fischer_optischer_Telegraf\")) as ?url2).  # alternative URL bauen
+  
+  BIND(  IF( ?has_de_sitelink ,?sitelink ,?url2 ) AS ?wikipedia).           # if ... then ... else
+ BIND(str(YEAR(?inception)) AS ?start_date)
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+
+}
+ORDER BY ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Lutzto>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

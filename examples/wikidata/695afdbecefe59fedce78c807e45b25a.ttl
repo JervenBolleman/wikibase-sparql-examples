@@ -1,0 +1,51 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-695afdbecefe59fedce78c807e45b25a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Map of Tubes, Trams and S-Bahn in Berlin
+#defaultView:Map{\"hide\":[\"?coords\", \"?line\",\"?rgb\"]}
+SELECT ?station ?stationLabel ?subwayLine ?coords ?line ?layer ?rgb WHERE {
+  VALUES ?search { wd:Q99668 wd:Q68646 wd:Q99654 #light rail system search wd:Q99668 wd:Q68646 wd:Q99654 S-Bahn OK Q68646 U-Bahn OK Q99668 Tram OK
+  } 
+      ?search wdt:P527|wdt:P121 ?lignes.#what are the lines of that light rail? !has parts #wdt:P527|wdt:P121
+      ?lignes wdt:P559 ?termini.#what are the termini of the lines of that light rail !terminus
+  ?station wdt:P31/wdt:P279* wd:Q548662;  #any type of service station !P31 ist eine P279 Unterklasse subclass of Q548662 public transport stop
+           wdt:P361|wdt:P16 ?search;#that are part of the searched light rail network !Part of - Transportnetz
+    wdt:P625 ?coords; #!Neighbourstation
+    wdt:P81|wdt:P1192 ?subwayLine;#P1192 Strecke / Linie
+    wdt:P197 ?pred. #Adjacent
+  ?pred wdt:P625 ?coords_pred;
+    wdt:P81|wdt:P1192 ?subwayLine_pred.#P1192
+  ?station p:P197 _:b1.
+  _:b1 ps:P197 ?pred ;
+    pq:P5051 ?towards; #!Endhaltestelle
+    pq:P81|wdt:P582|wdt:P3999) ?dispar. }#we do not want disappeared stations
+  #MINUS { ?station (wdt:P576|wdt:P582) ?dispar. }#we do not want disappeared stations
+  MINUS {    ?station wdt:P5817|wdt:P5816 ?interdit.
+    VALUES ?interdit {  wd:Q811683  wd:Q63065035 wd:Q12377751 wd:Q97317113 wd:Q55653430 wd:Q30108381 wd:Q55570340 wd:Q11639308 wd:Q104664889 wd:Q110713763
+    }
+  }#we do not want particular cases, being built, etc
+ ?pred  p:P625 ?node_pred .
+  ?node_pred psv:P625/wikibase:geoLatitude ?lat1 ;psv:P625/wikibase:geoLongitude ?lon1 .
+  ?node_pred a wikibase:BestRank.
+  ?station p:P625 ?node_station.
+ ?node_station psv:P625/wikibase:geoLatitude ?lat2 ;psv:P625/wikibase:geoLongitude ?lon2.
+ ?node_station a wikibase:BestRank.
+  BIND(CONCAT(\"LINESTRING(\", STR(?lon1), \" \", STR(?lat1),  \",\", STR(?lon2), \" \", STR(?lat2), \")\") AS ?str)
+  BIND(STRDT(?str, geo:wktLiteral) AS ?line)
+  ?subwayLine wdt:P465 ?rgb.
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" .
+    ?subwayLine rdfs:label ?layer.
+    ?pred rdfs:label ?predLabel.
+    ?station rdfs:label ?stationLabel .
+  } } GROUP BY ?station ?stationLabel  ?subwayLine ?rgb ?predLabel ?layer  ?coords ?line order by asc( ?line_number ) ?subwayLine""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:GodeNehler/S%2BU-Berlin>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

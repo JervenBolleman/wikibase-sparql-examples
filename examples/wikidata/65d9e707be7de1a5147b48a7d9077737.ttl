@@ -1,0 +1,52 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-65d9e707be7de1a5147b48a7d9077737> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?statement ?subject ?subjectLabel ?property ?propertyLabel ?object ?objectLabel ?refURL WITH
+{
+  SELECT DISTINCT ?subject WHERE {
+    {
+      SERVICE wikibase:mwapi {
+        bd:serviceParam wikibase:endpoint \"www.wikidata.org\"; wikibase:api \"Generator\"; mwapi:generator \"exturlusage\"; mwapi:geulimit \"500\"; mwapi:geuquery \"*.lefigaro.fr\"; mwapi:geuprotocol \"http\"; mwapi:geunamespace \"0\" .
+        ?title wikibase:apiOutput mwapi:title.
+      }
+    } UNION {
+      SERVICE wikibase:mwapi {
+        bd:serviceParam wikibase:endpoint \"www.wikidata.org\"; wikibase:api \"Generator\"; mwapi:generator \"exturlusage\"; mwapi:geulimit \"500\"; mwapi:geuquery \"*.lefigaro.fr\"; mwapi:geuprotocol \"https\"; mwapi:geunamespace \"0\" .
+        ?title wikibase:apiOutput mwapi:title.
+      }
+    }
+    BIND(IRI(CONCAT(STR(wd:), ?title)) AS ?subject)
+  }
+} AS %items {
+  INCLUDE %items .
+  
+  hint:Query hint:optimizer \"None\".
+  
+  ?subject ?p ?statement .
+  ?statement prov:wasDerivedFrom/pr:P854 ?refURL .
+  FILTER (CONTAINS(str(?refURL), 'lefigaro.fr')) .
+  
+  ?property wikibase:claim ?p .
+  ?property wikibase:statementProperty ?ps .
+  ?statement ?ps ?object .
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/pt>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/ru>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/en>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

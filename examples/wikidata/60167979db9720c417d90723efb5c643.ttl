@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-60167979db9720c417d90723efb5c643> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#All bridges on Thur with upstream/downstream bridge
+#defaultView:Graph
+PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+SELECT ?item ?itemLabel ?linkTo ?pic ?depth
+WHERE 
+{
+    SERVICE gas:service {
+    gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.SSSP\" ;
+                gas:in wd:Q96108174 ; ## This is my work-around
+                #gas:in wdt:P177 wd:Q14339 ; ## This is what I would want!
+                gas:traversalDirection \"Forward\" ;
+                gas:out ?item ;
+                gas:maxVisited 150;
+                gas:out1 ?depth ;
+                gas:linkType wdt:P2674
+  }
+  OPTIONAL { ?item wdt:P2674 ?linkTo }
+  OPTIONAL { ?item wdt:P18 ?pic }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?depth""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

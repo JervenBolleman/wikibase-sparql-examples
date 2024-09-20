@@ -1,0 +1,49 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6c8d3d0365b518384c077abca7237b29> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Au 4 août 1976, il y a 26 régions.
+SELECT DISTINCT ?inseeRégion ?région ?nom ?inseeCheflieu ?cheflieu WHERE {
+  BIND ( \"1976-08-04\"^^xsd:dateTime as ?dateRecherche ) 
+ 
+   ?région p:P2585 ?P2585node . # existence d'un code Insee
+    ?P2585node ps:P2585 ?inseeRégion . # valeur du code Insee
+    OPTIONAL { ?région wdt:P571 ?dateCréation . } # date de création
+    OPTIONAL { ?région wdt:P576 ?dateDissolution . } # date de dissolution
+  
+   ?région p:P1448 ?P1448node . # existence d'un nom
+    ?P1448node ps:P1448 ?nom . # valeur du nom
+    FILTER( lang(?nom)=\"fr\" ). # nom en français
+    MINUS { ?P1448node pq:P3831 wd:Q96406455 . } # nom long
+    MINUS { ?P1448node pq:P2241 ?dépréciationNom . } # nom erroné
+    OPTIONAL { ?P1448node pq:P580 ?dateDébutNom . } # date de début du nom
+    OPTIONAL { ?P1448node pq:P582 ?dateFinNom . } # date de fin du nom 
+
+   ?région p:P36 ?P36node . # existence d'un chef-lieu
+    ?P36node ps:P36 ?cheflieu . # valeur du chef-lieu
+    OPTIONAL { ?P36node pq:P580 ?dateDébutCheflieu . } # date de début du chef-lieu
+    OPTIONAL { ?P36node pq:P582 ?dateFinCheflieu . } # date de fin du chef-lieu 
+    ?cheflieu p:P374 ?P374node . # existence d'un code Insee du chef-lieu
+    ?P374node ps:P374 ?inseeCheflieu . # valeur du code Insee du chef-lieu
+    OPTIONAL { ?P374node pq:P580 ?dateDébutCode . } # date de début du code Insee du chef-lieu
+    OPTIONAL { ?P374node pq:P582 ?dateFinCode . } # date de fin du code Insee  du chef-lieu
+
+    FILTER ( !BOUND(?dateCréation) || ?dateCréation <= ?dateRecherche ) # ancienne région
+    FILTER ( !BOUND(?dateDissolution) || ?dateDissolution > ?dateRecherche ) # future région 
+    FILTER ( !BOUND(?dateDébutCheflieu) || ?dateDébutCheflieu <= ?dateRecherche ) # ancien chef-lieu
+    FILTER ( !BOUND(?dateFinCheflieu) || ?dateFinCheflieu > ?dateRecherche ) # futur chef-lieu  
+    FILTER ( !BOUND(?dateDébutCode) || ?dateDébutCode <= ?dateRecherche ) # ancien code du chef-lieu
+    FILTER ( !BOUND(?dateFinCode) || ?dateFinCode > ?dateRecherche ) # futur code du chef-lieu 
+    FILTER ( !BOUND(?dateDébutNom) || ?dateDébutNom <= ?dateRecherche ) # ancien nom
+    FILTER ( !BOUND(?dateFinNom) || ?dateFinNom > ?dateRecherche ) # futur nom   
+}
+ORDER BY ?inseeRégion""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_France/Liste_des_r%C3%A9gions>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-619c3e9b65654c1723401e4e164bc3b0> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT (SAMPLE(?pagetitle) AS ?title) ?item  
+
+WITH {
+  SELECT ?pagetitle ?item WHERE {  
+    wd:Q4167410 wdt:P910 ?category .
+    ?link schema:about ?category; schema:isPartOf <https://ja.wikipedia.org/>; schema:name ?title .
+    SERVICE wikibase:mwapi {
+	   bd:serviceParam wikibase:api \"Generator\" .
+       bd:serviceParam wikibase:endpoint \"ja.wikipedia.org\" .
+       bd:serviceParam mwapi:gcmtitle ?title .
+       bd:serviceParam mwapi:generator \"categorymembers\" .
+       bd:serviceParam mwapi:gcmnamespace \"0\" .
+#       bd:serviceParam mwapi:gcmstartsortkeyprefix \"T\" .
+       bd:serviceParam mwapi:gcmlimit \"max\" .
+      # out
+      ?pagetitle wikibase:apiOutput mwapi:title  .
+      ?item wikibase:apiOutputItem mwapi:item .
+    } 
+    MINUS { ?item wdt:P31/wdt:P279* wd:Q4167410; }
+  }
+} AS %results
+
+WHERE {
+  INCLUDE %results .
+  ?redirect owl:sameAs ?item .
+}
+GROUP BY ?item""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Mzaki>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

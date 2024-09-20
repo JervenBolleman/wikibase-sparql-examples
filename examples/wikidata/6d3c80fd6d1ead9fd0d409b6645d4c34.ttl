@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6d3c80fd6d1ead9fd0d409b6645d4c34> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title:Pairs of churches in Lithuania that are within 25 metres of each other
+SELECT ?church ?churchLabel ?churchloc ?dist ?other ?otherLabel
+WHERE
+{
+  ?church wdt:P31 wd:Q16970 .                           # this thing is a church
+  ?church wdt:P17 wd:Q37 .                             # and it's in the UK
+  ?church wdt:P625 ?churchloc .                         # and it has a location
+  ?other wdt:P31 wd:Q16970 .                            # another thing is also a church
+  SERVICE wikibase:around {
+      ?other wdt:P625 ?otherloc .
+      bd:serviceParam wikibase:center ?churchloc .
+      bd:serviceParam wikibase:radius \"0.025\" .          # and is pretty much exactly on the same spot (±25m)
+  } 
+  FILTER (STR(?church) > STR(?other))                   # filter so each pair only shows up once
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+  BIND(geof:distance(?churchloc, ?otherloc) as ?dist)         
+}
+ORDER BY ?dist""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Zygimantus/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

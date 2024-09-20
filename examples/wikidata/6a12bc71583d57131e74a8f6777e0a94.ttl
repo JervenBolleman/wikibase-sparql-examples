@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6a12bc71583d57131e74a8f6777e0a94> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX era: <http://data.europa.eu/949/>
+PREFIX geo2: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+
+SELECT DISTINCT ?opid ?label ?coord ?entity
+WHERE {
+  SERVICE <https://linked.ec-dataplatform.eu/sparql> {
+    ?entity a era:OperationalPoint ;
+      geo2:location ?geo ;
+      era:opType <http://data.europa.eu/949/concepts/op-types/rinf/10> ;
+      era:inCountry <http://publications.europa.eu/resource/authority/country/NOR> ;
+      era:uopid ?opid ;
+      rdfs:label ?label .
+  }
+  BIND(REPLACE(wikibase:decodeUri(STR(?geo)), \"http://data.europa.eu/949/locations/(.*)/(.*)\", \"$1\") AS ?long)
+  BIND(REPLACE(wikibase:decodeUri(STR(?geo)), \"http://data.europa.eu/949/locations/(.*)/(.*)\", \"$2\") AS ?lat)
+  BIND(STRDT(CONCAT(\"Point(\", ?long, \" \", ?lat, \")\"), geo:wktLiteral) AS ?coord)
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Property_talk:P11631>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

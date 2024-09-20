@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-61abf73ecedf421c51ca9e10aacc0f02> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?fdate ?ddate ?ID
+where {
+{SELECT ?item ?itemLabel ?fdate ?ddate ?ID
+WHERE
+{
+  ?item wdt:P31 wd:Q5;
+        wdt:P27 wd:Q20.
+  ?item wdt:P569 ?fdate.
+  optional {
+    ?item wdt:P570 ?ddate.
+  }
+  filter (!bound(?ddate))
+  BIND(YEAR(?fdate) AS ?year)
+  FILTER(?year < 1900)
+  FILTER(?year > 1870)
+  OPTIONAL {?item wdt:P4574 ?ID .}
+} limit 1000
+}
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } # Helps get the label in your language, if not, then en language
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

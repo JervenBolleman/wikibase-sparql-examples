@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-68aea0b26a9f289fa76572e3f5fe980b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Graph
+PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+
+SELECT ?item ?itemLabel ?linkTo ?rgb 
+WHERE {
+  {
+    SERVICE gas:service {
+      gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.SSSP\" ;
+                  gas:in wd:Q111424233 ;
+                  gas:traversalDirection \"Forward\" ;
+                  gas:out ?item ;
+                  gas:out1 ?depth ;
+                  gas:maxIterations 6 ;
+                  gas:linkType wdt:P40
+    }
+    OPTIONAL { ?item wdt:P40 ?linkTo }
+  } UNION {
+    SERVICE gas:service {
+      gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.SSSP\" ;
+                  gas:in wd:Q111424233 ;
+                  gas:traversalDirection \"Forward\" ;
+                  gas:out ?item ;
+                  gas:out1 ?depth ;                  
+                  gas:maxIterations 6 ;
+                  gas:linkType wdt:P26.
+    }
+    OPTIONAL { ?item wdt:P26 ?linkTo }
+     }
+  OPTIONAL {?item wdt:P2949 ?WTPID. BIND(\"88ffff\" as ?rgb)}
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

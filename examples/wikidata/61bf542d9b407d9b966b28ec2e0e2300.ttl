@@ -1,0 +1,48 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-61bf542d9b407d9b966b28ec2e0e2300> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#villages without wikidata in OSM in a district with mandal and village string as match element
+#When changing district, ensure the change is made in the MINUS subquery also
+#defaultView:Map
+SELECT DISTINCT ?censuscode  ?villagematch ?wd_label_village ?wd_label_village_te ?wd_qid_village ?wd_loc_village ?wd_label_mandal WHERE {
+  hint:Query hint:optimizer \"None\".
+  ?village (wdt:P131*) wd:Q110714853;
+    wdt:P131 ?wd_mandal;
+    (wdt:P31/(wdt:P279*)) wd:Q56436498;
+    wdt:P625 ?wd_loc_village.
+  OPTIONAL { ?village wdt:P5578 ?censuscode. }
+  MINUS {
+    ?village (wdt:P131*) wd:Q110714853;
+      (wdt:P31/(wdt:P279*)) wd:Q56436498;
+      wdt:P625 _:b4.
+    SERVICE <https://sophox.org/sparql> {
+      ?osmid <https://wiki.openstreetmap.org/wiki/Key:wikidata> ?village;
+        <https://www.openstreetmap.org/meta/loc> ?osmloc.
+    }
+  }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\".
+    ?village rdfs:label ?wd_label_village.
+    ?wd_mandal rdfs:label ?wd_label_mandal.
+  }
+  OPTIONAL {
+    ?village rdfs:label ?wd_label_village_te.
+    FILTER((LANG(?wd_label_village_te)) = \"te\")
+  }
+  BIND(STR(?village) AS ?wdstring1)
+  BIND(STRAFTER(?wdstring1, \"http://www.wikidata.org/entity/\") AS ?wd_qid_village)
+  BIND(STR(?wd_mandal) AS ?wdstring2)
+  BIND(STRAFTER(?wdstring2, \"http://www.wikidata.org/entity/\") AS ?wd_qid_mandal)
+  BIND(CONCAT(?wd_qid_mandal, \" \", ?wd_label_village) AS ?villagematch)
+}
+ORDER BY (?censuscode)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Arjunaraoc/villagewithoutwd-mandalqidvillage>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

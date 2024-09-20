@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6796be6d58ec82d4ff1c00fd1570555d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel (group_concat(distinct ?platform;separator=\", \") as ?platforms) (group_concat(distinct ?genre;separator=\", \") as ?genres) with {
+  SELECT ?item WHERE 
+  {
+    ?item wdt:P31 wd:Q7889 .
+  } LIMIT 10 } as %i
+WHERE
+{ 
+  include %i
+  ?item wdt:P400 ?p1.
+  ?item wdt:P136 ?g1.
+  bind(strafter(str(?p1), \"http://www.wikidata.org/entity/\") as ?platform)
+  bind(strafter(str(?g1), \"http://www.wikidata.org/entity/\") as ?genre)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} group by ?item ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

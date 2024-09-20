@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-69abbcc366b3d78a7e77148295687032> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# sailboat class lengths converted to standard SI unit
+# see https://en.wikibooks.org/wiki/SPARQL/WIKIDATA_Precision,_Units_and_Coordinates#Normalised_units
+SELECT ?item ?itemLabel ?length ?unitLabel ?length2 ?conversion ?length_in_m 
+WHERE
+{
+  ?item          wdt:P31/wdt:P279*           wd:Q106179098.    # sailboat class
+  #?item          wdt:P17                     wd:Q30.      # country USA
+  ?item          p:P2043                     ?stmnode.    # length
+  ?stmnode       psv:P2043                   ?valuenode.
+  ?valuenode     wikibase:quantityAmount     ?length.
+  ?valuenode     wikibase:quantityUnit       ?unit.
+
+  # conversion to SI unit
+  ?unit          p:P2370                 ?unitstmnode.   # conversion to SI unit
+  ?unitstmnode   psv:P2370               ?unitvaluenode. 
+  ?unitvaluenode wikibase:quantityAmount ?conversion.
+  ?unitvaluenode wikibase:quantityUnit   wd:Q11573.      # meter
+  BIND(?length * ?conversion AS ?length_in_m).
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} 
+ORDER BY DESC(?length_in_m)
+LIMIT 10000""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Sailing/Queries/Lists_sailboat_class>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Sailing/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

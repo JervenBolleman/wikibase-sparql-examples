@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6889fee064bf31ca54d641b3a422f895> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# MPs descended from William I 
+SELECT distinct ?mp ?mpLabel ?born ?died WHERE {
+  ?mp p:P39 ?positionStatement .
+  ?positionStatement ps:P39 ?membership .  # this person is a member of parliament
+        { ?membership wdt:P279* wd:Q16707842 }  # person was a UK MP
+  UNION { ?membership wdt:P279* wd:Q18015642 }  # or a British MP (to 1801)
+  UNION { ?membership wdt:P279* wd:Q18018860 }  # or an English MP (to 1707)
+  OPTIONAL { ?mp wdt:P569 ?born } .
+  OPTIONAL { ?mp wdt:P570 ?died } .
+  {  wd:Q37594 wdt:P40* ?mp . } # person's child, or their child's child, and so on
+  union
+  { ?mp (wdt:P25|wdt:P22)* wd:Q37594 . } # person's parent, or their parent's parent, and so on
+  #
+  # must replace Q37594 in both of the above lines to make this work properly
+  # 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } }""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

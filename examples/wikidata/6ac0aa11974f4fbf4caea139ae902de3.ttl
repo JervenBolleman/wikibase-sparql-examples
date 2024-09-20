@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6ac0aa11974f4fbf4caea139ae902de3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT distinct ?work ?work_label (COUNT(?citing_work) AS ?number_of_citing_works) (GROUP_CONCAT(?citing_work_label; separator=\" // \") AS ?citing_work_labels) WHERE {
+   { SELECT distinct ?work ?work_label ?citing_work ?citing_work_label WHERE {
+     ?person wdt:P1416 ?section .
+     ?section wdt:P361 wd:Q23048689 .
+     ?work wdt:P50 ?person .
+     ?citing_work wdt:P2860 ?work .
+     SERVICE wikibase:label { bd:serviceParam wikibase:language \"da,en\" . } 
+     ?work rdfs:label ?work_label . filter (lang(?work_label) = 'en')
+     ?citing_work rdfs:label ?citing_work_label . filter (lang(?citing_work_label) = 'en')
+   }
+  }
+}
+GROUP BY ?work ?work_label
+ORDER BY DESC(?number_of_citing_works)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Fnielsen/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,68 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6220e33b1bba67c761450b230c347460> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX lhasform: <http://www.w3.org/ns/lemon/ontolex#representation>
+PREFIX llang: <http://purl.org/dc/terms/language>
+PREFIX lforms:   <http://www.w3.org/ns/lemon/ontolex#lexicalForm>
+
+# List words of some titles that don't exists as lexeme form 
+#  limited to the 42 first words, English language titles
+#  by Jura1, 7-11 March 2020
+
+SELECT ?word ?count ?sample
+WITH
+{  SELECT ?a ?title (REPLACE(CONCAT(REPLACE(REPLACE(REPLACE(str(?title),'[\\\\.:,\\\\? %\";\\\\]\\\\[]',\"\"),\"[\\\\(\\\\)–“—”]\",\" \"),\"’\",\"'\"), 
+  \" Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z\")
+  ,\"[ ]{2,100}\",\" \") as ?input)
+  #skip some characters in title
+  #pad with \" Z\" in case the title is shorter than 42 words. \"Z\" is filtered out later. 
+  WHERE
+   {
+      { ?a wdt:P921 wd:Q84263196 } UNION { ?a wdt:P921 wd:Q81068910 }    UNION { ?a wdt:P921 wd:Q57751738 } 
+     UNION { ?a wdt:P921 wd:Q1134583 }  UNION { ?a wdt:P921 wd:Q82069695 }    UNION { ?a wdt:P921 wd:Q290805 }
+      # above for COVID-19, use the following for ZIKA instead, add other items as needed
+      # ?a wdt:P921 wd:Q202864 .
+      ?a wdt:P1476 ?title . FILTER(lang(?title)=\"en\") }
+} as %titles
+WITH
+{    SELECT ?re ?nv WHERE { ?n wdt:P5176 []; wdt:P1181 ?nv . FILTER( ?nv < 43) 
+     BIND( CONCAT( \"^([^ ]+ ){\", str( ?nv - 1 ),\"}([^ ]+) .*\") as ?re) }
+} as %positionalregexes                                                            
+WITH
+{    SELECT * { INCLUDE %titles  INCLUDE %positionalregexes  BIND( strlang(REPLACE(?input, ?re, \"$2\"),\"en\") as ?word) }
+} as %getwords
+WITH
+{  SELECT ?word (COUNT(DISTINCT ?title) as ?count) (SAMPLE(?title) as ?sample) WHERE { INCLUDE %getwords FILTER ( ?word != \"Z\"@en ) } GROUP BY ?word
+} as %countedwords
+WHERE
+{
+    INCLUDE %countedwords
+    hint:Query hint:optimizer \"None\".
+  
+    # check against English forms of lexemes (\"en\")
+    FILTER NOT EXISTS { ?lf lhasform: ?word 
+      # ?lexeme lforms: ?lf ; llang: wd:Q1860 .
+    }
+
+    # check against lowercase forms 
+    BIND( Lcase(?word) as ?lword)
+    FILTER NOT EXISTS { ?lf lhasform: ?lword }
+  
+    # check against British English lowercase forms (\"en-gb\")
+    BIND( strlang(Lcase(str(?word)),\"en-gb\") as ?lword_engb)
+    FILTER NOT EXISTS { ?lf lhasform: ?lword_engb }  
+
+    # exclude digits-only strings and 1-letter strings
+    FILTER ( !REGEX( str(?word), \"^\\\\d+$\" )  )
+    FILTER ( strlen( str(?word)) != 1  ) 
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

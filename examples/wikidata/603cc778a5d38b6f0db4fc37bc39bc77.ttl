@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-603cc778a5d38b6f0db4fc37bc39bc77> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Escola a Catalunya
+# no funciona, exhaureix temps
+# possible localitzat a entitat territorial administrativa
+# possible ubicat a  
+# potser ubicat a un carrer o plaça 
+# o potser ubicat a un municipi de Catalunya
+SELECT ?centre ?centreLabel ?llocLabel ?ubiseuLabel ?muniLabel WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],ca,gl,es,en,as\". }
+  ?centre (wdt:P31/(wdt:P279*)) wd:Q3914.
+  
+  
+  {
+   ?centre wdt:P131 ?lloc.
+           ?lloc wdt:P31 wd:Q33146843 .
+  }
+UNION
+  {
+    ?centre wdt:P159 ?ubiseu.
+     {
+      ?ubiseu wdt:P31 wd:Q79007, wd:Q174782;
+        wdt:P131 ?lloc.
+             ?lloc wdt:P31  wd:Q33146843.      
+    }
+    UNION
+     { ?ubiseu wdt:P31 wd:Q33146843. 
+             BIND (wd:Q33146843 as ?lloc).
+              }
+  }
+                 
+}
+ORDER BY (?llocLabel)
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Quelet>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,62 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6b944b8717ca2a91fbcedc2c8c9703ad> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Query to return a \"simplified career\" for a given MP (set in the VALUES clause, here Gladstone).
+# It shows a line for each continuing period in the same party & seat, changing if affiliation or
+# seat switch, or if there is a substantial break in service (eg here 1845-47), BUT it skips over
+# periods of dissolution.
+# It adds a short summary line with CONCAT and a count of total elapsed days (including some
+# periods of dissolution, so may not quite mesh with other days-elapsed counts).
+# It explicitly filters out the \"returned for two seats\" cases that are not taken up but note it
+# does not yet cope with ongoing (current) terms.
+
+SELECT distinct ?mp ?mpLabel ?partyLabel ?seatLabel ?start (min(?end) as ?end2) (round(?end2 - ?start) as ?days)
+(concat(?seatLabel, \" (\", ?partyLabel, \"), \", str(year(?start)), \"-\", str(year(?end2))) as ?string)
+where {
+  VALUES ?mp { wd:Q160852 } # set MP here
+  # find all seat-party-start pairs for each continuing period of office
+  { SELECT distinct ?mp ?mpLabel ?partyLabel ?seatLabel ?start
+    WHERE {
+      ?mp p:P39 ?ps. ?ps ps:P39 ?term . ?term wdt:P279 wd:Q16707842. 
+      ?ps pq:P768 ?seat . ?ps pq:P4100 ?party . ?ps pq:P580 ?start. 
+      # find all terms of office with seat and party, and their start date
+      filter not exists { ?ps pq:P2715 ?elec . ?elec wdt:P31 wd:Q15283424 . 
+                          # omit any terms which started at a general election
+                          ?mp p:P39 ?ps0 . ?ps0 ps:P39 ?term0 . ?term0 wdt:P156 ?term .
+                          ?ps0 pq:P4100 ?party . ?ps0 pq:P768 ?seat . ?ps0 pq:P1534 wd:Q741182 . }
+                          # and where the MP served for the same party & seat at dissolution in the previous term
+      filter not exists { ?ps pq:P1534 wd:Q50393121 } # omit any double-return seats which were not taken up
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+      # labels inside the queries to catch any oddities where seat item changes, but name does not  
+  } ORDER BY (?mp) ?start }
+  # and all corresponding seat-party-end pairs
+  { SELECT distinct ?mp ?mpLabel ?partyLabel ?seatLabel ?end
+    WHERE {
+      ?mp p:P39 ?ps. ?ps ps:P39 ?term . ?term wdt:P279 wd:Q16707842.
+      ?ps pq:P768 ?seat . ?ps pq:P4100 ?party . ?ps pq:P582 ?end.
+      # find all terms of office with seat and party, and their end date
+      filter not exists { ?ps pq:P1534 wd:Q741182 . 
+                          # omit any terms which end at dissolution
+                          ?mp p:P39 ?ps2 . ?ps2 ps:P39 ?term2 . ?term2 wdt:P155 ?term . 
+                          ?ps2 pq:P4100 ?party . ?ps2 pq:P768 ?seat . 
+                          ?ps2 pq:P2715 ?elec . ?elec wdt:P31 wd:Q15283424 . }
+                          # and where the MP comes back for the same party & seat at the next general election
+      filter not exists { ?ps pq:P1534 wd:Q50393121 } # omit any double-return seats which were not taken up
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+      # labels inside the queries to catch any oddities where seat item changes, but name does not  
+  } ORDER BY (?mp) ?end }
+  # now take our starts as the key, and match each to its appropriate end - the next one along
+  # this is the *smallest* end date which is still *larger* than the start date
+  # so filter by larger here, and smallest using min in the SELECT clause
+  filter(?end > ?start) . # note > not >= 
+} group by ?mp ?mpLabel ?partyLabel ?seatLabel ?start order by ?start""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

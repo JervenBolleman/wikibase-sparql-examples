@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-683b598a1cfd05ac6f008871d03c8bcd> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?apni_id ?article ?sitelink
+WHERE 
+{
+  {
+    ?item wdt:P5984 ?apni_id.
+    ?sitelink ^schema:name ?article .
+    ?article schema:about ?item ;
+             schema:isPartOf <https://en.wikipedia.org/> .
+  }
+  #MINUS
+  {
+    SERVICE wikibase:mwapi
+    {
+      bd:serviceParam wikibase:api \"Search\" .
+      bd:serviceParam wikibase:endpoint \"en.wikipedia.org\" .
+      bd:serviceParam mwapi:srnamespace \"0\" .
+      bd:serviceParam mwapi:srlimit \"max\" .
+      bd:serviceParam mwapi:srwhat \"text\" .
+      bd:serviceParam mwapi:srsearch 'insource:\"Noongar Bush Medicine Medicinal plants\"' .
+      ?title wikibase:apiOutput mwapi:title .
+    }
+    BIND (STRLANG(?title, \"en\") as ?sitelink)
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Tommy_Kronkvist/Sandbox>, <https://www.wikidata.org//wiki/User:MargaretRDonald/MarieCurietimelineAndVolcanoes>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

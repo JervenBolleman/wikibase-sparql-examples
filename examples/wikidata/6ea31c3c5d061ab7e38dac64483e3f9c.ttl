@@ -1,0 +1,39 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6ea31c3c5d061ab7e38dac64483e3f9c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?itemLabel 
+                (sample(?image_) as ?image) 
+                (group_concat(distinct ?instanceOfTypeLabel_;separator=\"; \" ) as ?instanceOfTypeLabel)  
+                ?location 
+                ?inception 
+                (group_concat(distinct ?adminEntityLabel_;separator=\"; \" ) as ?adminEntityLabel)  
+                ?historicCountyLabel 
+WHERE {
+    ?item p:P1435 ?statement.
+    ?statement ps:P1435/(wdt:P279*) wd:Q15700834.
+    
+    ?item wdt:P18 ?image_.
+    ?item wdt:P31 ?instanceOfType.
+    ?item wdt:P625 ?location.
+    OPTIONAL { ?item wdt:P571 ?inception . }
+    OPTIONAL { ?item wdt:P131 ?adminEntity . }
+    OPTIONAL { ?item wdt:P7959 ?historicCounty . }
+
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". 
+                ?item rdfs:label ?itemLabel . 
+                ?instanceOfType rdfs:label ?instanceOfTypeLabel_ . 
+                ?adminEntity rdfs:label ?adminEntityLabel_ .
+                ?historicCounty rdfs:label ?historicCountyLabel .}
+} 
+GROUP BY ?itemLabel ?location ?inception ?historicCountyLabel
+LIMIT 1000 OFFSET 0""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

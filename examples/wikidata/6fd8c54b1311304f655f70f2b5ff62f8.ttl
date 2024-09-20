@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6fd8c54b1311304f655f70f2b5ff62f8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?os
+  (SAMPLE(COALESCE(?en_label, ?any_label)) as ?label)
+  (SAMPLE(?based_on_label) as ?based_on)
+  (SAMPLE(?logo) as ?logo)
+  (SAMPLE(?image) as ?image)
+  (GROUP_CONCAT(DISTINCT ?packaging_system_label ; separator=\", \") as ?packaging_system)
+  (GROUP_CONCAT(DISTINCT ?developer_label ; separator=\", \") as ?developer)
+  (GROUP_CONCAT(DISTINCT ?license_label ; separator=\", \") as ?license)
+  (SAMPLE(?inception) as ?inception)
+  (GROUP_CONCAT(DISTINCT ?origin_label ; separator=\", \") as ?origin)
+  #(SAMPLE(?website) as ?website)
+WHERE {
+  ?os wdt:P31 wd:Q9135.
+  OPTIONAL{?os rdfs:label ?en_label. FILTER(LANG(?en_label) = \"en\")} OPTIONAL {?os rdfs:label ?any_label}
+  OPTIONAL{?os wdt:P144 ?based_on. ?based_on rdfs:label ?based_on_label. FILTER(LANG(?based_on_label) = \"en\")}
+  OPTIONAL{?os wdt:P154 ?logo}
+  OPTIONAL{?os wdt:P18 ?image}
+  OPTIONAL{?os wdt:P3033 ?packaging_system. ?packaging_system rdfs:label ?packaging_system_label. FILTER(LANG(?packaging_system_label) = \"en\")}
+  OPTIONAL{?os wdt:P275 ?license. ?license rdfs:label ?license_label. FILTER(LANG(?license_label) = \"en\")}
+  OPTIONAL{?os wdt:P178 ?developer. ?developer rdfs:label ?developer_label. FILTER(LANG(?developer_label) = \"en\")}
+  OPTIONAL{?os wdt:P571 ?inception}
+  OPTIONAL{?os wdt:P495 ?origin. ?origin rdfs:label ?origin_label. FILTER(LANG(?origin_label) = \"en\")}
+  OPTIONAL{?os wdt:P856 ?website}
+}
+GROUP BY ?os ORDER BY ?label""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Informatics/Software/Operating_systems>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

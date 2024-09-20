@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6cac6c0626b5af0b1bb284a8c6394c20> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:ImageGrid{\"hide\":[\"?img\"]}
+select ?ware ?wareLabel (max(?image) as ?img) (concat('in ', str(count(?country)), ' Ländern') as ?countries) ?pm20link
+where {
+  {
+  select ?ware ?image ?wareId
+  where {
+    ?ware wdt:P10890 ?wareId ;
+          wdt:P18 ?image .
+   }
+  }
+  ?folder wdt:P921 ?ware ;
+          wdt:P1269 ?country .
+   
+   bind(uri(concat('https://pm20.zbw.eu/category/ware/i/', ?wareId)) as ?pm20link)
+
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" . }
+}
+group by ?ware ?wareLabel ?pm20link
+order by ?wareLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_20th_Century_Press_Archives/Use_cases>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

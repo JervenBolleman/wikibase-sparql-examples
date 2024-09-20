@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-669636883c8bd8d7deafb2b48b1909c5> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?pic ?count ?coor ?dist (ROUND(?dist/10) as ?layer)
+WITH
+{
+  SELECT ?item (COUNT(DISTINCT ?down) as ?count)
+  {  ?item wdt:P177 wd:Q19686 ; wdt:P2674* ?down } 
+  GROUP BY ?item
+  ORDER BY DESC(?count) ?item
+} as %ct
+WHERE 
+{
+  INCLUDE %ct
+  ?item wdt:P177 wd:Q19686 .
+  OPTIONAL { ?item wdt:P18 ?pic }
+  wd:Q19686 p:P625 [ ps:P625 ?coor_orig ; pq:P518 wd:Q7376362 ] .
+  OPTIONAL { ?item wdt:P625 ?coor }
+  FILTER ( ?item != wd:Q1868889 )
+  BIND(ROUND(geof:distance(?coor_orig, ?coor)) as ?dist)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?count) DESC(?dist) ?item""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/06>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Rivers>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .
