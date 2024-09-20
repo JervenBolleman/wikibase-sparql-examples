@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5be039b85cd6e32d161217b1f594a7d8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  ?what
+  (SAMPLE(?whatLabel) AS ?execution_method)
+  (GROUP_CONCAT(DISTINCT ?whateverLabel; SEPARATOR=\", \") AS ?given_as)
+  (GROUP_CONCAT(DISTINCT ?country_Label; SEPARATOR=\", \") AS ?country)
+  (YEAR(MIN(?dod)) AS ?dodMin)
+  (xsd:integer(AVG(YEAR(?dod))) AS ?dodAvg)
+  (YEAR(MAX(?dod)) AS ?dodMax)
+  (COUNT (?whatLabel) AS ?count)
+WHERE {
+  ?what wdt:P31 wd:Q15169167 .
+  ?item wdt:P31 wd:Q5;
+    ?whatever ?what;
+    p:P570 ?dod_st .
+  ?dod_st psv:P570 ?dod_vn;
+    rdf:type wikibase:BestRank .
+  ?dod_vn wikibase:timeValue ?dod;
+    wikibase:timePrecision ?dod_prec .
+  FILTER (?dod_prec >= 9)
+  OPTIONAL {
+    ?whatever_prop wikibase:claim|wikibase:directClaim|wikibase:directClaimNormalized ?whatever .
+    ?whatever_prop rdfs:label ?whateverLabel . FILTER(LANG(?whateverLabel) = \"en\") .
+  }
+  ?what rdfs:label ?whatLabel . FILTER(LANG(?whatLabel) = \"en\") .
+  OPTIONAL {
+    ?item wdt:P27 ?country_ .
+    ?country_ rdfs:label ?country_Label . FILTER(LANG(?country_Label) = \"en\")
+  }
+}
+GROUP BY ?what
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-500b147bad003d817345a2e938797ecc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  ?item ?itemLabel 
+  (GROUP_CONCAT(DISTINCT ?autoreLabel; separator=\", \") as ?autoreLabel_ )
+  (MIN(YEAR(?pubblicazione)) as ?pubblicazione_ ) 
+  (MIN(YEAR(?data_premio_strega)) as ?data_premio_strega_ ) 
+  (GROUP_CONCAT(DISTINCT ?genreLabel; separator=\", \") as ?genreLabel_ ) 
+  (GROUP_CONCAT(DISTINCT ?casa_editriceLabel; separator=\", \") as ?casa_editriceLabel_ ) 
+WHERE
+{
+    BIND( wd:Q731542 as ?tipopremio )
+    ?item  wdt:P166 ?tipopremio. MINUS { ?item wdt:P31 wd:Q5 } 
+#alternativa2:  ?item  wdt:P166 ?tipopremio . hint:Prior hint:runFirst true . ?item  wdt:P31/wdt:P279* wd:Q47461344 . 
+#alternativa:   ?autore p:P166 ?st . ?st pq:P1686 ?item ; ps:P166 ?tipopremio . ?autore wdt:P31 wd:Q5 .
+    OPTIONAL { ?item p:P166 ?premio . ?premio pq:P585 ?data_premio_strega ; ps:P166 ?tipopremio } 
+    OPTIONAL { ?item wdt:P577 ?pubblicazione. } 
+    OPTIONAL { ?item wdt:P50 ?autore }  #nome dell'autore
+    OPTIONAL { ?item wdt:P136 ?genre }  #genere del libro
+    OPTIONAL { ?item wdt:P123 ?casa_editrice } #casa editrice
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"it,[AUTO_LANGUAGE],en\" .
+                           # necessario per GROUP BY/GROUP_CONCAT: 
+                           ?item rdfs:label ?itemLabel .
+                           ?autore rdfs:label ?autoreLabel .
+                           ?genre rdfs:label ?genreLabel .
+                           ?casa_editrice rdfs:label ?casa_editriceLabel . 
+                           }
+}
+GROUP BY ?item ?itemLabel 
+ORDER BY ?data_premio_strega""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Bar/Archive/2020/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

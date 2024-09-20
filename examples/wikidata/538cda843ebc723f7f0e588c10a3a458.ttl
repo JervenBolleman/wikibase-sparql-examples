@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-538cda843ebc723f7f0e588c10a3a458> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel (round(100*SUM(?label_exists)/SUM(1)) AS ?percentage_of_labels) WHERE {
+values ?item {wd:Q4006 wd:Q7167 wd:Q7181 wd:Q8434 wd:Q8458 wd:Q8461 wd:Q8463 wd:Q41397 wd:Q59816 wd:Q79913 wd:Q128393 wd:Q131288 wd:Q131572 wd:Q133004 wd:Q133346 wd:Q154278 wd:Q166005 wd:Q170404 wd:Q177626 wd:Q181784 wd:Q185598 wd:Q187668 wd:Q188863 wd:Q230533 wd:Q283509 wd:Q367293 wd:Q379693 wd:Q452573 wd:Q705818 wd:Q837556 wd:Q912512 wd:Q1338878 wd:Q1351807 wd:Q1368367 wd:Q1397926 wd:Q1932461 wd:Q2608153 wd:Q12547146 wd:Q15320003 wd:Q16513600 wd:Q18344718}
+
+wd:Q458 wdt:P37 ?official_language .     # get all official languages of the EU
+?official_language wdt:P424 ?langcode .  # and their Wikimedia language codes
+OPTIONAL {
+  ?item rdfs:label ?item_label .         # and match the item label language...
+  FILTER(?langcode=lang(?item_label))    # ...with the language
+  BIND(IF(BOUND(?item_label),1,0) AS ?label_exists) # count the number of existing labels
+}
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }  # change \"en\" to your preferred language
+}
+GROUP BY ?item ?itemLabel
+ORDER BY DESC(?percentage_of_labels)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

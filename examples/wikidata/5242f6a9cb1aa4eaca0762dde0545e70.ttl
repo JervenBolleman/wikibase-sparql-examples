@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5242f6a9cb1aa4eaca0762dde0545e70> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#added 2023-06
+#Accused witches in Scotland accused of shapeshifting
+#defaultView:Map
+#You need to use the name ?layer as the variable you are colour coding by 
+#It's much easier to change later if you do this in the SELECT area, using e.g. (?Appears as ?layer)
+SELECT DISTINCT ?item ?itemLabel ?accusedurl ?chargeLabel ?residenceLabel ?coords ?image (?Appears as ?layer) 
+WHERE 
+{
+  ?item wdt:P31 wd:Q5.
+  ?item wdt:P4478 ?accused .
+  wd:P4478 wdt:P1630 ?formatterurl .
+   BIND(IRI(REPLACE(?accused, '^(.+)$', ?formatterurl)) AS ?accusedurl).
+
+  ?item wdt:P1595 wd:Q30172593   . 
+  ?item wdt:P551 ?residence .
+  ?residence wdt:P625 ?coords.
+   {?item p:P1595 ?ChargeStatement . 
+              ?ChargeStatement ps:P1595 ?charge ; 
+                 pq:P4675 ?appears .
+            OPTIONAL { ?appears wdt:P18 ?image }  #end time qualifier value .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".  
+                          ?appears rdfs:label ?Appears .
+                          ?charge rdfs:label ?chargeLabel .
+                          ?residence rdfs:label ?residenceLabel .
+                          ?item rdfs:label ?itemLabel .
+                          ?accused rdfs:label ?accusedLabel .}
+}
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Scotland%27s_Accused_Witches/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

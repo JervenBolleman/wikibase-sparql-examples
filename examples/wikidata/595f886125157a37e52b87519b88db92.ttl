@@ -1,0 +1,103 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-595f886125157a37e52b87519b88db92> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT  distinct ?item  ?itemLabel ?instLabel ?powered ?serv ?foto # ?instLabel ?lenght # ?draft ?beam  ?serv  ?refurl  ?evento  ?eventoLabel 
+# ?operatorLabel ?propriLabel ?itemDescription
+# ?foto # ?instLabel ?itemDescription   # ?foto  # ?itemAltLabel # ?servret  ?pennant ?differ ?instLabel
+# ?operatorLabel ?topic ?classLabel   ?foto    # ?mass ?serv 
+# ?countryLabel  ?manufLabel ?manuf  ?incep  ?catshipname ?imo  ?manuf  
+# ?vesselLabel  ?namedLabel ?subclaLabel ?vesselLabel 
+# ?itemDescription ?itemAltLabel
+WHERE 
+{
+ 
+            { ?item wdt:P31 ?inst .                 }    #  instance  -  tipo de navio
+            { ?item wdt:P31/wdt:P279* wd:Q1229765 . }    #  instancia -  watercraft e subclasses
+   UNION    { ?item wdt:P31/wdt:P279* wd:Q559026 .  }    #  instancia -  ship class
+  
+          { ?item wdt:P137 ?navy .             }    # operator ?navi
+          { ?item wdt:P137 wd:Q588089 .        }    # operator portuguese navy   
+
+ #ver daqui
+ #      { ?item wdt:P495/wdt:P361* wd:Q200464 .  }  #  pais origem - imperio portugues
+ #      { ?item wdt:P495/wdt:P361* wd:Q148 .  }  #  pais origem - imperio portugues  
+ # ate aqui 
+  
+  # { ?item wdt:P31 wd:Q5258439 .           }  # inst - galeota real
+  # { ?item wdt:P516   wd:Q25999 .          }  # powered by sail
+  # { ?item wdt:P31/wdt:P279*  wd:Q559026 . } 
+  # FILTER NOT EXISTS  { ?item wdt:P373   ?comcat .            }  # comons cat
+  # FILTER NOT EXISTS  { ?item wdt:P186   ?made .              }  # made from material 
+  # FILTER NOT EXISTS  { ?item wdt:P31/wdt:P279*  wd:Q559026 . } 
+  # FILTER NOT EXISTS  { ?item   wdt:P176   ?manuf  .          }  #numero vessel class
+ 
+# filter not exists { ?item wdt:P31 wd:Q12859788 . }
+#  { ?item wdt:P31 wd:Q214196. }  #canhoneira
+    
+
+#caracte ----------------------------------------------------------------------
+  OPTIONAL          {    ?item wdt:P516   ?powered .     }    # 1 powered by - motores
+  optional          {    ?item wdt:P2067  ?mass .        }    # 2 mass
+  OPTIONAL          {    ?item wdt:P2043  ?lenght .      }    # 31 length  comprimento
+  OPTIONAL          {    ?item wdt:P2261  ?beam .        }    # 32 beam boca
+  OPTIONAL          {    ?item wdt:P2262  ?draft .       }    # 33 draft  calado
+  OPTIONAL          {    ?item wdt:P4511  ?pontal .      }    # 34 vertical depth - (ver PetScan) pontal (P2048)
+  Optional          {    ?item wdt:P1083  ?guarn .       }    # 4 capacidade maxima - guarniçao
+  Optional          {    ?item wdt:P520   ?armament .    }    # 5 armamento (ver PetScan) Q1330003 torpedo tube
+  OPTIONAL          {    ?item wdt:P2052  ?speed .       }    # 6 speed
+#fim caracte ----------------------------------------------------------------------
+  
+ OPTIONAL {    ?item wdt:P7782  ?catshipname . }    # operator portuguese navy
+ OPTIONAL {    ?item wdt:P289   ?class  .      }    # numero vessel class 
+ OPTIONAL {    ?item wdt:P607   ?conflit  .    }    # numero conflit war 
+ OPTIONAL {    ?item wdt:P373   ?commonscat .  }    # operator portuguese navy
+ OPTIONAL {    ?item wdt:P495   ?country  .    }    # numero vessel clas 
+ OPTIONAL {    ?item wdt:P1071  ?criado  .     }    # criado em
+ OPTIONAL {    ?item wdt:P1889  ?differ  .     }    # different
+ OPTIONAL {    ?item wdt:P793   ?evento  .     }    # evento
+ OPTIONAL {    ?item wdt:P18    ?foto  .       }    # foto
+ OPTIONAL {    ?item wdt:P458   ?imo .         }    # operator portuguese navy
+ OPTIONAL {    ?item wdt:P571   ?incep  .      }    # numero vessel class 
+ OPTIONAL {    ?item wdt:P1071  ?local  .      }    # location of cration
+ OPTIONAL {    ?item wdt:P176   ?manuf  .      }    # numero vessel class
+ OPTIONAL {    ?item wdt:P138   ?named  .      }    # numero vessel class 
+ OPTIONAL {    ?item wdt:P137   ?operator  .   }    # numero amura 
+ OPTIONAL {    ?item wdt:P495   ?paisori  .    }    # pais de origem
+ OPTIONAL {    ?item wdt:P879   ?pennant  .    }    # numero amura 
+ OPTIONAL {    ?item wdt:P127   ?propri .      }    # proprietario owned b
+ OPTIONAL {    ?item wdt:P973   ?refurl .      }    # proprietario referencia URL
+ OPTIONAL {    ?item wdt:P729   ?serv .        }    # operator portuguese navy
+ OPTIONAL {    ?item wdt:P730   ?servret .     }    # operator portuguese navy
+ OPTIONAL {    ?item wdt:P1813  ?short  .      }    # short
+ OPTIONAL {    ?item wdt:P279   ?subcla .      }    # numero subcal 
+ OPTIONAL {    ?item wdt:P910   ?topic .       }    # topico
+      
+#  OPTIONAL {?comm schema:about ?item ; schema:isPartOf <https://commons.wikimedia.org/> .}
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } # Helps get the label in your language,
+  #defaultView:Map if not, then en language
+
+#  ?article2 schema:about ?item . 
+#  ?article2 schema:isPartOf <https://commons.wikimedia.org/> . #Commons
+   
+#FILTER(NOT EXISTS {
+#    ?item schema:description ?itemdesc.
+#    FILTER(LANG(?itemdesc) = \"pt\")
+#  })
+  
+#  ?article1 schema:about ?item . 
+#  ?article1 schema:isPartOf <https://pt.wikipedia.org/> .   #WP.en
+}
+
+#Limit 50
+# order by ?serverv""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:JotaCartas/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

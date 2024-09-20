@@ -1,0 +1,24 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-512313ea43861a757a5f66007571d0fa> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:ImageGrid
+SELECT ?person ?person_label (GROUP_CONCAT(?country_of_citizenship_label; separator=\";\") AS ?countries_of_citizenship) ?image ?rank
+WHERE {
+    ?person wdt:P1050 wd:Q84263196; wdt:P31 wd:Q5 .
+    OPTIONAL { ?person rdfs:label ?person_label . FILTER(LANG(?person_label) = \"en\")}
+    OPTIONAL { ?person wikibase:statements ?statements_count ; wikibase:sitelinks ?sitelinks_count ; wikibase:identifiers ?identifiers_count . BIND(?statements_count + ?sitelinks_count + ?identifiers_count AS ?rank)}
+    OPTIONAL { ?person wdt:P18 ?image }
+    OPTIONAL { ?person wdt:P27 ?country_of_citizenship . ?country_of_citizenship rdfs:label ?country_of_citizenship_label . FILTER(LANG(?country_of_citizenship_label) = \"en\")}
+}
+GROUP BY ?person ?person_label ?image ?rank
+ORDER BY DESC(?rank)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_COVID-19/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

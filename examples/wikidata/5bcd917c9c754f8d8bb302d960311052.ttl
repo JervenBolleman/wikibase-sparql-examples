@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5bcd917c9c754f8d8bb302d960311052> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?work ?workLabel (COUNT(?epi) AS ?count)
+WHERE
+{
+    ?work wdt:P7150 ?epii. # selection de tous les items avec un epigraph pour optimiser la requête
+    ?work wdt:P136/wdt:P279* wd:Q9326077.    # filtre pour n'avoir que les oeuvres de l'imaginaire
+    OPTIONAL {?work wdt:P7150 ?epi .}   # les oeuvres avec epigraphe
+    OPTIONAL {?work wdt:P527 ?work2     # + les parties d'oeuvres avec un epigraphe 
+                 {SELECT ?work2 WHERE  { ?work2 wdt:P7150 ?epi. } limit 100000 } }
+    SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\" .}
+}
+GROUP BY ?work ?workLabel
+HAVING (?count > 0)
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Pmartinolli/Fun_SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-518ac86ac0fc5c2eba19be769a716ea0> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Nearest cultural heritage sites
+#defaultView:Map
+SELECT DISTINCT ?site ?siteDescription ?geo ?distance ?classLabel ?image ?siteLabel
+    WHERE
+    {
+      {?site wdt:P31/wdt:P279* wd:Q839954 .} # archaeological site
+      UNION {?site wdt:P31/wdt:P279* wd:Q916475 .} # historical monument
+      UNION {?site wdt:P31/wdt:P279* wd:Q676050 .} # historical city centre
+      UNION {?site wdt:P31/wdt:P279* wd:Q1081138 .} # historic site
+      UNION {?site wdt:P31/wdt:P279* wd:Q358 .} # heritage site
+      UNION {?site wdt:P31/wdt:P279* wd:Q15243209 .} # historic district
+      UNION {?site wdt:P31/wdt:P279* wd:Q4895508 .} # battlefield
+      UNION {?site wdt:P31/wdt:P279* wd:Q22674925 .} # former populated place
+      UNION {?site wdt:P31/wdt:P279* wd:Q35112127 .} # historic building
+      UNION {?site wdt:P31/wdt:P279* wd:Q5773747 .} # historic house
+      UNION {?site wdt:P31/wdt:P279* wd:Q15661340 .} # ancient city
+      UNION {?site wdt:P31/wdt:P279* wd:Q2434238 .} # heritage property
+      ?site wdt:P31 ?class.
+      SERVICE wikibase:around { 
+        ?site wdt:P625 ?geo . 
+        # bd:serviceParam wikibase:center \"Point(-3.564224203100305 52.241980731490386)\"^^geo:wktLiteral . # Option: Specify location
+        bd:serviceParam wikibase:center \"[AUTO_COORDINATES]\". # Option: User's location
+        bd:serviceParam wikibase:radius \"25\" . 
+        bd:serviceParam wikibase:distance ?distance .
+      }
+      # Retrieve site names in English (default) or Welsh
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,cy\" }
+      OPTIONAL { ?site wdt:P18 ?image. }
+    }
+ORDER BY ASC(?distance)
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5efe5b87dd126c03dd23b7b4726f43c5> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?type ?typeLabel
+WHERE
+{
+  ?item p:P31 ?instance_of_statement .
+  ?instance_of_statement a wikibase:BestRank .
+  ?instance_of_statement ps:P31 ?type .
+  ?type wdt:P279 + wd:Q1266830 . # ?type is subclass of Pokémon type
+  ?instance_of_statement pq:P518 wd:Q25931668 . # Have second type qualifier
+  FILTER NOT EXISTS {
+    VALUES ?allowed_P518_qualifier_value { wd:Q25931659 wd:Q25931668 }
+    ?item p:P31 ?other_instance_of_statement .
+    ?other_instance_of_statement a wikibase:BestRank .
+    ?other_instance_of_statement ps:P31 ?type2 .
+    ?type2 wdt:P279 + wd:Q1266830 . # ?type2 is subclass of Pokémon type
+    ?other_instance_of_statement pq:P518 wd:Q25931659 . # The other type have first type qualifier
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

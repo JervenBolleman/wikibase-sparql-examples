@@ -1,0 +1,54 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-56bfbe6cec18c2f824a283e15bc4d2e8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  ?thesis
+  ?thesisDescription
+  ?thesisLabel
+  (COALESCE(IF(BOUND(?author), ?author, 'N/A')) AS ?author)
+  ?authorLabel (COALESCE(IF(BOUND(?authorwp), ?authorwp, 'N/A')) AS ?authorwp)
+  ?lse_url
+WHERE {
+  hint:Query hint:optimizer \"None\" .
+  # Ideally we want to select thesis with: ?thesis wdt:P31/wdt:P279* wd:Q1266946
+  # This property path might require navigating triples in the two subgraphs and thus we can't use it
+  # We extract ?thesisType first so that we will match it with a simple pattern ?thesis wdt:P31 ?thesisType
+  ?thesisType wdt:P279* wd:Q1266946 .
+  {
+    SERVICE wdsubgraph:scholarly_articles {
+      SELECT ?thesis ?thesisLabel ?thesisDescription ?thesisType ?lse_url (COALESCE(IF(BOUND(?author), ?author, 'N/A')) AS ?author) { 
+        ?thesis wdt:P31 ?thesisType ;
+                wdt:P953 ?lse_url.
+        FILTER(STRSTARTS(STR(?lse_url), \"http://etheses.lse.ac.uk\"))
+        # We return a variable bound in an OPTIONAL clause, we have to be careful here 
+        # see https://www.wikidata.org/wiki/Wikidata:SPARQL_query_service/WDQS_graph_split/Internal_Federation_Guide#Returning_variables_bound_by_OPTIONAL
+        OPTIONAL { ?thesis wdt:P50 ?author. }
+        # No need to use the BIND(?thesisLabel AS ?thesisLabel)/BIND(?thesisDescription AS ?thesisDescription) trick here since we wrap our federated query
+        # with a SELECT to workaround issues with the optionally bound ?author variable
+        SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+      }    
+    }    
+  } UNION {
+    # Union them with the publications in the main graph (blogs, articles...)
+    ?thesis wdt:P31 ?thesisType ;
+            wdt:P953 ?lse_url.
+    FILTER(STRSTARTS(STR(?lse_url), \"http://etheses.lse.ac.uk\"))
+    OPTIONAL { ?thesis wdt:P50 ?author. }
+  }
+  OPTIONAL {
+    ?authorwp schema:about ?author;
+              schema:isPartOf <https://en.wikipedia.org/> .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY (?thesisDescription)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

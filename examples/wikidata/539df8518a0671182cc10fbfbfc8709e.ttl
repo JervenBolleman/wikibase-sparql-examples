@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-539df8518a0671182cc10fbfbfc8709e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?album ?artist WHERE
+{
+  {
+    SELECT ?album ( COUNT(DISTINCT ?artist ) as ?nArtists ) WHERE
+    {
+        ?album wdt:P31 wd:Q482994 .
+        ?album wdt:P175 ?artist .
+
+        MINUS
+        {
+            ?album schema:description ?description .
+            FILTER( LANG( ?description ) = \"fr\" ) .
+        }
+    }
+    GROUP BY ?album
+    HAVING(?nArtists = 1)
+  }
+
+  ?album wdt:P175 ?artist .
+  ?artist rdfs:label ?artistLabel .
+  FILTER( LANG( ?artistLabel ) = \"fr\" ) .
+}
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Requests_for_permissions/Bot/WhidouBot>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

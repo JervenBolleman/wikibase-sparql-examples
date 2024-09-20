@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-53483205731472a7da908a8e8eec0a2b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?s ?desc ?dob WHERE {
+  ?s wdt:P31 wd:Q5.
+#  ?s wdt:P569 ?birth.
+  ?s  p:P569/psv:P569 [wikibase:timePrecision ?precision; wikibase:timeValue ?birth]
+  bind(if(?precision=11,?birth,if(?precision=10,concat(month(?birth),\" \",year(?birth)),year(?birth))) as ?dob)                
+  ?s wdt:P19 ?place.
+  ?place (wdt:P131*/wdt:P706*) wd:Q5705.
+  MINUS { ?s wdt:P570 _:b5. }
+  ?s rdfs:label ?desc.
+  ?article schema:about ?s.
+  ?article schema:inLanguage \"ca\".
+  FILTER((?birth > \"1898-01-01\"^^xsd:dateTime) && (?birth < \"1918-01-01\"^^xsd:dateTime))
+  FILTER((LANG(?desc)) = \"ca\")
+}
+GROUP BY ?s ?desc ?dob 
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

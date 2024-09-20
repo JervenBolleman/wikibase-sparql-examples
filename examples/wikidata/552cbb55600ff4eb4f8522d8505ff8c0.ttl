@@ -1,0 +1,43 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-552cbb55600ff4eb4f8522d8505ff8c0> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select *
+with {
+  SELECT ?item ?weg ?label {
+  SERVICE <http://lov.okfn.org/dataset/lov/sparql> {
+  SERVICE <https://data.pdok.nl/sparql> {
+    select ?weg ?label
+where {
+  ?weg <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://bag.basisregistraties.overheid.nl/def/bag#OpenbareRuimte> .
+  ?weg <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://bag.basisregistraties.overheid.nl/def/bag#Water> .
+  ?weg <http://bag.basisregistraties.overheid.nl/def/bag#status> <http://bag.basisregistraties.overheid.nl/id/begrip/NaamgevingUitgegeven> .
+  MINUS { ?weg <http://bag.basisregistraties.overheid.nl/def/bag#status> <http://bag.basisregistraties.overheid.nl/id/begrip/NaamgevingIngetrokken> } .
+  ?weg <http://www.w3.org/2000/01/rdf-schema#label> ?label .
+  ?weg <http://bag.basisregistraties.overheid.nl/def/bag#bijbehorendeWoonplaats> <http://bag.basisregistraties.overheid.nl/bag/id/woonplaats/2907>
+} 
+  }
+    }
+  }
+} as %bag
+with {
+  SELECT DISTINCT ?item ?label ?baglink WHERE { 
+    ?item rdfs:label ?label .
+    ?item wdt:P131 wd:Q9920 .
+    ?item wdt:P31/wdt:P279* wd:Q355304 .
+    OPTIONAL { ?item wdtn:P5207 ?baglink } . 
+  }
+} as %wd
+where {
+  include %bag .
+  OPTIONAL {include %wd }.
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Property_talk:P5207>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

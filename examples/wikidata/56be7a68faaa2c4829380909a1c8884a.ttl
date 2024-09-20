@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-56be7a68faaa2c4829380909a1c8884a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Scienziati nati a Milano privi di identificativo LOC
+SELECT ?person ?personLabel 
+(GROUP_CONCAT(DISTINCT ?occupationLab ; SEPARATOR=\", \") AS ?occupations)
+WHERE {
+  ?person wdt:P31 wd:Q5 .
+  ?person wdt:P106 ?occupation . ?occupation rdfs:label ?occupationLab . FILTER(LANG(?occupationLab) = \"it\")
+  ?person wdt:P106/wdt:P279* wd:Q901 .
+  ?person wdt:P19 wd:Q490 .    
+  MINUS { ?person wdt:P244 ?loc } .
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],it,en\". }
+}
+GROUP BY ?person ?personLabel
+ORDER BY ?person ?personLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Alessandra.Moi/sandbox>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

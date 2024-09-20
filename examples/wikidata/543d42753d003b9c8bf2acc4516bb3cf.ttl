@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-543d42753d003b9c8bf2acc4516bb3cf> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?insee (REPLACE(STR(?item),\".*Q\",\"Q\") AS ?id)
+WHERE {
+  BIND ( \"2019-01-02\"^^xsd:dateTime as ?dateQuery )
+  ?item p:P31 ?nature.
+  { ?nature ps:P31 wd:Q484170. }                           # commune de France
+  UNION { ?nature ps:P31 wd:Q2989454. }                    # commune nouvelle
+  UNION { ?nature ps:P31 wd:Q22927616. }                   # commune française à statut particulier
+  OPTIONAL { ?nature pq:P582 ?dateFin }
+  OPTIONAL { ?item wdt:P576 ?dateFin. }                    # date dissolution
+  FILTER ( !BOUND(?dateFin)|| ?dateFin > ?dateQuery )
+  OPTIONAL { ?nature pq:P580 ?dateDébut }
+  OPTIONAL { ?item wdt:P571 ?dateDébut. }                  # date création
+  FILTER ( !BOUND(?dateDébut) || ?dateDébut < ?dateQuery )
+  FILTER ( !STRSTARTS(?insee, \"98\") )                      # - Polynésie
+  FILTER ( !STRSTARTS(?insee, \"975\") )                     # - Saint-Pierre et Miquelon
+  ?item wdt:P374 ?insee.
+}
+ORDER BY (?insee)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/01>,
+    <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/06>, <https://www.wikidata.org//wiki/User_talk:Roland45>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

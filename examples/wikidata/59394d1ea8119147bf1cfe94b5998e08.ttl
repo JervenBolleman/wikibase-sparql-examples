@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-59394d1ea8119147bf1cfe94b5998e08> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?itemLabel ?rgb ?link ?linkLabel WHERE {
+  {
+    ?item wdt:P31/wdt:P279* wd:Q55341040; # ?item is a video games database
+      wdt:P10568 ?link.                    # which is linked to ?link
+  }
+  UNION
+  {
+    ?item ^wdt:P10568 ?vgd.                 # item is linked to from ?vgd
+    ?vgd wdt:P31/wdt:P279* wd:Q55341040;    # ?vgd is a video games database
+    OPTIONAL {
+               ?item wdt:P10568 ?link.      # item might be linked to ?link
+             }
+  }
+    OPTIONAL {
+    ?item wdt:P1687 ?property.
+  }
+  BIND(IF(BOUND(?property),\"FFA500\",\"\") AS ?rgb)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

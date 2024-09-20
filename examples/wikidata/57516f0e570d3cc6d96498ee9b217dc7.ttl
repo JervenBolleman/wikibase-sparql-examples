@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-57516f0e570d3cc6d96498ee9b217dc7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?count ?name ?name_label ?check_url 
+
+WITH {
+  SELECT ?item ?name WHERE {
+    ?item wdt:P734 ?name
+  } LIMIT 1000000 
+} AS %uses
+
+WITH {
+  SELECT (COUNT(*) AS ?count) ?name WHERE {
+     INCLUDE %uses
+  } GROUP BY ?name
+  HAVING (?count > 4)
+} AS %names
+
+WHERE {
+  INCLUDE %names
+  MINUS {?name wdt:P5452 [] } .
+  ?name rdfs:label ?name_label FILTER(lang(?name_label) = 'en') .
+
+  wd:P5452 wdt:P1630 ?fmt .
+  BIND(IRI(REPLACE(str(?name_label), '(^.*)', ?fmt)) AS ?check_url) .
+} ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Property_talk:P5452>, <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

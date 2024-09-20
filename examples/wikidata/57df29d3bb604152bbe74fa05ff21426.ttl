@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-57df29d3bb604152bbe74fa05ff21426> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map{\"hide\": [\"?rgb\"]}
+#afficher toutes les communes françaises qui diposent de la propriété \"archivé par\" (P485) et dont la valeur serait une archives départementales françaises
+#Classer par nom de la commune.
+SELECT DISTINCT ?coord ?blason ?NumeroInv ?ArDeptLabel ?item ?itemLabel ?rgb
+WHERE {
+    ?item wdt:P31 wd:Q484170; #les éléments recherchés sont des communes françaises
+          wdt:P485 ?AD.#ces communes  sont connues de Wikidata pour être archivées par une institution
+    ?AD wdt:P31/wdt:279* wd:Q2860456.#cette institution est une archives départementales françaises
+    ?item p:P485 ?instat.
+    ?instat ps:P485 ?ArDept;
+            pq:P217 ?NumeroInv. #Dont l'institution définie peut avoir un qualificatif Décrit à l'URL, Numero d'inventaire
+    ?item wdt:P625 ?coord .     #coordonnées géographiques du lieu
+    OPTIONAL {?item wdt:P94 ?blason.} #Blason de la commune
+  BIND ( substr(str(?AD),34,6) AS ?rgb )
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr\". }
+}
+ORDER BY ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:2le2im-bdc/ADcommunes>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

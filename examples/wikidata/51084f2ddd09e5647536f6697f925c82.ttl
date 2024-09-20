@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-51084f2ddd09e5647536f6697f925c82> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item {
+  ?item wikibase:sitelinks 0; wikibase:statements 0 . # no sitelinks, no statements; buggy!
+  MINUS { # not in use as value in another item
+    ?mainsnakProperty wikibase:propertyType wikibase:WikibaseItem; wikibase:claim ?claim; wikibase:statementProperty ?statementProperty .
+    [] ?claim [ ?statementProperty ?item ]
+  }
+  MINUS { # not in use as qualifier in another item
+    ?qualifierProperty wikibase:propertyType wikibase:WikibaseItem; wikibase:qualifier ?qualifier .
+    [] ?qualifier ?item
+  }
+  MINUS { # not in use as reference in another item
+    ?referenceProperty wikibase:propertyType wikibase:WikibaseItem; wikibase:reference ?reference .
+    [] ?reference ?item
+  }
+  MINUS { # 2nd check: no sitelinks
+    ?sitelink schema:about ?item
+  }
+  MINUS { # 2nd check: no statements
+    ?anyProperty a wikibase:Property; wikibase:claim ?anyClaim .
+    ?item ?anyClaim []
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

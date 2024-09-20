@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5ccfc0f4dada217e207193ca2882b3f3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?nomLabel ?itemLabel ?itemDescription ?dtnaissance ?lieunaisLabel ?dtdeces ?lieudecesLabel
+WHERE
+{
+    ?item wdt:P119 wd:Q1457377 .
+    OPTIONAL {?item wdt:P734 ?nom }
+    OPTIONAL {?item p:P569 [ps:P569 ?dtnaissance; psv:P569 [wikibase:timePrecision ?precDoB] ] }
+    ?month wdt:P31 wd:Q47018901; wdt:P279 wd:Q18602249; wdt:P1545 ?monthnumber . FILTER(?monthnumber=STR(MONTH(?dtnaissance)))
+    ?month rdfs:label ?monthname . FILTER(lang(?monthname)='fr')
+    BIND(IF(?precDoB=11,?dtnaissance,IF(?precDoB=10,CONCAT(STR(?monthname),' ',STR(YEAR(?dtnaissance))),YEAR(?dtnaissance))) AS ?dtnaissance)  
+    OPTIONAL {?item wdt:P19 ?lieunais }
+    OPTIONAL {?item wdt:P570 ?dtdeces }
+    OPTIONAL {?item wdt:P20 ?lieudeces }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr\" }
+}
+ORDER BY (?nomLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:YanikB>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,39 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-500b023091347b6baea12925c46bd75c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?title ?item2 ?item2Label ?journalLabel WITH {
+  SELECT DISTINCT ?journal WHERE {
+    ?journal wdt:P31 wd:Q5633421; # scientific journal
+             wdt:P123 wd:Q180419; # published by Nature Portfolio
+             wdt:P1476 ?jtitle.
+    FILTER ( STRSTARTS(?jtitle, \"Nature\") ) . # with name starting with \"Nature\"
+  }
+} AS %i 
+WHERE {
+  INCLUDE %i
+  FILTER (?journal != wd:Q24908540) . # Short article titles in this journal causing problems
+  ?item wdt:P31 wd:Q1348305;
+        wdt:P1433 ?journal;
+        wdt:P1476 ?title.
+  FILTER (STRSTARTS(?title, 'Author Correction: ')). # also seen: \"Publisher Correction: \", \"Erratum: \"
+  BIND(REPLACE(?title, \"^Author Correction: (.*)$\", \"$1\") AS ?substring) # extract title of original article
+  ?item2 wdt:P1476 ?substring. # title matching (case sensitive!) 
+  FILTER ( NOT EXISTS { ?item2 wdt:P2507 ?item } ) # not already linked as a corrigendum 
+#  ?item2 wdt:P1433 ?journal2.   # Trying to ensure that article is in same journal, as sanity check
+#  FILTER (?journal = ?journal2) # Why does this time out?
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+    ?item2 rdfs:label ?item2Label .
+    ?journal rdfs:label ?journalLabel .
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Kbseah/Link_errata_to_articles>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

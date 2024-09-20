@@ -1,0 +1,21 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-506e86cc017923384e690470d25fe093> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item  ?category WHERE {
+  ?commonsSitelink schema:about ?item; schema:isPartOf <https://commons.wikimedia.org/>; schema:name ?sitelink_label .
+  FILTER(STRSTARTS(STR(?commonsSitelink), \"https://commons.wikimedia.org/wiki/Category\")) . # sitelink to a category
+  BIND(str(substr(?sitelink_label,10)) as ?category) . # strip \"Category:\" part
+  minus {?item wdt:P31  wd:Q4167836 } .  # skip category items
+  minus {?item wdt:P31  wd:Q59541917 } . # skip category items
+  minus {?item wdt:P373 [] } .           # items with missing P373
+} LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Bot_requests/Archive/2020/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

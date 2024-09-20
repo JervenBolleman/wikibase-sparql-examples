@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-53f2b7c26575c94b61465d21bf82c630> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT distinct ?s ?writer ?born ?linkcount
+WHERE
+{
+  {?s wdt:P106 wd:Q36180 .} UNION { ?s wdt:P106 wd:Q482980 . } UNION { ?s wdt:P106 wd:Q49757 . }
+  ?s wdt:P27 wd:Q142 .
+  ?s wikibase:sitelinks ?linkcount .
+  MINUS { ?s wdt:P268 [] }.
+  ?s wdt:P569 ?born .
+  FILTER (?born >= \"1800-01-01T00:00:00Z\"^^xsd:dateTime) .
+  OPTIONAL {
+     ?s rdfs:label ?writer filter (lang(?writer) = \"fr\").
+   }
+} GROUP BY ?s ?writer ?born ?linkcount HAVING (?linkcount > 1) ORDER BY DESC(?linkcount)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Symac>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

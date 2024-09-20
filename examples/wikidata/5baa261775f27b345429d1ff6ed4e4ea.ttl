@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5baa261775f27b345429d1ff6ed4e4ea> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#UG Space Collections
+
+SELECT ?item ?itemLabel ?publicationdate ?publishedinLabel ?volume ?issue ?fullworkurl ?exactmatch
+  (group_concat(distinct ?authorLabel; separator=\", \") as ?authors)
+  (group_concat(distinct ?subjectLabel; separator=\", \") as ?mainsubjects)
+WHERE  {
+  ?item wdt:P8602 ?University_of_Ghana_Digital_Collections__UGSpace__ID.
+  ?item wdt:P921 ?subject .
+  ?item wdt:P2093 ?author .
+  ?item wdt:P577 ?publicationdate .
+  ?item wdt:P1433 ?publishedin .
+  ?item wdt:P2888 ?exactmatch .
+  OPTIONAL {?item wdt:P478 ?volume .}
+  OPTIONAL {?item wdt:P433 ?issue .}
+  OPTIONAL {?item wdt:P953 ?fullworkurl .}
+  
+  SERVICE wikibase:label
+  {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?item rdfs:label ?itemLabel.
+    ?publishedin rdfs:label ?publishedinLabel.
+    ?author rdfs:label ?authorLabel.
+    ?subject rdfs:label ?subjectLabel.
+  }
+}
+GROUP BY ?item ?itemLabel ?publicationdate ?publishedinLabel ?volume ?issue ?fullworkurl ?exactmatch
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,51 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5f7fce59c8b1429558383cc9f9e81953> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?itemLabel ?article ?Rnumber ?globalwarmthpotential ?boilingpoint ?meltingpoint ?sicherheitsgruppeLabel ?item
+WHERE
+{
+  ?item wdt:P4842 ?Rnumber.
+  OPTIONAL{
+    ?article schema:about ?item;
+    schema:isPartOf <https://de.wikipedia.org/>.
+  }
+  OPTIONAL{
+    SELECT ?item (MIN(?allgwp) as ?globalwarmthpotential)
+    WHERE {
+      ?item wdt:P2565 ?allgwp.
+    } GROUP BY ?item
+  }
+  OPTIONAL{
+    ?item p:P2102 ?statement_boilingpoint.
+    ?statement_boilingpoint psv:P2102 ?valuenode_boilingpoint.
+    ?valuenode_boilingpoint wikibase:quantityAmount ?boilingpoint;
+      wikibase:quantityUnit ?unit_boilingpoint.
+    FILTER(?unit_boilingpoint = wd:Q25267)
+  }
+  OPTIONAL{
+    ?item p:P2101 ?statement_meltingpoint.
+    ?statement_meltingpoint psv:P2101 ?valuenode_meltingpoint.
+    ?valuenode_meltingpoint wikibase:quantityAmount ?meltingpoint;
+      wikibase:quantityUnit ?unit_meltingpoint.
+    FILTER(?unit_meltingpoint = wd:Q25267)
+  }
+  Optional{
+    ?item wdt:P5009 ?sicherheitsgruppe.
+    ?sicherheitsgruppe wdt:P31 wd:Q117757747.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  #Only use main number to sort
+  BIND(xsd:integer(REPLACE(?Rnumber, 
+                           \"[a-zA-Z]?([0-9]{2,4})[a-zA-Z]?[0-9a-z]?(?:[(][a-zA-Z][)])?\", 
+                           \"$1\")) as ?sortnumber)
+} ORDER BY ASC(?sortnumber)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:R_Focke>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

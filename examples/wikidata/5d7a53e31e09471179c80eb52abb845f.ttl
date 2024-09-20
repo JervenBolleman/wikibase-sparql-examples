@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5d7a53e31e09471179c80eb52abb845f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Select the ItemId, label and coordinate location
+SELECT ?place ?placeLabel ?location ?p821 WHERE {
+ # Use the around service
+ SERVICE wikibase:around { 
+ # Looking for items with coordinate locations(P625)
+ ?place wdt:P625 ?location . 
+ # That are in a circle with a centre at this point
+ bd:serviceParam wikibase:center \"Point(-52.8118056 47.5195306)\"^^geo:wktLiteral . 
+ # Where the circle has a specified radius in km
+ bd:serviceParam wikibase:radius \"10\" . 
+ }
+ # Use the label service to get the English label
+ SERVICE wikibase:label {
+ bd:serviceParam wikibase:language \"en\" . 
+ }
+ FILTER NOT EXISTS {?place wdt:P821 []}
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/05>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

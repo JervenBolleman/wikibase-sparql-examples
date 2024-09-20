@@ -1,0 +1,61 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-54d14d51bd0f47df39d03758fb6a46b3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?type ?item ?property
+WHERE
+{
+  {
+    SELECT (\"Item\" as ?type) ?item
+    WHERE
+    {
+      ?item wdt:P4970 [] .
+      FILTER(SUBSTR(STR(?item),32,1) = \"Q\")
+    }
+    ORDER BY DESC(xsd:integer(SUBSTR(STR(?item),33)))
+    LIMIT 10
+  }
+  UNION
+  {
+    SELECT (\"Lexeme\" as ?type) ?item
+    WHERE
+    {
+      ?item wdt:P4970 [] .
+      FILTER(SUBSTR(STR(?item),32,1) = \"L\")
+    }
+    ORDER BY DESC(xsd:integer(SUBSTR(STR(?item),33)))
+    LIMIT 10
+  }
+  UNION
+  {
+    SELECT (\"Qualifier\" as ?type) ?item ?property
+    WHERE
+    {
+      ?item ?property [pq:P4970 [] ].
+    }
+    ORDER BY DESC(xsd:integer(SUBSTR(STR(?item),33)))
+    LIMIT 10
+  }
+  UNION
+  {
+    SELECT (\"Reference\" as ?type) ?item ?property
+    WHERE
+    {
+      ?item ?property _:statement.
+      _:statement prov:wasDerivedFrom _:refnode.
+      _:refnode  pr:P4970 _:ref.
+    }
+    ORDER BY DESC(xsd:integer(SUBSTR(STR(?item),33)))
+    LIMIT 10
+  }
+}
+ORDER BY ?type DESC(xsd:integer(SUBSTR(STR(?item),33)))""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

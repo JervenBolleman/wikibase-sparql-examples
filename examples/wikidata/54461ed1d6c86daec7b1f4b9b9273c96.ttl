@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-54461ed1d6c86daec7b1f4b9b9273c96> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?title_enwiki (URI(CONCAT(\"https://en.wikipedia.org/wiki/\", ?title_enwiki)) AS ?link) ?namespace
+WHERE
+{
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint \"en.wikipedia.org\" .
+    
+    # Generator to get all transclusions of the Template \"WikiProject Climate change\"
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam mwapi:generator \"alltransclusions\" .
+    bd:serviceParam mwapi:gatfrom \"WikiProject Climate change\" .
+    bd:serviceParam mwapi:gatto \"WikiProject Climate change\" .
+    bd:serviceParam mwapi:gatlimit \"max\" .
+
+    # Use the info module to get the name of associated page
+    # (the template is on talk pages, so this gives the subject pages)
+    bd:serviceParam mwapi:prop \"info\" .
+    bd:serviceParam mwapi:inprop \"associatedpage\" .
+
+    # Output
+    # (There is no point in trying to get associated items, because that would for the found talk pages) 
+    ?title_enwiki wikibase:apiOutput \"@associatedpage\" .
+    ?namespace wikibase:apiOutput \"@ns\" .
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

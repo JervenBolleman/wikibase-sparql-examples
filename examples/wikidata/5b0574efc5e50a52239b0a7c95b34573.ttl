@@ -1,0 +1,104 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5b0574efc5e50a52239b0a7c95b34573> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """################
+# Checking whether strings from the titles of publications already exist as lexemes
+# The query has three parts:
+#   I - get a list of publications on a given topic
+#  II - extract strings from the titles
+# III - check whether these strings exist as Wikidata lexemes
+################
+
+SELECT DISTINCT
+  ?word ?wordUrl
+  ?form ?formLabel
+  ?lexeme ?lexemeLabel
+  ?lexical_category ?lexical_categoryLabel
+  (GROUP_CONCAT(DISTINCT ?featureLabel; separator=\" // \") AS ?features)
+  ?sense ?senseLabel
+  (IRI(CONCAT(\"https://commons.wikimedia.org/w/index.php?title=Special:Redirect/file&width=100&wpvalue=\", 
+          SUBSTR(STR(SAMPLE(?images)), 52))) AS ?sense_image)
+WHERE {
+
+#   I - get a list of publications on a given topic
+  
+  {
+    SELECT DISTINCT ?x ?title WHERE {
+      ?x wdt:P921 wd:Q202864 ;  # Zika virus
+         wdt:P1476 ?title.
+      FILTER(STRLEN(?title) >= 6)
+    }
+    LIMIT 10
+  }
+  
+#  II - extract strings from the titles
+  
+  BIND(LCASE(?title) AS ?ltitle)
+  BIND(REPLACE(?ltitle, \"^.*?(\\\\b\\\\w{6,}\\\\b).*$\", \"$1\") AS ?w1)
+  BIND(REPLACE(STRAFTER(?ltitle, ?w1), \"^.*?(\\\\b\\\\w{6,}\\\\b).*$\", \"$1\") AS ?w2)
+  BIND(REPLACE(STRAFTER(?ltitle, ?w2), \"^.*?(\\\\b\\\\w{6,}\\\\b).*$\", \"$1\") AS ?w3)
+  VALUES ?w_ { 1 2 3 }
+  BIND(IF(?w_ = 1, ?w1, IF(?w_ = 2, ?w2, ?w3)) AS ?word)
+  FILTER(REGEX(?word, \"^\\\\w+$\")) # since ?w may evaluate to an empty string, e.g. for one-word titles
+
+  FILTER (LANG(?word) = \"en\")
+  
+# III - check whether these strings exist as Wikidata lexemes
+# This part is taken from https://tools.wmflabs.org/ordia/text-to-lexemes
+  
+  OPTIONAL {
+    ?form ontolex:representation ?word . 
+    OPTIONAL {
+      ?form wikibase:grammaticalFeature ?feature .
+      BIND(STR(?feature) AS ?default_featureLabel)
+      OPTIONAL {
+        ?feature rdfs:label ?featureLabel_ .
+        FILTER (LANG(?featureLabel_) = \"en\")
+      }
+      BIND(COALESCE(?featureLabel_, ?default_featureLabel) AS ?featureLabel)
+    }
+    ?form ontolex:representation ?formLabel .
+  
+# START OF PROBLEMATIC SECTION    
+#    ?lexeme ontolex:lexicalForm ?form .
+#
+#    ?lexeme wikibase:lexicalCategory ?lexical_category .
+#    BIND(STR(?lexical_category) AS ?default_lexical_categoryLabel)
+#    OPTIONAL {
+#      ?lexical_category rdfs:label ?lexical_categoryLabel_ .
+#      FILTER (LANG(?lexical_categoryLabel_) = 'en')
+#    }
+#    BIND(COALESCE(?lexical_categoryLabel_, ?default_lexical_categoryLabel) AS
+#	 ?lexical_categoryLabel)
+#      
+#	  
+#    ?lexeme wikibase:lemma ?lexemeLabel .
+#
+#    OPTIONAL {
+#      ?lexeme ontolex:sense ?sense .
+#      BIND(SUBSTR(STR(?sense), 32) AS ?senseLabel)
+#      OPTIONAL {
+#        ?sense wdt:P18 ?images .
+#      }
+#    }
+# END OF PROBLEMATIC SECTION    
+    
+  }
+  BIND(IF(BOUND(?form), \"\", CONCAT(\"search?language=en&q=\", ?word)) AS ?wordUrl)
+  
+}
+GROUP BY
+  ?word ?wordUrl ?form ?formLabel
+  ?lexeme ?lexemeLabel ?lexical_category ?lexical_categoryLabel
+  ?sense ?senseLabel
+ORDER BY ?word""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

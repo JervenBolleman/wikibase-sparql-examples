@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-561812bfd49af6b2199e9777784c2eaf> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?identifier ?identifierLabel (COUNT(*) AS ?cnt) WITH {
+  SELECT DISTINCT ?item WHERE {
+    ?item p:P106/ps:P106/wdt:P279* wd:Q26270618 .
+  }
+} AS %subquery WHERE {
+  INCLUDE %subquery .
+  ?identifier wikibase:propertyType wikibase:ExternalId; wikibase:directClaim ?directClaim .
+  ?item ?directClaim ?identifierValue .
+  FILTER(?identifier != wd:P2091) . # FISA rower ID
+  FILTER(?identifier NOT IN (wd:P1447, wd:P3171, wd:P3520, wd:P5815, wd:P4391)) . # Sports-Reference.com ID, IOC ID, DatabaseOlympics.com, Olympic Channel, TheSports
+  FILTER(?identifier NOT IN (wd:P2002, wd:P2003, wd:P2013, wd:P2397, wd:P3185, wd:P4015)) . # Twitter, instagram, Facebook, youtube channel, vKontakte, vimeo
+  FILTER(?identifier NOT IN (wd:P3682, wd:P4060, wd:P4054, wd:P4053, wd:P2593, wd:P4056, wd:P2323, wd:P4062, wd:P4068, wd:P4069, wd:P4490, wd:P4067, wd:P4050, wd:P6071, wd:P4061, wd:P4547)) . # national olympic committees
+  FILTER(?identifier != wd:P646) . # Freebase
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+} GROUP BY ?identifier ?identifierLabel ORDER BY DESC (?cnt)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/rowing/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

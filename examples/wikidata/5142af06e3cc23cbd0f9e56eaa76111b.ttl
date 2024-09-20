@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5142af06e3cc23cbd0f9e56eaa76111b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# compare lat/long of Parliament and Wikidata constituency records
+PREFIX parliament:<https://id.parliament.uk/schema/>
+
+SELECT DISTINCT ?constituency ?parlcoord ?item ?itemLabel ?wdcoord ?dist ?line WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+  SERVICE <https://api.parliament.uk/sparql> 
+    { ?constituency parliament:constituencyGroupHasConstituencyArea ?area .
+      ?area parliament:latitude ?lat . ?area parliament:longitude ?long . 
+      bind(SUBSTR(str(?constituency),26) as ?parlid) . }
+  BIND(concat(\"Point(\",str(?long),\" \",str(?lat),\")\"^^geo:wktLiteral) as ?parlcoord) 
+  # get constituencies from Parliament with coordinates
+  ?item wdt:P6213 ?parlid . ?item wdt:P31 wd:Q27971968 . ?item wdt:P625 ?wdcoord . 
+  # now get them from Wikidata with coordinates
+  BIND(geof:distance(?parlcoord, ?wdcoord) as ?dist) . filter (?dist >= 10)
+  # now find out the distance (in kms) and show those where distance > 10km
+  ?item p:P625 ?statementnode. ?statementnode psv:P625 ?valuenode.
+  ?valuenode wikibase:geoLatitude ?wikilat . ?valuenode wikibase:geoLongitude ?wikilon.
+  BIND(CONCAT('LINESTRING (', STR(?wikilon), ' ', STR(?wikilat), ',', STR(?long), ' ', STR(?lat), ')') AS ?str) .
+  BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
+}
+#defaultView:Map""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

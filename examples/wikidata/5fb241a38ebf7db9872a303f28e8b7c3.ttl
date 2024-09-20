@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5fb241a38ebf7db9872a303f28e8b7c3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel (count(distinct ?wikipedia) as ?count)
+WHERE 
+{
+  ?item wikibase:sitelinks ?sitelinks .      # There are linked to ...
+  FILTER (?sitelinks >= 20)                  # ... 20 or more wikis (Wikipedias or other)
+  ?item wdt:P106/wdt:P279* wd:Q169470.       # they're some sort of physicist
+  ?item wdt:P569 ?dateOfBirth.               # they have a date of birth
+  hint:Prior hint:rangeSafe true.            # (go faster, little query; all dates are dates)
+  FILTER(\"1911-00-00\"^^xsd:dateTime <= ?dateOfBirth) # DoB is after 1910
+  FILTER NOT EXISTS {?item wdt:P570 [] .}    # WD doesn't think they're dead - no date of death
+  ?article schema:about ?item ;              # they have a sitelink
+  schema:isPartOf ?wikipedia .               # which is part of ...  
+  ?wikipedia wikibase:wikiGroup \"wikipedia\"  # ... one or other wikipedia
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+} group by ?item ?itemLabel having (?count >19)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

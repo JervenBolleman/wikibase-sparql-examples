@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5720d1a51d2dd1b59dfbdddeaf0a624f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX gvp: <http://vocab.getty.edu/ontology#>
+PREFIX aat: <http://vocab.getty.edu/aat/>
+
+SELECT
+?item ?ulanID
+# ?itemLabel ?wdValueLabel ?ulanHuman
+  WITH { SELECT ?item ?ulanID ?wdValue
+  WHERE {
+    ?item wdt:P245 ?ulanID .
+    ?item wdt:P21 ?wdValue .
+  } ORDER BY ?item LIMIT 5000 OFFSET 55000 } AS %items
+
+  # now see what ULAN says to those statements
+  WHERE { INCLUDE %items
+  BIND(URI(CONCAT(\"http://vocab.getty.edu/ulan/\", ?ulanID)) AS ?ulanURI)
+#  BIND(URI(CONCAT(\"http://vocab.getty.edu/page/ulan/\", ?ulanID)) AS ?ulanHuman)
+  SERVICE <http://vocab.getty.edu/sparql.json> {
+    ?ulanURI foaf:focus ?ulanAgent .
+    ?ulanAgent gvp:biographyPreferred ?ulanBio.
+    ?ulanBio schema:gender ?ulanValue .
+    # translate: aat:300189557 (female) -> wd:Q6581072, aat:300189559 (male) -> wd:Q6581097
+    # don't use aat:300400512 (unavailable; 61321 (2018-06-10)), aat:300400513 (other; 2 (2018-06-10))
+    BIND(IF(?ulanValue = aat:300189559, wd:Q6581097, IF(?ulanValue = aat:300189557, wd:Q6581072, wd:Q1)) AS ?wdValueFromGetty)
+  }
+  FILTER((?wdValueFromGetty IN (aat:300189557, aat:300189559)) && (?wdValue != ?wdValueFromGetty))
+#  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".}
+}
+LIMIT 500""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Visual_arts/Getty_Vocabularies>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-52ea1b300cb7aeb90606c3712f502c84> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT distinct ?item  ?itemLabel ?date {
+	# items claiming 100 year pma
+	?item p:P6216/pq:P1001 wd:Q60332278 .
+	?item p:P6216/pq:P459  wd:Q29940705 . 
+
+	# assume authors dead for more than 100 years if published or created more than 200 years ago
+	?item wdt:P571|wdt:P577 ?date
+	FILTER (?date > \"1819-01-01T00:00:01\"^^xsd:dateTime) 
+
+	# skip if authors listed
+	MINUS {?item wdt:P50|wdt:P170|wdt:P655|wdt:P84|wdt:P110|wdt:P287|wdt:P98|wdt:P86|wdt:P87|wdt:P57|wdt:P676 []} . 
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+} 
+LIMIT 200""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Help:Copyrights/maintenance>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

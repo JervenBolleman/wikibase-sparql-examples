@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5ff1ece194c74d0e17219d533ac87098> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX schema: <http://schema.org/>
+#-------------------------------------------------------------------------------
+# Kombiniert Wegkreuze und Bildstöcke in Crostwitz
+#-------------------------------------------------------------------------------
+#defaultView:Map;Table;
+SELECT DISTINCT ?item ?itemLabel ?image ?coordinates 
+WHERE {
+  ?item wdt:P131 wd:Q93223. # liegt in Crostwitz
+  #?item wdt:P31 wd:Q79007.
+    VALUES ?instance_of { 
+      wd:Q2309609      # Wegkreuz
+      wd:Q3395121      # Bildstock  
+    } 
+    ?item wdt:P31 ?instance_of.
+  
+  optional{ ?item  wdt:P2789    ?other  . }   # physisch verbundenes verbundenes objekt
+  FILTER(!BOUND(?other)) 
+  
+  OPTIONAL { ?item wdt:P18 ?image. }
+  OPTIONAL { ?item wdt:P625 ?coordinates. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"hsb,de\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:J_budissin/DPA/objekty>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

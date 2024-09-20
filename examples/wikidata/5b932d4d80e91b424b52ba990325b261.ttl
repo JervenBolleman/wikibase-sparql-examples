@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5b932d4d80e91b424b52ba990325b261> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# timeline of publication dates of the Twenty-Six Histories (also viewable as table)
+#defaultView:Timeline
+SELECT DISTINCT ?book ?bookLabel ?publication_date
+WHERE {
+  # ?book is any part of (P361) part of... Twenty-Six Histories (Q11371378)
+  ?book wdt:P361* wd:Q11371378;
+        # ?book's genre (P136) is jizhuanti (Q1619411) so that parts of each book,
+        # whose genres are benji (Q1872234), liezhuan (Q2252176), et al., are excluded
+        wdt:P136 wd:Q1619411
+  # ?book should not be instance of (P31) book series (Q277759) so that groups of books,
+  # e.g, Twenty-Four Histories (Q175077) and Seventeen Histories (Q9503010), are excluded
+  FILTER NOT EXISTS {?book wdt:P31 wd:Q277759}
+  # optional: show ?book's publication date (P577) as ?publication_date
+  OPTIONAL {?book wdt:P577 ?publication_date}
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".}
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

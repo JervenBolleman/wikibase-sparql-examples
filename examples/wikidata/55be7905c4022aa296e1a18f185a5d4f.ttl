@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-55be7905c4022aa296e1a18f185a5d4f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# to find all people with last name 'ପଟ୍ଟନାୟକ' (Q21492602) in Odia wikipedia and not mentioned in Wikidata)
+SELECT ?item ?itemLabel (COUNT(distinct ?sitelink) as ?count)
+WHERE {
+  ?wikilink schema:about ?item .  { ?wikilink schema:isPartOf <https://or.wikipedia.org/> . }
+    ?item wdt:P31 wd:Q5. # all humans
+  MINUS { ?item wdt:P734 [] . } # surname not mentioned in Wikidata
+    ?item rdfs:label ?itemLabel.
+      FILTER (lang(?itemLabel) = \"or\") .
+      FILTER regex (?itemLabel, \"(ପଟ୍ଟନାୟକ)$\").   
+          OPTIONAL { ?sitelink schema:about ?item . ?sitelink schema:inLanguage ?lang }
+}
+GROUP BY ?item ?itemLabel
+ORDER BY DESC(?count)
+LIMIT 123""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MKar/Query>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

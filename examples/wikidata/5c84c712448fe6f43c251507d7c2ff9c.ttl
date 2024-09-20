@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5c84c712448fe6f43c251507d7c2ff9c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT distinct ?item ?dop ?mdod   ?itemLabel 
+where { 
+  # look for items of type \"work\" (or children)
+  ?item wdt:P31/wdt:P279* wd:Q386724. 
+
+  ?item wdt:P577 ?dop . # date of publication
+  FILTER(?dop  < \"1924-01-01\"^^xsd:dateTime) .
+  FILTER(?mdod < \"1918-01-01\"^^xsd:dateTime) .
+  FILTER NOT EXISTS {?item wdt:P6216 [] } . 
+  
+  # Date of death of the last surviving creator
+  {SELECT ?item  (max(?dod) as ?mdod) 
+  where {
+    ?item wdt:P50|wdt:P170|wdt:P655|wdt:P84|wdt:P110|wdt:P287 ?creator .
+    ?creator wdt:P570 ?dod .
+  }  group by ?item  }.
+              
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jarekt/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

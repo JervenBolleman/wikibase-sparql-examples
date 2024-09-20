@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-599aff90900460176f6edf58e87369a6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title:Most frequent birth places for SBN authors
+#defaultView:Map
+SELECT DISTINCT ?l ?lLabel ?coord ?number ?layer
+WITH
+{
+  SELECT DISTINCT ?l ?lLabel ?coord (COUNT(DISTINCT ?item) AS ?number)
+  WHERE 
+  {
+  ?item wdt:P396 [] ; wdt:P19 ?l . ?l wdt:P625 ?coord .
+  }
+  GROUP BY ?l ?lLabel ?coord ?number
+} AS %what
+WHERE
+{
+  INCLUDE %what
+  BIND( IF(?number < 6, \"1-5\", IF(?number < 21, \"6-20\", IF(?number < 51, \"21-50\",\"51+\"))) AS ?layer)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"it\". }
+}
+GROUP BY ?l ?lLabel ?coord ?number ?layer
+ORDER BY DESC(?number)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/Queries>, <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/sandbox>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

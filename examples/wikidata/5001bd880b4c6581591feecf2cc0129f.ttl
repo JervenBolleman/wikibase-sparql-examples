@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5001bd880b4c6581591feecf2cc0129f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?title ?mainSubjectLabel ?itemTypeLabel (GROUP_CONCAT(DISTINCT ?authorLabel; SEPARATOR = \", \") AS ?authors) 
+WHERE
+{
+ {
+  ?item wdt:P31 wd:Q47461344 ; # instance of a written work 
+        wdt:P31 ?itemType ;
+        rdfs:label ?title .
+  ?item wdt:P921 wd:Q515701 ; # has the term 'linked data' as main subject
+        wdt:P921 ?mainSubject . 
+  ?item wdt:P50 ?author .
+  ?author rdfs:label ?authorLabel .
+  FILTER (LANG(?authorLabel) = \"en\") 
+  FILTER (LANG(?title) = \"en\") 
+ }
+ UNION
+ {
+  ?item wdt:P31 wd:Q18918145 ; # instance of a academic journal article
+        wdt:P31 ?itemType ;
+        rdfs:label ?title .
+  ?item wdt:P921 wd:Q515701 ; # has the term 'linked data' as main subject
+        wdt:P921 ?mainSubject .
+  ?item wdt:P50 ?author .
+  ?author rdfs:label ?authorLabel .
+  FILTER (LANG(?authorLabel) = \"en\") 
+  FILTER (LANG(?title) = \"en\") 
+ }
+FILTER(?mainSubject IN (wd:Q515701)) # Filter out 'main subject' values NOT in this list
+FILTER(?itemType IN (wd:Q47461344, wd:Q18918145 )) # Filter out 'instance of' values NOT in this list
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+GROUP BY ?item ?title ?mainSubjectLabel ?itemTypeLabel ?authors
+ORDER by ASC (?title)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_PCC_Wikidata_Pilot/UNLV/SPARQL_Examples_and_Concepts>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

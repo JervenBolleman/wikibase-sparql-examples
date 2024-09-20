@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-51b85e4bcf6623cf5e35091b0a073c8b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Chess players without a title statement
+SELECT ?player ?playerLabel ?link WHERE {
+  wd:P1440 wdt:P1630 ?formatterurl .
+  ?player wdt:P106 wd:Q10873124 .
+  MINUS { ?player wdt:P2962 [] } .
+  OPTIONAL {
+    ?sitelink schema:about ?player .
+  }
+  FILTER(!BOUND(?sitelink)) .
+  MINUS { ?otheritem ?anyprop ?player }
+  ?player wdt:P1440 ?fideid .
+  BIND(IRI(REPLACE(?fideid, '^(.+)$', ?formatterurl)) AS ?link).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+ORDER BY ASC(?playerLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Requests_for_deletions/Archive/2017/06/28>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

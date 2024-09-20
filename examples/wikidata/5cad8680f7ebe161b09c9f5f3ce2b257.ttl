@@ -1,0 +1,165 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5cad8680f7ebe161b09c9f5f3ce2b257> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?person ?personLabel ?fame ?birthPlace ?residence ?educatedAt ?workedAt ?playedFor
+WITH
+{
+  SELECT DISTINCT ?team
+  WHERE
+  {
+    ?team wdt:P115 ?venue.
+    ?venue wdt:P131* wd:Q812.
+  }
+} AS %get_teams
+WITH
+{
+  SELECT DISTINCT ?person
+  WHERE
+  {
+    ?person wdt:P31 wd:Q5. # Is human
+    ?person (wdt:P19 | wdt:P551 | wdt:P037 | wdt:P69) / wdt:P131* wd:Q812. # Born/lived/worked/educated in Florida
+    hint:Prior hint:gearing \"forward\". # Search the property chain above forward
+    ?person wikibase:sitelinks ?fame
+    FILTER (?fame > 35)
+    OPTIONAL { ?person wdt:P570 ?date_of_death. }
+    FILTER (! BOUND(?date_of_death)) # No date of death, i.e. living
+  }
+} AS %first_selection
+WITH
+{
+  SELECT DISTINCT ?person
+  WHERE
+  {
+    INCLUDE %get_teams
+    ?person wdt:P54 ?team.
+    ?person wikibase:sitelinks ?fame
+    FILTER (?fame > 35)
+    OPTIONAL { ?person wdt:P570 ?date_of_death. }
+    FILTER (! BOUND(?date_of_death)) # No date of death, i.e. living
+  }
+} AS %get_team_players
+WITH
+{
+  SELECT DISTINCT ?person
+  WHERE
+  {
+    { INCLUDE %first_selection }
+    UNION
+    { INCLUDE %get_team_players }
+  }
+} AS %get_persons
+WITH
+{
+  SELECT ?person (COUNT(?wikipedialink) AS ?fame)
+  WHERE
+  {
+    INCLUDE %get_persons
+    ?wikipedialink schema:isPartOf [ wikibase:wikiGroup \"wikipedia\" ]; schema:about ?person.
+  }
+  GROUP BY ?person
+  HAVING (?fame > 35)
+} AS %get_fame
+WITH
+{
+  SELECT ?person ?fame (GROUP_CONCAT(DISTINCT ?placeLabel; SEPARATOR=\", \") AS ?birthPlace)
+  WHERE
+  {
+    INCLUDE %get_fame
+    OPTIONAL
+    {
+      ?person wdt:P19 ?place.
+      ?place wdt:P131* wd:Q812.
+      hint:Prior hint:gearing \"forward\".
+    }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". ?place rdfs:label ?placeLabel. }
+  }
+  GROUP BY ?person ?fame
+} AS %get_birthPlace
+WITH
+{
+  SELECT ?person ?fame ?birthPlace (GROUP_CONCAT(DISTINCT ?placeLabel; SEPARATOR=\", \") AS ?residence)
+  WHERE
+  {
+    INCLUDE %get_birthPlace
+    OPTIONAL
+    {
+      ?person wdt:P551 ?place.
+      ?place wdt:P131* wd:Q812.
+      hint:Prior hint:gearing \"forward\".
+    }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". ?place rdfs:label ?placeLabel. }
+  }
+  GROUP BY ?person ?fame ?birthPlace
+} AS %get_residence
+WITH
+{
+  SELECT ?person ?fame ?birthPlace ?residence (GROUP_CONCAT(DISTINCT ?schoolAndPlace; SEPARATOR=\"; \") AS ?educatedAt)
+  WHERE
+  {
+    INCLUDE %get_residence
+    OPTIONAL
+    {
+      ?person wdt:P69 ?school.
+      ?school wdt:P131 ?place.
+      ?place wdt:P131* wd:Q812.
+      hint:Prior hint:gearing \"forward\".
+    }
+    BIND (CONCAT(?schoolLabel, \", \", ?placeLabel) AS ?schoolAndPlace)
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+                             ?school rdfs:label ?schoolLabel.
+                             ?place rdfs:label ?placeLabel. }
+  }
+  GROUP BY ?person ?fame ?birthPlace ?residence
+} AS %get_educatedAt
+WITH
+{
+  SELECT ?person ?fame ?birthPlace ?residence ?educatedAt (GROUP_CONCAT(DISTINCT ?placeLabel; SEPARATOR=\", \") AS ?workedAt)
+  WHERE
+  {
+    INCLUDE %get_educatedAt
+    OPTIONAL
+    {
+      ?person wdt:P937 ?place.
+      ?place wdt:P131* wd:Q812.
+      hint:Prior hint:gearing \"forward\".
+    }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". ?place rdfs:label ?placeLabel. }
+  }
+  GROUP BY ?person ?fame ?birthPlace ?residence ?educatedAt
+} AS %get_workedAt
+WITH
+{
+  SELECT ?person ?fame ?birthPlace ?residence ?educatedAt ?workedAt (GROUP_CONCAT(DISTINCT ?teamAndPlace; SEPARATOR=\"; \") AS ?playedFor)
+  WHERE
+  {
+    INCLUDE %get_workedAt
+    OPTIONAL
+    {
+      INCLUDE %get_teams
+      ?person wdt:P54 ?team.
+      ?team wdt:P115 ?venue.
+      ?venue wdt:P131 ?place.
+    }
+    BIND (CONCAT(?teamLabel, \", \", ?placeLabel) AS ?teamAndPlace)
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+                             ?team rdfs:label ?teamLabel.
+                             ?place rdfs:label ?placeLabel. }
+  }
+  GROUP BY ?person ?fame ?birthPlace ?residence ?educatedAt ?workedAt
+} AS %get_playedFor
+WHERE
+{
+  INCLUDE %get_playedFor
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?fame)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/05>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

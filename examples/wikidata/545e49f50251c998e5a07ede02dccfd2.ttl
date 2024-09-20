@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-545e49f50251c998e5a07ede02dccfd2> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title:Recently edited articles relevant to the Khalili Collections partnership
+SELECT ?item1Label ?langname ?sitelink ?size ?lastEdited
+WHERE {
+VALUES ?item1 {wd:Q3336241 wd:Q66455644 wd:Q66458747 wd:Q63160499 wd:Q66454754 wd:Q66456991 wd:Q66457023 wd:Q66458773 wd:Q66455051 wd:Q27763745 wd:Q92731365 wd:Q95639662 wd:Q11481067 wd:Q2982930 wd:Q46103484 wd:Q21664940 wd:Q11362747 wd:Q11566135 wd:Q106372429 wd:Q66455355 wd:Q6735263 wd:Q107060104 wd:Q13142198 wd:Q110621552 wd:Q3042743 wd:Q21074703 wd:Q113673240 wd:Q6735866 wd:Q107663626 wd:Q64746992 wd:Q16641327 wd:Q12810868 wd:Q2827531 wd:Q115048320 wd:Q4480950 wd:Q109811416 wd:Q122258635 wd:Q122067620}
+?sitelink schema:about ?item1 . # get Wikimedia pages
+FILTER(CONTAINS(str(?sitelink), \".wikipedia.org/\")) # only Wikipedia articles
+?sitelink schema:inLanguage ?langcode; schema:name ?title ; schema:isPartOf ?site.
+OPTIONAL { ?language wdt:P218 ?langcode; rdfs:label ?langlabel FILTER(lang(?langlabel) = \"en\") } # Convert short code to full language name
+BIND(COALESCE(?langlabel, ?langcode) AS ?langname)
+BIND(REPLACE(SUBSTR(STR(?site), 9), '/', '') AS ?endpoint)
+OPTIONAL{
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Generator\" ; 
+    wikibase:endpoint ?endpoint ;
+    mwapi:generator \"allpages\" ;
+    mwapi:gapfrom ?title ;
+    mwapi:gapto ?title ;
+    mwapi:prop \"revisions\" ;
+    mwapi:rvprop \"timestamp|size\" .
+    ?t wikibase:apiOutput \"revisions/rev/@timestamp\" .
+    ?bytes wikibase:apiOutput \"revisions/rev/@size\" .
+  }
+BIND (xsd:dateTime(?t) AS ?lastEdited)
+BIND (xsd:integer(?bytes) AS ?size)
+}
+
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+} ORDER BY DESC(?lastEdited) ?item1Label""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/khalili>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

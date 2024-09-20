@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5b9fdfb4df07142e4c59f4e3f0f67efb> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Les production issues de l'activité spécifique de production menée par une société de production XY avec les metteurs en scène.
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX crm: <http://www.cidoc-crm.org/cidoc-crm/>
+PREFIX spav: <http://vocab.performing-arts.ch/>
+PREFIX frbroo: <http://iflastandards.info/ns/fr/frbr/frbroo/>
+
+SELECT ?prod ?titlelabel ?season ?PersonLabel ?PersonWikidata ?GenrePerfo
+WHERE {
+{
+ SELECT DISTINCT ?Act_production ?expressioncreation ?prod ?titlelabel ?season ?PersonLabel ?PersonWikidata ?GenrePerfo
+ WHERE 
+ {
+  ?Act_production crm:P14_carried_out_by <XY>;#on cherche une activité spécifique conduite par XY (ajouter URI de la société de production)
+    crm:P2_has_type spav:muwgo.#une activité de type \"production\"
+  ?expressioncreation crm:P9_consists_of ?Act_production; #cette production est issue d'une activité créatrice
+    frbroo:R17_created ?prod.#cette activité créatrice crée une production générique
+  ?prod rdfs:label ?titlelabel.#titre de la production générique
+   ?expressioncreation crm:P10_falls_within ?season.#l'activité créatrice trouve sa place dans une saison.
+          FILTER(CONTAINS(STR(?season), \"/s/\")).
+          OPTIONAL {?expressioncreation crm:P9_consists_of ?Activity.
+          ?Activity crm:P2_has_type spav:mutnt; crm:P14_carried_out_by ?Person.
+          ?Person rdfs:label ?PersonLabel ; <http://www.w3.org/2002/07/owl#sameAs> ?PersonWikidata . 
+          FILTER ( REGEX ( STR(?PersonWikidata) , \"wikidata.org\" ) ) }.
+ OPTIONAL {?perfoGen frbroo:R25_performed ?prod; crm:P9_consists_of ?perfoSpec. ?perfoSpec crm:P2_has_type ?GenrePerfo. ?GenrePerfo skos:inScheme <http://vocab.performing-arts.ch/hl>}.
+      }
+ }
+ }""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:SAPA_bdc/PADM/Panorama/Lot_2023-1/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

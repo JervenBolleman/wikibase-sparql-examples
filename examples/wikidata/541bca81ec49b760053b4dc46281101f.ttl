@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-541bca81ec49b760053b4dc46281101f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?forge ?forgeLabel ?instanceOf ?instanceOfLabel
+WHERE 
+{
+
+  {
+    ?forge wdt:P31 wd:Q3077240. # Must be of a forge
+    VALUES (?instanceOf ?instanceOfLabel) {
+       (wd:Q3133368 \"repository\")
+       (wd:Q1480561 \"issue tracker\") 
+       (wd:Q16947796 \"CI\")
+       (wd:Q16920237 \"code review\")
+       (wd:Q6686945 \"wiki\")
+       (wd:Q63067479 \"mailing list\")
+       (wd:Q1334294 \"software repository\")
+#      (wd:Q68712963 \"pull request\")
+    }
+    ?forge wdt:P31 ?instanceOf.
+    MINUS {
+        ?forge p:P582 ?ignore0. # Do not include items with end time, i.e. forges that are obsolete
+    }
+  }
+  FILTER NOT EXISTS { 
+    ?forge wdt:P31+ wd:Q35127.
+  } # website: exclude online services running a forge, only keep forge software
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } # Helps get the label in your language, if not, then en language
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Informatics/Forges>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

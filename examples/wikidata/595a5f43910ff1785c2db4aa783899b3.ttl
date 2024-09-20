@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-595a5f43910ff1785c2db4aa783899b3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT (replace(group_concat(distinct ?composer;separator=\"; \"), \"http://www.wikidata.org/entity/\", \"\") as ?composers)  #Strip the path in order to get only the Q-number.
+       (group_concat(distinct ?composerLabel;separator=\"; \") as ?composerLabels)
+       ?opera 
+       ?operaLabel 
+       ?languageLabel 
+       ?worldpremiere
+WHERE 
+{
+  ?opera wdt:P31/wdt:P279* wd:Q1344.
+  ?opera wdt:P1191 ?worldpremiere .
+  OPTIONAL { ?opera wdt:P86 ?composer }
+  OPTIONAL { ?opera wdt:P86/rdfs:label ?composerLabel . FILTER (lang(?composerLabel) = \"en\") }
+  OPTIONAL { ?opera wdt:P407 ?language }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de,fr,it,es,ru\" }
+}
+GROUP BY ?opera
+         ?operaLabel
+         ?languageLabel 
+         ?worldpremiere
+
+ORDER BY ASC(?worldpremiere)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Tools_%26_tasks/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Tools_%26_tasks/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Tools_%26_tasks/en>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Tools_%26_tasks>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

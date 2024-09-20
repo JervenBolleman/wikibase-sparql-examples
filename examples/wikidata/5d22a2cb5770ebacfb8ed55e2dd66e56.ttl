@@ -1,0 +1,39 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5d22a2cb5770ebacfb8ed55e2dd66e56> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT 
+  ?lexemes
+
+  ?attestor ?attestorLabel
+  (CONCAT(\"#lexemeattestor/\", SUBSTR(STR(?attestor), 32)) AS ?attestorUrl)
+  ?attestorDescription
+
+  ?example_lexeme
+  (SUBSTR(STR(?example_lexeme), 32) AS ?example_lexemeLabel)
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)
+WITH {
+  SELECT 
+    (COUNT(?lexeme) AS ?lexemes)
+    ?attestor
+    (SAMPLE(?lexeme) AS ?example_lexeme)
+  WHERE {
+    ?lexeme wdt:P5323 ?attestor ;
+            dct:language [] .
+  }
+  GROUP BY ?attestor
+} AS %attestors
+WHERE{
+  INCLUDE %attestors
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?lexemes)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:lexemeattestor-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

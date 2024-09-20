@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5be6d9b7f37ede7bdf56a2ce5cc218f3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:BarChart
+SELECT (REPLACE(REPLACE(?nobelPrizeLabel_, \"^Nobel Prize in \", \"\"), \"^Nobel (.*) Prize$\", \"$1\") AS ?nobelPrizeLabel) (COUNT(DISTINCT ?winner) AS ?winners) (COALESCE(?genderLabel_, \"N/A\"@en) AS ?genderLabel) WHERE {
+  ?nobelPrize wdt:P361 wd:Q7191.
+  ?winner p:P166 [
+            ps:P166 ?nobelPrize;
+            pq:P585 ?date
+          ].
+  OPTIONAL { ?winner wdt:P21 ?gender. } # optional because organizations can win the Peace Prize
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?nobelPrize rdfs:label ?nobelPrizeLabel_.
+    ?gender rdfs:label ?genderLabel_.
+  }
+}
+GROUP BY ?nobelPrizeLabel_ ?genderLabel_""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/Nobel_laureates_by_award_type_and_gender>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,103 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-53933344c569ae19ef0c4bedd480b799> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Table
+SELECT DISTINCT (GROUP_CONCAT(DISTINCT ?lang; SEPARATOR = \", \") AS ?sprachen) ?page_title ?article ?item (GROUP_CONCAT(DISTINCT ?io; SEPARATOR = \", \") AS ?ist_ein) (GROUP_CONCAT(DISTINCT ?einheit; SEPARATOR = \", \") AS ?verwaltung) ?bild ?comcat ?coordinate WHERE {
+  {
+    ?item (wdt:P131*) wd:Q720030.
+    OPTIONAL {
+      ?gepage schema:about ?item;
+        schema:isPartOf <https://sr.wikipedia.org/>;
+        schema:name ?ge_title.
+    }
+  }
+  UNION
+  {
+    ?item (wdt:P131*) wd:Q861539.
+    OPTIONAL {
+      ?gepage schema:about ?item;
+        schema:isPartOf <https://ro.wikipedia.org/>;
+        schema:name ?ge_title.
+    }
+  }
+  UNION
+  {
+    ?item (wdt:P131*) wd:Q867816.
+    OPTIONAL {
+      ?gepage schema:about ?item;
+        schema:isPartOf <https://ro.wikipedia.org/>;
+        schema:name ?ge_title.
+    }
+  }
+  UNION
+  {
+    ?item (wdt:P131*) wd:Q185586.
+    OPTIONAL {
+      ?gepage schema:about ?item;
+        schema:isPartOf <https://ro.wikipedia.org/>;
+        schema:name ?ge_title.
+    }
+  }
+  UNION
+  {
+    ?item (wdt:P131*) wd:Q2074197.
+    OPTIONAL {
+      ?gepage schema:about ?item;
+        schema:isPartOf <https://sr.wikipedia.org/>;
+        schema:name ?ge_title.
+    }
+  }
+  OPTIONAL {
+    ?enwiki schema:about ?item;
+      schema:isPartOf <https://en.wikipedia.org/>;
+      schema:name ?en_title.
+  }
+  OPTIONAL {
+    ?dewiki schema:about ?item;
+      schema:isPartOf <https://de.wikipedia.org/>;
+      schema:name ?de_title.
+  }
+  FILTER(((BOUND(?gepage))|| (BOUND(?dewiki))) || (BOUND(?enwiki)))
+  OPTIONAL { ?item wikibase:sitelinks ?sl. }
+  FILTER((BOUND(?sl)) && (?sl > 0 ))
+  OPTIONAL {
+    ?page schema:about ?item;
+      schema:inLanguage ?lang.
+  }
+  FILTER(?lang IN(\"fr\", \"de\", \"en\", \"ro\", \"sr\"))
+  OPTIONAL { ?item wdt:P131 ?ve. }
+  OPTIONAL { ?item wdt:P625 ?coordinate. }
+  OPTIONAL { ?item wdt:P31 ?instance. }
+  OPTIONAL { ?item wdt:P18 ?bild. }
+  OPTIONAL { ?item wdt:P373 ?commons. }
+  BIND(IF(BOUND(?commons), URI(CONCAT(\"https://commons.wikimedia.org/wiki/Category:\", STR(?commons))), \"\") AS ?comcat)
+  BIND(IF(BOUND(?dewiki), ?dewiki, IF(BOUND(?enwiki), ?enwiki, ?gepage)) AS ?article)
+  BIND(IF(BOUND(?de_title), ?de_title, IF(BOUND(?en_title), ?en_title, ?ge_title)) AS ?page_title)
+  FILTER(BOUND(?article))
+  VALUES ?top {
+    wd:Q1030034
+    wd:Q41176
+    wd:Q35145263
+    wd:Q2065736
+    wd:Q12076836
+  }
+  FILTER(EXISTS { ?item (wdt:P31/(wdt:P279*)) ?top. })
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,ro,sh,sr\".
+    ?item rdfs:label ?il.
+    ?instance rdfs:label ?io.
+    ?ve rdfs:label ?einheit.
+  }
+}
+GROUP BY ?page_title ?article ?item ?bild ?comcat ?coordinate
+ORDER BY (?page_title)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:No39188/mehrQueries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5c537c7d51414534a3b6fbc28d4ee149> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item (SUBSTR(?published1, 1, 4) as ?published) ?title WHERE {  
+  VALUES ?iczn {wd:Q6130489 wd:Q31205884 wd:Q15759939} . # Q6130489 = Smithsonian Miscellaneous Collections, Q31205884 = Opinions and declarations, Q15759939 = Bulletin of Zoological Nomenclature
+  ?item wdt:P1433 ?iczn .  
+  OPTIONAL {?item wdt:P577 ?published1} .
+  OPTIONAL {?item wdt:P1476 ?title} . 
+  OPTIONAL {?item wdt:P687 ?bhlPage} .   
+  BIND(strbefore(?title, \" \") as ?type)
+  BIND(strafter(?title, \" \") as ?tmp)
+  BIND(strbefore(?tmp, \" \") as ?number)
+  BIND(replace(?number, \"\\\\.\", \"\") AS ?number)
+  BIND(replace(?number, \":\", \"\") AS ?number)
+  BIND(replace(?number, \",\", \"\") AS ?number)
+  FILTER (xsd:string(?type) = \"Opinion\" || xsd:string(?type) = \"Direction\")
+  FILTER (isNumeric(xsd:integer(?number)))
+}
+ORDER BY ASC(?type) ASC(xsd:integer(?number))""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Succu/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

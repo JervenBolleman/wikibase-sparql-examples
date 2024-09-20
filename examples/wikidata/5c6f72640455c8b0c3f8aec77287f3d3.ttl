@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5c6f72640455c8b0c3f8aec77287f3d3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT 
+  ?count
+
+  ?venue ?venueLabel
+  (CONCAT(\"#venue/\", SUBSTR(STR(?venue), 32)) AS ?venueUrl)
+WITH {
+  SELECT 
+    (COUNT(*) AS ?count)
+    ?venue
+  WHERE {
+    [] wdt:P1433 ?venue .
+  }
+  GROUP BY ?venue
+  ORDER BY DESC(?count)
+  LIMIT 200
+} AS %venues
+WHERE {
+  INCLUDE %venues
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:venue-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .
