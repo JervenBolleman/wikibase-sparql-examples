@@ -11,7 +11,38 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# List of subcategories and gallery pages in Category:Flora Batava - KB copy (Commons query service)
+# Lazy query, we should do a UNION (?) to get a nice table with the Category and Gallery on the same row
+SELECT ?page ?pageURL ?ns 
+WITH
+{
+  SELECT ?page ?ns
+  WHERE
+{
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+    bd:serviceParam mwapi:gcmtitle \"Category:Flora Batava - KB copy\" .
+    bd:serviceParam mwapi:generator \"categorymembers\" .
+    bd:serviceParam mwapi:gcmlimit \"max\" .
+    ?page wikibase:apiOutput mwapi:title .
+    ?ns wikibase:apiOutput \"@ns\".
+  }
+  FILTER regex (?ns, \"(14|0)$\")  #(sub)categories & gallery pages only
+  }
+} AS %get_files
+WHERE
+{
+  INCLUDE %get_files
+  BIND(REPLACE(?page, \" \", \"_\", \"i\") AS ?p)  
+  BIND(URI(CONCAT('https://commons.wikimedia.org/wiki/', ?p)) AS ?pageURL). 
+} 
+ORDER BY ?page""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 # List of subcategories and gallery pages in Category:Flora Batava - KB copy (Commons query service)
 # Lazy query, we should do a UNION (?) to get a nice table with the Category and Gallery on the same row

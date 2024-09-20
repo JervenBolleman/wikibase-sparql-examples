@@ -11,7 +11,46 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?cast2 ?cast2Label ?castLabel ?place ?placeLabel ?heritLabel ?coord with { select ?castLabel where {
+
+ SERVICE wikibase:mwapi
+ {
+   bd:serviceParam wikibase:endpoint \"es.wikipedia.org\" .
+   bd:serviceParam wikibase:api \"Generator\" .
+   bd:serviceParam mwapi:generator \"categorymembers\" .
+   bd:serviceParam mwapi:gcmtitle \"Categoría:Iglesias de Extremadura por siglo\" .
+   bd:serviceParam mwapi:gcmlimit \"max\" .
+   bd:serviceParam mwapi:gcmnamespace \"14\" .
+   ?cast wikibase:apiOutputItem mwapi:item .
+ }
+   ?cast rdfs:label ?castLabel . filter(lang(?castLabel)=\"es\")
+
+  } } as %i
+where
+{
+   INCLUDE %i
+   SERVICE wikibase:mwapi
+ {
+   bd:serviceParam wikibase:endpoint \"es.wikipedia.org\" .
+   bd:serviceParam wikibase:api \"Generator\" .
+   bd:serviceParam mwapi:generator \"categorymembers\" .
+   bd:serviceParam mwapi:gcmtitle ?castLabel .
+   bd:serviceParam mwapi:gcmlimit \"max\" .
+   bd:serviceParam mwapi:gcmnamespace \"0\" .
+   ?cast2 wikibase:apiOutputItem mwapi:item .
+ }               
+ ?cast2 wdt:P625 ?coord .
+ OPTIONAL { ?cast2 wdt:P131 ?place. }
+ OPTIONAL { ?cast2 wdt:P1435 ?herit. }
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],es\" . } 
+
+}""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>

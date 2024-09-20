@@ -11,7 +11,54 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+  sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT distinct ?item ?label_de ?lastname ?itemlastname ?itemlastnameLabel WITH {
+  SELECT distinct ?item ?label_de ?lastname ?itemlastname
+WHERE 
+{
+  SERVICE bd:slice {
+    ?item wdt:P31 wd:Q5 .
+    bd:serviceParam bd:slice.offset 0 .      # Offset 
+    bd:serviceParam bd:slice.limit 5000 .   #  number of datasets to scan
+  }      
+  MINUS { ?item wdt:P734 [] } .              # no family name
+
+  ?item rdfs:label ?label_de .               # only german label
+  FILTER(LANG(?label_de) = 'de') .  
+  
+  FILTER(REGEX(STR(?label_de), \"[^,]\")) .    # no commas  \"Prinzessin Elisabeth Helene, Markgrafin von Meißen\"
+  FILTER(!REGEX(STR(?label_de), \"[0-9]\")) .  # no number   \"12th Planet\" 
+  FILTER(!REGEX(STR(?label_de), \"\\\\?\")) .    # no Question mark  \"A.geh Wirklich?\" 
+  FILTER(!REGEX(STR(?label_de), \"\\\\-\")) .    # no minus  \"Adib asch-Schischakli\" 
+  FILTER(REGEX(STR(?label_de), \" \")) .       # minimum one space z.B.  \"Athenagoras\"
+  FILTER(!REGEX(STR(?label_de), \"\\\\.$\")) .   # no point at the end  \"Johann Reinhard III.\"
+  FILTER(!REGEX(STR(?label_de), \" (von|de|le|der|die|das|dem) \")) .  # no nobiliary particle   \"Anton Günther Herzog von Oldenburg\"  
+  # only since 1875
+  OPTIONAL { ?item wdt:P569 ?date_of_birth }. # date of birth
+  FILTER (?date_of_birth >= \"1875-01-01T00:00:00Z\"^^xsd:dateTime)  
+  
+  BIND(REPLACE(?label_de, \"^.* ([^\\\\s]+)$\", \"$1\") AS ?lastname)  # get lastname
+  FILTER(REGEX(STR(?lastname), \"....*\")) .                       # minimum 3 letters  
+  } } as %i
+WHERE
+{
+  INCLUDE %i
+  BIND (concat(?lastname,\" haswbstatement:P31=Q101352\") as ?searchinput)
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch ?searchinput.
+    ?itemlastname wikibase:apiOutputItem mwapi:title .
+  }          
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". } 
+}""";
+  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>

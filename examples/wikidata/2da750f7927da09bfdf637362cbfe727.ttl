@@ -11,7 +11,49 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Items with Internet Encyclopedia of Ukraine ID but no IEU identifier in en.Wikipedia
+SELECT DISTINCT ?item ?itemLabel ?itemDescription ?IEU_link ?enarticle  with { select ?item ?IEU_link ?enarticle WHERE {
+  BIND('en' AS ?lang).
+  BIND(CONCAT(?lang, '.wikipedia.org') AS ?project).
+  ?item wdt:P9070 ?IEU_ID . # item’s IEU ID
+  wd:P9070 wdt:P1630 ?formatterurl . # get its formatter
+  ?enarticle schema:about ?item ; 
+             schema:inLanguage ?lang ; 
+             schema:isPartOf <https://en.wikipedia.org/> ; 
+             schema:name ?enname .
+  # derive the IEU URL
+  BIND(IRI(REPLACE( 
+    REPLACE(?IEU_ID, '\\\\', '%5C', 'q'), # percent-encode backslash
+    '^(.+)$', 
+    REPLACE(?formatterurl, '\\\\', '%5C', 'q') # percent-encode backslash
+  )) AS ?IEU_link) .  
+} } as %i
+where
+{
+  include %i
+  filter not exists  {select ?item where {    
+    # en.Wikipedia articles in Category:Wikipedia articles with IEU identifiers
+    SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:endpoint \"en.wikipedia.org\";
+                     wikibase:api \"Generator\";
+                     mwapi:generator \"categorymembers\";
+                     mwapi:gcmtitle \"Category:Wikipedia articles with IEU identifiers\" ;
+                     mwapi:gcmprop \"ids|title|type\";
+                     mwapi:gcmlimit \"max\".
+     # out
+     ?item wikibase:apiOutputItem mwapi:item.
+    }
+ } }
+  FILTER BOUND(?item) # Safeguard to not get a timeout from unbound items 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\"  }
+  }""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>

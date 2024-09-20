@@ -11,7 +11,161 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# For all text pages in Dutch (in Category:Flora Batava - KB copy, and its subcategories), are all required structured data fields present?
+# Example File:Veronica chamaedrys - Pl0001 - DescriptionNL01 - FloraBatava-KB-v01.jpg:
+# - main subject (P921) = Qid of depicted plant spieces (for instance Veronica chamaedrys (Q157343))
+# - collection (P195) = Koninklijke Bibliotheek (Q1526131)
+# - instance of (P31) = digital image (Q1250322)
+# - copyright status (P6216) = public domain (Q19652)
+# - source of file (P7482) = file available on the internet (Q74228490) with qualifiers
+#   - operator (P137) = kb.nl (Q93997197)
+#   - described at URL (P973) = URL of image on kb.nl (for instance https://galerij.kb.nl/kb.html#/nl/florabatava01/page/16/zoom/3/lat/-67.06743335108297/lng/-51.328125)
+
+SELECT DISTINCT 
+?plate ?file ?title 
+?mainsubject ?mainsubjectLabel ?mainsubjectIsA ?collection ?instanceof ?copyrightstatus 
+?source ?operator ?describedatURL 
+WITH
+{
+  SELECT ?file ?title
+  WHERE
+  {
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+    bd:serviceParam mwapi:gcmtitle \"Category:Flora Batava - KB copy\" .
+    bd:serviceParam mwapi:generator \"categorymembers\" .
+    bd:serviceParam mwapi:gcmlimit \"50\" .
+    ?categoryName wikibase:apiOutput mwapi:title .
+    ?ns wikibase:apiOutput \"@ns\".
+  }
+  FILTER (?ns = \"14\") # (sub)categories only
+ 
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+    bd:serviceParam mwapi:gcmtitle ?categoryName.
+    bd:serviceParam mwapi:generator \"categorymembers\" .
+    bd:serviceParam mwapi:gcmtype \"file\" .
+    bd:serviceParam mwapi:gcmlimit \"1000\" .
+    ?title wikibase:apiOutput mwapi:title .
+    ?pageid wikibase:apiOutput \"@pageid\" .
+  }
+    BIND (URI(CONCAT('https://commons.wikimedia.org/entity/M', ?pageid)) AS ?file)
+  }
+} 
+AS %get_files
+WHERE
+{
+  INCLUDE %get_files
+  BIND(STRBEFORE(STRAFTER(?title,\" - Pl\"),\" - DescriptionNL\") AS ?plate)
+  FILTER(REGEX(?title,\"(DescriptionNL[0-9]+ - FloraBatava-KB-v[0-9]{2}.jpg)$\"))
+
+  OPTIONAL{ ?file wdt:P921 ?mainsubject. #  main subject (P921) = Qid of depicted plant spieces (for instance Veronica chamaedrys (Q157343))   
+            SERVICE <https://query.wikidata.org/sparql> {
+              ?mainsubject rdfs:label ?mainsubjectLabel FILTER (lang(?mainsubjectLabel) = \"la\").
+              ?mainsubject wdt:P31 ?mainsubjectIsA. 
+              FILTER (?mainsubjectIsA = wd:Q16521) # ?mainsubject must be instance of taxon/Q16521
+            }
+          } 
+  OPTIONAL{ ?file wdt:P31 ?instanceof.
+            FILTER (?instanceof = wd:Q1250322).
+          } # ?instanceof must be a digital image (Q1250322) 
+  OPTIONAL{ ?file wdt:P6216 ?copyrightstatus.
+          }  # copyright status (P6216) = public domain (Q19652)
+  OPTIONAL{ ?file wdt:P195 ?collection.
+          }  # collection (P195) = Koninklijke Bibliotheek (Q1526131)
+  OPTIONAL{ ?file p:P7482 [ps:P7482 ?source; pq:P137 ?operator; pq:P973 ?describedatURL].}
+       
+} ORDER BY ?plate""",
+    """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# For all text pages in Dutch (in Category:Flora Batava - KB copy, and its subcategories), are all required structured data fields present?
+# Example File:Veronica chamaedrys - Pl0001 - DescriptionNL01 - FloraBatava-KB-v01.jpg:
+# - main subject (P921) = Qid of depicted plant spieces (for instance Veronica chamaedrys (Q157343))
+# - collection (P195) = Koninklijke Bibliotheek (Q1526131)
+# - instance of (P31) = digital image (Q1250322)
+# - copyright status (P6216) = public domain (Q19652)
+# - source of file (P7482) = file available on the internet (Q74228490) with qualifiers
+#   - operator (P137) = kb.nl (Q93997197)
+#   - described at URL (P973) = URL of image on kb.nl (for instance https://galerij.kb.nl/kb.html#/nl/florabatava01/page/16/zoom/3/lat/-67.06743335108297/lng/-51.328125)
+
+SELECT DISTINCT 
+?plate ?file ?title 
+?mainsubject ?mainsubjectLabel ?mainsubjectIsA ?collection ?instanceof ?copyrightstatus 
+?source ?operator ?describedatURL 
+
+WHERE
+{
+  {
+  SELECT ?file ?title
+  WHERE
+  {
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+    bd:serviceParam mwapi:gcmtitle \"Category:Flora Batava - KB copy\" .
+    bd:serviceParam mwapi:generator \"categorymembers\" .
+    bd:serviceParam mwapi:gcmlimit \"50\" .
+    ?categoryName wikibase:apiOutput mwapi:title .
+    ?ns wikibase:apiOutput \"@ns\".
+  }
+  FILTER (?ns = \"14\") # (sub)categories only
+ 
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+    bd:serviceParam mwapi:gcmtitle ?categoryName.
+    bd:serviceParam mwapi:generator \"categorymembers\" .
+    bd:serviceParam mwapi:gcmtype \"file\" .
+    bd:serviceParam mwapi:gcmlimit \"1000\" .
+    ?title wikibase:apiOutput mwapi:title .
+    ?pageid wikibase:apiOutput \"@pageid\" .
+  }
+    BIND (URI(CONCAT('https://commons.wikimedia.org/entity/M', ?pageid)) AS ?file)
+  }
+}
+  BIND(STRBEFORE(STRAFTER(?title,\" - Pl\"),\" - DescriptionNL\") AS ?plate)
+  FILTER(REGEX(?title,\"(DescriptionNL[0-9]+ - FloraBatava-KB-v[0-9]{2}.jpg)$\"))
+
+  OPTIONAL{ ?file wdt:P921 ?mainsubject. #  main subject (P921) = Qid of depicted plant spieces (for instance Veronica chamaedrys (Q157343))   
+            SERVICE <https://query.wikidata.org/sparql> {
+              ?mainsubject rdfs:label ?mainsubjectLabel FILTER (lang(?mainsubjectLabel) = \"la\").
+              ?mainsubject wdt:P31 ?mainsubjectIsA. 
+              FILTER (?mainsubjectIsA = wd:Q16521) # ?mainsubject must be instance of taxon/Q16521
+            }
+          } 
+  OPTIONAL{ ?file wdt:P31 ?instanceof.
+            FILTER (?instanceof = wd:Q1250322).
+          } # ?instanceof must be a digital image (Q1250322) 
+  OPTIONAL{ ?file wdt:P6216 ?copyrightstatus.
+          }  # copyright status (P6216) = public domain (Q19652)
+  OPTIONAL{ ?file wdt:P195 ?collection.
+          }  # collection (P195) = Koninklijke Bibliotheek (Q1526131)
+  OPTIONAL{ ?file p:P7482 [ps:P7482 ?source; pq:P137 ?operator; pq:P973 ?describedatURL].}
+       
+} ORDER BY ?plate""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>

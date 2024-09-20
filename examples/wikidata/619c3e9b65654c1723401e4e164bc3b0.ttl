@@ -11,7 +11,75 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT (SAMPLE(?pagetitle) AS ?title) ?item  
+
+WITH {
+  SELECT ?pagetitle ?item WHERE {  
+    wd:Q4167410 wdt:P910 ?category .
+    ?link schema:about ?category; schema:isPartOf <https://ja.wikipedia.org/>; schema:name ?title .
+    SERVICE wikibase:mwapi {
+	   bd:serviceParam wikibase:api \"Generator\" .
+       bd:serviceParam wikibase:endpoint \"ja.wikipedia.org\" .
+       bd:serviceParam mwapi:gcmtitle ?title .
+       bd:serviceParam mwapi:generator \"categorymembers\" .
+       bd:serviceParam mwapi:gcmnamespace \"0\" .
+#       bd:serviceParam mwapi:gcmstartsortkeyprefix \"T\" .
+       bd:serviceParam mwapi:gcmlimit \"max\" .
+      # out
+      ?pagetitle wikibase:apiOutput mwapi:title  .
+      ?item wikibase:apiOutputItem mwapi:item .
+    } 
+    MINUS { ?item wdt:P31/wdt:P279* wd:Q4167410; }
+  }
+} AS %results
+
+WHERE {
+  INCLUDE %results .
+  ?redirect owl:sameAs ?item .
+}
+GROUP BY ?item""",
+    """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT (SAMPLE(?pagetitle) AS ?title) ?item  
+
+
+
+WHERE {
+  {
+  SELECT ?pagetitle ?item WHERE {  
+    wd:Q4167410 wdt:P910 ?category .
+    ?link schema:about ?category; schema:isPartOf <https://ja.wikipedia.org/>; schema:name ?title .
+    SERVICE wikibase:mwapi {
+	   bd:serviceParam wikibase:api \"Generator\" .
+       bd:serviceParam wikibase:endpoint \"ja.wikipedia.org\" .
+       bd:serviceParam mwapi:gcmtitle ?title .
+       bd:serviceParam mwapi:generator \"categorymembers\" .
+       bd:serviceParam mwapi:gcmnamespace \"0\" .
+#       bd:serviceParam mwapi:gcmstartsortkeyprefix \"T\" .
+       bd:serviceParam mwapi:gcmlimit \"max\" .
+      # out
+      ?pagetitle wikibase:apiOutput mwapi:title  .
+      ?item wikibase:apiOutputItem mwapi:item .
+    } 
+    MINUS { ?item wdt:P31/wdt:P279* wd:Q4167410; }
+  }
+} .
+  ?redirect owl:sameAs ?item .
+}
+GROUP BY ?item""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>

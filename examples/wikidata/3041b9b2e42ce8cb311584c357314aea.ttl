@@ -11,7 +11,86 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Table
+SELECT DISTINCT ?item ?itemLabel ?sitelinks ?coord ?cirrusbuilddoc_text
+WITH
+{
+  SELECT ?item 
+  WHERE 
+  {
+    ?item wdt:P131/wdt:P131 wd:Q22 . #} hint:Prior hint:runFirst true.
+    ?item wdt:P31/wdt:P279* wd:Q12280.
+  
+    filter not exists { ?item wdt:P177 [] }  
+  }
+  LIMIT 100
+} AS %i
+WHERE
+{
+  INCLUDE %i
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+  ?item wikibase:sitelinks ?sitelinks.
+  ?item wdt:P625 ?coord .
+  
+  BIND (SUBSTR(STR(?item), 32) AS ?title)
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam mwapi:generator \"allpages\" .
+    bd:serviceParam mwapi:gapfrom ?title .
+    bd:serviceParam mwapi:gapto ?title .
+    bd:serviceParam mwapi:prop \"cirrusbuilddoc\" .
+    ?cirrusbuilddoc_text wikibase:apiOutput \"cirrusbuilddoc/@text\" .
+  }
+  FILTER CONTAINS(?cirrusbuilddoc_text, \"railway\")
+}
+ORDER BY DESC(?sitelinks) ?itemLabel""",
+    """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Table
+SELECT DISTINCT ?item ?itemLabel ?sitelinks ?coord ?cirrusbuilddoc_text
+
+WHERE
+{
+  {
+  SELECT ?item 
+  WHERE 
+  {
+    ?item wdt:P131/wdt:P131 wd:Q22 . #} hint:Prior hint:runFirst true.
+    ?item wdt:P31/wdt:P279* wd:Q12280.
+  
+    filter not exists { ?item wdt:P177 [] }  
+  }
+  LIMIT 100
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+  ?item wikibase:sitelinks ?sitelinks.
+  ?item wdt:P625 ?coord .
+  
+  BIND (SUBSTR(STR(?item), 32) AS ?title)
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam mwapi:generator \"allpages\" .
+    bd:serviceParam mwapi:gapfrom ?title .
+    bd:serviceParam mwapi:gapto ?title .
+    bd:serviceParam mwapi:prop \"cirrusbuilddoc\" .
+    ?cirrusbuilddoc_text wikibase:apiOutput \"cirrusbuilddoc/@text\" .
+  }
+  FILTER CONTAINS(?cirrusbuilddoc_text, \"railway\")
+}
+ORDER BY DESC(?sitelinks) ?itemLabel""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>

@@ -11,7 +11,64 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?revid
+WITH
+{
+  SELECT DISTINCT ?item
+  WHERE
+  {
+    ?item wdt:P1087 ?Elo .
+  }
+  LIMIT 100
+} AS %items
+WHERE
+{
+  INCLUDE %items
+  BIND (STRAFTER(STR(?item), STR(wd:)) AS ?title)
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam mwapi:generator \"revisions\" .
+    bd:serviceParam mwapi:prop \"revisions\" . 
+    bd:serviceParam mwapi:titles ?title .
+    ?revid wikibase:apiOutput \"revisions/rev/@revid\" .
+  }
+}""",
+    """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?revid
+
+WHERE
+{
+  {
+  SELECT DISTINCT ?item
+  WHERE
+  {
+    ?item wdt:P1087 ?Elo .
+  }
+  LIMIT 100
+}
+  BIND (STRAFTER(STR(?item), STR(wd:)) AS ?title)
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam mwapi:generator \"revisions\" .
+    bd:serviceParam mwapi:prop \"revisions\" . 
+    bd:serviceParam mwapi:titles ?title .
+    ?revid wikibase:apiOutput \"revisions/rev/@revid\" .
+  }
+}""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>

@@ -12,7 +12,110 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?article_en ?category_en ?article_it ?category_it
+WITH
+{
+  SELECT ?item (COUNT(?in_en) AS ?category_en) (COUNT(?in_it) AS ?category_it)
+  WHERE
+  {
+    VALUES ?category { wd:Q7893678 }
+    {
+      [] schema:about ?category; schema:isPartOf <https://en.wikipedia.org/>; schema:name ?cat_title_en.
+      SERVICE wikibase:mwapi
+      {
+        bd:serviceParam wikibase:api \"Generator\".
+        bd:serviceParam wikibase:endpoint \"en.wikipedia.org\".
+        bd:serviceParam mwapi:gcmtitle ?cat_title_en.
+        bd:serviceParam mwapi:generator \"categorymembers\".
+        bd:serviceParam mwapi:gcmprop \"ids\".
+        bd:serviceParam mwapi:gcmlimit \"max\".
+        ?item wikibase:apiOutputItem mwapi:item.
+      }
+      VALUES ?in_en { true } 
+    }
+    UNION
+    {
+      [] schema:about ?category; schema:isPartOf <https://it.wikipedia.org/>; schema:name ?cat_title_it.
+      SERVICE wikibase:mwapi
+      {
+        bd:serviceParam wikibase:api \"Generator\".
+        bd:serviceParam wikibase:endpoint \"it.wikipedia.org\".
+        bd:serviceParam mwapi:gcmtitle ?cat_title_it.
+        bd:serviceParam mwapi:generator \"categorymembers\".
+        bd:serviceParam mwapi:gcmprop \"ids\".
+        bd:serviceParam mwapi:gcmlimit \"max\".
+        ?item wikibase:apiOutputItem mwapi:item.
+      }
+      VALUES ?in_it { true } 
+    }
+  }
+  GROUP BY ?item
+  HAVING (?category_en = 0 || ?category_it = 0)
+} AS %API_subquery
+WHERE
+{
+  INCLUDE %API_subquery.
+  ?article_en schema:about ?item; schema:isPartOf <https://en.wikipedia.org/>.
+  ?article_it schema:about ?item; schema:isPartOf <https://it.wikipedia.org/>.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?article_en ?category_en ?article_it ?category_it
+
+WHERE
+{
+  {
+  SELECT ?item (COUNT(?in_en) AS ?category_en) (COUNT(?in_it) AS ?category_it)
+  WHERE
+  {
+    VALUES ?category { wd:Q7893678 }
+    {
+      [] schema:about ?category; schema:isPartOf <https://en.wikipedia.org/>; schema:name ?cat_title_en.
+      SERVICE wikibase:mwapi
+      {
+        bd:serviceParam wikibase:api \"Generator\".
+        bd:serviceParam wikibase:endpoint \"en.wikipedia.org\".
+        bd:serviceParam mwapi:gcmtitle ?cat_title_en.
+        bd:serviceParam mwapi:generator \"categorymembers\".
+        bd:serviceParam mwapi:gcmprop \"ids\".
+        bd:serviceParam mwapi:gcmlimit \"max\".
+        ?item wikibase:apiOutputItem mwapi:item.
+      }
+      VALUES ?in_en { true } 
+    }
+    UNION
+    {
+      [] schema:about ?category; schema:isPartOf <https://it.wikipedia.org/>; schema:name ?cat_title_it.
+      SERVICE wikibase:mwapi
+      {
+        bd:serviceParam wikibase:api \"Generator\".
+        bd:serviceParam wikibase:endpoint \"it.wikipedia.org\".
+        bd:serviceParam mwapi:gcmtitle ?cat_title_it.
+        bd:serviceParam mwapi:generator \"categorymembers\".
+        bd:serviceParam mwapi:gcmprop \"ids\".
+        bd:serviceParam mwapi:gcmlimit \"max\".
+        ?item wikibase:apiOutputItem mwapi:item.
+      }
+      VALUES ?in_it { true } 
+    }
+  }
+  GROUP BY ?item
+  HAVING (?category_en = 0 || ?category_it = 0)
+}.
+  ?article_en schema:about ?item; schema:isPartOf <https://en.wikipedia.org/>.
+  ?article_it schema:about ?item; schema:isPartOf <https://it.wikipedia.org/>.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>

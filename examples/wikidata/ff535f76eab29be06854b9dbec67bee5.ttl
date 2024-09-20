@@ -11,7 +11,150 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#-----------------------------------------------------
+# Viewpoint
+#-----------------------------------------------------
+PREFIX schema: <http://schema.org/>
+#defaultView:Map{\"hide\":[\"?coordinate\", \"?line\", \"?rgb\", \"?lon1\", \"?lat1\", \"?lon2\", \"?lat2\"]}
+SELECT distinct ?item ?itemLabel ?coordinate ?coordinate2 ?image ?lon1 ?lat1 ?lon2 ?lat2 ?line ?distNum ?sitelink
+
+#####################################################################
+WITH {
+  # Liste der POIs, die man vom Aussichtspunkt sehen kann
+SELECT ?item
+       
+       (SAMPLE(?coordinate) AS ?coordinate)
+       #(SAMPLE(?coordinate2) AS ?coordinate2)
+       (SAMPLE(?lon1) AS ?lon1)
+       (SAMPLE(?lat1) AS ?lat1)
+       (SAMPLE(?lon2) AS ?lon2)
+       (SAMPLE(?lat2) AS ?lat2)
+       (CONCAT(STR(ROUND(SAMPLE(?distNum)*100)/100),' km') AS ?distNum)  # Entfernung runden
+       (SAMPLE(?sitelink) AS ?sitelink)
+       (SAMPLE(?itemLabel) AS ?itemLabel) 
+       (SAMPLE(?image) AS ?image)
+       
+  WHERE {
+  VALUES (?poi) {
+    (wd:Q1356168)    # Ernemann-Werke 
+    (wd:Q2518489)    # Versöhnungskirche (Dresden) 
+    (wd:Q2525833)    # Villa Tiberius  
+    (wd:Q2525749)    # Villa Schau ins Land 
+    (wd:Q1533940)    # Schloss Wachwitz 
+    (wd:Q1876706)    # Luisenhof  
+    (wd:Q277572)     # Fernsehturm Dresden
+    (wd:Q94959268)   # Wachwitzhöhe 
+    (wd:Q95869010)   # Sachsens Hiefel  
+    (wd:Q894173)     # Borsberg
+    #(wd:Q1739155)    # Keppschloss
+    (wd:Q1025613)    # Café Hausberg  
+    (wd:Q881976)     # Großer Winterberg 
+    (wd:Q884481)     # Großer Bärenstein  
+    (wd:Q315159)     # Lilienstein 
+    (wd:Q324561)     # Papststein  
+    (wd:Q835434)     # Gohrisch  
+    (wd:Q700562)     # Festung Königstein
+    (wd:Q227259)     # Zschirnsteine 
+    (wd:Q453233)     # Pfaffenstein  
+    (wd:Q1112797)    # Pirna-Sonnenstein  
+    (wd:Q56549463)   # Wismut Lagerstätte Königstein 
+    (wd:Q1272672)    # Hoher Schneeberg 
+
+    (wd:Q95844172)   # Schuttberg Leuben  
+    (wd:Q1619103)    # Himmelfahrtskirche (Leuben)
+    (wd:Q95846122)   # Biomasse-Heizkraftwerk Dresden  
+ 
+    (wd:Q1136672)    # Cottaer Spitzberg 
+    (wd:Q392269)     # Špičák u Krásného Lesa  
+    (wd:Q2505784)    # VEB Schokoladen- und Verpackungsmaschinen (Gebäude) 
+
+    (wd:Q880766)     # Geisingberg 
+    (wd:Q31310959)   # Lugstein  
+    (wd:Q1720762)    # Kahleberg  
+    (wd:Q1867648)    # Lockwitztalbrücke
+    (wd:Q1600678)    # Wilisch 
+    (wd:Q797717)     # Babisnauer Pappel 
+    (wd:Q1248323)    # Gohlig 
+    (wd:Q1679651)    # Panometer Dresden  
+    (wd:Q1495023)    # Gasanstalt Dresden-Reick 
+    (wd:Q1231293)    # Marienschacht  
+    (wd:Q6811)       # Windberg  
+    (wd:Q1087301)    # Christuskirche Strehlen 
+    (wd:Q866512)     # Bismarckturm (Dresden-Räcknitz) 
+    (wd:Q971437)     # Fichteturm 
+    (wd:Q2358380)    # Studentenwohnheime Wundtstraße
+    (wd:Q15296697)   # St. Jakobuskirche, Pesterwitz
+    (wd:Q22949130)   # Tunnel Altfranken   
+
+ 
+
+  }	    
+  BIND(?poi as ?item) .
+  
+    # Koordinate von POIs auseinander nehmen
+  ?item wdt:P625 ?coordinate  .
+  OPTIONAL{?item p:P625 / psv:P625 / wikibase:geoLatitude ?lat2 . }
+  OPTIONAL{?item p:P625 / psv:P625 / wikibase:geoLongitude ?lon2 . }
+  OPTIONAL{?item wdt:P18 ?image }.
+
+  ?sitelink schema:about ?item.
+  FILTER(REGEX(STR(?sitelink), \"de.wikipedia.org/wiki/\"))    
+    
+    
+  # Koordinate vom Ausgangspunkt (manuelle Eingabe)
+  #BIND(\"51.03402\" as ?lat1) . 
+  #BIND(\"13.80267\" as ?lon1) .
+  #BIND(CONCAT(\"Point(\",str(?lon1),\" \",str(?lat1),\")\") AS ?string1) .
+  #BIND(STRDT(?string1, geo:wktLiteral) AS ?coordinate2).
+    
+  # Koordinate vom Ausgangspunkt (per Wikidata-Objekt) Mimosa AG ()  
+  BIND(wd:Q49457858 as ?viewpoint) .
+  ?viewpoint wdt:P625 ?coordinate2  .
+  OPTIONAL{?viewpoint p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 . }
+  OPTIONAL{?viewpoint p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 . }
+  #OPTIONAL { ?viewpoint wdt:P18 ?image }.
+    
+  BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
+  BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
+    
+  #Entfernung berechnen (geht aktuell nicht bei manueller Koordinateneingabe, unklar warum)
+  BIND(geof:distance(?coordinate, ?coordinate2) AS ?distNum).
+  
+}    
+GROUP BY ?item
+
+} AS %points
+
+#########################################
+WITH {
+  # Linien generieren 
+  SELECT ?line ?item (\"9B0058\" as ?rgb) 
+          WHERE {
+    INCLUDE %points 
+    BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
+    BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
+    
+  }
+} AS %lines 
+#########################################
+
+WHERE {
+  
+  # jetzt Punkte und Linien für Ausgabe auf Karte ausgeben
+ { INCLUDE %points }
+ union
+ { INCLUDE %lines }
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,en\" }
+}""",
+    """PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -403,7 +546,8 @@ GROUP BY ?item
   
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,en\" }
 }""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
@@ -418,7 +562,16 @@ PREFIX schema: <http://schema.org/>
 SELECT distinct ?item ?itemLabel ?coordinate ?coordinate2 ?image ?lon1 ?lat1 ?lon2 ?lat2 ?line ?distNum ?sitelink
 
 #####################################################################
-WITH {
+
+
+#########################################
+ 
+#########################################
+
+WHERE {
+  
+  # jetzt Punkte und Linien für Ausgabe auf Karte ausgeben
+ { {
   # Liste der POIs, die man vom Aussichtspunkt sehen kann
 SELECT ?item
        
@@ -522,27 +675,122 @@ SELECT ?item
 }    
 GROUP BY ?item
 
-} AS %points
-
-#########################################
-WITH {
+} }
+ union
+ { {
   # Linien generieren 
   SELECT ?line ?item (\"9B0058\" as ?rgb) 
           WHERE {
-    INCLUDE %points 
+    {
+  # Liste der POIs, die man vom Aussichtspunkt sehen kann
+SELECT ?item
+       
+       (SAMPLE(?coordinate) AS ?coordinate)
+       #(SAMPLE(?coordinate2) AS ?coordinate2)
+       (SAMPLE(?lon1) AS ?lon1)
+       (SAMPLE(?lat1) AS ?lat1)
+       (SAMPLE(?lon2) AS ?lon2)
+       (SAMPLE(?lat2) AS ?lat2)
+       (CONCAT(STR(ROUND(SAMPLE(?distNum)*100)/100),' km') AS ?distNum)  # Entfernung runden
+       (SAMPLE(?sitelink) AS ?sitelink)
+       (SAMPLE(?itemLabel) AS ?itemLabel) 
+       (SAMPLE(?image) AS ?image)
+       
+  WHERE {
+  VALUES (?poi) {
+    (wd:Q1356168)    # Ernemann-Werke 
+    (wd:Q2518489)    # Versöhnungskirche (Dresden) 
+    (wd:Q2525833)    # Villa Tiberius  
+    (wd:Q2525749)    # Villa Schau ins Land 
+    (wd:Q1533940)    # Schloss Wachwitz 
+    (wd:Q1876706)    # Luisenhof  
+    (wd:Q277572)     # Fernsehturm Dresden
+    (wd:Q94959268)   # Wachwitzhöhe 
+    (wd:Q95869010)   # Sachsens Hiefel  
+    (wd:Q894173)     # Borsberg
+    #(wd:Q1739155)    # Keppschloss
+    (wd:Q1025613)    # Café Hausberg  
+    (wd:Q881976)     # Großer Winterberg 
+    (wd:Q884481)     # Großer Bärenstein  
+    (wd:Q315159)     # Lilienstein 
+    (wd:Q324561)     # Papststein  
+    (wd:Q835434)     # Gohrisch  
+    (wd:Q700562)     # Festung Königstein
+    (wd:Q227259)     # Zschirnsteine 
+    (wd:Q453233)     # Pfaffenstein  
+    (wd:Q1112797)    # Pirna-Sonnenstein  
+    (wd:Q56549463)   # Wismut Lagerstätte Königstein 
+    (wd:Q1272672)    # Hoher Schneeberg 
+
+    (wd:Q95844172)   # Schuttberg Leuben  
+    (wd:Q1619103)    # Himmelfahrtskirche (Leuben)
+    (wd:Q95846122)   # Biomasse-Heizkraftwerk Dresden  
+ 
+    (wd:Q1136672)    # Cottaer Spitzberg 
+    (wd:Q392269)     # Špičák u Krásného Lesa  
+    (wd:Q2505784)    # VEB Schokoladen- und Verpackungsmaschinen (Gebäude) 
+
+    (wd:Q880766)     # Geisingberg 
+    (wd:Q31310959)   # Lugstein  
+    (wd:Q1720762)    # Kahleberg  
+    (wd:Q1867648)    # Lockwitztalbrücke
+    (wd:Q1600678)    # Wilisch 
+    (wd:Q797717)     # Babisnauer Pappel 
+    (wd:Q1248323)    # Gohlig 
+    (wd:Q1679651)    # Panometer Dresden  
+    (wd:Q1495023)    # Gasanstalt Dresden-Reick 
+    (wd:Q1231293)    # Marienschacht  
+    (wd:Q6811)       # Windberg  
+    (wd:Q1087301)    # Christuskirche Strehlen 
+    (wd:Q866512)     # Bismarckturm (Dresden-Räcknitz) 
+    (wd:Q971437)     # Fichteturm 
+    (wd:Q2358380)    # Studentenwohnheime Wundtstraße
+    (wd:Q15296697)   # St. Jakobuskirche, Pesterwitz
+    (wd:Q22949130)   # Tunnel Altfranken   
+
+ 
+
+  }	    
+  BIND(?poi as ?item) .
+  
+    # Koordinate von POIs auseinander nehmen
+  ?item wdt:P625 ?coordinate  .
+  OPTIONAL{?item p:P625 / psv:P625 / wikibase:geoLatitude ?lat2 . }
+  OPTIONAL{?item p:P625 / psv:P625 / wikibase:geoLongitude ?lon2 . }
+  OPTIONAL{?item wdt:P18 ?image }.
+
+  ?sitelink schema:about ?item.
+  FILTER(REGEX(STR(?sitelink), \"de.wikipedia.org/wiki/\"))    
+    
+    
+  # Koordinate vom Ausgangspunkt (manuelle Eingabe)
+  #BIND(\"51.03402\" as ?lat1) . 
+  #BIND(\"13.80267\" as ?lon1) .
+  #BIND(CONCAT(\"Point(\",str(?lon1),\" \",str(?lat1),\")\") AS ?string1) .
+  #BIND(STRDT(?string1, geo:wktLiteral) AS ?coordinate2).
+    
+  # Koordinate vom Ausgangspunkt (per Wikidata-Objekt) Mimosa AG ()  
+  BIND(wd:Q49457858 as ?viewpoint) .
+  ?viewpoint wdt:P625 ?coordinate2  .
+  OPTIONAL{?viewpoint p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 . }
+  OPTIONAL{?viewpoint p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 . }
+  #OPTIONAL { ?viewpoint wdt:P18 ?image }.
+    
+  BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
+  BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
+    
+  #Entfernung berechnen (geht aktuell nicht bei manueller Koordinateneingabe, unklar warum)
+  BIND(geof:distance(?coordinate, ?coordinate2) AS ?distNum).
+  
+}    
+GROUP BY ?item
+
+} 
     BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
     BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
     
   }
-} AS %lines 
-#########################################
-
-WHERE {
-  
-  # jetzt Punkte und Linien für Ausgabe auf Karte ausgeben
- { INCLUDE %points }
- union
- { INCLUDE %lines }
+} }
   
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,en\" }
 }""" .

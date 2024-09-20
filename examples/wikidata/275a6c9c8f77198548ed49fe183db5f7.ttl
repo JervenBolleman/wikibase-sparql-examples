@@ -11,175 +11,6 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-# The heights of mountains in Switzerland
-#defaultView:Map{\"hide\":[\"?x_coords\",\"?rgb\"]}
-SELECT ?x ?xLabel ?description ?x_coords ?rgb  
-# determine the max and min values (used to calculate the spread
-WITH { 
-  SELECT (MAX(?data) AS ?max_data)  (MIN(?data) AS ?min_data) WHERE {
-  {
-# extract the data
-SELECT ?data ?x ?x_coords WHERE {
-  ?x wdt:P31 wd:Q8502 .
-  ?x  p:P2044/psn:P2044 [ 
-     wikibase:quantityAmount ?data 
-  ] .
-  ?x wdt:P17 wd:Q39 .
-  ?x wdt:P625 ?x_coords .
-  }
-}            
- }
-} AS %min_max
-WHERE {
-  {
-# extract the data
-SELECT ?data ?x ?x_coords WHERE {
-  ?x wdt:P31 wd:Q8502 .
-  ?x  p:P2044/psn:P2044 [ 
-     wikibase:quantityAmount ?data 
-  ] .
-  ?x wdt:P17 wd:Q39 .
-  ?x wdt:P625 ?x_coords .
-  }
-}
-  INCLUDE %min_max   
-  ?x rdfs:label ?xLabel. FILTER (LANG(?xLabel) = \"en\") .
-  BIND (CONCAT(\"The height of \", ?xLabel, \" is about \", STR(ROUND(?data)), \" metres\" ) AS ?description) 
-  BIND ( ?max_data - ?min_data AS ?spread )
-  BIND ( xsd:integer( 100 * (?data - ?min_data) / ?spread) AS ?percent ) # 0 -> 100 
-# some example hues 0:red, 20:orange, 50:yellow, 90:green, 180:cyan, 220:blue, 280:indigo, 330:violet, 340:red
-# varying hue        
-#   BIND ( 255 * ?percent / 100 + 0 AS ?hue ) 
-#   BIND (1 AS ?value) # 
-#   BIND (1 AS ?saturation) . # 0 -> 1
-# varying the hue's value
-  BIND ( (1 - ?percent / 100 + 0) AS ?value ) # to black
-  BIND ( 255 * ?percent / 100 + 0 AS ?hue ) 
-  BIND (1 AS ?saturation) . # 0 -> 1
-# varying the hue's saturation
-#   BIND ( (1 - ?percent / 100 + 0) AS ?saturation ) # to -> white
-#   BIND (0 AS ?hue) # red
-#   BIND (1 AS ?value) . # 0 -> 1  
-# the following algorithm based on https://stackoverflow.com/questions/3018313/algorithm-to-convert-rgb-to-hsv-and-hsv-to-rgb-in-range-0-255-for-both
-  BIND ( ?hue / 60 AS ?hh )
-  BIND ( FLOOR (?hh) AS ?i ) .
-  BIND ( ?hh - ?i  AS ?ff) .
-  BIND ( ?value * ( 1 - ?saturation ) AS ?p) .
-  BIND ( ?value * ( 1 - ( ?saturation * ?ff)) AS ?q ) .
-  BIND ( ?value * ( 1 - ( ?saturation * (1 - ?ff ))) AS ?t ) . 
-  BIND ( COALESCE(
-    IF(?i = 0, ?value, 1/0),
-    IF(?i = 1, ?q, 1/0),
-    IF(?i = 2, ?p, 1/0),
-    IF(?i = 3, ?p, 1/0),
-    IF(?i = 4, ?t, 1/0),
-    IF(?i = 5, ?value, 1/0),
-    ?value
-  ) AS ?r )
-  BIND ( COALESCE(
-    IF(?i = 0, ?t, 1/0),
-    IF(?i = 1, ?value, 1/0),
-    IF(?i = 2, ?value, 1/0),
-    IF(?i = 3, ?q, 1/0),
-    IF(?i = 4, ?p, 1/0),
-    IF(?i = 5, ?p, 1/0),
-    ?p
-  ) AS ?g )
-  BIND ( COALESCE(
-    IF(?i = 0, ?p, 1/0),
-    IF(?i = 1, ?p, 1/0),
-    IF(?i = 2, ?t, 1/0),
-    IF(?i = 3, ?value, 1/0),
-    IF(?i = 4, ?value, 1/0),
-    IF(?i = 5, ?q, 1/0),
-    ?q
-  ) AS ?b )
-  BIND (FLOOR(255 * ?r) AS ?red) 
-  BIND (FLOOR(255 * ?g) AS ?green)  
-  BIND (FLOOR(255 * ?b) AS ?blue)
-  # red
-  BIND ( FLOOR (?red / 16) AS ?red_1 )
-  BIND ( COALESCE(
-    IF(?red_1 < 10, STR(?red_1), 1/0),
-    IF(?red_1 = 10, \"a\", 1/0),
-    IF(?red_1 = 11, \"b\", 1/0),
-    IF(?red_1 = 12, \"c\", 1/0),
-    IF(?red_1 = 13, \"d\", 1/0),
-    IF(?red_1 = 14, \"e\", 1/0),
-    IF(?red_1 = 15, \"f\", 1/0),
-    \"ERROR\"
-  ) AS ?red_hex1 )
-  BIND (FLOOR(?red - (16 * xsd:integer( ?red / 16 ))) AS ?red_2)
-  BIND ( COALESCE(
-    IF(?red_2 < 10, STR(?red_2), 1/0),
-    IF(?red_2 = 10, \"a\", 1/0),
-    IF(?red_2 = 11, \"b\", 1/0),
-    IF(?red_2 = 12, \"c\", 1/0),
-    IF(?red_2 = 13, \"d\", 1/0),
-    IF(?red_2 = 14, \"e\", 1/0),
-    IF(?red_2 = 15, \"f\", 1/0),
-    \"ERROR\"
-  ) AS ?red_hex2 )
-  BIND (CONCAT(STR(?red_hex1), STR(?red_hex2)) AS ?red_hex )
-  # green
-  BIND ( FLOOR (?green / 16) AS ?green_1 )
-  BIND ( COALESCE(
-    IF(?green_1 < 10, STR(?green_1), 1/0),
-    IF(?green_1 = 10, \"a\", 1/0),
-    IF(?green_1 = 11, \"b\", 1/0),
-    IF(?green_1 = 12, \"c\", 1/0),
-    IF(?green_1 = 13, \"d\", 1/0),
-    IF(?green_1 = 14, \"e\", 1/0),
-    IF(?green_1 = 15, \"f\", 1/0),
-    \"ERROR\"
-  ) AS ?green_hex1 )
-  BIND (FLOOR(?green - (16 * xsd:integer( ?green / 16 ))) AS ?green_2)
-  BIND ( COALESCE(
-    IF(?green_2 < 10, STR(?green_2), 1/0),
-    IF(?green_2 = 10, \"a\", 1/0),
-    IF(?green_2 = 11, \"b\", 1/0),
-    IF(?green_2 = 12, \"c\", 1/0),
-    IF(?green_2 = 13, \"d\", 1/0),
-    IF(?green_2 = 14, \"e\", 1/0),
-    IF(?green_2 = 15, \"f\", 1/0),
-    \"ERROR\"
-  ) AS ?green_hex2 )
-  BIND (CONCAT(STR(?green_hex1), STR(?green_hex2)) AS ?green_hex )
-  # blue
-  BIND ( FLOOR (?blue / 16) AS ?blue_1 )
-  BIND ( COALESCE(
-    IF(?blue_1 < 10, STR(?blue_1), 1/0),
-    IF(?blue_1 = 10, \"a\", 1/0),
-    IF(?blue_1 = 11, \"b\", 1/0),
-    IF(?blue_1 = 12, \"c\", 1/0),
-    IF(?blue_1 = 13, \"d\", 1/0),
-    IF(?blue_1 = 14, \"e\", 1/0),
-    IF(?blue_1 = 15, \"f\", 1/0),
-    \"ERROR\"
-  ) AS ?blue_hex1 )
-  BIND (FLOOR(?blue - (16 * xsd:integer( ?blue / 16 ))) AS ?blue_2)
-  BIND ( COALESCE(
-    IF(?blue_2 < 10, STR(?blue_2), 1/0),
-    IF(?blue_2 = 10, \"a\", 1/0),
-    IF(?blue_2 = 11, \"b\", 1/0),
-    IF(?blue_2 = 12, \"c\", 1/0),
-    IF(?blue_2 = 13, \"d\", 1/0),
-    IF(?blue_2 = 14, \"e\", 1/0),
-    IF(?blue_2 = 15, \"f\", 1/0),
-    \"ERROR\"
-  ) AS ?blue_hex2 )
-  BIND (CONCAT(STR(?blue_hex1), STR(?blue_hex2)) AS ?blue_hex )
-  BIND (CONCAT(STR(?red_hex), STR(?green_hex), STR(?blue_hex)) AS ?rgb) 
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
- }""";
   <http://example.org/bigdata_select> """# The heights of mountains in Switzerland
 #defaultView:Map{\"hide\":[\"?x_coords\",\"?rgb\"]}
 SELECT ?x ?xLabel ?description ?x_coords ?rgb  WITH {
@@ -361,6 +192,344 @@ WITH {
 WHERE {
   INCLUDE %totals
   INCLUDE %min_max   
+  ?x rdfs:label ?xLabel. FILTER (LANG(?xLabel) = \"en\") .
+  BIND (CONCAT(\"The height of \", ?xLabel, \" is about \", STR(ROUND(?data)), \" metres\" ) AS ?description) 
+  BIND ( ?max_data - ?min_data AS ?spread )
+  BIND ( xsd:integer( 100 * (?data - ?min_data) / ?spread) AS ?percent ) # 0 -> 100 
+# some example hues 0:red, 20:orange, 50:yellow, 90:green, 180:cyan, 220:blue, 280:indigo, 330:violet, 340:red
+# varying hue        
+#   BIND ( 255 * ?percent / 100 + 0 AS ?hue ) 
+#   BIND (1 AS ?value) # 
+#   BIND (1 AS ?saturation) . # 0 -> 1
+# varying the hue's value
+  BIND ( (1 - ?percent / 100 + 0) AS ?value ) # to black
+  BIND ( 255 * ?percent / 100 + 0 AS ?hue ) 
+  BIND (1 AS ?saturation) . # 0 -> 1
+# varying the hue's saturation
+#   BIND ( (1 - ?percent / 100 + 0) AS ?saturation ) # to -> white
+#   BIND (0 AS ?hue) # red
+#   BIND (1 AS ?value) . # 0 -> 1  
+# the following algorithm based on https://stackoverflow.com/questions/3018313/algorithm-to-convert-rgb-to-hsv-and-hsv-to-rgb-in-range-0-255-for-both
+  BIND ( ?hue / 60 AS ?hh )
+  BIND ( FLOOR (?hh) AS ?i ) .
+  BIND ( ?hh - ?i  AS ?ff) .
+  BIND ( ?value * ( 1 - ?saturation ) AS ?p) .
+  BIND ( ?value * ( 1 - ( ?saturation * ?ff)) AS ?q ) .
+  BIND ( ?value * ( 1 - ( ?saturation * (1 - ?ff ))) AS ?t ) . 
+  BIND ( COALESCE(
+    IF(?i = 0, ?value, 1/0),
+    IF(?i = 1, ?q, 1/0),
+    IF(?i = 2, ?p, 1/0),
+    IF(?i = 3, ?p, 1/0),
+    IF(?i = 4, ?t, 1/0),
+    IF(?i = 5, ?value, 1/0),
+    ?value
+  ) AS ?r )
+  BIND ( COALESCE(
+    IF(?i = 0, ?t, 1/0),
+    IF(?i = 1, ?value, 1/0),
+    IF(?i = 2, ?value, 1/0),
+    IF(?i = 3, ?q, 1/0),
+    IF(?i = 4, ?p, 1/0),
+    IF(?i = 5, ?p, 1/0),
+    ?p
+  ) AS ?g )
+  BIND ( COALESCE(
+    IF(?i = 0, ?p, 1/0),
+    IF(?i = 1, ?p, 1/0),
+    IF(?i = 2, ?t, 1/0),
+    IF(?i = 3, ?value, 1/0),
+    IF(?i = 4, ?value, 1/0),
+    IF(?i = 5, ?q, 1/0),
+    ?q
+  ) AS ?b )
+  BIND (FLOOR(255 * ?r) AS ?red) 
+  BIND (FLOOR(255 * ?g) AS ?green)  
+  BIND (FLOOR(255 * ?b) AS ?blue)
+  # red
+  BIND ( FLOOR (?red / 16) AS ?red_1 )
+  BIND ( COALESCE(
+    IF(?red_1 < 10, STR(?red_1), 1/0),
+    IF(?red_1 = 10, \"a\", 1/0),
+    IF(?red_1 = 11, \"b\", 1/0),
+    IF(?red_1 = 12, \"c\", 1/0),
+    IF(?red_1 = 13, \"d\", 1/0),
+    IF(?red_1 = 14, \"e\", 1/0),
+    IF(?red_1 = 15, \"f\", 1/0),
+    \"ERROR\"
+  ) AS ?red_hex1 )
+  BIND (FLOOR(?red - (16 * xsd:integer( ?red / 16 ))) AS ?red_2)
+  BIND ( COALESCE(
+    IF(?red_2 < 10, STR(?red_2), 1/0),
+    IF(?red_2 = 10, \"a\", 1/0),
+    IF(?red_2 = 11, \"b\", 1/0),
+    IF(?red_2 = 12, \"c\", 1/0),
+    IF(?red_2 = 13, \"d\", 1/0),
+    IF(?red_2 = 14, \"e\", 1/0),
+    IF(?red_2 = 15, \"f\", 1/0),
+    \"ERROR\"
+  ) AS ?red_hex2 )
+  BIND (CONCAT(STR(?red_hex1), STR(?red_hex2)) AS ?red_hex )
+  # green
+  BIND ( FLOOR (?green / 16) AS ?green_1 )
+  BIND ( COALESCE(
+    IF(?green_1 < 10, STR(?green_1), 1/0),
+    IF(?green_1 = 10, \"a\", 1/0),
+    IF(?green_1 = 11, \"b\", 1/0),
+    IF(?green_1 = 12, \"c\", 1/0),
+    IF(?green_1 = 13, \"d\", 1/0),
+    IF(?green_1 = 14, \"e\", 1/0),
+    IF(?green_1 = 15, \"f\", 1/0),
+    \"ERROR\"
+  ) AS ?green_hex1 )
+  BIND (FLOOR(?green - (16 * xsd:integer( ?green / 16 ))) AS ?green_2)
+  BIND ( COALESCE(
+    IF(?green_2 < 10, STR(?green_2), 1/0),
+    IF(?green_2 = 10, \"a\", 1/0),
+    IF(?green_2 = 11, \"b\", 1/0),
+    IF(?green_2 = 12, \"c\", 1/0),
+    IF(?green_2 = 13, \"d\", 1/0),
+    IF(?green_2 = 14, \"e\", 1/0),
+    IF(?green_2 = 15, \"f\", 1/0),
+    \"ERROR\"
+  ) AS ?green_hex2 )
+  BIND (CONCAT(STR(?green_hex1), STR(?green_hex2)) AS ?green_hex )
+  # blue
+  BIND ( FLOOR (?blue / 16) AS ?blue_1 )
+  BIND ( COALESCE(
+    IF(?blue_1 < 10, STR(?blue_1), 1/0),
+    IF(?blue_1 = 10, \"a\", 1/0),
+    IF(?blue_1 = 11, \"b\", 1/0),
+    IF(?blue_1 = 12, \"c\", 1/0),
+    IF(?blue_1 = 13, \"d\", 1/0),
+    IF(?blue_1 = 14, \"e\", 1/0),
+    IF(?blue_1 = 15, \"f\", 1/0),
+    \"ERROR\"
+  ) AS ?blue_hex1 )
+  BIND (FLOOR(?blue - (16 * xsd:integer( ?blue / 16 ))) AS ?blue_2)
+  BIND ( COALESCE(
+    IF(?blue_2 < 10, STR(?blue_2), 1/0),
+    IF(?blue_2 = 10, \"a\", 1/0),
+    IF(?blue_2 = 11, \"b\", 1/0),
+    IF(?blue_2 = 12, \"c\", 1/0),
+    IF(?blue_2 = 13, \"d\", 1/0),
+    IF(?blue_2 = 14, \"e\", 1/0),
+    IF(?blue_2 = 15, \"f\", 1/0),
+    \"ERROR\"
+  ) AS ?blue_hex2 )
+  BIND (CONCAT(STR(?blue_hex1), STR(?blue_hex2)) AS ?blue_hex )
+  BIND (CONCAT(STR(?red_hex), STR(?green_hex), STR(?blue_hex)) AS ?rgb) 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+ }""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# The heights of mountains in Switzerland
+#defaultView:Map{\"hide\":[\"?x_coords\",\"?rgb\"]}
+SELECT ?x ?xLabel ?description ?x_coords ?rgb  
+# determine the max and min values (used to calculate the spread
+WITH { 
+  SELECT (MAX(?data) AS ?max_data)  (MIN(?data) AS ?min_data) WHERE {
+  {
+# extract the data
+SELECT ?data ?x ?x_coords WHERE {
+  ?x wdt:P31 wd:Q8502 .
+  ?x  p:P2044/psn:P2044 [ 
+     wikibase:quantityAmount ?data 
+  ] .
+  ?x wdt:P17 wd:Q39 .
+  ?x wdt:P625 ?x_coords .
+  }
+}            
+ }
+} AS %min_max
+WHERE {
+  {
+# extract the data
+SELECT ?data ?x ?x_coords WHERE {
+  ?x wdt:P31 wd:Q8502 .
+  ?x  p:P2044/psn:P2044 [ 
+     wikibase:quantityAmount ?data 
+  ] .
+  ?x wdt:P17 wd:Q39 .
+  ?x wdt:P625 ?x_coords .
+  }
+}
+  INCLUDE %min_max   
+  ?x rdfs:label ?xLabel. FILTER (LANG(?xLabel) = \"en\") .
+  BIND (CONCAT(\"The height of \", ?xLabel, \" is about \", STR(ROUND(?data)), \" metres\" ) AS ?description) 
+  BIND ( ?max_data - ?min_data AS ?spread )
+  BIND ( xsd:integer( 100 * (?data - ?min_data) / ?spread) AS ?percent ) # 0 -> 100 
+# some example hues 0:red, 20:orange, 50:yellow, 90:green, 180:cyan, 220:blue, 280:indigo, 330:violet, 340:red
+# varying hue        
+#   BIND ( 255 * ?percent / 100 + 0 AS ?hue ) 
+#   BIND (1 AS ?value) # 
+#   BIND (1 AS ?saturation) . # 0 -> 1
+# varying the hue's value
+  BIND ( (1 - ?percent / 100 + 0) AS ?value ) # to black
+  BIND ( 255 * ?percent / 100 + 0 AS ?hue ) 
+  BIND (1 AS ?saturation) . # 0 -> 1
+# varying the hue's saturation
+#   BIND ( (1 - ?percent / 100 + 0) AS ?saturation ) # to -> white
+#   BIND (0 AS ?hue) # red
+#   BIND (1 AS ?value) . # 0 -> 1  
+# the following algorithm based on https://stackoverflow.com/questions/3018313/algorithm-to-convert-rgb-to-hsv-and-hsv-to-rgb-in-range-0-255-for-both
+  BIND ( ?hue / 60 AS ?hh )
+  BIND ( FLOOR (?hh) AS ?i ) .
+  BIND ( ?hh - ?i  AS ?ff) .
+  BIND ( ?value * ( 1 - ?saturation ) AS ?p) .
+  BIND ( ?value * ( 1 - ( ?saturation * ?ff)) AS ?q ) .
+  BIND ( ?value * ( 1 - ( ?saturation * (1 - ?ff ))) AS ?t ) . 
+  BIND ( COALESCE(
+    IF(?i = 0, ?value, 1/0),
+    IF(?i = 1, ?q, 1/0),
+    IF(?i = 2, ?p, 1/0),
+    IF(?i = 3, ?p, 1/0),
+    IF(?i = 4, ?t, 1/0),
+    IF(?i = 5, ?value, 1/0),
+    ?value
+  ) AS ?r )
+  BIND ( COALESCE(
+    IF(?i = 0, ?t, 1/0),
+    IF(?i = 1, ?value, 1/0),
+    IF(?i = 2, ?value, 1/0),
+    IF(?i = 3, ?q, 1/0),
+    IF(?i = 4, ?p, 1/0),
+    IF(?i = 5, ?p, 1/0),
+    ?p
+  ) AS ?g )
+  BIND ( COALESCE(
+    IF(?i = 0, ?p, 1/0),
+    IF(?i = 1, ?p, 1/0),
+    IF(?i = 2, ?t, 1/0),
+    IF(?i = 3, ?value, 1/0),
+    IF(?i = 4, ?value, 1/0),
+    IF(?i = 5, ?q, 1/0),
+    ?q
+  ) AS ?b )
+  BIND (FLOOR(255 * ?r) AS ?red) 
+  BIND (FLOOR(255 * ?g) AS ?green)  
+  BIND (FLOOR(255 * ?b) AS ?blue)
+  # red
+  BIND ( FLOOR (?red / 16) AS ?red_1 )
+  BIND ( COALESCE(
+    IF(?red_1 < 10, STR(?red_1), 1/0),
+    IF(?red_1 = 10, \"a\", 1/0),
+    IF(?red_1 = 11, \"b\", 1/0),
+    IF(?red_1 = 12, \"c\", 1/0),
+    IF(?red_1 = 13, \"d\", 1/0),
+    IF(?red_1 = 14, \"e\", 1/0),
+    IF(?red_1 = 15, \"f\", 1/0),
+    \"ERROR\"
+  ) AS ?red_hex1 )
+  BIND (FLOOR(?red - (16 * xsd:integer( ?red / 16 ))) AS ?red_2)
+  BIND ( COALESCE(
+    IF(?red_2 < 10, STR(?red_2), 1/0),
+    IF(?red_2 = 10, \"a\", 1/0),
+    IF(?red_2 = 11, \"b\", 1/0),
+    IF(?red_2 = 12, \"c\", 1/0),
+    IF(?red_2 = 13, \"d\", 1/0),
+    IF(?red_2 = 14, \"e\", 1/0),
+    IF(?red_2 = 15, \"f\", 1/0),
+    \"ERROR\"
+  ) AS ?red_hex2 )
+  BIND (CONCAT(STR(?red_hex1), STR(?red_hex2)) AS ?red_hex )
+  # green
+  BIND ( FLOOR (?green / 16) AS ?green_1 )
+  BIND ( COALESCE(
+    IF(?green_1 < 10, STR(?green_1), 1/0),
+    IF(?green_1 = 10, \"a\", 1/0),
+    IF(?green_1 = 11, \"b\", 1/0),
+    IF(?green_1 = 12, \"c\", 1/0),
+    IF(?green_1 = 13, \"d\", 1/0),
+    IF(?green_1 = 14, \"e\", 1/0),
+    IF(?green_1 = 15, \"f\", 1/0),
+    \"ERROR\"
+  ) AS ?green_hex1 )
+  BIND (FLOOR(?green - (16 * xsd:integer( ?green / 16 ))) AS ?green_2)
+  BIND ( COALESCE(
+    IF(?green_2 < 10, STR(?green_2), 1/0),
+    IF(?green_2 = 10, \"a\", 1/0),
+    IF(?green_2 = 11, \"b\", 1/0),
+    IF(?green_2 = 12, \"c\", 1/0),
+    IF(?green_2 = 13, \"d\", 1/0),
+    IF(?green_2 = 14, \"e\", 1/0),
+    IF(?green_2 = 15, \"f\", 1/0),
+    \"ERROR\"
+  ) AS ?green_hex2 )
+  BIND (CONCAT(STR(?green_hex1), STR(?green_hex2)) AS ?green_hex )
+  # blue
+  BIND ( FLOOR (?blue / 16) AS ?blue_1 )
+  BIND ( COALESCE(
+    IF(?blue_1 < 10, STR(?blue_1), 1/0),
+    IF(?blue_1 = 10, \"a\", 1/0),
+    IF(?blue_1 = 11, \"b\", 1/0),
+    IF(?blue_1 = 12, \"c\", 1/0),
+    IF(?blue_1 = 13, \"d\", 1/0),
+    IF(?blue_1 = 14, \"e\", 1/0),
+    IF(?blue_1 = 15, \"f\", 1/0),
+    \"ERROR\"
+  ) AS ?blue_hex1 )
+  BIND (FLOOR(?blue - (16 * xsd:integer( ?blue / 16 ))) AS ?blue_2)
+  BIND ( COALESCE(
+    IF(?blue_2 < 10, STR(?blue_2), 1/0),
+    IF(?blue_2 = 10, \"a\", 1/0),
+    IF(?blue_2 = 11, \"b\", 1/0),
+    IF(?blue_2 = 12, \"c\", 1/0),
+    IF(?blue_2 = 13, \"d\", 1/0),
+    IF(?blue_2 = 14, \"e\", 1/0),
+    IF(?blue_2 = 15, \"f\", 1/0),
+    \"ERROR\"
+  ) AS ?blue_hex2 )
+  BIND (CONCAT(STR(?blue_hex1), STR(?blue_hex2)) AS ?blue_hex )
+  BIND (CONCAT(STR(?red_hex), STR(?green_hex), STR(?blue_hex)) AS ?rgb) 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+ }""";
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# The heights of mountains in Switzerland
+#defaultView:Map{\"hide\":[\"?x_coords\",\"?rgb\"]}
+SELECT ?x ?xLabel ?description ?x_coords ?rgb  
+# determine the max and min values (used to calculate the spread
+
+WHERE {
+  {
+# extract the data
+SELECT ?data ?x ?x_coords WHERE {
+  ?x wdt:P31 wd:Q8502 .
+  ?x  p:P2044/psn:P2044 [ 
+     wikibase:quantityAmount ?data 
+  ] .
+  ?x wdt:P17 wd:Q39 .
+  ?x wdt:P625 ?x_coords .
+  }
+}
+  { 
+  SELECT (MAX(?data) AS ?max_data)  (MIN(?data) AS ?min_data) WHERE {
+  {
+# extract the data
+SELECT ?data ?x ?x_coords WHERE {
+  ?x wdt:P31 wd:Q8502 .
+  ?x  p:P2044/psn:P2044 [ 
+     wikibase:quantityAmount ?data 
+  ] .
+  ?x wdt:P17 wd:Q39 .
+  ?x wdt:P625 ?x_coords .
+  }
+}            
+ }
+}   
   ?x rdfs:label ?xLabel. FILTER (LANG(?xLabel) = \"en\") .
   BIND (CONCAT(\"The height of \", ?xLabel, \" is about \", STR(ROUND(?data)), \" metres\" ) AS ?description) 
   BIND ( ?max_data - ?min_data AS ?spread )

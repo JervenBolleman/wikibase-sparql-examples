@@ -11,64 +11,6 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX dct: <http://purl.org/dc/terms/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#title: Languages with count per usage example and count per usage examples that have pronunciation audio.
-
-SELECT
-  ?lang
-  ?langLabel
-  ?langCode
-  ?count
-  ?countAudios
-# Get all languages that has at least one lexeme in Wikidata
-
-# Get all examples along with their language code and the claim
-# identifiers of those statements
-WITH {
-  SELECT ?claim ?example ?langCode {
-    [] p:P5831 ?claim.
-    ?claim ps:P5831 ?example.
-    BIND(LANG(?example) AS ?langCode)
-  }
-} AS %1
-# Get count of examples per language
-WITH {
-  SELECT ?langCode (COUNT(*) AS ?count) {
-    INCLUDE %1.
-  }
-  GROUP BY ?langCode
-} AS %2
-# Get count of examples that have pronunciation audio per language
-WITH {
-  SELECT ?langCode (COUNT(*) AS ?countAudios) {
-    INCLUDE %1.
-    ?claim pq:P443 [].
-  }
-  GROUP BY ?langCode
-} AS %3
-{
-  # OPTIONAL is used so that rows that are shown by some INCLUDE but
-  # not by other INCLUDE are still shown in the results. Thus, for
-  # example, we can know which languages have 0 pronunciation audios
-  # or which language code is not linked to a Wikidata item.
-
-  OPTIONAL{{
-  SELECT DISTINCT ?lang ?langCode {
-    [] dct:language ?lang.
-    ?lang wdt:P424 ?langCode.
-  }
-}}
-  OPTIONAL{INCLUDE %2}
-  OPTIONAL{INCLUDE %3}
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
-}
-ORDER BY DESC(?countAudios) DESC(?count)""";
   <http://example.org/bigdata_select> """#title: Languages with count per usage example and count per usage examples that have pronunciation audio.
 
 SELECT
@@ -173,6 +115,122 @@ WITH {
   # or which language code is not linked to a Wikidata item.
 
   OPTIONAL{INCLUDE %0}
+  OPTIONAL{INCLUDE %2}
+  OPTIONAL{INCLUDE %3}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY DESC(?countAudios) DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#title: Languages with count per usage example and count per usage examples that have pronunciation audio.
+
+SELECT
+  ?lang
+  ?langLabel
+  ?langCode
+  ?count
+  ?countAudios
+# Get all languages that has at least one lexeme in Wikidata
+
+# Get all examples along with their language code and the claim
+# identifiers of those statements
+WITH {
+  SELECT ?claim ?example ?langCode {
+    [] p:P5831 ?claim.
+    ?claim ps:P5831 ?example.
+    BIND(LANG(?example) AS ?langCode)
+  }
+} AS %1
+# Get count of examples per language
+WITH {
+  SELECT ?langCode (COUNT(*) AS ?count) {
+    INCLUDE %1.
+  }
+  GROUP BY ?langCode
+} AS %2
+# Get count of examples that have pronunciation audio per language
+WITH {
+  SELECT ?langCode (COUNT(*) AS ?countAudios) {
+    INCLUDE %1.
+    ?claim pq:P443 [].
+  }
+  GROUP BY ?langCode
+} AS %3
+{
+  # OPTIONAL is used so that rows that are shown by some INCLUDE but
+  # not by other INCLUDE are still shown in the results. Thus, for
+  # example, we can know which languages have 0 pronunciation audios
+  # or which language code is not linked to a Wikidata item.
+
+  OPTIONAL{{
+  SELECT DISTINCT ?lang ?langCode {
+    [] dct:language ?lang.
+    ?lang wdt:P424 ?langCode.
+  }
+}}
+  OPTIONAL{INCLUDE %2}
+  OPTIONAL{INCLUDE %3}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY DESC(?countAudios) DESC(?count)""";
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#title: Languages with count per usage example and count per usage examples that have pronunciation audio.
+
+SELECT
+  ?lang
+  ?langLabel
+  ?langCode
+  ?count
+  ?countAudios
+# Get all languages that has at least one lexeme in Wikidata
+
+# Get all examples along with their language code and the claim
+# identifiers of those statements
+WITH {
+  SELECT ?claim ?example ?langCode {
+    [] p:P5831 ?claim.
+    ?claim ps:P5831 ?example.
+    BIND(LANG(?example) AS ?langCode)
+  }
+} AS %1
+# Get count of examples per language
+WITH {
+  SELECT ?langCode (COUNT(*) AS ?count) {
+    INCLUDE %1.
+  }
+  GROUP BY ?langCode
+} AS %2
+# Get count of examples that have pronunciation audio per language
+WITH {
+  SELECT ?langCode (COUNT(*) AS ?countAudios) {
+    INCLUDE %1.
+    ?claim pq:P443 [].
+  }
+  GROUP BY ?langCode
+} AS %3
+{
+  # OPTIONAL is used so that rows that are shown by some INCLUDE but
+  # not by other INCLUDE are still shown in the results. Thus, for
+  # example, we can know which languages have 0 pronunciation audios
+  # or which language code is not linked to a Wikidata item.
+
+  OPTIONAL{{
+  SELECT DISTINCT ?lang ?langCode {
+    [] dct:language ?lang.
+    ?lang wdt:P424 ?langCode.
+  }
+}}
   OPTIONAL{INCLUDE %2}
   OPTIONAL{INCLUDE %3}
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }

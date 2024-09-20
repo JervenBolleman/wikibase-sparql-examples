@@ -11,7 +11,53 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item WITH {
+  SELECT DISTINCT ?item WHERE {
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:api 'Generator';
+                      wikibase:endpoint 'www.wikidata.org';
+                      mwapi:generator 'links';
+                      mwapi:titles 'User:Pasleim/Items_for_deletion/Page_deleted/Archive/2019' .
+      ?title wikibase:apiOutput mwapi:title  .
+      ?ns wikibase:apiOutput '@ns' .
+      ?pageId wikibase:apiOutput mwapi:pageid .
+    }
+    FILTER(BOUND(?pageId)) .
+    FILTER(STR(?ns) = '0') .
+    BIND(IRI(CONCAT(STR(wd:), ?title)) AS ?item) .
+  }
+} AS %subquery WHERE {
+  INCLUDE %subquery .
+  # further filtering here
+}""",
+    """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item  WHERE {
+  {
+  SELECT DISTINCT ?item WHERE {
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:api 'Generator';
+                      wikibase:endpoint 'www.wikidata.org';
+                      mwapi:generator 'links';
+                      mwapi:titles 'User:Pasleim/Items_for_deletion/Page_deleted/Archive/2019' .
+      ?title wikibase:apiOutput mwapi:title  .
+      ?ns wikibase:apiOutput '@ns' .
+      ?pageId wikibase:apiOutput mwapi:pageid .
+    }
+    FILTER(BOUND(?pageId)) .
+    FILTER(STR(?ns) = '0') .
+    BIND(IRI(CONCAT(STR(wd:), ?title)) AS ?item) .
+  }
+} .
+  # further filtering here
+}""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?item WITH {

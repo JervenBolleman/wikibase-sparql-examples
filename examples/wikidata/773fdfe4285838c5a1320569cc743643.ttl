@@ -11,7 +11,82 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#title:Find a reference from a specific URL
+SELECT ?statement ?subject ?subjectLabel ?property ?propertyLabel ?object ?objectLabel ?refURL WITH
+{
+  SELECT DISTINCT ?subject WHERE {
+    {
+      SERVICE wikibase:mwapi {
+        bd:serviceParam wikibase:endpoint \"www.wikidata.org\"; wikibase:api \"Generator\"; mwapi:generator \"exturlusage\"; mwapi:geulimit \"500\"; mwapi:geuquery \"digitalcollections.nypl.org\"; mwapi:geuprotocol \"http\"; mwapi:geunamespace \"0\" .
+        ?title wikibase:apiOutput mwapi:title.
+      }
+    } UNION {
+      SERVICE wikibase:mwapi {
+        bd:serviceParam wikibase:endpoint \"www.wikidata.org\"; wikibase:api \"Generator\"; mwapi:generator \"exturlusage\"; mwapi:geulimit \"500\"; mwapi:geuquery \"digitalcollections.nypl.org\"; mwapi:geuprotocol \"https\"; mwapi:geunamespace \"0\" .
+        ?title wikibase:apiOutput mwapi:title.
+      }
+    }
+    BIND(IRI(CONCAT(STR(wd:), ?title)) AS ?subject)
+  }
+} AS %items {
+  INCLUDE %items .
+  
+  hint:Query hint:optimizer \"None\".
+  
+  ?subject ?p ?statement .
+  ?statement prov:wasDerivedFrom/pr:P854 ?refURL .
+  FILTER (CONTAINS(str(?refURL), 'digitalcollections.nypl.org')) .    # update orange/brown text to whatever URL string you want...keep the single 'quotes' also update URLs lines 7 and 12
+  
+  ?property wikibase:claim ?p .
+  ?property wikibase:statementProperty ?ps .
+  ?statement ?ps ?object .
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}""",
+    """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#title:Find a reference from a specific URL
+SELECT ?statement ?subject ?subjectLabel ?property ?propertyLabel ?object ?objectLabel ?refURL  {
+  {
+  SELECT DISTINCT ?subject WHERE {
+    {
+      SERVICE wikibase:mwapi {
+        bd:serviceParam wikibase:endpoint \"www.wikidata.org\"; wikibase:api \"Generator\"; mwapi:generator \"exturlusage\"; mwapi:geulimit \"500\"; mwapi:geuquery \"digitalcollections.nypl.org\"; mwapi:geuprotocol \"http\"; mwapi:geunamespace \"0\" .
+        ?title wikibase:apiOutput mwapi:title.
+      }
+    } UNION {
+      SERVICE wikibase:mwapi {
+        bd:serviceParam wikibase:endpoint \"www.wikidata.org\"; wikibase:api \"Generator\"; mwapi:generator \"exturlusage\"; mwapi:geulimit \"500\"; mwapi:geuquery \"digitalcollections.nypl.org\"; mwapi:geuprotocol \"https\"; mwapi:geunamespace \"0\" .
+        ?title wikibase:apiOutput mwapi:title.
+      }
+    }
+    BIND(IRI(CONCAT(STR(wd:), ?title)) AS ?subject)
+  }
+} .
+  
+  hint:Query hint:optimizer \"None\".
+  
+  ?subject ?p ?statement .
+  ?statement prov:wasDerivedFrom/pr:P854 ?refURL .
+  FILTER (CONTAINS(str(?refURL), 'digitalcollections.nypl.org')) .    # update orange/brown text to whatever URL string you want...keep the single 'quotes' also update URLs lines 7 and 12
+  
+  ?property wikibase:claim ?p .
+  ?property wikibase:statementProperty ?ps .
+  ?statement ?ps ?object .
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX prov: <http://www.w3.org/ns/prov#>
 PREFIX pr: <http://www.wikidata.org/prop/reference/>

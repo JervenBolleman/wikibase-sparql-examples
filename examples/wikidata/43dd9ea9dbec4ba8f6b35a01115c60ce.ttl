@@ -11,7 +11,58 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:ImageGrid
+SELECT DISTINCT ?image ?species ?speciesLabel
+# find all the goat species
+WITH {
+  SELECT DISTINCT ?species WHERE {
+    ?species (wdt:P171|wdt:P279)* wd:Q189804. # apparently (some?) goat species are subclasses of rather than subtaxons of goat?
+  }
+} AS %species
+# get their labels separately, to avoid looking up labels many times when we have several images
+WITH {
+  SELECT ?species ?speciesLabel WHERE {
+    INCLUDE %species.
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  }
+} AS %speciesLabel
+# get images from Wikimedia Commons
+WITH {
+  SELECT ?image ?species WHERE {
+    hint:SubQuery hint:optimizer \"None\".
+    INCLUDE %species.
+    BIND(STRAFTER(STR(?species), STR(wd:)) AS ?itemId)
+    BIND(CONCAT(\"haswbstatement:P180=\", ?itemId) AS ?search)
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\";
+                      wikibase:api \"Search\";
+                      mwapi:srsearch ?search;
+                      mwapi:srnamespace \"6\"; # NS_FILE
+                      mwapi:srlimit \"max\".
+      ?title wikibase:apiOutput mwapi:title.
+    }
+    BIND(URI(CONCAT(\"http://commons.wikimedia.org/wiki/Special:FilePath/\", ENCODE_FOR_URI(STRAFTER(?title, \"File:\")))) AS ?image)
+  }
+} AS %commons
+# get images from Wikidata, just in case those aren’t annotated on Commons (though I did at least manually add P180 to the Q2934 (goat) P18s)
+WITH {
+  SELECT ?image ?species WHERE {
+    INCLUDE %species.
+    ?species wdt:P18 ?image.
+  }
+} AS %wikidata
+# combine the Commons and Wikidata images (note that we have SELECT DISTINCT at the top to remove duplicates again) and add labels
+WHERE {
+  { INCLUDE %commons. } UNION
+  { INCLUDE %wikidata. }
+  INCLUDE %speciesLabel.
+}""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>

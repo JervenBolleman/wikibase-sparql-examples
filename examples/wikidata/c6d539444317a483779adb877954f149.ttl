@@ -19,6 +19,28 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?coord1 ?coord2 ?distance ?rank1 ?rank2  WHERE {
+  {
+SELECT DISTINCT ?item ?coord1 ?coord2 ?rank1 ?rank2 WHERE {
+    ?item wdt:P17 wd:Q35 . # in Denmark
+    ?item wdt:P31/wdt:P279* wd:Q486972 . # settlement
+    hint:Prior hint:gearing \"forward\".
+    ?item p:P625 ?stat1 . ?stat1 ps:P625 ?coord1 . ?stat1 wikibase:rank ?rank1 . 
+    ?item p:P625 ?stat2 . ?stat2 ps:P625 ?coord2 . ?stat2 wikibase:rank ?rank2 . 
+    filter ( str(?stat1)  < str(?stat2) ) . # not the same
+    filter ( str(?rank1)  = str(?rank2) ) . # are the same
+} 
+}
+  BIND(geof:distance(?coord1, ?coord2) as ?distance)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"da,en,[AUTO_LANGUAGE]\". }
+}
+ORDER BY ?itemLabel""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?coord1 ?coord2 ?distance ?rank1 ?rank2 WITH {
 SELECT DISTINCT ?item ?coord1 ?coord2 ?rank1 ?rank2 WHERE {
     ?item wdt:P17 wd:Q35 . # in Denmark
@@ -37,28 +59,6 @@ SELECT DISTINCT ?item ?coord1 ?coord2 ?rank1 ?rank2 WHERE {
 ORDER BY ?itemLabel""",
     """PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
 PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?coord1 ?coord2 ?distance ?rank1 ?rank2  WHERE {
-  {
-SELECT DISTINCT ?item ?coord1 ?coord2 ?rank1 ?rank2 WHERE {
-    ?item wdt:P17 wd:Q35 . # in Denmark
-    ?item wdt:P31/wdt:P279* wd:Q486972 . # settlement
-    hint:Prior hint:gearing \"forward\".
-    ?item p:P625 ?stat1 . ?stat1 ps:P625 ?coord1 . ?stat1 wikibase:rank ?rank1 . 
-    ?item p:P625 ?stat2 . ?stat2 ps:P625 ?coord2 . ?stat2 wikibase:rank ?rank2 . 
-    filter ( str(?stat1)  < str(?stat2) ) . # not the same
-    filter ( str(?rank1)  = str(?rank2) ) . # are the same
-} 
-}
-  BIND(geof:distance(?coord1, ?coord2) as ?distance)
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"da,en,[AUTO_LANGUAGE]\". }
-}
-ORDER BY ?itemLabel""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>

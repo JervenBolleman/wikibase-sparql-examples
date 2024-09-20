@@ -11,7 +11,57 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT
+(CONCAT(
+ENCODE_FOR_URI(REPLACE(STR(?i), \".*Q\", \"Q\")), \"|P921|\", ENCODE_FOR_URI(REPLACE(STR(?ta), \".*Q\", \"Q\")), \"|P1932|\", (CONCAT(\"\"\", ?a, \"\"\")), \"|S887|Q69652283\") AS ?QuickStatements)
+WITH {
+SELECT DISTINCT ?ta WHERE {
+SERVICE bd:sample { ?p wdt:P6104 wd:Q56241615 . bd:serviceParam bd:sample.limit 100000 }
+?p wdt:P921 ?ta .
+}
+} AS %topics
+WITH {
+SELECT DISTINCT ?ta ?n WHERE {
+INCLUDE %topics .
+?ta wdt:P225 ?n .
+?ta wdt:P105 wd:Q7432 .
+}
+LIMIT 25
+} AS %taxa
+WITH
+{ SELECT ?i ?n ?ta ?ti WHERE {
+INCLUDE %taxa
+?ta wdt:P225 ?n .
+SERVICE wikibase:mwapi
+{
+bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+wikibase:api \"Generator\";
+mwapi:generator \"search\";
+mwapi:gsrsearch ?n ;
+mwapi:gsrlimit \"max\".
+?i wikibase:apiOutputItem mwapi:title.
+}
+?i wdt:P1476 ?ti .
+MINUS {?i wdt:P921 ?ta }
+MINUS {?i wdt:P921 [wdt:P171* ?ta ] } 
+FILTER (REGEX(LCASE(?ti), LCASE(CONCAT( \"\", \"b\", ?n ,\"\", \"b\"))))
+FILTER (!REGEX(LCASE(?ti), LCASE(CONCAT( ?n ,\"-\"))))
+FILTER (!REGEX(LCASE(?ti), LCASE(CONCAT( ?n ,\"(.)virus\"))))
+FILTER (!REGEX(LCASE(?ti), LCASE(CONCAT( \"pseudo(.?)\", ?n))))
+}
+}
+AS %items
+WHERE {
+INCLUDE %items
+INCLUDE %taxa
+BIND (SUBSTR(?ti, STRLEN(STRBEFORE(REPLACE(?ti, ?n, \"===HELP_STRING===\", \"i\"), \"===HELP_STRING===\")) +1, STRLEN(?n)) AS ?a)
+}""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>

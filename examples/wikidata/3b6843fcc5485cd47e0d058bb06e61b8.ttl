@@ -11,7 +11,84 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?title (URI(CONCAT(\"https://es.wikipedia.org/wiki/\", ?title)) AS ?article)
+WITH
+{
+  SELECT DISTINCT ?item
+  WHERE
+  {
+    { ?item wdt:P27 wd:Q419 . }
+    UNION
+    { wd:Q419 ^wdt:P131* / ^wdt:P19 ?item . }
+    UNION
+    { ?item wdt:P1532 wd:Q419 . }
+
+    ?item wdt:P31 wd:Q5 .
+    ?item wdt:P21 wd:Q6581072 .
+  }
+} AS %Peruvian_females
+WHERE
+{
+  OPTIONAL # OPTIONAL is used to force this block to be evaluated first 
+  {
+    SERVICE wikibase:mwapi
+    {
+      bd:serviceParam wikibase:endpoint \"es.wikipedia.org\" .
+      bd:serviceParam wikibase:api \"Generator\" .
+      bd:serviceParam mwapi:generator \"search\" .
+      bd:serviceParam mwapi:gsrsearch '\"esposa de\" incategory:Mujeres' .
+      bd:serviceParam mwapi:gsrlimit \"max\" .
+      ?title wikibase:apiOutput mwapi:title .
+      ?item wikibase:apiOutputItem mwapi:item .
+    }
+    FILTER BOUND(?item)
+  }
+  INCLUDE %Peruvian_females
+}""",
+    """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?title (URI(CONCAT(\"https://es.wikipedia.org/wiki/\", ?title)) AS ?article)
+
+WHERE
+{
+  OPTIONAL # OPTIONAL is used to force this block to be evaluated first 
+  {
+    SERVICE wikibase:mwapi
+    {
+      bd:serviceParam wikibase:endpoint \"es.wikipedia.org\" .
+      bd:serviceParam wikibase:api \"Generator\" .
+      bd:serviceParam mwapi:generator \"search\" .
+      bd:serviceParam mwapi:gsrsearch '\"esposa de\" incategory:Mujeres' .
+      bd:serviceParam mwapi:gsrlimit \"max\" .
+      ?title wikibase:apiOutput mwapi:title .
+      ?item wikibase:apiOutputItem mwapi:item .
+    }
+    FILTER BOUND(?item)
+  }
+  {
+  SELECT DISTINCT ?item
+  WHERE
+  {
+    { ?item wdt:P27 wd:Q419 . }
+    UNION
+    { wd:Q419 ^wdt:P131* / ^wdt:P19 ?item . }
+    UNION
+    { ?item wdt:P1532 wd:Q419 . }
+
+    ?item wdt:P31 wd:Q5 .
+    ?item wdt:P21 wd:Q6581072 .
+  }
+}
+}""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>

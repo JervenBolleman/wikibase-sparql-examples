@@ -11,18 +11,6 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX pr: <http://www.wikidata.org/prop/reference/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-SELECT ?countStatements ?countQualifiers ?countReferences (?countStatements + ?countQualifiers + ?countReferences AS ?sum)
-
-WITH { SELECT (COUNT(*) AS ?countQualifiers) WHERE { ?statement pq:P691 ?qualifier. } } AS %countQualifiers
-WITH { SELECT (COUNT(*) AS ?countReferences) WHERE { ?statement pr:P691 ?reference. } } AS %countReferences
-WHERE {
-  { SELECT (COUNT(*) AS ?countStatements) WHERE { ?item p:P691 ?statement. } }.
-  INCLUDE %countQualifiers.
-  INCLUDE %countReferences.
-}""";
   <http://example.org/bigdata_select> """SELECT ?countStatements ?countQualifiers ?countReferences (?countStatements + ?countQualifiers + ?countReferences AS ?sum)
 WITH { SELECT (COUNT(*) AS ?countStatements) WHERE { ?item p:P691 ?statement. } } AS %countStatements
 WITH { SELECT (COUNT(*) AS ?countQualifiers) WHERE { ?statement pq:P691 ?qualifier. } } AS %countQualifiers
@@ -43,4 +31,40 @@ WHERE {
   INCLUDE %countStatements.
   INCLUDE %countQualifiers.
   INCLUDE %countReferences.
+}""",
+    """PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?countStatements ?countQualifiers ?countReferences (?countStatements + ?countQualifiers + ?countReferences AS ?sum)
+
+WITH { SELECT (COUNT(*) AS ?countQualifiers) WHERE { ?statement pq:P691 ?qualifier. } } AS %countQualifiers
+WITH { SELECT (COUNT(*) AS ?countReferences) WHERE { ?statement pr:P691 ?reference. } } AS %countReferences
+WHERE {
+  { SELECT (COUNT(*) AS ?countStatements) WHERE { ?item p:P691 ?statement. } }.
+  INCLUDE %countQualifiers.
+  INCLUDE %countReferences.
+}""",
+    """PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?countStatements ?countQualifiers ?countReferences (?countStatements + ?countQualifiers + ?countReferences AS ?sum)
+
+
+WITH { SELECT (COUNT(*) AS ?countReferences) WHERE { ?statement pr:P691 ?reference. } } AS %countReferences
+WHERE {
+  { SELECT (COUNT(*) AS ?countStatements) WHERE { ?item p:P691 ?statement. } }.
+  { SELECT (COUNT(*) AS ?countQualifiers) WHERE { ?statement pq:P691 ?qualifier. } }.
+  INCLUDE %countReferences.
+}""";
+  sh:select """PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?countStatements ?countQualifiers ?countReferences (?countStatements + ?countQualifiers + ?countReferences AS ?sum)
+
+
+
+WHERE {
+  { SELECT (COUNT(*) AS ?countStatements) WHERE { ?item p:P691 ?statement. } }.
+  { SELECT (COUNT(*) AS ?countQualifiers) WHERE { ?statement pq:P691 ?qualifier. } }.
+  { SELECT (COUNT(*) AS ?countReferences) WHERE { ?statement pr:P691 ?reference. } }.
 }""" .
