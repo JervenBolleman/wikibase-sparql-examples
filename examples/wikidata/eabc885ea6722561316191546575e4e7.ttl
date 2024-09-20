@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-eabc885ea6722561316191546575e4e7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT (count(?p) as ?count) (avg(?age)/365.24 as ?avg_age) WHERE 
+{
+  ?p wdt:P31 wd:Q5 ;
+      p:P569/psv:P569 [wikibase:timePrecision ?tpb ;
+                       wikibase:timeValue ?birth] ;
+      p:P570/psv:P570 [wikibase:timePrecision ?tpd ;
+                       wikibase:timeValue ?death] .
+      ?article schema:about ?p ;
+               schema:isPartOf <https://da.wikipedia.org/> .
+  filter(?tpb > 8 && ?tpd > 8)
+
+#  filter(?birth < \"1900-01-01T00:00:00Z\"^^xsd:dateTime &&
+#         ?birth >= \"1800-01-01T00:00:00Z\"^^xsd:dateTime)  #birth filter
+#  filter(?death < \"1900-01-01T00:00:00Z\"^^xsd:dateTime &&
+#         ?death >= \"1800-01-01T00:00:00Z\"^^xsd:dateTime)  #death filter
+  filter(?birth < \"1900-01-01T00:00:00Z\"^^xsd:dateTime &&
+         ?birth >= \"1800-01-01T00:00:00Z\"^^xsd:dateTime ||
+         ?death < \"1900-01-01T00:00:00Z\"^^xsd:dateTime &&
+         ?death >= \"1800-01-01T00:00:00Z\"^^xsd:dateTime) #OR filter
+  bind(?death-?birth as ?age)  
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

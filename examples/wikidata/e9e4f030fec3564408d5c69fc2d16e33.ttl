@@ -1,0 +1,50 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e9e4f030fec3564408d5c69fc2d16e33> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT  ?commune ?departement WHERE {
+  ?commune p:P31 ?communeStatement . # les trucs qui sont potentiellement
+  ?communeStatement ps:P31 ?type . # ...un des types autorisés ci-dessous
+  VALUES ?type {
+    wd:Q484170 # commune française
+    wd:Q2989454 # commune nouvelle
+    wd:Q22927616 # commune française à statut particulier
+  }
+  FILTER NOT EXISTS {
+    ?communeStatement pq:P582 [] . # mais alors vraiment des communes pur cru, sans date de fin
+  }
+  ?commune p:P131 ?communeArrondissementStatement . # qui sont dans un arrondissement
+  ?communeArrondissementStatement ps:P131 ?arrondissement .
+  ?arrondissement wdt:P31 wd:Q194203 .
+  FILTER NOT EXISTS { # qui y sont pour de vrai
+    ?communeArrondissementStatement pq:P582 [] .
+  }
+  ?arrondissement p:P31 ?arrondissementExistsStatement . # un arrondissement sans date de fin
+  ?arrondissementExistsStatement ps:P31 wd:Q194203 .
+  FILTER NOT EXISTS {
+    ?arrondissementExistsStatement pq:P582 [] .
+  }
+  ?arrondissement p:P131 ?arrondissementDepartementStatement . # qui est dans un département
+  ?arrondissementDepartementStatement ps:P131 ?departement . 
+  FILTER NOT EXISTS { # mais qui y est sans date de fin
+    ?arrondissementDepartementStatement pq:P582 [] .
+  }
+  ?departement p:P31 ?departementExistsStatement . # un département sans date de fin 
+  ?departementExistsStatement ps:P31 ?departementType .
+  FILTER NOT EXISTS {
+    ?departementExistsStatement pq:P582 [] .
+  }
+  VALUES ?departementType {
+    wd:Q6465 #département de France métropolitaine
+    wd:Q28332 # département/région ultramarin
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Property_talk:P131>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

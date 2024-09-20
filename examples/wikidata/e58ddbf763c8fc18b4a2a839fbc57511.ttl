@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e58ddbf763c8fc18b4a2a839fbc57511> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Stations on the Piccadilly Line, in order from Cockfosters (almost)
+
+SELECT ?station ?station_label ?depth
+WITH {
+  SELECT DISTINCT ?station WHERE {
+    ?station p:P197/pq:P81 wd:Q207689 .
+  }
+} AS %piccadillyLine
+WHERE {
+  INCLUDE %piccadillyLine.
+  {
+     SERVICE gas:service {
+       gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.SSSP\" .
+       gas:program gas:linkType wdt:P197 .
+       gas:program gas:in wd:Q1105305 .
+       gas:program gas:out ?station .
+       gas:program gas:out1 ?depth .
+       gas:program gas:maxIterations 20 .
+     }
+  }
+  ?station rdfs:label ?station_label. FILTER(LANG(?station_label) = \"en\")
+} ORDER BY ?depth""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

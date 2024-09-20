@@ -1,0 +1,53 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e89d402a4fcfec230953c8dfb5b91b20> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?work ?workLabel ?type ?incept ?published ?instruments ?tonality ?external ?sitelinks ?opus ?brown ?chominski ?kobylanska {
+  { SELECT
+   ?work
+   (GROUP_CONCAT(DISTINCT ?typeLabel; separator=', ') AS ?type)
+   (MIN(?inception) AS ?incept)
+   (MIN(?published) AS ?published)
+   (GROUP_CONCAT(DISTINCT ?instrumentLabel; separator=', ') AS ?instruments)
+   (GROUP_CONCAT(DISTINCT ?tonalityLabel; separator=', ') AS ?tonality)
+   (COUNT(DISTINCT ?wdt) + COUNT(DISTINCT ?catalogue) AS ?external)
+   (SAMPLE(?opus) AS ?opus) (SAMPLE(?brown) AS ?brown) (SAMPLE(?chominski) AS ?chominski) (SAMPLE(?kobylanska) AS ?kobylanska)
+   {
+     ?work wdt:P86 wd:Q1268;
+           wdt:P31 ?type .
+     ?type wdt:P279* wd:Q2188189 .
+     OPTIONAL { ?work wdt:P571 ?inception } .
+     OPTIONAL { ?work wdt:P577 ?published } .
+     OPTIONAL { ?work wdt:P826 ?tonality } .
+     OPTIONAL { ?work wdt:P870 ?instrument } .
+     SERVICE wikibase:label {
+       bd:serviceParam wikibase:language \"en\" .
+       ?type rdfs:label ?typeLabel .
+       ?instrument rdfs:label ?instrumentLabel .
+       ?tonality rdfs:label ?tonalityLabel .
+     } .
+     OPTIONAL {
+       ?work p:P528 ?statement .
+       ?statement pq:P972 ?catalogue .
+       OPTIONAL { FILTER( ?catalogue = wd:Q385271 ) . ?statement ps:P528 ?opus } .
+       OPTIONAL { FILTER( ?catalogue = wd:Q16749676 ) . ?statement ps:P528 ?brown } .
+       OPTIONAL { FILTER( ?catalogue = wd:Q16749680 ) . ?statement ps:P528 ?chominski } .
+       OPTIONAL { FILTER( ?catalogue = wd:Q16747642 ) . ?statement ps:P528 ?kobylanska } .
+     } .
+     OPTIONAL {
+       ?work ?wdt [] .
+       ?wdt ^wikibase:directClaim/wikibase:propertyType wikibase:ExternalId .
+     } .
+   } GROUP BY ?work } .
+  OPTIONAL { ?work wikibase:sitelinks ?sitelinks } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+} ORDER BY DESC(?incept)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2016/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

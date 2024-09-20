@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e86c2b81f4d95f081a042f4eeaa39685> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#---------------------------------------------------------------------------------------
+# Kinos in Dresden (aktuelle und ehemalige)
+#---------------------------------------------------------------------------------------
+PREFIX schema: <http://schema.org/>
+#defaultView:Table;Map
+SELECT distinct ?item ?itemLabel ?itemDescription ?image ?coordinate ?article ?eroeffnung ?schliessung
+WHERE {    
+  ?item (wdt:P131/wdt:P279*) wd:Q1731 .  # liegt in der Verwaltungseinheit Dresden (oder Unterklasse)
+  #?item (wdt:P131/wdt:P279*) wd: .  # liegt in der Verwaltungseinheit Dresden (oder Unterklasse)
+  ?item (wdt:P31/wdt:P279*) wd:Q41253 .  # ist ein Kino (oder Unterklasse)
+  OPTIONAL { ?item wdt:P18 ?image . }
+  OPTIONAL { ?item wdt:P625 ?coordinate . }
+  OPTIONAL { ?item wdt:P1619 ?eroeffnung . }
+  OPTIONAL { ?item wdt:P3999 ?schliessung . }
+  OPTIONAL {
+    ?article schema:about ?item.
+    ?article schema:isPartOf <https://de.wikipedia.org/>.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en,[AUTO_LANGUAGE]\". }
+}
+ORDER BY ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stefan_K%C3%BChn/Dresden>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

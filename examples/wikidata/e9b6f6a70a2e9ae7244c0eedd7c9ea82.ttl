@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e9b6f6a70a2e9ae7244c0eedd7c9ea82> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title:Objects related to Shah Jahan
+#defaultView:ImageGrid{\"hide\":[\"?thumbnail\",\"?noimg\"]}
+SELECT DISTINCT ?collection (CONCAT(?property,\" \",?targetlabel) AS ?proplabel) (SAMPLE(?obj_type) AS ?object_type) (SAMPLE(?image) AS ?thumbnail) ?q ?qLabel ?noimg WHERE {
+VALUES ?target {wd:Q83672}
+?i ?rel ?target; wdt:P195 ?coll; wdt:P31 ?type
+OPTIONAL {?i wdt:P18 ?img}
+BIND(IF(BOUND(?img), ?img, <http://commons.wikimedia.org/wiki/Special:FilePath/No%20image%20available.svg>) AS ?image)
+BIND(IF(BOUND(?img), 0, 1) AS ?noimg)
+OPTIONAL {?i wdt:P973 ?url}
+BIND(COALESCE(?url, ?i) as ?q)
+MINUS {?coll wdt:P31 wd:Q61781831}
+?prop wikibase:directClaim ?rel; a wikibase:Property
+SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+?i rdfs:label ?qLabel. ?coll rdfs:label ?collection.
+?prop rdfs:label ?property. ?type rdfs:label ?obj_type. ?target rdfs:label ?targetlabel}
+} GROUP BY ?q ?qLabel ?collection ?property ?targetlabel ?noimg
+ORDER BY ?noimg ?proplabel ?collection""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/khalili>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

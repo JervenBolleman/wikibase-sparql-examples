@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-eb75e19ae6c4511ff09f836848b296fc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:LineChart
+SELECT ?age (COUNT(?person) AS ?count) WITH
+{
+  SELECT DISTINCT * WHERE {
+    ?person wdt:P31 wd:Q5.
+    ?person wdt:P570 ?dod.
+    ?person wdt:P569 ?dob.
+    FILTER(YEAR(?dod) > 1900)
+    FILTER(?dod > ?dob)
+    }
+  LIMIT 100000
+  }
+AS %d
+WHERE {
+  INCLUDE %d.
+  BIND(YEAR(?dod)-YEAR(?dob) as ?age)
+  FILTER(?age <= 120)
+  }
+GROUP BY ?age
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_COVID-19/Queries/SPARQL_Study>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

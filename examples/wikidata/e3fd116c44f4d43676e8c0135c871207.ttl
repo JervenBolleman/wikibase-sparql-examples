@@ -1,0 +1,69 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e3fd116c44f4d43676e8c0135c871207> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#by CamelCaseNick
+prefix commons:<http://commons.wikimedia.org/wiki/Special:FilePath/>
+
+select (?stolperstein as ?item) ?nameImage ?addressImage ?quarterImage with {
+  select distinct ?stolperstein ?nameImage ?addressImage ?quarterImage where {
+    ?stolperstein wdt:P31 wd:Q26703203;
+                  wdt:P131+ wd:Q1055;
+                  wdt:P18 ?image.
+
+    bind(wikibase:decodeUri(replace(str(?image), str(commons:), \"\")) as ?title)
+
+    values (?nameGroup ?addressGroup ?quarterGroup ?regex) {
+      (\"$1\" \"$2\" \"$3\" \"^((?:[\\\\p{L}\\\\d\\\\.]+[\\\\- ])*[\\\\p{L}\\\\d]+) ?[\\\\-–] ((?:(?:\\\\p{L}+\\\\.?[ \\\\-/])*\\\\p{L}+\\\\.?(?: \\\\d+(?:[a-z]| ?[\\\\-–] ?\\\\d+)?)?)) \\\\(([\\\\p{L}\\\\- \\\\.]+)\\\\)(?:\\\\.| )Stolperstein(e| 20\\\\d{2}|\\\\-\\\\d{4}\\\\-\\\\d{2}\\\\-\\\\d{2})?(\\\\.\\\\d+)?(\\\\.(nnw|(crop\\\\.)?ajb|ccn))?\\\\.jpg$\")
+      (\"$2\" \"$1\" \"$3\" \"^(?:Stolpersteine? )?((?:(?:\\\\p{L}+\\\\.?[ \\\\-/])*\\\\p{L}+\\\\.?(?: ?\\\\d+(?: ?[a-zA-Z]|[\\\\-–]\\\\d+)?)?)) \\\\( *((?:[\\\\p{L}\\\\d]+[\\\\-\\\\.,]? ?)*[\\\\p{L}\\\\d]+) *\\\\)(?: ?[Ii]n)? ([\\\\p{L}\\\\. \\\\-]+?)(?: ?\\\\(\\\\d+\\\\)| ?\\\\d+)?(?: ShiftN)?\\\\.(jpg|JPG)$\")
+    }
+
+    filter(regex(?title, ?regex))
+
+    bind(replace(?title, ?regex, ?nameGroup) as ?nameImage)
+    bind(replace(?title, ?regex, ?addressGroup) as ?addressImage)
+    bind(replace(?title, ?regex, ?quarterGroup) as ?quarterImage)
+  }
+} as %matches with {
+  select ?stolperstein ?nameImage ?addressImage ?quarterImage where {
+    include %matches.
+
+    filter exists {
+      ?stolperstein skos:altLabel|rdfs:label ?alias.
+      filter(lang(?alias) = \"de\")
+      filter(regex(?alias, \"Stolperstein für (?!den|die|das)\"))
+
+      filter(?alias = strlang(concat(\"Stolperstein für \", ?nameImage), \"de\"))
+    }
+
+    filter exists {
+      ?stolperstein p:P6375/ps:P6375 ?address.
+      filter(regex(?address, \"^((\\\\p{L}+\\\\.?[ \\\\-/])*\\\\p{L}+\\\\.?( \\\\d+( [a-z])?(( – |/)\\\\d+( [a-z])?)?)?), \\\\d{5} Hamburg$\"))
+
+      bind(replace(?address, \"^((\\\\p{L}+\\\\.?[ \\\\-/])*\\\\p{L}+\\\\.?( \\\\d+( [a-z])?(( – |/)\\\\d+( [a-z])?)?)?), \\\\d{5} Hamburg$\", \"$1\") as ?addr)
+      filter(?addr = strlang(?addressImage, \"de\"))
+    }
+
+    filter exists {
+      ?stolperstein p:P276/ps:P276 ?quarter.
+      ?quarter wdt:P31 wd:Q15830667;
+               skos:altLabel|rdfs:label ?alias.
+      filter(lang(?alias) = \"de\")
+      filter(?alias = strlang(replace(?quarterImage, \"Hamburg \", \"Hamburg-\"), \"de\"))
+    }
+  }
+} as %perfect where {
+  include %matches.
+  minus {
+    include %perfect.
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:CamelCaseNick/Stolpersteine>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

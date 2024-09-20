@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e541cbe05cf7814d1b7fb24d8863e838> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?person ?personLabel ?residence ?residenceLabel ?residencePointInTime ?reference
+WHERE {
+  ?person wdt:P31 wd:Q5 .
+  ?person wdt:P27 wd:Q20 .
+  ?person wdt:P569 ?birth .
+  ?person wdt:P570 ?death .
+  
+  OPTIONAL {
+    ?person p:P551 ?residenceStatement .
+    ?residenceStatement ps:P551 ?residence .
+    
+    OPTIONAL { ?residenceStatement pq:P585 ?residencePointInTime . }
+    OPTIONAL { ?residenceStatement prov:wasDerivedFrom ?reference . }
+  }
+  
+  FILTER (?birth < \"1802-01-01\"^^xsd:dateTime && ?death >= \"1802-01-01\"^^xsd:dateTime)
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

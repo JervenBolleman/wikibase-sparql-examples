@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e4df1d5ca1635a3301309d7dec5db46e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# graph of the Four Great Families' members in Dream of the Red Chamber
+# also viewable as table
+#defaultView:Graph
+SELECT DISTINCT ?member ?memberLabel ?member_image ?family ?familyLabel ?family_image ?edgeLabel
+WHERE {
+  # ?family is instance of (P31) \"subclass of (P279)\" [ZeroOrMorePath (*)] fictional family (Q15331236)
+  ?family wdt:P31/wdt:P279* wd:Q15331236;
+          # ?family is part of (P361) the Four Great Families of Jinling (Q10564066)
+          wdt:P361 wd:Q10564066.
+  # ?member's family (P53) is ?family
+  ?member wdt:P53 ?family.
+  # get P53 (family)'s property label and allow it to appear on graph edge
+  ?edge wikibase:directClaim wdt:P53;
+        a wikibase:Property
+  # optional: show ?member's image (P18) as ?member_image, which appears directly in graph, and as link in table
+  OPTIONAL {?member wdt:P18 ?member_image}
+  # optional: show ?family's image (P18) as ?family_image, which appears directly in graph, and as link in table
+  OPTIONAL {?family wdt:P18 ?family_image}
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

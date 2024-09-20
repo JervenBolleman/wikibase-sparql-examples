@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e3cd582bcb48418b6f8e8be86ea48bc1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?country ?countryLabel ?countryArea
+ WITH {
+   SELECT DISTINCT *
+   WHERE {
+     # Instances (P31) of country (Q3624078), sovereign state (Q183366), or disputed territory (Q15634554).
+     VALUES ?countryclass {wd:Q3624078 wd:Q183366 wd:Q15634554 }
+     ?country wdt:P31 ?countryclass .
+     # the psn: prefix to normalize the values to a common unit of area (meters, in this case)
+     ?country p:P2046/psn:P2046/wikibase:quantityAmount ?countryArea .
+   }
+ } AS %i
+ WHERE {
+   INCLUDE %i
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+ } ORDER BY ASC(?countryLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

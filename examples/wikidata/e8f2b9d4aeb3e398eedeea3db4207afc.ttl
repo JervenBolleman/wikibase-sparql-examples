@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e8f2b9d4aeb3e398eedeea3db4207afc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Query to get Qids of duplicate YCBA artworks added in error
+SELECT ?artwork WHERE {
+  {
+    # Subquery to get 297 YCBA accession numbers for
+    # works added by SmartifyBot more than once
+    SELECT ?acc WHERE {
+        ?item wdt:P195 wd:Q6352575.
+        ?item wdt:P973 ?desc.
+        FILTER(CONTAINS(STR(?desc), \"smartify\")).
+        ?item wdt:P217 ?acc.
+    }
+    GROUP BY ?acc
+    HAVING(COUNT(?item) > 1)
+  }
+  ?artwork wdt:P195 wd:Q6352575.                   # Get artworks for YCBA
+  ?artwork wdt:P217 ?accession.                    # Get accession number
+  ?artwork wdt:P973 ?described.                    # Only get artworks
+  FILTER(CONTAINS(STR(?described), \"smartify\")).   #  described at Smartify
+  # NOTE: remove following 2 lines to see original
+  #      work and duplicate on successive lines
+  ?artwork schema:description ?description         # Only get duplicate work with YCBA and
+  FILTER(CONTAINS(?description, \"(YCBA\")).         #   accession number added to description
+  FILTER(?accession = ?acc).                       # Only consider 297 works from subquery
+}
+ORDER BY $accession""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Requests_for_deletions/Archive/2021/07/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

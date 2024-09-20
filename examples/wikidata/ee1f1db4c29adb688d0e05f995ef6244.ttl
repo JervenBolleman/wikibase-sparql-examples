@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ee1f1db4c29adb688d0e05f995ef6244> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select ?item ?itemLabel (year(?date) as ?année_naissance) ?paysLabel ?pays ?clétrinom{
+  ?item wdt:P31 wd:Q5 ;
+        wdt:P21 wd:Q6581072 ;
+        wdt:P106 wd:Q170790 ;
+        ^schema:about/schema:isPartOf <https://fr.wikipedia.org/>
+  optional { 
+    ?item wdt:P734 ?nom_de_famille . ?nom_de_famille wdt:P282 wd:Q8229 . 
+  }
+  optional { 
+    ?item wdt:P569 ?date .
+  }
+  optional {
+    ?item wdt:P27 ?pays .
+  }
+  service wikibase:label { 
+    bd:serviceParam wikibase:language \"fr,en\". 
+    ?nom_de_famille rdfs:label ?nom_de_familleLabel .
+    ?item rdfs:label ?itemLabel .        
+    ?pays rdfs:label ?paysLabel
+  }
+  bind(
+    coalesce(?nom_de_familleLabel,         # en clé de tri : le nom de famille si il est précisé,
+             if(contains(?itemLabel,\" \"),  
+                strafter(?itemLabel,\" \"),  # sinon pour les noms, ce qu’il y a après le premier espaces du libellé
+                ?itemLabel                 # et pour les noms sans noms de famille (grecs anthiques), on prend le label
+               )) as ?clétrinom)
+} order by ?clétrinom""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TomT0m/cat%C3%A9gories_g%C3%A9n%C3%A9r%C3%A9es>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e018a5b6e1e6d2cab7572d9699c0d11e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q48026503>
+
+SELECT
+  ?score
+
+  ?event ?eventLabel
+  (CONCAT(\"#scientificevent/\", SUBSTR(STR(?event), 32)) AS ?eventUrl)
+  ?eventDescription
+
+  ?example_person ?example_personLabel
+  (CONCAT(\"#author/\", SUBSTR(STR(?example_person), 32)) AS ?example_personUrl)
+  
+WHERE {
+  { 
+    SELECT
+      (COUNT(DISTINCT ?person) AS ?score) ?event
+      (SAMPLE(?person) AS ?example_person)
+    WHERE {
+      ?person ^wdt:P823 | ^wdt:P664 | wdt:P1344 | ^wdt:P710 | (^wdt:P98 / wdt:P4745) | (^wdt:P50 / wdt:P1433 / wdt:P4745 ) | ^wdt:P5804 target: , ?event .
+      FILTER (?event != target:)
+    }
+    GROUP BY ?event
+    ORDER BY DESC(?score)
+    LIMIT 200
+  } 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,no,ru,sv,zh\". }
+}
+ORDER BY DESC(?score)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:scientificevent>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ebea710af9c08748b2bb87e2066bbc5b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select distinct ?l1 ?lemma ?l2 ?lbn ?l3 ?ltr ?l4 ?lsw ?l5 ?lmt
+with {
+  select ?l1 ?lemma {
+    values ?l1_ { 
+        # lexeme IDs from the first column of the main table go here
+    }
+    ?l1_ wikibase:lemma ?lfa . filter(lang(?lfa)=\"fa\")
+    optional { 
+      ?l1_ wdt:P5191 ?l0 . ?l0 dct:language wd:Q13955 ; wikibase:lemma ?lar
+    }
+    bind(coalesce(?l0,?l1_) as ?l1)
+    bind(coalesce(?lar,?lfa) as ?lemma)
+  }
+} as %lfas where {
+  include %lfas .
+  optional { ?l2 dct:language wd:Q9610 ; wikibase:lemma ?lbn ; wdt:P5191/wdt:P5191?/wdt:P5191? ?l1 }
+  optional { ?l3 dct:language wd:Q256 ; wikibase:lemma ?ltr ; wdt:P5191/wdt:P5191?/wdt:P5191? ?l1 . filter(lang(?ltr)=\"tr\") }
+  optional { ?l4 dct:language wd:Q7838 ; wikibase:lemma ?lsw ; wdt:P5191/wdt:P5191?/wdt:P5191? ?l1 . filter(lang(?lsw)=\"sw\") }
+  optional { ?l5 dct:language wd:Q9166 ; wikibase:lemma ?lmt ; wdt:P5191/wdt:P5191?/wdt:P5191? ?l1 }
+  filter(bound(?l2)|| bound(?l3) || bound(?l4) || bound(?l5))
+} order by str(?lemma)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:%D8%B9%D9%8F%D8%AB%D9%85%D8%A7%D9%86/Indic/%D8%B3%D8%A7%D9%86%D8%AC%DA%BE%DB%92>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

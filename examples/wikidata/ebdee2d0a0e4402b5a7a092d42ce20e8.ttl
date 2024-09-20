@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ebdee2d0a0e4402b5a7a092d42ce20e8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Table
+SELECT DISTINCT ?iri ?prop ?propLabel ?id ?item ?itemLabel WHERE {
+  hint:Query hint:optimizer \"None\".
+  VALUES ( ?test_url ) { 
+            ( \"https://quickstats.censusdata.abs.gov.au/census_services/getproduct/census/2016/quickstat/SSC11428\" )
+            ( \"http://plantnet.rbgsyd.nsw.gov.au/cgi-bin/NSWfl.pl?page=nswfl&lvl=sp&name=Hibbertia~spanantha\" )
+            ( \"https://www.lions.com.au/players/7\" )
+            ( \"https://reiseauskunft.bahn.de/bin/bhftafel.exe/en?input=8400285&boardType=dep&time=actual&productsDefault=1111101&start=yes\" )
+  }
+  BIND( IRI(?test_url) AS ?iri ).
+     
+  {?prop wdt:P1630 ?formatter_url .}
+  UNION
+  {?prop wdt:P3303 ?formatter_url .}
+  
+  FILTER (CONTAINS( ?formatter_url, \"$1\" ) ) 
+  BIND (STRBEFORE( ?formatter_url, \"$1\" ) AS ?f_url_start )
+  BIND (STRAFTER( ?formatter_url, \"$1\" ) AS ?f_url_end )
+  
+  FILTER(STRSTARTS( ?test_url, ?f_url_start ))
+  FILTER(STRENDS( ?test_url, ?f_url_end ))
+  
+  BIND ( SUBSTR( ?test_url, 1+STRLEN(?f_url_start), STRLEN(?test_url)-STRLEN(?f_url_start)-STRLEN(?f_url_end) ) AS ?id )
+  
+  ?prop wikibase:directClaim ?propRel .
+  ?item ?propRel ?id .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Iwan.Aucamp/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

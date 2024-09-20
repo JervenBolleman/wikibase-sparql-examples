@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e3e128447d20995d0846aa4c3f678693> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# land borders of current countries in descending order of length
+SELECT DISTINCT ?item ?itemLabel ?c1Label ?c2Label ?len ?lenUnitLabel ?normalised WHERE {
+  ?item wdt:P31 wd:Q12413618 . # international border
+  ?item wdt:P31 wd:Q15104814 . # land border
+
+  # countries
+  ?item wdt:P17 ?c1.
+  ?item wdt:P17 ?c2.
+
+  # show each border only once
+  BIND (xsd:integer(substr(str(?c1), 33)) as ?c1Num).
+  BIND (xsd:integer(substr(str(?c2), 33)) as ?c2Num).
+  filter(?c1Num < ?c2Num )
+
+  # border length and unit
+  ?item wdt:P2043 ?len.
+  ?item p:P2043 ?lenStat .
+  ?lenStat psv:P2043 ?valuenode.
+  optional {?valuenode wikibase:quantityUnit ?lenUnit}
+  
+  ?lenStat psn:P2043 ?lenNorm.
+  ?lenNorm wikibase:quantityAmount ?normalised .
+  # get normalised length value
+  
+  ?lenStat ps:P2043 ?len .
+  # make sure the statement we are using has the same value as the one returned by wdt, ie is best available
+
+  # lack of end time means current
+  optional {?item wdt:P582 ?endTime}.
+  filter(?c1 != ?c2 && !bound(?endTime) )
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} order by desc(?len)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

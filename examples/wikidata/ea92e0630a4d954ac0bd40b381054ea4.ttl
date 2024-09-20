@@ -1,0 +1,43 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ea92e0630a4d954ac0bd40b381054ea4> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Timeline
+SELECT DISTINCT ?Person ?personLabel ?dob ?Gender ?Country ?article ?precision (MAX(?image) AS ?image) (MAX(?Occupation) AS ?Occupation) ?rank
+WHERE {
+
+
+    ?person wdt:P31 wd:Q5 . # human
+    ?person wdt:P69 wd:Q319239 . #PlaceOfEducation
+    ?person wdt:P19 ?birthPlace .
+    OPTIONAL { ?person wdt:P18 ?image .} #image
+    OPTIONAL { ?person wdt:P106 ?occupation .} #occupation
+    OPTIONAL { ?person wdt:P21 ?gender .} #gender
+    OPTIONAL { ?birthPlace wdt:P17 ?country } #place of birth
+    ?person p:P569/psv:P569 ?dobNode . #date of birth
+    ?dobNode wikibase:timeValue ?dob .
+    ?dobNode wikibase:timePrecision ?precision .
+    ?article schema:about ?person .
+    ?article schema:isPartOf <https://en.wikipedia.org/>.
+
+   ?person wikibase:sitelinks ?rank .
+
+    SERVICE wikibase:label {
+       bd:serviceParam wikibase:language \"en\".
+?gender rdfs:label ?Gender .
+?person rdfs:label ?Person .
+?country rdfs:label ?Country .
+?occupation rdfs:label ?Occupation.
+    }
+}
+GROUP BY ?Person ?personLabel ?dob ?Gender ?Country ?article ?precision ?rank
+ORDER BY DESC (?rank)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Daniel_Mietchen/sandbox>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,47 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e6e824473280b477f7cb9a35e5bc8a21> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Composizione della giunta comunale di Montecatini Terme
+SELECT ?caricaricopertaLabel ?itemLabel  ?assessoratoLabel ?item
+WHERE 
+{
+  { ?item wdt:P39 wd:Q3625593 }  #carica ricoperta = assessori
+  UNION
+  { ?item wdt:P39 wd:Q4657217 }
+  UNION
+  { ?item wdt:P39 wd:Q4011172 }  # vicesindaco 
+  UNION 
+  { ?item wdt:P39 wd:Q30185 }.   # sindaco 
+  
+  ?item wdt:P39 ?caricaricoperta.
+  
+  ?item p:P39 [                  # Qualificatori di 'carica ricoperta'
+    pq:P642 wd:Q49605;           # di = Montecatini Terme
+  ].
+  
+  # Occorre validare la carica tramite l'eventuale data di fine mandato
+  
+  MINUS {
+    ?item p:P39 [               # Rimuovi gli assessori che hanno 'carica ricoperta' (P39)
+      pq:P582 ?datadifine       # con una data di fine mandato (P582)
+    ].
+  }.
+  
+  OPTIONAL {
+    ?item p:P39 [                
+      pq:P101 ?assessorato       # Estrai assessorato dal qualificatore 'campo di lavoro'
+    ].
+  }
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:FabC>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e9f56caf1fa78c31b31da53c22d736b4> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?movie ?title ?genre ?genreName ?grossNum ?grossUnit ?duration (MIN(?pubDate_) as  ?pubDate ) 
+WHERE {
+    ?movie wdt:P31 wd:Q11424 ;  # Instance of film
+             rdfs:label ?title .
+    ?movie wdt:P136 ?genre .# Genre
+    ?movie p:P2142 ?gross  .# Gross revenue
+    ?movie wdt:P577 ?releaseDate . 
+    ?genre wdt:P1813 ?genreName .
+    ?gross pq:P3005 wd:Q13780930 . # gross only in worldwide
+    ?gross psv:P2142 ?grossValueNode .
+    ?grossValueNode wikibase:quantityAmount ?grossNum.
+    ?grossValueNode wikibase:quantityUnit ?grossUnit.
+    ?movie wdt:P2047 ?duration .
+    ?movie p:P577/psv:P577 ?stat . 
+    ?stat wikibase:timeValue ?pubDate_ .
+    ?stat wikibase:timePrecision \"11\"^^xsd:integer . 
+           
+    FILTER (REGEX(STR(?title), \"^[A-Za-z]\", \"i\") && LANG(?title) = \"en\") .
+} GROUP BY ?movie ?title ?genre ?genreName ?grossNum ?grossUnit ?duration 
+ORDER BY ?title ?pubDate
+LIMIT 50
+OFFSET 0""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

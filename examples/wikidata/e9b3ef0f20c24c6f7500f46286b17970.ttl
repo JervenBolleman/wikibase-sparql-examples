@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e9b3ef0f20c24c6f7500f46286b17970> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Find articles that have country (P17) Hungary with no en-wiki-page. Sort them by most sitelinks.
+PREFIX schema: <http://schema.org/>
+
+SELECT ?item ?itemLabel ?linkcount WHERE {
+    ?item wdt:P17 wd:Q28 .
+    ?item wikibase:sitelinks ?linkcount .
+  FILTER (?linkcount >= 1) .       # only include items with 1 or more sitelinks
+  FILTER NOT EXISTS {
+    ?article schema:about ?item .
+    ?article schema:inLanguage \"en\" .
+    ?article schema:isPartOf <https://en.wikipedia.org/>
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,de,es,ar,fr\" }
+}
+GROUP BY ?item ?itemLabel ?linkcount
+ORDER BY DESC(?linkcount)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Hungary/Maintenance_Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e44d9017eb1444b5e656076e44df0f98> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?s ?categories (COUNT(?site1a) AS ?count) (GROUP_CONCAT(?site1b;SEPARATOR=', ') AS ?sites) WITH {
+SELECT ?site1a (COUNT(*) AS ?count) (SUM(?x) AS ?s) {
+  { ?site1 schema:about wd:Q5645580 . BIND(STRBEFORE(STR(?site1),'.org') AS ?site1a) BIND(1 AS ?x) }
+  UNION
+  { ?site1 schema:about wd:Q6010682 . BIND(STRBEFORE(STR(?site1),'.org') AS ?site1a) BIND(10 AS ?x) }
+  UNION
+  { ?site1 schema:about wd:Q9703849  . BIND(STRBEFORE(STR(?site1),'.org') AS ?site1a) BIND(100 AS ?x) }
+}
+GROUP BY ?site1a
+ORDER BY ?site1a
+} AS %i WHERE {
+  include %i
+  BIND(STRAFTER(?site1a,'//') AS ?site1b)
+  BIND(IF(?s=111,'All three categories',IF(?s=110,'All but Q5645580',IF(?s=101,'All but Q6010682',IF(?s=11,'All but Q9703849',IF(?s=1,'Only Q5645580',IF(?s=10,'Only Q6010682',IF(?s=100,'Only Q9703849',''))))))) AS ?categories)
+}
+GROUP BY ?s ?categories
+ORDER BY DESC(?s)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

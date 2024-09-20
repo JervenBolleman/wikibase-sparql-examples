@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e7d4f7011315816b9e2e309dd7ce0dd1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?ent ?wdtProperty ?val ?valLabel 
+WITH { SELECT * WHERE { VALUES ?label1 { rdfs:label skos:altLabel } ?class ?label1 \"river\"@en;  } } AS %exec1 
+WHERE { 
+  
+  INCLUDE %exec1   
+          
+  ?val wdt:P31/wdt:P279* ?class .
+  ?val p:P2043 ?statement . 
+  ?statement psv:P2043 ?psv. 
+  ?psv wikibase:quantityAmount ?amount;
+       wikibase:quantityUnit ?unit. 
+  
+  BIND( IF(?unit = wd:Q828224 , ?amount * 1000, ?amount) as ?ent)
+  
+  OPTIONAL { ?val rdfs:label ?valLabel FILTER(lang(?valLabel) = \"en\") } 
+
+} ORDER BY DESC(?ent) LIMIT 10""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

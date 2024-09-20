@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e49a36718cbc5b30bf58920929586904> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?position ?positionLabel ?cabinet_start ?cabinet_end ?who ?whoLabel ?mem_start ?mem_end WHERE {
+  BIND (wd:Q24083746 AS ?cabinet) 
+  ?cabinet wdt:P2670 ?position; wdt:P571 ?cabinet_start .
+  OPTIONAL { ?cabinet wdt:P576 ?cabinet_end } .
+  BIND(if(BOUND(?cabinet_end), ?cabinet_end, NOW()) as ?effective_cabinet_end)
+  
+  OPTIONAL {
+    ?who p:P39 ?mem .
+    ?mem ps:P39 ?position ; pq:P580 ?mem_start .
+    OPTIONAL { ?mem pq:P582 ?mem_end }
+    BIND(if(BOUND(?mem_end), ?mem_end, NOW()) as ?effective_end)
+    FILTER((?effective_end > ?cabinet_start) && (?mem_start < ?effective_cabinet_end))
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY ?positionLabel ?mem_start""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Talk:Q24083746>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

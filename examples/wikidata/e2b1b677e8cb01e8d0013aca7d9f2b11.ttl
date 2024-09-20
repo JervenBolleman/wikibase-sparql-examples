@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e2b1b677e8cb01e8d0013aca7d9f2b11> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?camp ?campLabel (GROUP_CONCAT(DISTINCT ?instance_ofLabel ; SEPARATOR=\", \") AS ?type)
+WHERE 
+{
+  {
+    ?camp wdt:P31 ?instance_of.
+    ?instance_of wdt:P279* wd:Q328468. # Nazi concentration camp
+  }
+  UNION
+  {
+    ?camp wdt:P31 ?instance_of.
+    ?instance_of wdt:P279* wd:Q1719244. # Subcamp
+  }
+  UNION
+  {
+    ?mother_camp wdt:P31 ?mc_instance_of.
+    ?mc_instance_of wdt:P279* wd:Q328468. # Nazi concentration camp
+    ?mother_camp wdt:P355 ?camp. # camp is a subsidiary of mother_camp 
+    ?camp wdt:P31 ?instance_of.
+  }
+  SERVICE wikibase:label
+  {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de\". 
+    ?camp rdfs:label ?campLabel.
+    ?instance_of rdfs:label ?instance_ofLabel.
+  }
+}
+GROUP BY ?camp ?campLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

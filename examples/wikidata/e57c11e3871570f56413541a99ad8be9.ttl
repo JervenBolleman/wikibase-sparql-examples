@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e57c11e3871570f56413541a99ad8be9> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?Minister ?University ?Course ?ministerWD ?institution WHERE {
+    ?ministerWD p:P39 ?ministerialPostStatement .
+    ?ministerialPostStatement ps:P39 ?ministerialPost .
+    ?ministerialPost wdt:P279* wd:Q83307 .
+    ?ministerialPost wdt:P361 wd:Q112014
+    OPTIONAL {
+       ?ministerialPostStatement pq:P580 ?start_time
+    }
+    OPTIONAL {
+        ?ministerWD p:P69 ?universityStatement .
+        ?universityStatement ps:P69 ?institution .
+        ?institution wdt:P31 ?possible_institutions
+        OPTIONAL {
+            ?universityStatement pq:P812 ?subject .      
+        }
+    }
+    # FILTER (?start_time >= \"2016-07-13\"^^xsd:dateTime)
+    FILTER (?start_time >= \"1992-04-09\"^^xsd:dateTime)
+    SERVICE wikibase:label {
+        bd:serviceParam wikibase:language \"en\" .
+        ?ministerWD rdfs:label ?Minister .
+        ?subject rdfs:label ?Course .
+        ?institution rdfs:label ?University
+    }
+    VALUES ?possible_institutions {
+        wd:Q3918 # University
+        wd:Q2581649 # Oxford college
+        wd:Q1055028 # Cambridge college
+        wd:Q5146929 # Durham college
+    }
+}
+ORDER BY ?Minister DESC(?start_time)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Mhl20/prompts/Minsters_University>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

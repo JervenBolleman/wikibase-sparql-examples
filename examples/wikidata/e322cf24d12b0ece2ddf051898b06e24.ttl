@@ -1,0 +1,48 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e322cf24d12b0ece2ddf051898b06e24> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select
+  ?quantity
+  (sample(?label) as ?label) (sample(?desc) as ?desc)
+  (year(sample(?sourceDate)) as ?year) (sample(?item) as ?item)
+  (strdt(
+    concat(\"<\", \"math>\", group_concat(distinct ?symbol; separator = \"<mtext>,</mtext><mspace width='0.2em'/>\"), \"</math>\"),
+    <http://www.w3.org/1998/Math/MathML>
+  ) as ?symbols)
+  (group_concat(distinct ?unit; separator = \", \") as ?units)
+  (sample(?dimension) as ?dimension)
+where {
+  ?quantity wdt:P31? / wdt:P279+ wd:Q71550118 .   # individual or kind of quantity
+  minus { ?quantity wdt:P31 wd:Q71758646 . }      # exclude general quantities
+
+  optional { ?quantity rdfs:label ?label . filter (lang(?label) = \"de\") }
+  optional { ?quantity schema:description ?desc . filter (lang(?desc) = \"de\") }
+
+  ?source wdt:P629 / wdt:P361 wd:Q568496 .              # any edition of any part of ISO/IEC 80000
+  minus { ?source wdt:P1366 / ^wdt:P1343 [] . }         # restrict to the latest edition used anywhere as source
+  ?source wdt:P577 ?sourceDate .
+  ?quantity p:P1343 [ ps:P1343 ?source ; pq:P958 ?item ] . filter (regex(?item, \"^([0-9\\\\-\\\\.])+$\"))
+
+  optional { ?quantity wdt:P7973 ?symbol . }
+  optional {
+    ?quantity p:P8111 [ prov:wasDerivedFrom [ pr:P248 ?source ; pr:P958 ?unitSourceItem ] ; ps:P8111 / wdt:P5061 ?unit ] .
+    filter ((strstarts(?unitSourceItem, ?item) || strbefore(?item, \".\") = strbefore(?unitSourceItem, \".\")) && lang(?unit) = \"en\")
+  }
+  optional { ?quantity wdt:P4020 ?dimension . }
+}
+group by ?quantity ?item
+order by (
+  100 * xsd:integer(strbefore(?item, \"-\")) +
+  xsd:integer(strbefore(concat(strafter(?item, \"-\"), \".\"), \".\")) +
+  0.01 * coalesce(xsd:integer(strafter(?item, \".\")), 0)
+)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Toni_001>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

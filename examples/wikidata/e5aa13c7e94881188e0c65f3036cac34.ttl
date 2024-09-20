@@ -1,0 +1,63 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e5aa13c7e94881188e0c65f3036cac34> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT distinct ?human ?humanLabel ?image ?date_of_birth ?place_of_birthLabel ?date_of_death ?place_of_deathLabel ?occupationLabel 
+#SELECT distinct ?human ?reftype19 ?from19
+WHERE {
+  OPTIONAL { ?human wdt:P18 ?image. }
+  ?human wdt:P27 wd:Q183 .                # person is German
+  ?human wdt:P106 wd:Q822146.             # person is a lyricist
+
+  ?human p:P19 ?statement19.              # ?human must have a P19 value; get its statement
+  ?statement19 ps:P19 ?place_of_birth.    # get the ps: value for the statement
+  ?statement19 prov:wasDerivedFrom ?ref19.# get the reference statement for P19
+  ?ref19 ?reftype19 ?from19.              # get the values/statements association with the reference statement
+  filter (?reftype19!=pr:P143)            # exclude where there's a value/statement such as \"imported from\"
+  filter (?reftype19!=pr:P813)            # or a date
+  filter (?reftype19!=prv:P813)
+ 
+  ?human p:P569 ?statement569. 
+  ?statement569 ps:P569 ?date_of_birth.
+  ?statement569 prov:wasDerivedFrom ?ref569.
+  ?ref569 ?reftype569 ?from569.
+  filter (?reftype569!=pr:P143)
+  filter (?reftype569!=pr:P813)
+  filter (?reftype569!=prv:P813)
+    
+  ?human p:P20 ?statement20. 
+  ?statement20 ps:P20 ?place_of_death.
+  ?statement20 prov:wasDerivedFrom ?ref20.
+  ?ref20 ?reftype20 ?from20.
+  filter (?reftype20!=pr:P143)
+  filter (?reftype20!=pr:P813)
+  filter (?reftype20!=prv:P813)
+
+  ?human p:P570 ?statement570. 
+  ?statement570 ps:P570 ?date_of_death.
+  ?statement570 prov:wasDerivedFrom ?ref570.
+  ?ref570 ?reftype570 ?from570.
+  filter (?reftype570!=pr:P143)
+  filter (?reftype570!=pr:P813)
+  filter (?reftype570!=prv:P813)
+  
+  ?human p:P106 ?statement106. 
+  ?statement106 ps:P106 ?occupation.
+  ?statement106 prov:wasDerivedFrom ?ref106.
+  ?ref106 ?reftype106 ?from106.
+  filter (?reftype106!=pr:P143)
+  filter (?reftype106!=pr:P813)
+  filter (?reftype106!=prv:P813)
+  
+#  values ?human {wd:Q86701}.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

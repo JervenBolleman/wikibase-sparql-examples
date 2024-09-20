@@ -1,0 +1,47 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e27c4cc30f82745f1b978684ab6406cc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?airport ?airportlabel ?pays ?paysLabel WHERE {
+  ?airport (wdt:P31/wdt:P279*) wd:Q62447.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr,de,kk\". }
+  FILTER(NOT EXISTS { ?airport wdt:P239 ?icao. })
+  FILTER(NOT EXISTS { ?airport wdt:P238 ?iata. })
+  FILTER(NOT EXISTS { ?airport wdt:P240 ?FAA. })
+  FILTER(NOT EXISTS { ?airport wdt:P5699 ?tc_cad.})
+  FILTER(NOT EXISTS { ?airport wdt:P5746 ?DGAC.})
+  FILTER(NOT EXISTS { ?airport wdt:P5851 ?russ. })
+  FILTER(NOT EXISTS { ?airport wdt:P6120 ?argent. })
+  MINUS { ?airport (wdt:P576|wdt:P582|wdt:P3999) ?dispar. }# remove items with P576 (dissolved, abolished or demolished) as a main property
+  MINUS {
+    ?airport wdt:P5817 ?interdit.
+    VALUES ?interdit {
+      wd:Q811683
+      wd:Q63065035
+      wd:Q12377751
+      wd:Q55653430
+      wd:Q30108381
+      wd:Q55570340
+      wd:Q11639308
+    }
+  }
+  FILTER NOT EXISTS { ?airport p:P239 [rdf:type wdno:P239].} #we do not want the ?item if ICAO has a <no value>   
+  MINUS {?airport wdt:P31/wdt:P279* wd:Q695850.} # exclude military airports
+  MINUS {?airport wdt:P31/wdt:P279* wd:Q2265915.}  # exclude vol à voile
+  MINUS {?airport wdt:P31/wdt:P279* wd:Q1311670.}  # exclude railways stations
+  MINUS {?airport a wdno:P17.}                                    #exclude airports that aren't physically based in a country
+  MINUS {?airport wdt:P31/wdt:P279* wd:Q7373622.}  # exclude Royal Air Force
+  MINUS {?airport (wdt:P31/wdt:P279*) wd:Q782667. } # exclude motorways where plane can land
+  minus {?airport wdt:P31/wdt:P279* wd:Q502074.}   # exclude héliports
+  minus {?airport wdt:P31/wdt:P279* wd:Q44665966.}   # exclude airports in project
+  OPTIONAL {?airport wdt:P17 ?pays. }
+} order by ?paysLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Bouzinac/Data_quality>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

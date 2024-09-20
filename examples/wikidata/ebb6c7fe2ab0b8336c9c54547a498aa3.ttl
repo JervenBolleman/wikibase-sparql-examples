@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ebb6c7fe2ab0b8336c9c54547a498aa3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?film ?filmLabel ?first_publication_date
+WHERE
+{
+  {
+    SELECT ?film (MIN(?publication_date) AS ?first_publication_date)
+    WHERE
+    {
+      ?film wdt:P31/wdt:P279* wd:Q11424. # film
+      ?film (wdt:P136)|(wdt:P31/wdt:P279*) wd:Q471839. # science fiction film
+      _:article schema:about ?film; schema:isPartOf <https://he.wikipedia.org/>. # article on hewiki
+      ?film wdt:P577 ?publication_date.
+    }
+    GROUP BY ?film
+  }
+  FILTER (?first_publication_date >= \"1990-00-00\"^^xsd:dateTime && ?first_publication_date < \"2000-00-00\"^^xsd:dateTime)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],he,en\" }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,43 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-efc31eda93f4e2b536edb7deb67b9a80> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+SELECT DISTINCT (?distypeLabel AS ?layer) ?loc  ?subj ?subjLabel ?dead ?distyp
+WHERE
+{
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+    VALUES ?discat {
+      wd:Q7625093
+      wd:Q168983
+      wd:Q179057
+      wd:Q68800046
+      wd:Q1362483
+      wd:Q2165983
+      wd:Q1309431
+      wd:Q744913
+      wd:Q9687
+      wd:Q1078765
+    }
+    {?subj wdt:P1120 ?dead.} UNION {?subj wdt:P793 ?discat}.
+    OPTIONAL {?subj wdt:P1120 ?dead}.
+    ?subj    wdt:P625 ?loc;
+            p:P625/psv:P625 ?coord.
+    ?coord wikibase:geoLatitude ?lat .
+    ?coord wikibase:geoLongitude ?long .
+    FILTER (?lat > 55.6) FILTER (?lat < 55.9)
+    FILTER (?long > -4.5) FILTER (?long < -4.11)
+    OPTIONAL {?subj wdt:P793 ?specific. ?specific rdfs:label ?specificLabel filter (lang(?specificLabel) = \"en\"). BIND(IF(?specific = ?discat, ?specificLabel,?NULL) AS ?specificLabel).}.
+    ?subj wdt:P31 ?nonspec. ?nonspec rdfs:label ?nonspecLabel filter (lang(?nonspecLabel) = \"en\").
+    BIND(IF(?nonspec = ?discat, ?nonspecLabel,?NULL) AS ?nonspecLabel).
+    BIND(IF(BOUND(?specificLabel), ?specificLabel, ?nonspecLabel) AS ?distypeLabel).
+  }""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:AllyD/sandbox>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-eca7e811a46ec25d8a39068f35c41f08> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# donne italiane con VIAF, BNF ma senza SBN
+SELECT DISTINCT ?q ?qLabel ?ydob ?ydod ?desc ?viaf WHERE {
+  ?q wdt:P31 wd:Q5;
+    wdt:P214 ?viaf;
+    wdt:P268 ?id;
+    wdt:P27 wd:Q38;
+    wdt:P21 wd:Q6581072.
+  OPTIONAL { ?q wdt:P569 ?dob. }
+  OPTIONAL { ?q wdt:P570 ?dod. }
+  OPTIONAL { ?q schema:description ?desc. }
+  FILTER((LANG(?desc)) = \"[AUTO_LANGUAGE]\")
+  BIND(YEAR(?dob) AS ?ydob)
+  BIND(YEAR(?dod) AS ?ydod)
+  MINUS { ?q wdt:P396 ?sbn. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY (?desc)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Gruppo_Wikidata_per_Musei,_Archivi_e_Biblioteche/Decimo_compleanno_di_Wikidata/Grandi_autrici_in_SBN_e_nelle_reti_romane_URBS_URBE_BAV>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

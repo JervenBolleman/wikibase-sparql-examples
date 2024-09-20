@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e06aa130f5c78b144d70be3fd25ea273> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:LineChart
+SELECT ?año ?poblacion ?pais ?paisLabel
+WITH
+{
+    SELECT ?pais ?año (avg(?poblacion_valor) as ?poblacion)
+    WHERE
+    {
+          ?pais wdt:P463 wd:Q458 .
+          ?pais p:P1082 ?poblacion_statement.
+          ?poblacion_statement ps:P1082 ?poblacion_valor.
+          ?poblacion_statement pq:P585 ?fecha.
+          bind(str(YEAR(?fecha)) AS ?año)
+          FILTER(?pais!=wd:Q145)
+    }
+    group by ?pais ?año
+} AS %results
+WHERE
+{
+    INCLUDE %results.
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],es\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Japastorsanchez/CursoHumanistaWikidata>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

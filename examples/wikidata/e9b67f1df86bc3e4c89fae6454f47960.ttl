@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e9b67f1df86bc3e4c89fae6454f47960> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map{\"hide\": \"?coordinates\"}
+SELECT ?battle ?battleLabel ?year ?coordinates (GROUP_CONCAT(DISTINCT ?participantLabel; separator=\" // \") as ?participants) 
+WHERE 
+{
+  ?battle ( wdt:P361 | wdt:P2348 ) wd:Q204023.
+ 
+  OPTIONAL { ?battle wdt:P710 ?participant. }
+  OPTIONAL { ?battle wdt:P585 ?year. }
+  OPTIONAL { ?battle wdt:P625 ?coordinates. }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,ja\". 
+                         ?battle rdfs:label ?battleLabel .
+                         ?participant rdfs:label ?participantLabel .
+                         }
+}
+GROUP BY ?battle ?battleLabel ?year ?coordinates
+ORDER BY (?year)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

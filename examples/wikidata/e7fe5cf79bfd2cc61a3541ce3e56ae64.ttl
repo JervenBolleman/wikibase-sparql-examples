@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e7fe5cf79bfd2cc61a3541ce3e56ae64> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Stations along the Tōkaidō, the road from Tokyo to Kyoto, with images of the print series
+#defaultView:Map
+SELECT ?ord ?dist_km ?item ?itemLabel ?itemDescription ?today ?todayLabel ?todayimage ?coor ?hascoord ?print ?printimg 
+{
+	?item wdt:P31 wd:Q75093704 . 
+    OPTIONAL { ?item p:P31 [ ps:P31 wd:Q75093704 ; pq:P1545 ?ord ] }. 
+    OPTIONAL { ?item wdt:P625 ?coor0 . BIND(\"y\" as ?hascoord) }
+    OPTIONAL { ?item wdt:P131 ?today . 
+             OPTIONAL { ?today wdt:P625 ?coor1 } 
+             OPTIONAL { ?today wdt:P18 ?todayimage }
+             }
+    BIND( COALESCE ( ?coor0, ?coor1 ) as ?coor ) 
+    OPTIONAL { ?print wdt:P179 wd:Q19258119 ; wdt:P180 ?item . OPTIONAL { ?print wdt:P18 ?printimg }  }
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+    wd:Q1490 wdt:P625 ?c0 . BIND( round(geof:distance(?c0, ?coor)) as ?dist_km) 
+}
+ORDER BY ?dist_km ?ord""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Japan/Tasks>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

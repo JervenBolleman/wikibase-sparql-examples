@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e17c5e2fb29aac7403dd0e7ab2578bc4> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+SELECT DISTINCT ?p ?pLabel ?affiliationType ?affiliationTypeLabel ?w ?wLabel ?geoLoc ?geoHead
+# ?p:GHGA, ?w:institution
+WHERE
+{
+  wd:Q98380337 p:P1416 ?statement .
+  ?p p:P1416 ?statement .
+  ?statement ps:P1416 ?w .
+
+  # type of affiliation
+  OPTIONAL { ?statement pq:P3831 ?affiliationType }  
+  # location of institution
+  OPTIONAL { ?w wdt:P625 ?geoLoc }
+  # location of headquarters of institution
+  OPTIONAL { ?w wdt:P159/wdt:P625 ?geoHead }
+  # coalesce locations of institution and headquarters
+  BIND(COALESCE(?geoLoc, ?geoHead) AS ?geoLoc) 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,de\" }
+} ORDER BY ASC(?pLabel) ASC(?affiliationTypeLabel) ASC(?wLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Fingerhuth/NFDI>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

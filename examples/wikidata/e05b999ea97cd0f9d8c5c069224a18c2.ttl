@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e05b999ea97cd0f9d8c5c069224a18c2> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#MH sans coordonnées
+SELECT ?MH ?MHLabel ?communeLabel ?deptLabel ?idLabel  WHERE {
+  ?MH wdt:P380 ?id; wdt:P131 ?commune  .
+  ?commune wdt:P31 wd:Q484170 . #commune de France
+  ?commune wdt:P131 wd:Q12559. #dept 
+  ?commune wdt:P131 ?dept.
+  ?dept wdt:P31 wd:Q6465 .
+  
+  ?commune wdt:P625  ?coordLoc. 
+  OPTIONAL { ?MH  wdt:P625 ?coordMH. }
+  FILTER (!bound(?coordMH))
+  MINUS { ?MH wdt:P5816 wd:Q56556915 } # détruit
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+} ORDER BY ?communeLabel ?MHLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jvillafruela>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,49 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ed1bbd055112511c9ff51b86e815b496> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?file ?title ?P180 ?P180Label ?article ?sitelink
+WITH
+{
+  SELECT ?file ?title
+  WHERE
+  {
+    SERVICE wikibase:mwapi
+    {
+      bd:serviceParam wikibase:api \"Generator\" .
+      bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+      bd:serviceParam mwapi:gcmtitle \"Category:Finland framstäldt i teckningar\" .
+      bd:serviceParam mwapi:generator \"categorymembers\" .
+      bd:serviceParam mwapi:gcmtype \"file\" .
+      bd:serviceParam mwapi:gcmlimit \"max\" .
+      ?title wikibase:apiOutput mwapi:title .
+      ?pageid wikibase:apiOutput \"@pageid\" .
+    }
+    BIND (URI(CONCAT('https://commons.wikimedia.org/entity/M', ?pageid)) AS ?file)
+  }
+} AS %get_files
+WHERE
+{
+  INCLUDE %get_files
+  OPTIONAL {?file wdt:P180 ?P180 .     
+    OPTIONAL {
+      SERVICE <https://query.wikidata.org/sparql> {
+      OPTIONAL {?article schema:about ?P180 ;
+        schema:isPartOf <https://sv.wikipedia.org/> ; 
+        schema:name ?sitelink .}
+      SERVICE wikibase:label {
+        bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" .
+        ?P180 rdfs:label ?P180Label . }        
+      }
+    }
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/05>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

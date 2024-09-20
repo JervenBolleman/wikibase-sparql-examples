@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-eeeead82e7b9ad2e63e63a58ecd5b449> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Finds items with the anti-pattern of:
+#   described by source=article
+#     reference: inferred by=article
+#   described by source=DNB
+#     statement is subject of=article
+# which duplicates (triplicates) and self-references the article link.
+
+SELECT DISTINCT ?item ?article WHERE {
+  ?item p:P1343 ?articleURI;
+        p:P1343 ?sourceURI.
+ 
+  ?articleURI ps:P1343 ?article;
+              prov:wasDerivedFrom ?articleRef.
+  ?articleRef pr:P3452 ?article.
+  
+  ?sourceURI ps:P1343 ?source;
+             pq:P805 ?article.
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Edit_groups/QSv2/4364>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

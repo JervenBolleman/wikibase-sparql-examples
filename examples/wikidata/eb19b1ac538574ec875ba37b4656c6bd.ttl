@@ -1,0 +1,50 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-eb19b1ac538574ec875ba37b4656c6bd> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item
+       ?Label_en
+       ?Description_en
+       (group_concat(distinct ?Alias_en;separator=\"; \") as ?Aliases_en)    #Concatenate the values in order not to get several rows per item.
+       ?Label_de
+       ?Description_de
+       (GROUP_CONCAT(distinct ?Alias_de;separator=\"; \") as ?Aliases_de)
+       ?Label_fr
+       (GROUP_CONCAT(distinct ?Alias_fr;separator=\"; \") as ?Aliases_fr)
+       ?Label_it
+       (GROUP_CONCAT(distinct ?Alias_it;separator=\"; \") as ?Aliases_it)
+       (GROUP_CONCAT(distinct ?MunicipalityLabel_de;separator=\"; \") as ?MunicipalityLabels_de)
+       (GROUP_CONCAT(distinct ?CantonLabel_de;separator=\"; \") as ?CantonLabels_de)
+  WHERE {
+  {?item wdt:P31 ?museum . ?museum wdt:P279* wd:Q33506 } . # Select items that are instance of \"museum\" or of any of its sub-classes.
+  {?item wdt:P131/wdt:P17 wd:Q39} .  # Select items that are located in an administrative territorial entity in Switzerland.
+  OPTIONAL { ?item rdfs:label ?Label_en . FILTER (lang(?Label_en) = \"en\") }
+  OPTIONAL { ?item rdfs:label ?Label_de . FILTER (lang(?Label_de) = \"de\") } 
+  OPTIONAL { ?item rdfs:label ?Label_fr . FILTER (lang(?Label_fr) = \"fr\") }
+  OPTIONAL { ?item rdfs:label ?Label_it . FILTER (lang(?Label_it) = \"it\") }
+  OPTIONAL { ?item skos:altLabel ?Alias_en . FILTER (lang(?Alias_en) = \"en\") }
+  OPTIONAL { ?item skos:altLabel ?Alias_de . FILTER (lang(?Alias_de) = \"de\") } 
+  OPTIONAL { ?item skos:altLabel ?Alias_fr . FILTER (lang(?Alias_fr) = \"fr\") }
+  OPTIONAL { ?item skos:altLabel ?Alias_it . FILTER (lang(?Alias_it) = \"it\") }
+  OPTIONAL { ?item schema:description ?Description_en . FILTER (lang(?Description_en) = \"en\") }
+  OPTIONAL { ?item schema:description ?Description_de . FILTER (lang(?Description_de) = \"de\") } 
+  OPTIONAL { ?item schema:description ?Description_fr . FILTER (lang(?Description_fr) = \"fr\") }
+  OPTIONAL { ?item schema:description ?Description_it . FILTER (lang(?Description_it) = \"it\") }
+  OPTIONAL { ?item wdt:P131 ?Municipality . FILTER EXISTS {?Municipality wdt:P31 wd:Q70208} }  
+  OPTIONAL { ?item wdt:P131/rdfs:label ?MunicipalityLabel_de . FILTER EXISTS {?MunicipalityLabel_de ^rdfs:label/wdt:P31 wd:Q70208} . FILTER (lang(?MunicipalityLabel_de) = \"de\")} 
+  OPTIONAL { ?item wdt:P131/rdfs:label ?CantonLabel_de . FILTER EXISTS {?CantonLabel_de ^rdfs:label/wdt:P31 wd:Q23058} . FILTER (lang(?CantonLabel_de) = \"de\") } 
+}
+GROUP BY ?item                          #List all the variables for which the values are not concatenated!
+         ?Label_en ?Description_en 
+         ?Label_de ?Description_de 
+         ?Label_fr ?Description_fr 
+         ?Label_it ?Description_it""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Cultural_heritage/Guidelines/Editing_Data_in_Spreadsheet_Mode>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

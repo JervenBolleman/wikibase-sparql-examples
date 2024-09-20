@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ed184edd1000f061b1553733d1aac975> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?s ?sLabel ?veLabel ?vetLabel WHERE {
+	?s wdt:P131+ wd:Q64 .  # everything located in Berlin (or a subdivision)
+	?s wdt:P131 ?ve .      # the subdivisions this is located in
+    ?ve wdt:P131+ wd:Q64 . # filter out all non-Berlin subdivisions (for subjects in multiple states)
+    ?ve wdt:P31 ?vet .     # type of the subdivision
+    # filter everything located in an Ortsteil or Ortslage
+    FILTER (?vet != wd:Q253019 && ?vet != wd:Q1669338) .
+    # filter Orteile
+    ?s wdt:P31 ?st .
+    FILTER (?st != wd:Q253019) .
+    SERVICE wikibase:label {
+      bd:serviceParam wikibase:language \"de\" .
+    }
+} ORDER BY ?veLabel ?sLabel LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Srittau/SPARQL-Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

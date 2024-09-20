@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ec28a8af509028e531376b825294c096> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+SELECT ?item (SAMPLE(?coords) AS ?coord) ?itemLabel ?out WITH {
+  SELECT DISTINCT ?out ?depth WHERE {
+    SERVICE <https://query.wikidata.org/bigdata/namespace/categories/sparql> {
+      SERVICE mediawiki:categoryTree {
+        bd:serviceParam mediawiki:start <https://commons.wikimedia.org/wiki/Category:Villages_in_Saale-Holzland-Kreis> .
+        bd:serviceParam mediawiki:direction 'Reverse' .
+        bd:serviceParam mediawiki:depth 1 .  # direct subcategories only
+      }
+    }
+  }
+} AS %subquery WHERE {
+  INCLUDE %subquery .
+  FILTER(?depth = 1) .  # remove the host category from results
+  OPTIONAL {
+    ?out schema:about/wdt:P301? ?item .
+    FILTER NOT EXISTS { ?item wdt:P31 wd:Q4167836 }  # remove category items from results set
+    OPTIONAL {
+      ?item wdt:P625 ?coords .
+    }
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'de' }
+} GROUP BY ?item ?itemLabel ?out # to aggregate sample coordinates in case there are multiple P625 values in items""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Forum/Archiv/2023/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

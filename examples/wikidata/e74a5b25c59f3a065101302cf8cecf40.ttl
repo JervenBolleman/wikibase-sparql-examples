@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e74a5b25c59f3a065101302cf8cecf40> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:BubbleChart
+#Bubblechart and list of words in titles of articles about Zika. Limited to English titles, first 42 words, some words filtered.
+#by Jura1, 7 March 2020
+
+SELECT ?word (COUNT(DISTINCT ?title) as ?count)
+WITH
+{  SELECT ?title (REPLACE(CONCAT(REPLACE(REPLACE(REPLACE(str(?title),'[\\\\.:,\\\\? %\";\\\\]\\\\[]',\"\"),\"[\\\\(\\\\)–“—”]\",\" \"),\"’\",\"'\"), 
+  \" Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z\")
+  ,\"[ ]{2,100}\",\" \") as ?input)
+   {  [] wdt:P921 wd:Q202864 ; wdt:P1476 ?title . FILTER(lang(?title)=\"en\") } #  LIMIT 100
+} as %titles
+WITH
+{    SELECT ?re ?nv { ?n wdt:P5176 []; wdt:P1181 ?nv . FILTER( ?nv < 43) 
+     BIND( CONCAT( \"^([^ ]+ ){\", str( ?nv - 1 ),\"}([^ ]+) .*\") as ?re) }
+} as %positionalregexes                                                             
+WITH
+{    SELECT * { INCLUDE %titles  INCLUDE %positionalregexes  BIND( REPLACE(?input, ?re, \"$2\") as ?word) }
+} as %b 
+WHERE
+{
+    INCLUDE %b
+    FILTER ( ?word != \"Z\" && ?word != \"Zika\" && ?word != \"Corona\" 
+            && strlen(?word) > 3 
+            && ?word != \"pandemic\" && ?word != \"virus\" && lcase(?word) != \"infection\" && ?word != \"mortality\"
+           )               
+}
+GROUP BY ?word""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e485c4e0b1364a98e4423ddbc8115670> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?dod
+WHERE 
+{
+  ?item wdt:P27 wd:Q33;
+        wdt:P570 ?dod;
+        wdt:P31 wd:Q5.
+  wd:Q33 p:P31 ?statement.
+  ?statement ps:P31 wd:Q3624078;
+             pq:P580 ?independence.
+  BIND (YEAR(?dod) AS ?dod_year)
+  FILTER( ( ?dod_year < YEAR(?independence) ) ||
+          ( (?dod_year = YEAR(?independence) ) && (MONTH(?dod) < MONTH(?independence)) ) ||
+          ( (?dod_year = YEAR(?independence) ) && (MONTH(?dod) = MONTH(?independence)) && (DAY(?dod) < DAY(?independence)) ) )
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fi,en\". }
+}
+ORDER BY DESC(?dod)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Shinnin/sparql>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

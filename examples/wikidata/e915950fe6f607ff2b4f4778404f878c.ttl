@@ -1,0 +1,42 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e915950fe6f607ff2b4f4778404f878c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Table
+#title: Dänen auf dewiki
+SELECT ?item ?page_title ?article (GROUP_CONCAT(DISTINCT ?klasse; SEPARATOR = \", \") AS ?ist) (GROUP_CONCAT(DISTINCT ?beruf;separator=\", \") as ?tätigkeit) ?dawiki ?dsdid WHERE {
+  ?item wdt:P27 wd:Q35;
+    wdt:P31 ?instance.
+  ?article schema:about ?item;
+    schema:isPartOf <https://de.wikipedia.org/>;
+    schema:name ?page_title.
+  OPTIONAL { ?item wdt:P625 ?location. }
+  OPTIONAL {
+    ?dawiki schema:about ?item;
+      schema:isPartOf <https://da.wikipedia.org/>;
+      schema:name ?da_title.
+  }
+  OPTIONAL { ?item wdt:P21 ?gender. }
+  OPTIONAL { ?item wdt:P106 ?occupation. }
+  OPTIONAL { ?item wdt:P8313 ?dsdid. }
+  FILTER(BOUND(?dawiki))
+  FILTER(BOUND(?instance))
+  BIND(IF(?instance = wd:Q5, ?gender, ?instance) AS ?cl)
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?cl rdfs:label ?klasse.
+    ?gender rdfs:label ?geschlecht.
+    ?occupation rdfs:label ?beruf.
+  }
+}
+GROUP BY ?item ?page_title ?article ?dawiki ?dsdid
+ORDER BY (?page_title)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:No39188>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

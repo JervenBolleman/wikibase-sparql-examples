@@ -1,0 +1,42 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e9a984fa138f846975338612755630c0> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX schema: <http://schema.org/>
+
+SELECT DISTINCT ?count ?pers ?persLabel ?desc ?paysLabel WHERE {
+  {
+    SELECT ?pers ?pays (COUNT(DISTINCT ?art) AS ?count) WHERE {
+      ?pers wdt:P31 wd:Q5.
+      ?pers wdt:P27 ?pays.
+      ?pers wdt:P106 wd:Q82955.
+      ?pays wdt:P30 wd:Q48.
+      OPTIONAL {
+        ?persfrwart schema:about ?pers.
+        ?persfrwart schema:inLanguage \"es\".
+      }
+      ?art schema:about ?pers.
+      FILTER(NOT EXISTS {
+        ?pays wdt:P30 ?continent.
+        FILTER(?continent != wd:Q48)
+      })
+      FILTER(!BOUND(?persfrwart))
+    }
+    GROUP BY ?pers ?pays
+  }
+  OPTIONAL {
+    ?pers schema:description ?desc.
+    FILTER((LANG(?desc)) = \"es\")
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2016/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

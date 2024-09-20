@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ec00614fefef0c8a6e40163266b339f7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# by Jura1, 2020-11-03
+#defaultView:AreaChart
+SELECT ?date ?cumulativecount 
+{
+    hint:Query hint:optimizer \"None\".
+    {   SELECT ?milestonep (COUNT(?item) as ?cumulativecount)
+        WHERE
+        {
+          { SELECT ?item {    ?item wdt:P21 wd:Q6581072 . ?item wdt:P27 wd:Q96 . }  LIMIT 190000 }
+          BIND( xsd:integer( substr(str(?item), 33)) as ?qid)
+          wd:Q38074555 p:P1114 ?milestonep .
+          ?milestonep ps:P1114 ?milestone .
+          FILTER( ?milestone > ?qid ) 
+        }
+        GROUP BY ?milestonep
+    }          
+    ?milestonep pq:P585 ?date
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

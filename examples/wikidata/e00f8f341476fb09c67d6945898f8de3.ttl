@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e00f8f341476fb09c67d6945898f8de3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?lang ?langLabel ?country ?countryLabel
+with 
+{ select ?item ?lang where
+{ ?item wdt:P31 wd:Q10876391. #find language wikipedias
+  ?item wdt:P407 ?lang.       #get the wiki's 'language of work'
+} } as %w
+with
+{ select ?country ?lang where
+{ ?country wdt:P463 wd:Q1065. #id countries by their membership of the UN
+  ?country wdt:P37 ?lang.     #get the official languages of the country
+} } as %c
+where
+{ include %w
+  include %c
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }  
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

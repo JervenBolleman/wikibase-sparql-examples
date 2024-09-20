@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ee3709770232989b11367d1179cf9242> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# tool: scholia
+#defaultView:Timeline{\"hide\":[\"?argitaratze_data\"]}
+SELECT ?argitaratze_data ?itemLabelStart ?placeLabel ?year WHERE {
+  VALUES ?type {
+    wd:Q732577 wd:Q1261026
+  }
+  ?item wdt:P31 ?type;
+    wdt:P577 ?argitaratze_data.
+  FILTER((?argitaratze_data >= \"1700-01-01\"^^xsd:dateTime) && (?argitaratze_data <= \"1799-12-31\"^^xsd:dateTime))
+  BIND(YEAR(?argitaratze_data) as ?year)
+  VALUES ?place {wd:Q8692 wd:Q10313 wd:Q497801 wd:Q14318 wd:Q10282 wd:Q134674}  
+  ?item wdt:P291 ?place.
+  BIND(IF(STRLEN(?itemLabel) > 50, CONCAT(SUBSTR(?itemLabel, 1, 50),\"…\"), ?itemLabel) AS ?itemLabelStart)
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,eu\".
+    ?item rdfs:label ?itemLabel .
+    ?place rdfs:label ?placeLabel .
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

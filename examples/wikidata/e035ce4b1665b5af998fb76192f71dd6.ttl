@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e035ce4b1665b5af998fb76192f71dd6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?qcount ?qlabel ?quantity1 ?quantity2 ?quantity3 WITH {
+  SELECT ?item ?qname ?qcount ?qlabel WHERE {
+    VALUES ?item {wd:Q17122887}
+    ?item p:P516 [ps:P516 ?qname; pq:P1114 ?qcount].
+    SERVICE wikibase:label {
+      bd:serviceParam wikibase:language \"en,mul\".
+      ?qname rdfs:label ?qlabel.
+    }
+  }
+} AS %results WHERE {
+  INCLUDE %results.
+  # works
+  BIND(CONCAT(\" \",?qlabel) AS ?quantity1)
+  # works 
+  BIND(CONCAT(STR(?qcount),\" \",?qlabel) AS ?quantity2)
+  # does not work
+  BIND(CONCAT(STR(?qname),\" \",?qlabel) AS ?quantity3)
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

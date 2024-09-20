@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e43420580e0840eb7cdeba5fd976c7a0> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?string ?count ?sample ?sampleLabel WHERE {
+  {
+	SELECT ?int_lat ?int_lon (COUNT(DISTINCT ?item) AS ?count) (SAMPLE(?item) AS ?sample) (SAMPLE(?string) AS ?string) WHERE {
+
+        ?item wdt:P3616 [].
+
+        ?item p:P625/psv:P625 ?coords .
+        ?coords wikibase:geoLatitude ?lat .
+        ?coords wikibase:geoLongitude ?long .
+
+        BIND(floor(?lat) AS ?int_lat) .
+        BIND(floor(?long) AS ?int_lon) .
+        BIND(CONCAT(\"Point(\",str(?int_lon),\" \",str(?int_lat),\")\") AS ?string) .
+        BIND(geo:wktLiteral(?string) AS ?int_coords)
+
+    } GROUP BY ?int_lat ?int_lon
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}    
+ORDER BY DESC (?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

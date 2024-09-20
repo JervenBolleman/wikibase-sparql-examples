@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-eb336400e22a4ed649740c80c29e1d96> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Table
+SELECT ?p ?pLabel ?pDescription ?pWikiTree ?pGenderLabel ?rel ?w ?wLabel ?wDescription ?wGenderLabel WHERE {
+  {
+FILTER(STRSTARTS(?pWikiTreeID, 'Dal'))
+    ?p wdt:P2949 ?pWikiTreeID. # wikitreeID set
+    
+    { ?p wdt:P22 ?w. values ?rel {'Father'}.}  UNION
+    { ?p wdt:P25 ?w. values ?rel {'Mother'}.}  UNION
+    { ?p wdt:P26 ?w. values ?rel {'Spouse'}.}  UNION
+    { ?p wdt:P40 ?w. values ?rel {'Child'}.}   UNION
+    { ?p wdt:P7  ?w. values ?rel {'Brother'}.} UNION
+    { ?p wdt:P9  ?w. values ?rel {'Sister'}.}
+    
+    FILTER NOT EXISTS {?w wdt:P2949 ?wWikiTreeID.}  # wikitreeID empty
+
+    BIND (URI(CONCAT(\"http://www.wikitree.com/wiki/\",?pWikiTreeID)) AS ?pWikiTree) # extend wikitreeID
+    OPTIONAL { ?p wdt:P21 ?pGender.}
+    OPTIONAL { ?w wdt:P21 ?wGender.}
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service/queries/Archive/2016>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

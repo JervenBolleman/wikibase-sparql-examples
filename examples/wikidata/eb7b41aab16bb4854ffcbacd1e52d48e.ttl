@@ -1,0 +1,48 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-eb7b41aab16bb4854ffcbacd1e52d48e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?bundesland ?bundeslandLabel ?stadt ?stadtLabel ?w ?wLabel ?affiliationTypeLabel ?p ?pLabel WHERE {
+{
+SELECT DISTINCT ?bundesland ?stadt ?w ?affiliationType ?p WHERE {
+  {
+   ?w wdt:P463 wd:Q105757481 .
+  } UNION {
+    ?p wdt:P31 wd:Q98270496 .
+    ?p p:P1416 ?statement .
+    ?statement ps:P1416 ?w .
+    OPTIONAL { ?statement pq:P3831 ?affiliationType .}  
+  }
+  OPTIONAL {
+    ?w wdt:P131+ ?stadt .
+    {?stadt  wdt:P31/wdt:P279* wd:Q515} UNION {?stadt  wdt:P31/wdt:P279* wd:Q116457956 } 
+    OPTIONAL {
+      ?stadt wdt:P131* ?bundesland .
+      ?bundesland  wdt:P31 wd:Q1221156 .
+     }
+   }
+  OPTIONAL {
+    ?w wdt:P159/wdt:P131* ?stadt . 
+    ?stadt  wdt:P31/wdt:P279* wd:Q515 . 
+    OPTIONAL {
+      ?stadt wdt:P131* ?bundesland .
+      ?bundesland  wdt:P31 wd:Q1221156 .
+     }    
+   }
+  #FILTER (?bundesland = wd:Q985)
+  #FILTER (?stadt = wd:Q3150) 
+  FILTER NOT EXISTS {?w  wdt:P31 wd:Q98270496 }  # do nit display consortia associations to Base4NFDI
+}
+  }
+  BIND(IF(! Bound(?affiliationType), \"NFDI-Vereinsmitglied\", ?affiliationTypeLabel) AS ?affiliationTypeLabel)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\" . }
+} ORDER BY ASC(?bundeslandLabel) ASC(?stadtLabel) ASC(?affiliationTypeLabel) ASC(?wLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Wiljes/NFDI>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .
