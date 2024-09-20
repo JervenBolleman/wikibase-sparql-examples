@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-58fa6dc3dd76ce2a6b3c1d86d3c068da> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?candidate ?REArticle
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?candidate ?REArticle
   WITH {
   SELECT ?candidate ?REArticle WHERE {
     ?candidate p:P1343 [ ps:P1343 wd:Q1138524 ;
@@ -25,9 +35,49 @@ WHERE
   INCLUDE %candidates
   INCLUDE %titles
 }
+ORDER BY ?itemLabel""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?candidate ?REArticle
+   
+WITH { SELECT ?REArticle WHERE {
+
+  ?item wdt:P31 wd:Q13433827 ;
+        wdt:P361 wd:Q1138524 ;
+        wdt:P1476 ?title .
+  BIND(STR(?title) as ?REArticle)
+} } as %titles
+WHERE
+{
+  {
+  SELECT ?candidate ?REArticle WHERE {
+    ?candidate p:P1343 [ ps:P1343 wd:Q1138524 ;
+                                  pq:P958 ?REArticle ] .
+  }
+}
+  INCLUDE %titles
+}
 ORDER BY ?itemLabel""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/03>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?candidate ?REArticle
+  WITH {
+  SELECT ?candidate ?REArticle WHERE {
+    ?candidate p:P1343 [ ps:P1343 wd:Q1138524 ;
+                                  pq:P958 ?REArticle ] .
+  }
+} AS %candidates 
+WITH { SELECT ?REArticle WHERE {
+
+  ?item wdt:P31 wd:Q13433827 ;
+        wdt:P361 wd:Q1138524 ;
+        wdt:P1476 ?title .
+  BIND(STR(?title) as ?REArticle)
+} } as %titles
+WHERE
+{
+  INCLUDE %candidates
+  INCLUDE %titles
+}
+ORDER BY ?itemLabel""" .

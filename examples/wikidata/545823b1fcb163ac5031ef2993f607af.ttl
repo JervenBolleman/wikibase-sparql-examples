@@ -6,7 +6,18 @@
 
 <https://www.wikidata.org/#query-545823b1fcb163ac5031ef2993f607af> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?article ?title ?author ?order ?date ?volume ?pages ?url ?language WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Mcarondiotte/JIRIRI_Wikidata>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT DISTINCT ?article ?title ?author ?order ?date ?volume ?pages ?url ?language WITH {
   SELECT DISTINCT ?article ?title ?author ?order ?date ?volume ?pages ?url ?language WHERE {
     ?article wdt:P31 wd:Q13442814 .
     ?article wdt:P1433 wd:Q100418277 .
@@ -34,9 +45,68 @@
     ?article wdt:P953 ?url .
     ?article wdt:P407/wdt:P424 ?language .
   }
- } AS %j WHERE { { include %i} UNION { include %j} }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Mcarondiotte/JIRIRI_Wikidata>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+ } AS %j WHERE { { include %i} UNION { include %j} }""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT DISTINCT ?article ?title ?author ?order ?date ?volume ?pages ?url ?language  WITH {
+  SELECT DISTINCT ?article ?title ?author ?order ?date ?volume ?pages ?url ?language WHERE {
+    ?article wdt:P31 wd:Q13442814 .
+    ?article wdt:P1433 wd:Q100418277 .
+    ?article wdt:P1476 ?title .
+    ?article wdt:P50 ?author_statement .
+    OPTIONAL {?author_statement rdfs:label ?author .  filter(lang(?author)=\"en\")} 
+    OPTIONAL { ?author_statement pq:P1545 ?order }
+    ?article wdt:P577 ?date .
+    ?article wdt:P478 ?volume .
+    ?article wdt:P304 ?pages .
+    ?article wdt:P953 ?url .
+    ?article wdt:P407/wdt:P424 ?language .
+  }
+ } AS %j WHERE { { {
+  SELECT DISTINCT ?article ?title ?author ?order ?date ?volume ?pages ?url ?language WHERE {
+    ?article wdt:P31 wd:Q13442814 .
+    ?article wdt:P1433 wd:Q100418277 .
+    ?article wdt:P1476 ?title .
+    ?article p:P2093 ?author_statement .
+    ?author_statement ps:P2093 ?author
+                      OPTIONAL { ?author_statement pq:P1545 ?order }
+    ?article wdt:P577 ?date .
+    ?article wdt:P478 ?volume .
+    ?article wdt:P304 ?pages .
+    ?article wdt:P953 ?url .
+    ?article wdt:P407/wdt:P424 ?language .
+  }
+ }} UNION { include %j} }""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?article ?title ?author ?order ?date ?volume ?pages ?url ?language WITH {
+  SELECT DISTINCT ?article ?title ?author ?order ?date ?volume ?pages ?url ?language WHERE {
+    ?article wdt:P31 wd:Q13442814 .
+    ?article wdt:P1433 wd:Q100418277 .
+    ?article wdt:P1476 ?title .
+    ?article p:P2093 ?author_statement .
+    ?author_statement ps:P2093 ?author
+                      OPTIONAL { ?author_statement pq:P1545 ?order }
+    ?article wdt:P577 ?date .
+    ?article wdt:P478 ?volume .
+    ?article wdt:P304 ?pages .
+    ?article wdt:P953 ?url .
+    ?article wdt:P407/wdt:P424 ?language .
+  }
+ } AS %i WITH {
+  SELECT DISTINCT ?article ?title ?author ?order ?date ?volume ?pages ?url ?language WHERE {
+    ?article wdt:P31 wd:Q13442814 .
+    ?article wdt:P1433 wd:Q100418277 .
+    ?article wdt:P1476 ?title .
+    ?article wdt:P50 ?author_statement .
+    OPTIONAL {?author_statement rdfs:label ?author .  filter(lang(?author)=\"en\")} 
+    OPTIONAL { ?author_statement pq:P1545 ?order }
+    ?article wdt:P577 ?date .
+    ?article wdt:P478 ?volume .
+    ?article wdt:P304 ?pages .
+    ?article wdt:P953 ?url .
+    ?article wdt:P407/wdt:P424 ?language .
+  }
+ } AS %j WHERE { { include %i} UNION { include %j} }""" .

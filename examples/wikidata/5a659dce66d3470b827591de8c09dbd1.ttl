@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-5a659dce66d3470b827591de8c09dbd1> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
   DISTINCT 
   ?type ?typeLabel 
   ?count ?sample ?sampleLabel
@@ -24,9 +33,46 @@ WHERE {
 }
 GROUP BY ?type ?typeLabel ?count ?sample ?sampleLabel 
 ORDER BY DESC(?count)
+LIMIT 200""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
+  DISTINCT 
+  ?type ?typeLabel 
+  ?count ?sample ?sampleLabel
+
+WHERE {
+  {
+  SELECT DISTINCT ?type (COUNT(?item_) AS ?count) (SAMPLE(?item_) AS ?sample)  
+  WHERE {
+    ?item_ wdt:P31|wdt:P279 ?type .    
+    ?item_ wdt:P6104 wd:Q56241615 .  
+  }
+  GROUP BY ?type ?count ?sample
+} 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }  
+}
+GROUP BY ?type ?typeLabel ?count ?sample ?sampleLabel 
+ORDER BY DESC(?count)
 LIMIT 200""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT 
+  DISTINCT 
+  ?type ?typeLabel 
+  ?count ?sample ?sampleLabel
+WITH {
+  SELECT DISTINCT ?type (COUNT(?item_) AS ?count) (SAMPLE(?item_) AS ?sample)  
+  WHERE {
+    ?item_ wdt:P31|wdt:P279 ?type .    
+    ?item_ wdt:P6104 wd:Q56241615 .  
+  }
+  GROUP BY ?type ?count ?sample
+} AS %items
+WHERE {
+  INCLUDE %items 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }  
+}
+GROUP BY ?type ?typeLabel ?count ?sample ?sampleLabel 
+ORDER BY DESC(?count)
+LIMIT 200""" .

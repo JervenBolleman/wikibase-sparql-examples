@@ -6,7 +6,18 @@
 
 <https://www.wikidata.org/#query-581b17f4339271b9e8cf0135ae3f357c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:ImageGrid{\"hide\":[\"?image \"]}
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WP_EBath/Query_examples>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:ImageGrid{\"hide\":[\"?image \"]}
 
 #SELECT DISTINCT ?file ?item ?itemLabel ?image  ?Digitaltmuseum
 SELECT DISTINCT ?itemLabel ?image  ?Digitaltmuseum
@@ -26,9 +37,51 @@ WHERE
   BIND(URI(CONCAT(\"https://digitaltmuseum.org/\",?DigID)) AS ?Digitaltmuseum)
   ?file schema:contentUrl ?url. 
   bind(iri(concat(\"http://commons.wikimedia.org/wiki/Special:FilePath/\", wikibase:decodeUri(substr(str(?url),53)))) AS ?image)
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:ImageGrid{\"hide\":[\"?image \"]}
+
+#SELECT DISTINCT ?file ?item ?itemLabel ?image  ?Digitaltmuseum
+SELECT DISTINCT ?itemLabel ?image  ?Digitaltmuseum
+
+
+WHERE 
+{  { SELECT ?item ?itemLabel ?itemDescription  WHERE
+  { SERVICE <https://query.wikidata.org/sparql> 
+    {?item  wdt:P6104 wd:Q106774536.
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"sv,en\". ?item rdfs:label ?itemLabel .}
+    }
+  }
+} .
+  ?file wdt:P180 ?item.
+  ?file wdt:P7847 ?DigID.
+  BIND(URI(CONCAT(\"https://digitaltmuseum.org/\",?DigID)) AS ?Digitaltmuseum)
+  ?file schema:contentUrl ?url. 
+  bind(iri(concat(\"http://commons.wikimedia.org/wiki/Special:FilePath/\", wikibase:decodeUri(substr(str(?url),53)))) AS ?image)
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WP_EBath/Query_examples>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#defaultView:ImageGrid{\"hide\":[\"?image \"]}
+
+#SELECT DISTINCT ?file ?item ?itemLabel ?image  ?Digitaltmuseum
+SELECT DISTINCT ?itemLabel ?image  ?Digitaltmuseum
+WITH 
+{ SELECT ?item ?itemLabel ?itemDescription  WHERE
+  { SERVICE <https://query.wikidata.org/sparql> 
+    {?item  wdt:P6104 wd:Q106774536.
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"sv,en\". ?item rdfs:label ?itemLabel .}
+    }
+  }
+} AS %Wikidataitems
+
+WHERE 
+{  INCLUDE %Wikidataitems .
+  ?file wdt:P180 ?item.
+  ?file wdt:P7847 ?DigID.
+  BIND(URI(CONCAT(\"https://digitaltmuseum.org/\",?DigID)) AS ?Digitaltmuseum)
+  ?file schema:contentUrl ?url. 
+  bind(iri(concat(\"http://commons.wikimedia.org/wiki/Special:FilePath/\", wikibase:decodeUri(substr(str(?url),53)))) AS ?image)
+}""" .

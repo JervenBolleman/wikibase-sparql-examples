@@ -6,7 +6,19 @@
 
 <https://www.wikidata.org/#query-51cb28e2d5edcad66524bd0faa46552c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/de>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
   ?plato
   ?platoLabel
   ?conteo
@@ -46,11 +58,43 @@ WITH {
   OPTIONAL{INCLUDE %conteo}.
 }
 ORDER BY DESC(?conteo)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/de>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/es>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT
+  ?plato
+  ?platoLabel
+  ?conteo
+WITH {
+  SELECT DISTINCT ?plato {
+    SERVICE <https://query.wikidata.org/sparql> {
+      ?plato wdt:P361 wd:Q749847.
+    }
+  }
+} AS %plato
+WITH {
+  SELECT ?plato ?platoLabel {
+    INCLUDE %plato.
+    SERVICE <https://query.wikidata.org/sparql> {
+      {
+        SELECT ?plato ?platoLabel {
+          SERVICE wikibase:label { bd:serviceParam wikibase:language \"es\". }
+        }
+      }
+    }
+  }
+} AS %platoLabel
+WITH {
+  SELECT DISTINCT ?imagen ?plato {
+    INCLUDE %plato.
+    ?imagen wdt:P180 ?plato.
+  }
+} AS %imagen
+WITH {
+  SELECT ?plato (COUNT(*) AS ?conteo) {
+    INCLUDE %imagen.
+  }
+  GROUP BY ?plato
+} AS %conteo
+{
+  INCLUDE %platoLabel.
+  OPTIONAL{INCLUDE %conteo}.
+}
+ORDER BY DESC(?conteo)""" .

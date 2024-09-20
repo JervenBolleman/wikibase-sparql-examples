@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-56248300cf2225c382990dc3b4c8af03> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q9035>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:language-language-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q9035>
 
 SELECT 
   ?count
@@ -34,9 +43,66 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
   ?derived_example_lexeme wikibase:lemma ?derived_example_lexemeLabel .
 }
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q9035>
+
+SELECT 
+  ?count
+  (CONCAT(\"#language/\", SUBSTR(STR(target:), 32), \"/language/\", SUBSTR(STR(?language), 32)) AS ?countUrl)
+
+  ?language ?languageLabel
+  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32)) AS ?languageUrl)
+
+  ?derived_example_lexeme ?derived_example_lexemeLabel
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?derived_example_lexeme), 32)) AS ?derived_example_lexemeUrl)
+
+WHERE {
+  {
+  SELECT
+    (COUNT(?lexeme) AS ?count)
+    ?language
+    (SAMPLE(?derived_lexeme) AS ?derived_example_lexeme)
+  WHERE {
+    ?lexeme dct:language target: ;
+            ^wdt:P5191+ ?derived_lexeme .
+    ?derived_lexeme dct:language ?language .
+  }
+  GROUP BY ?language
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?derived_example_lexeme wikibase:lemma ?derived_example_lexemeLabel .
+}
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:language-language-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q9035>
+
+SELECT 
+  ?count
+  (CONCAT(\"#language/\", SUBSTR(STR(target:), 32), \"/language/\", SUBSTR(STR(?language), 32)) AS ?countUrl)
+
+  ?language ?languageLabel
+  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32)) AS ?languageUrl)
+
+  ?derived_example_lexeme ?derived_example_lexemeLabel
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?derived_example_lexeme), 32)) AS ?derived_example_lexemeUrl)
+WITH {
+  SELECT
+    (COUNT(?lexeme) AS ?count)
+    ?language
+    (SAMPLE(?derived_lexeme) AS ?derived_example_lexeme)
+  WHERE {
+    ?lexeme dct:language target: ;
+            ^wdt:P5191+ ?derived_lexeme .
+    ?derived_lexeme dct:language ?language .
+  }
+  GROUP BY ?language
+} AS %languages
+WHERE {
+  INCLUDE %languages
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?derived_example_lexeme wikibase:lemma ?derived_example_lexemeLabel .
+}
+ORDER BY DESC(?count)""" .

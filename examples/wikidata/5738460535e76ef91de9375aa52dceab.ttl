@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-5738460535e76ef91de9375aa52dceab> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?place ?placeLabel ?fips ?gnis
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?place ?placeLabel ?fips ?gnis
 WITH { SELECT DISTINCT ?place { ?place wdt:P131* wd:Q759 } } AS %sub
 WHERE
 {
@@ -16,9 +25,30 @@ WHERE
   FILTER (BOUND(?fips) || BOUND(?gnis))
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 }
+ORDER BY ASC(?placeLabel)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?place ?placeLabel ?fips ?gnis
+
+WHERE
+{
+  { SELECT DISTINCT ?place { ?place wdt:P131* wd:Q759 } }
+  OPTIONAL { ?place wdt:P774 ?fips }
+  OPTIONAL { ?place wdt:P590 ?gnis }
+  FILTER (BOUND(?fips) || BOUND(?gnis))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
 ORDER BY ASC(?placeLabel)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/01>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?place ?placeLabel ?fips ?gnis
+WITH { SELECT DISTINCT ?place { ?place wdt:P131* wd:Q759 } } AS %sub
+WHERE
+{
+  include %sub
+  OPTIONAL { ?place wdt:P774 ?fips }
+  OPTIONAL { ?place wdt:P590 ?gnis }
+  FILTER (BOUND(?fips) || BOUND(?gnis))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY ASC(?placeLabel)""" .

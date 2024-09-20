@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-57d123c2d47f1d588b85ef0a2483d3ce> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:scientificeventseries-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
   ?events 
   
   ?event_series ?event_seriesLabel
@@ -28,9 +37,54 @@ WHERE {
   INCLUDE %event_series
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?events)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
+  ?events 
+  
+  ?event_series ?event_seriesLabel
+  (CONCAT(\"#scientificeventseries/\", SUBSTR(STR(?event_series), 32)) AS ?event_seriesUrl)
+  ?event_seriesDescription
+
+WHERE {
+  {
+  SELECT
+    (COUNT(?event) AS ?events)
+    ?event_series
+  WHERE {
+    ?event_series wdt:P31 / wdt:P279* wd:Q125391566 ;
+                 ^wdt:P179 ?event .
+  }
+  GROUP BY ?event_series
+  ORDER BY DESC(?events)
+  LIMIT 500
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?events)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:scientificeventseries-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT 
+  ?events 
+  
+  ?event_series ?event_seriesLabel
+  (CONCAT(\"#scientificeventseries/\", SUBSTR(STR(?event_series), 32)) AS ?event_seriesUrl)
+  ?event_seriesDescription
+WITH {
+  SELECT
+    (COUNT(?event) AS ?events)
+    ?event_series
+  WHERE {
+    ?event_series wdt:P31 / wdt:P279* wd:Q125391566 ;
+                 ^wdt:P179 ?event .
+  }
+  GROUP BY ?event_series
+  ORDER BY DESC(?events)
+  LIMIT 500
+} AS %event_series
+WHERE {
+  INCLUDE %event_series
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?events)""" .

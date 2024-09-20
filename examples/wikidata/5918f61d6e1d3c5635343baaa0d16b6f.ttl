@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-5918f61d6e1d3c5635343baaa0d16b6f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target1: <http://www.wikidata.org/entity/Q20980928>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:author-organization>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target1: <http://www.wikidata.org/entity/Q20980928>
 PREFIX target2: <http://www.wikidata.org/entity/Q49108>
 
 SELECT
@@ -53,9 +61,103 @@ WHERE {
   INCLUDE %authors
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?score)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target1: <http://www.wikidata.org/entity/Q20980928>
+PREFIX target2: <http://www.wikidata.org/entity/Q49108>
+
+SELECT
+  ?score
+
+  ?author ?authorLabel
+  (CONCAT(\"#author/\", SUBSTR(STR(?author), 32)) AS ?authorUrl)
+  ?authorDescription
+
+  ?roles
+
+
+WHERE {
+  {
+  SELECT
+    (SUM(?score_) AS ?score)
+    ?author
+    (GROUP_CONCAT(DISTINCT ?role; separator=\", \") AS ?roles)
+  WHERE {
+    {
+      ?author wdt:P108 target2: .
+      [] wdt:P50 target1:, ?author .
+      BIND(5 AS ?score_)
+      BIND(\"co-author\" AS ?role)
+    }
+    UNION
+    {
+      ?author wdt:P108 target2: .
+      [] wdt:P50 target1: ;
+         wdt:P2860 / wdt:P50 ?author .
+      BIND(2 AS ?score_)
+      BIND(\"cited\" AS ?role)
+    }
+    UNION
+    {
+      ?author wdt:P108 target2: .
+      [] wdt:P50 ?author ;
+         wdt:P2860 / wdt:P50 target1: .
+      BIND(3 AS ?score_)
+      BIND(\"citing\" AS ?role)
+    }
+  }
+  GROUP BY ?author
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?score)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:author-organization>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX target1: <http://www.wikidata.org/entity/Q20980928>
+PREFIX target2: <http://www.wikidata.org/entity/Q49108>
+
+SELECT
+  ?score
+
+  ?author ?authorLabel
+  (CONCAT(\"#author/\", SUBSTR(STR(?author), 32)) AS ?authorUrl)
+  ?authorDescription
+
+  ?roles
+
+WITH {
+  SELECT
+    (SUM(?score_) AS ?score)
+    ?author
+    (GROUP_CONCAT(DISTINCT ?role; separator=\", \") AS ?roles)
+  WHERE {
+    {
+      ?author wdt:P108 target2: .
+      [] wdt:P50 target1:, ?author .
+      BIND(5 AS ?score_)
+      BIND(\"co-author\" AS ?role)
+    }
+    UNION
+    {
+      ?author wdt:P108 target2: .
+      [] wdt:P50 target1: ;
+         wdt:P2860 / wdt:P50 ?author .
+      BIND(2 AS ?score_)
+      BIND(\"cited\" AS ?role)
+    }
+    UNION
+    {
+      ?author wdt:P108 target2: .
+      [] wdt:P50 ?author ;
+         wdt:P2860 / wdt:P50 target1: .
+      BIND(3 AS ?score_)
+      BIND(\"citing\" AS ?role)
+    }
+  }
+  GROUP BY ?author
+} AS %authors
+WHERE {
+  INCLUDE %authors
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?score)""" .

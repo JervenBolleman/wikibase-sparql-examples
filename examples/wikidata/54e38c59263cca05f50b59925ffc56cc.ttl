@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-54e38c59263cca05f50b59925ffc56cc> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:LineChart   
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+#defaultView:LineChart   
 SELECT ?count (COUNT(?entity) AS ?entities) WITH {
 SELECT ?entity (COUNT(DISTINCT(?property)) as ?count) WHERE {
   ?entity wdt:P31 wd:Q7889.
@@ -23,9 +32,44 @@ GROUP BY ?entity
   include %i
 }
 GROUP BY ?count
+ORDER BY ?count""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+#defaultView:LineChart   
+SELECT ?count (COUNT(?entity) AS ?entities)  WHERE {
+  {
+SELECT ?entity (COUNT(DISTINCT(?property)) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q7889.
+  OPTIONAL {
+    ?property rdf:type wikibase:Property;
+      wikibase:propertyType wikibase:ExternalId;
+      (wdt:P31/(wdt:P279*)) wd:Q28147643;
+      wikibase:directClaim ?wdt .
+    ?entity ?wdt [] .
+  }
+}
+GROUP BY ?entity
+}
+}
+GROUP BY ?count
 ORDER BY ?count""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/12>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#defaultView:LineChart   
+SELECT ?count (COUNT(?entity) AS ?entities) WITH {
+SELECT ?entity (COUNT(DISTINCT(?property)) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q7889.
+  OPTIONAL {
+    ?property rdf:type wikibase:Property;
+      wikibase:propertyType wikibase:ExternalId;
+      (wdt:P31/(wdt:P279*)) wd:Q28147643;
+      wikibase:directClaim ?wdt .
+    ?entity ?wdt [] .
+  }
+}
+GROUP BY ?entity
+} AS %i WHERE {
+  include %i
+}
+GROUP BY ?count
+ORDER BY ?count""" .

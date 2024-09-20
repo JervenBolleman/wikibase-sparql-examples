@@ -6,15 +6,31 @@
 
 <https://www.wikidata.org/#query-5339832e563cb03d62b4188f236355f6> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?diff (COUNT(*) AS ?cnt) WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/misc/quantity_data_type>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+SELECT ?diff (COUNT(*) AS ?cnt) WITH {
   SELECT ?any WHERE { ?property wikibase:propertyType wikibase:Quantity; wikibase:statementValue|wikibase:qualifierValue|wikibase:referenceValue ?any }
 } AS %subquery WHERE {
   INCLUDE %subquery .
   [] ?any [ wikibase:quantityLowerBound ?lower; wikibase:quantityUpperBound ?upper ] .
   BIND((?upper - ?lower) / 2 as ?diff) .
+} GROUP BY ?diff ORDER BY DESC(?cnt)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+SELECT ?diff (COUNT(*) AS ?cnt)  WHERE {
+  {
+  SELECT ?any WHERE { ?property wikibase:propertyType wikibase:Quantity; wikibase:statementValue|wikibase:qualifierValue|wikibase:referenceValue ?any }
+} .
+  [] ?any [ wikibase:quantityLowerBound ?lower; wikibase:quantityUpperBound ?upper ] .
+  BIND((?upper - ?lower) / 2 as ?diff) .
 } GROUP BY ?diff ORDER BY DESC(?cnt)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/misc/quantity_data_type>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?diff (COUNT(*) AS ?cnt) WITH {
+  SELECT ?any WHERE { ?property wikibase:propertyType wikibase:Quantity; wikibase:statementValue|wikibase:qualifierValue|wikibase:referenceValue ?any }
+} AS %subquery WHERE {
+  INCLUDE %subquery .
+  [] ?any [ wikibase:quantityLowerBound ?lower; wikibase:quantityUpperBound ?upper ] .
+  BIND((?upper - ?lower) / 2 as ?diff) .
+} GROUP BY ?diff ORDER BY DESC(?cnt)""" .

@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-5c611ccf198a686d9dd2d88369b40f67> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:AreaChart
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:researchorganization>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:AreaChart
 
 PREFIX target: <http://www.wikidata.org/entity/Q24283660>
 
@@ -60,8 +68,57 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY ?year""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:researchorganization>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#defaultView:AreaChart
+
+PREFIX target: <http://www.wikidata.org/entity/Q24283660>
+
+SELECT
+  ?year
+  ?works
+  ?topic ?topicLabel
+WITH {
+  SELECT DISTINCT
+    ?researcher
+  WHERE {
+    ?researcher ( wdt:P108| wdt:P463 | wdt:P1416 ) / wdt:P361* target: .
+  } 
+} AS %researchers
+WITH {
+  SELECT DISTINCT 
+    ?work
+  WHERE {
+    INCLUDE %researchers 
+    ?work wdt:P50 ?researcher ; 
+  }
+} AS %works
+WITH {
+  SELECT
+    (COUNT(?work) AS ?count)
+    ?topic
+  WHERE {
+    INCLUDE %works
+    ?work wdt:P921 ?topic .
+  }
+  GROUP BY ?topic
+  ORDER BY DESC(?count)
+  LIMIT 5
+} AS %topics
+WITH {
+  SELECT
+    ?year 
+    (COUNT(?work) AS ?works)
+    ?topic
+  WHERE {
+    INCLUDE %works
+    INCLUDE %topics
+    ?work wdt:P921 ?topic ;
+          wdt:P577 ?publication_datetime .
+    BIND(STR(YEAR(?publication_datetime)) AS ?year)
+  }
+  GROUP BY ?year ?topic
+} AS %result
+WHERE {
+  INCLUDE %result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?year""" .

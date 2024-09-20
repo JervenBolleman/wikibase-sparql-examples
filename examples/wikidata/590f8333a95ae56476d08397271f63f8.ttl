@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-590f8333a95ae56476d08397271f63f8> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# Count of topics
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Will_(Wiki_Ed)/APS_Project_Page/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Count of topics
 
 PREFIX target: <http://www.wikidata.org/entity/Q15716725>
 
@@ -26,9 +34,49 @@ WHERE {
   INCLUDE %result
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . } 
 }
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Count of topics
+
+PREFIX target: <http://www.wikidata.org/entity/Q15716725>
+
+SELECT ?count ?topic ?topicLabel ?example_work ?example_workLabel
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(?work) as ?count)
+    ?topic
+    (SAMPLE(?work) AS ?example_work)
+  WHERE {
+    ?work wdt:P1433 target: .
+    ?work wdt:P921 ?topic .
+  }
+  GROUP BY ?topic
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . } 
+}
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Will_(Wiki_Ed)/APS_Project_Page/Queries>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """# Count of topics
+
+PREFIX target: <http://www.wikidata.org/entity/Q15716725>
+
+SELECT ?count ?topic ?topicLabel ?example_work ?example_workLabel
+WITH {
+  SELECT 
+    (COUNT(?work) as ?count)
+    ?topic
+    (SAMPLE(?work) AS ?example_work)
+  WHERE {
+    ?work wdt:P1433 target: .
+    ?work wdt:P921 ?topic .
+  }
+  GROUP BY ?topic
+} AS %result
+WHERE {
+  INCLUDE %result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . } 
+}
+ORDER BY DESC(?count)""" .

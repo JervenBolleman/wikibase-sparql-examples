@@ -6,7 +6,21 @@
 
 <https://www.wikidata.org/#query-5c74789c32ca60b7cb2de09176d47ebb> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#title: all monuments (Denkmal) in Austria
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Herzi_Pinki/Sparql>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#title: all monuments (Denkmal) in Austria
 SELECT DISTINCT ?idNr ?item ?itemLabel ?itemDescription
                 (GROUP_CONCAT(DISTINCT ?isALabel; SEPARATOR=', ') as ?isALabels)
                 (GROUP_CONCAT(DISTINCT ?whereLabel; SEPARATOR=', ') AS ?whereLabels)
@@ -45,9 +59,93 @@ SELECT DISTINCT ?idNr ?item ?itemLabel ?itemDescription
   ?item wdt:P2951 ?id .
   Bind (xsd:integer(?id) as ?idNr)
   SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE]' }
+} GROUP BY ?idNr ?item ?itemLabel ?itemDescription  ?isALabels ?whereLabels ?coord ?adr ?commonscatSitelink ?commonscatProperty ORDER BY ASC(?idNr)""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#title: all monuments (Denkmal) in Austria
+SELECT DISTINCT ?idNr ?item ?itemLabel ?itemDescription
+                (GROUP_CONCAT(DISTINCT ?isALabel; SEPARATOR=', ') as ?isALabels)
+                (GROUP_CONCAT(DISTINCT ?whereLabel; SEPARATOR=', ') AS ?whereLabels)
+                (SAMPLE(?image) AS ?image) ?coord ?adr ?commonscatSitelink ?commonscatProperty   WHERE {
+  {
+  SELECT DISTINCT ?item WHERE {
+   ?item wdt:P2951 ?id .
+   ?item wdt:P17 wd:Q40 . # österreich
+   }
+} .
+  optional { ?item wdt:P31 ?isA .
+    OPTIONAL {
+      ?isA rdfs:label ?isALiteral .
+      FILTER(LANG(?isALiteral) = 'de') .
+    }
+  }
+  optional { ?item p:P625 ?coordStatement .
+             ?coordStatement ps:P625 ?coord }
+            
+  OPTIONAL {
+    ?item wdt:P131 ?where .
+    OPTIONAL {
+      ?where rdfs:label ?whereLiteral .
+      FILTER(LANG(?whereLiteral) = 'de') .
+    }
+  }
+      
+  optional { ?item wdt:P6375 ?adr }
+
+  optional {?commonscatSitelink schema:about ?item ; schema:isPartOf <https://commons.wikimedia.org/> .}
+  optional {?item wdt:P373 ?commonscatProperty .}
+
+  BIND(IF(BOUND(?where), IF(BOUND(?whereLiteral), ?whereLiteral, STRAFTER(STR(?where), 'entity/')), 'no P131') AS ?whereLabel) .
+  BIND(IF(BOUND(?isA), IF(BOUND(?isALiteral), ?isALiteral, STRAFTER(STR(?isA), 'entity/')), 'no P31') AS ?isALabel) .
+  OPTIONAL { ?item wdt:P18 ?image }
+  ?item wdt:P2951 ?id .
+  Bind (xsd:integer(?id) as ?idNr)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE]' }
 } GROUP BY ?idNr ?item ?itemLabel ?itemDescription  ?isALabels ?whereLabels ?coord ?adr ?commonscatSitelink ?commonscatProperty ORDER BY ASC(?idNr)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Herzi_Pinki/Sparql>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#title: all monuments (Denkmal) in Austria
+SELECT DISTINCT ?idNr ?item ?itemLabel ?itemDescription
+                (GROUP_CONCAT(DISTINCT ?isALabel; SEPARATOR=', ') as ?isALabels)
+                (GROUP_CONCAT(DISTINCT ?whereLabel; SEPARATOR=', ') AS ?whereLabels)
+                (SAMPLE(?image) AS ?image) ?coord ?adr ?commonscatSitelink ?commonscatProperty  WITH {
+  SELECT DISTINCT ?item WHERE {
+   ?item wdt:P2951 ?id .
+   ?item wdt:P17 wd:Q40 . # österreich
+   }
+} AS %subquery1 WHERE {
+  INCLUDE %subquery1 .
+  optional { ?item wdt:P31 ?isA .
+    OPTIONAL {
+      ?isA rdfs:label ?isALiteral .
+      FILTER(LANG(?isALiteral) = 'de') .
+    }
+  }
+  optional { ?item p:P625 ?coordStatement .
+             ?coordStatement ps:P625 ?coord }
+            
+  OPTIONAL {
+    ?item wdt:P131 ?where .
+    OPTIONAL {
+      ?where rdfs:label ?whereLiteral .
+      FILTER(LANG(?whereLiteral) = 'de') .
+    }
+  }
+      
+  optional { ?item wdt:P6375 ?adr }
+
+  optional {?commonscatSitelink schema:about ?item ; schema:isPartOf <https://commons.wikimedia.org/> .}
+  optional {?item wdt:P373 ?commonscatProperty .}
+
+  BIND(IF(BOUND(?where), IF(BOUND(?whereLiteral), ?whereLiteral, STRAFTER(STR(?where), 'entity/')), 'no P131') AS ?whereLabel) .
+  BIND(IF(BOUND(?isA), IF(BOUND(?isALiteral), ?isALiteral, STRAFTER(STR(?isA), 'entity/')), 'no P31') AS ?isALabel) .
+  OPTIONAL { ?item wdt:P18 ?image }
+  ?item wdt:P2951 ?id .
+  Bind (xsd:integer(?id) as ?idNr)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE]' }
+} GROUP BY ?idNr ?item ?itemLabel ?itemDescription  ?isALabels ?whereLabels ?coord ?adr ?commonscatSitelink ?commonscatProperty ORDER BY ASC(?idNr)""" .

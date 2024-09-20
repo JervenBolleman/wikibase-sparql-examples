@@ -6,7 +6,14 @@
 
 <https://www.wikidata.org/#query-5e51dd42c7e91b9fb3ef12d8b4cde178> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT?item ?pocetobyvatel ?pocetobyvatel_upr ?rozloha ?rozloha_upr ?okres
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/05>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT DISTINCT?item ?pocetobyvatel ?pocetobyvatel_upr ?rozloha ?rozloha_upr ?okres
 WITH
 {
   SELECT ?item
@@ -26,9 +33,47 @@ WHERE
   BIND(CONCAT(\"{\", \"{formatnum:{\", \"{#expr: \", STR(?rozloha), \" round 2 }\", \"}\", \"}\", \"}\") AS ?rozloha_upr ) .
   BIND(CONCAT(\"{\", \"{formatnum:\", STR(?pocetobyvatel), \"}\", \"}\") AS ?pocetobyvatel_upr) .
 }
+ORDER BY DESC(?pocetobyvatel) DESC(?rozloha)""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT DISTINCT?item ?pocetobyvatel ?pocetobyvatel_upr ?rozloha ?rozloha_upr ?okres
+
+WHERE
+{
+  {
+  SELECT ?item
+  WHERE
+  {
+    ?item wdt:P31 wd:Q5153359, wd:Q15978299 .
+  }
+}
+  ?item wdt:P131* ?okres .  hint:Prior hint:gearing \"forward\" .
+  ?okres wdt:P31 wd:Q548611 . 
+
+  ?item wdt:P1082 ?pocetobyvatel .
+  ?item wdt:P2046 ?rozloha .
+  BIND(CONCAT(\"{\", \"{formatnum:{\", \"{#expr: \", STR(?rozloha), \" round 2 }\", \"}\", \"}\", \"}\") AS ?rozloha_upr ) .
+  BIND(CONCAT(\"{\", \"{formatnum:\", STR(?pocetobyvatel), \"}\", \"}\") AS ?pocetobyvatel_upr) .
+}
 ORDER BY DESC(?pocetobyvatel) DESC(?rozloha)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/05>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT DISTINCT?item ?pocetobyvatel ?pocetobyvatel_upr ?rozloha ?rozloha_upr ?okres
+WITH
+{
+  SELECT ?item
+  WHERE
+  {
+    ?item wdt:P31 wd:Q5153359, wd:Q15978299 .
+  }
+} AS %get_items
+WHERE
+{
+  INCLUDE %get_items
+  ?item wdt:P131* ?okres .  hint:Prior hint:gearing \"forward\" .
+  ?okres wdt:P31 wd:Q548611 . 
+
+  ?item wdt:P1082 ?pocetobyvatel .
+  ?item wdt:P2046 ?rozloha .
+  BIND(CONCAT(\"{\", \"{formatnum:{\", \"{#expr: \", STR(?rozloha), \" round 2 }\", \"}\", \"}\", \"}\") AS ?rozloha_upr ) .
+  BIND(CONCAT(\"{\", \"{formatnum:\", STR(?pocetobyvatel), \"}\", \"}\") AS ?pocetobyvatel_upr) .
+}
+ORDER BY DESC(?pocetobyvatel) DESC(?rozloha)""" .

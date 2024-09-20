@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-5f06649cea3995fac862ecc8b8d17bbe> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q15756118>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:venue>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q15756118>
 
 SELECT
   (xsd:date(MIN(?publication_datetime)) AS ?publication_date)
@@ -36,9 +46,71 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . } 
 }
 GROUP BY ?work ?workLabel ?workUrl
+ORDER BY DESC(?publication_date)""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q15756118>
+
+SELECT
+  (xsd:date(MIN(?publication_datetime)) AS ?publication_date)
+  ?work ?workLabel
+  (CONCAT(\"#work/\", SUBSTR(STR(?work), 32)) AS ?workUrl)
+
+  (GROUP_CONCAT(DISTINCT ?author_label; separator=\", \") AS ?authors)
+  (CONCAT(\"#authors/\", GROUP_CONCAT(DISTINCT SUBSTR(STR(?author), 32); separator=\",\")) AS ?authorsUrl)
+
+WHERE {
+  {
+  SELECT
+    ?work
+    ?publication_datetime
+  WHERE {
+    ?work wdt:P1433 target: ;
+          wdt:P577 ?publication_datetime . 
+  }
+  ORDER BY DESC(?publication_datetime)
+  LIMIT 1000
+}
+  OPTIONAL {
+    ?work wdt:P50 ?author .
+    ?author rdfs:label ?author_label .
+    FILTER (LANG(?author_label) = 'en')
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . } 
+}
+GROUP BY ?work ?workLabel ?workUrl
 ORDER BY DESC(?publication_date)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:venue>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q15756118>
+
+SELECT
+  (xsd:date(MIN(?publication_datetime)) AS ?publication_date)
+  ?work ?workLabel
+  (CONCAT(\"#work/\", SUBSTR(STR(?work), 32)) AS ?workUrl)
+
+  (GROUP_CONCAT(DISTINCT ?author_label; separator=\", \") AS ?authors)
+  (CONCAT(\"#authors/\", GROUP_CONCAT(DISTINCT SUBSTR(STR(?author), 32); separator=\",\")) AS ?authorsUrl)
+WITH {
+  SELECT
+    ?work
+    ?publication_datetime
+  WHERE {
+    ?work wdt:P1433 target: ;
+          wdt:P577 ?publication_datetime . 
+  }
+  ORDER BY DESC(?publication_datetime)
+  LIMIT 1000
+} AS %works
+WHERE {
+  INCLUDE %works
+  OPTIONAL {
+    ?work wdt:P50 ?author .
+    ?author rdfs:label ?author_label .
+    FILTER (LANG(?author_label) = 'en')
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . } 
+}
+GROUP BY ?work ?workLabel ?workUrl
+ORDER BY DESC(?publication_date)""" .

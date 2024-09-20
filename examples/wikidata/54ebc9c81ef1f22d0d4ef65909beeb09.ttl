@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-54ebc9c81ef1f22d0d4ef65909beeb09> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#Show label, occupation and image of the persons that are born on certain date 
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Contact_the_development_team/Query_Service_and_search/Archive/2020/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#Show label, occupation and image of the persons that are born on certain date 
 SELECT DISTINCT ?person ?personLabel ?dob ?occupation ?occupationLabel ?image with {
 SELECT DISTINCT ?person 
 WHERE
@@ -22,8 +32,19 @@ where
  ?person wdt:P18 ?image .       # Query reaches timeout, thought if I add OPTIONAL it works even s,o that this way it has to show more results. How is this possible, and how to make it work without OPTIONAL? 
  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Contact_the_development_team/Query_Service_and_search/Archive/2020/02>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#Show label, occupation and image of the persons that are born on certain date 
+SELECT DISTINCT ?person ?personLabel ?dob ?occupation ?occupationLabel ?image with {
+SELECT DISTINCT ?person 
+WHERE
+{
+ ?person wdt:P569 ?dob .
+ FILTER (?dob = \"1999-05-19\"^^xsd:dateTime)
+  } } as %i
+where
+{
+  include %i
+ ?person wdt:P31 wd:Q5 .
+ ?person wdt:P106 ?occupation .
+ ?person wdt:P18 ?image .       # Query reaches timeout, thought if I add OPTIONAL it works even s,o that this way it has to show more results. How is this possible, and how to make it work without OPTIONAL? 
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-54f30c4816d8b74ea0790446576feb15> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?paper ?paperLabel ?paperDescription
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?paper ?paperLabel ?paperDescription
 
 WITH { 
   SELECT ?item WHERE {
@@ -21,8 +30,18 @@ WHERE {
           
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/09>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?paper ?paperLabel ?paperDescription
+
+WITH { 
+  SELECT ?item WHERE {
+  ?item wdt:P31 wd:Q5633421
+  } } as %i         # list of Journal QIds
+
+WHERE { 
+  INCLUDE %i
+  { SELECT ?paper WHERE {
+      ?paper wdt:P1433 ?item.  # this select does not apprehend %i items :(
+  } limit 1 }
+          
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+}""" .

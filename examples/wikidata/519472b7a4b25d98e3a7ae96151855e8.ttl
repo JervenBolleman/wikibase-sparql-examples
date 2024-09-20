@@ -6,7 +6,18 @@
 
 <https://www.wikidata.org/#query-519472b7a4b25d98e3a7ae96151855e8> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?river ?riverLabel (?lengthInM/1000 AS ?lengthInKm) ?mouthLabel WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/longest_rivers_that_don%E2%80%99t_feed_into_a_sea_or_ocean>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?river ?riverLabel (?lengthInM/1000 AS ?lengthInKm) ?mouthLabel WITH {
   SELECT DISTINCT ?river ?lengthInM ?mouth WHERE {
     ?river wdt:P31/wdt:P279* wd:Q4022;
            wdt:P403 ?mouth;
@@ -21,9 +32,42 @@
   INCLUDE %results.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?lengthInM)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?river ?riverLabel (?lengthInM/1000 AS ?lengthInKm) ?mouthLabel  WHERE {
+  {
+  SELECT DISTINCT ?river ?lengthInM ?mouth WHERE {
+    ?river wdt:P31/wdt:P279* wd:Q4022;
+           wdt:P403 ?mouth;
+           p:P2043 ?lengthStatement. ?lengthStatement a wikibase:BestRank; psn:P2043/wikibase:quantityAmount ?lengthInM. hint:Prior hint:rangeSafe true.
+    MINUS { ?mouth wdt:P31/wdt:P279* wd:Q165. }
+    MINUS { ?mouth wdt:P31/wdt:P279* wd:Q9430. }
+    FILTER(?lengthInM > 1000000)
+  }
+  ORDER BY DESC(?lengthInM)
+  LIMIT 10
+}.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?lengthInM)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/longest_rivers_that_don%E2%80%99t_feed_into_a_sea_or_ocean>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?river ?riverLabel (?lengthInM/1000 AS ?lengthInKm) ?mouthLabel WITH {
+  SELECT DISTINCT ?river ?lengthInM ?mouth WHERE {
+    ?river wdt:P31/wdt:P279* wd:Q4022;
+           wdt:P403 ?mouth;
+           p:P2043 ?lengthStatement. ?lengthStatement a wikibase:BestRank; psn:P2043/wikibase:quantityAmount ?lengthInM. hint:Prior hint:rangeSafe true.
+    MINUS { ?mouth wdt:P31/wdt:P279* wd:Q165. }
+    MINUS { ?mouth wdt:P31/wdt:P279* wd:Q9430. }
+    FILTER(?lengthInM > 1000000)
+  }
+  ORDER BY DESC(?lengthInM)
+  LIMIT 10
+} AS %results WHERE {
+  INCLUDE %results.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?lengthInM)""" .

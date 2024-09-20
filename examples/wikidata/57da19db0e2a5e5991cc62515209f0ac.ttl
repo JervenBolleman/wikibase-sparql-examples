@@ -6,7 +6,17 @@
 
 <https://www.wikidata.org/#query-57da19db0e2a5e5991cc62515209f0ac> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX dcterms: <http://purl.org/dc/terms/>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Difool/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdtn: <http://www.wikidata.org/prop/direct-normalized/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX dcterms: <http://purl.org/dc/terms/>
       PREFIX bibo: <http://purl.org/ontology/bibo/>
       
       SELECT ?item ?ulanuri ?rkdartistsid
@@ -38,9 +48,75 @@
       WHERE {
         INCLUDE %wikidata.
         INCLUDE %ulan.
+      } LIMIT 500""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdtn: <http://www.wikidata.org/prop/direct-normalized/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+      PREFIX bibo: <http://purl.org/ontology/bibo/>
+      
+      SELECT ?item ?ulanuri ?rkdartistsid
+      
+      WITH {
+        SELECT * {
+        SERVICE <http://vocab.getty.edu/sparql.json> {
+      
+       SELECT ?ulanuri ?rkdartistsid WHERE {
+            ?ulanuri rdf:type <http://vocab.getty.edu/ontology#PersonConcept> .
+            ?ulanuri dcterms:source ?source .
+            ?source dcterms:isPartOf <http://vocab.getty.edu/ulan/source/2100183444> .
+            ?source bibo:locator ?rkdartistsid
+            }
+      
+        }
+      }
+      } AS %ulan
+      WHERE {
+        {
+        SELECT ?item ?ulanuri ?rkdartistsid WHERE {
+        ?item wdtn:P245 ?ulanuri .
+       ?item p:P245 ?statement0.
+                                          ?statement0 ps:P245 _:anyValueP245;
+                                              wikibase:rank ?rank.
+         FILTER(?rank != wikibase:DeprecatedRank)
+        MINUS { ?item wdtn:P650 ?rkdartistsid } .
+        MINUS { ?item p:P650 ?statement1. ?statement1 (ps:P650) _:anyValueP650. }
+        }
+      }.
+        INCLUDE %ulan.
       } LIMIT 500""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Difool/queries>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX dcterms: <http://purl.org/dc/terms/>
+      PREFIX bibo: <http://purl.org/ontology/bibo/>
+      
+      SELECT ?item ?ulanuri ?rkdartistsid
+      WITH {
+        SELECT ?item ?ulanuri ?rkdartistsid WHERE {
+        ?item wdtn:P245 ?ulanuri .
+       ?item p:P245 ?statement0.
+                                          ?statement0 ps:P245 _:anyValueP245;
+                                              wikibase:rank ?rank.
+         FILTER(?rank != wikibase:DeprecatedRank)
+        MINUS { ?item wdtn:P650 ?rkdartistsid } .
+        MINUS { ?item p:P650 ?statement1. ?statement1 (ps:P650) _:anyValueP650. }
+        }
+      } AS %wikidata
+      WITH {
+        SELECT * {
+        SERVICE <http://vocab.getty.edu/sparql.json> {
+      
+       SELECT ?ulanuri ?rkdartistsid WHERE {
+            ?ulanuri rdf:type <http://vocab.getty.edu/ontology#PersonConcept> .
+            ?ulanuri dcterms:source ?source .
+            ?source dcterms:isPartOf <http://vocab.getty.edu/ulan/source/2100183444> .
+            ?source bibo:locator ?rkdartistsid
+            }
+      
+        }
+      }
+      } AS %ulan
+      WHERE {
+        INCLUDE %wikidata.
+        INCLUDE %ulan.
+      } LIMIT 500""" .

@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-535db85f50b6b58b1f7e544eb31591ed> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?property ?propertyLabel ?count WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Data_structure/Data_modelling_issues>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?property ?propertyLabel ?count WITH {
   SELECT ?property (COUNT(DISTINCT ?statement) AS ?count) WHERE {
     ?item wdt:P31/wdt:P279* wd:Q24354;
           wdt:P17 wd:Q39;
@@ -22,9 +31,42 @@
   INCLUDE %results.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"de-CH,en,fr-CH,it-CH,en-US,en\". }
 }
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?property ?propertyLabel ?count  WHERE {
+  {
+  SELECT ?property (COUNT(DISTINCT ?statement) AS ?count) WHERE {
+    ?item wdt:P31/wdt:P279* wd:Q24354;
+          wdt:P17 wd:Q39;
+          ?p ?statement.
+    ?property a wikibase:Property;
+              wikibase:claim ?p.
+    FILTER(?property != wd:P31)
+  }
+  GROUP BY ?property
+  ORDER BY DESC(?count)
+  LIMIT 1000
+}.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de-CH,en,fr-CH,it-CH,en-US,en\". }
+}
 ORDER BY DESC(?count)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Data_structure/Data_modelling_issues>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?property ?propertyLabel ?count WITH {
+  SELECT ?property (COUNT(DISTINCT ?statement) AS ?count) WHERE {
+    ?item wdt:P31/wdt:P279* wd:Q24354;
+          wdt:P17 wd:Q39;
+          ?p ?statement.
+    ?property a wikibase:Property;
+              wikibase:claim ?p.
+    FILTER(?property != wd:P31)
+  }
+  GROUP BY ?property
+  ORDER BY DESC(?count)
+  LIMIT 1000
+} AS %results WHERE {
+  INCLUDE %results.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de-CH,en,fr-CH,it-CH,en-US,en\". }
+}
+ORDER BY DESC(?count)""" .

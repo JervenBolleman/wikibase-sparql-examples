@@ -6,7 +6,19 @@
 
 <https://www.wikidata.org/#query-56fc973d4c1e916d5032548625207114> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?organization ?organizationLabel ?street_address ?coordinate_location
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?organization ?organizationLabel ?street_address ?coordinate_location
   ?phone_number ?e_mail_address ?website ?Facebook_ID ?Twitter_username ?county
 WITH
 {
@@ -109,8 +121,106 @@ WHERE
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
 }
 ORDER BY (?organization)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/02>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?organization ?organizationLabel ?street_address ?coordinate_location
+  ?phone_number ?e_mail_address ?website ?Facebook_ID ?Twitter_username ?county
+WITH
+{
+  SELECT DISTINCT ?organization ?located_in_the_administrative_territorial_entity ?county
+  WHERE
+  {
+    hint:Query hint:optimizer \"None\".
+    VALUES (?located_in_the_administrative_territorial_entity ?county) {
+      (wd:Q486843 \"Bleckley County\")
+      (wd:Q498301 \"Pulaski County\")
+      (wd:Q486791 \"Wilcox County\")
+      (wd:Q115272 \"Dodge County\")
+      (wd:Q691614 \"Telfair County\")
+      (wd:Q498332 \"Wheeler County\")
+      (wd:Q493125 \"Montgomery County\")
+      (wd:Q376822 \"Toombs County\")
+      (wd:Q505310 \"Tattnall County\")
+      (wd:Q111867 \"Ben Hill County\")
+      (wd:Q492057 \"Irwin County\")
+      (wd:Q156503 \"Coffee County\")
+      (wd:Q493071 \"Jeff Davis County\")
+      (wd:Q488186 \"Appling County\")
+      (wd:Q488219 \"Bacon County\")
+      (wd:Q488868 \"Berrien County\")
+      (wd:Q488194 \"Atkinson County\")
+      (wd:Q498353 \"Ware County\")
+      (wd:Q492070 \"Lanier County\")
+      (wd:Q493029 \"Echols County\")
+      (wd:Q486167 \"Clinch County\")
+    }
+    ?organization wdt:P131+ ?located_in_the_administrative_territorial_entity .
+    FILTER NOT EXISTS { ?organization wdt:P576 [] . }
+    VALUES ?instance_of {
+      wd:Q473972
+      wd:Q3152824
+      wd:Q210272
+      wd:Q570116
+      wd:Q57660343
+      wd:Q2668072
+      wd:Q188913
+      wd:Q15243209
+      wd:Q2867476
+      wd:Q635719
+      wd:Q7840289
+      wd:Q42998
+      wd:Q41710
+      wd:Q51369558
+    }
+    ?organization wdt:P31/wdt:P279* ?instance_of .
+    hint:Prior hint:gearing \"forward\" .
+  }
+}
+AS %get_organization_and_county_candidates
+WITH
+{
+  SELECT ?organization ?located_in_the_administrative_territorial_entity ?county
+  WHERE
+  {
+    INCLUDE %get_organization_and_county_candidates
+    # The administrative unit (here county) is mentioned directly in the organization item
+    FILTER EXISTS { ?organization wdt:P131 ?located_in_the_administrative_territorial_entity . }
+  }
+}
+AS %organizations_with_county_statement
+WITH
+{
+  SELECT ?organization ?located_in_the_administrative_territorial_entity ?county
+  WHERE
+  {
+    INCLUDE %get_organization_and_county_candidates
+    # The administrative unit (here county) is deeper in the P131 hierarchy
+    # AND there is no \"next level in hierarchy\" qualifier in another P131 statement  
+    FILTER EXISTS
+    {
+      ?organization p:P131 ?P131_statement .
+      ?P131_statement ps:P131 ?first_level_adm_unit .
+      ?first_level_adm_unit wdt:P131+ ?located_in_the_administrative_territorial_entity .
+      FILTER NOT EXISTS
+      {
+        ?organization p:P131 ?another_P131_statement .
+        FILTER (?another_P131_statement != ?P131_statement)
+        ?another_P131_statement pq:P3831 wd:Q105528942 .
+      }
+    }
+  }
+}
+AS %organizations_without_county_statement
+WHERE
+{
+  { INCLUDE %organizations_with_county_statement }
+  UNION
+  { INCLUDE %organizations_without_county_statement }
+  OPTIONAL { ?organization wdt:P6375 ?street_address . }
+  OPTIONAL { ?organization wdt:P625 ?coordinate_location . }
+  OPTIONAL { ?organization wdt:P1329 ?phone_number . }
+  OPTIONAL { ?organization wdt:P968 ?e_mail_address . }
+  OPTIONAL { ?organization wdt:P856 ?website . }
+  OPTIONAL { ?organization wdt:P2013 ?Facebook_ID . }
+  OPTIONAL { ?organization wdt:P2002 ?Twitter_username . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}
+ORDER BY (?organization)""" .
