@@ -1,0 +1,39 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ad78e94c215fbae1890ef0deaa1c36e6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?itemLabel ?image ?itemCoordinates ?description ?wikipediaLink ?wikipediaID WHERE {
+  SERVICE wikibase:around {
+    ?item wdt:P625 ?itemCoordinates .
+    bd:serviceParam wikibase:center \"Point(8.2478 49.9929)\"^^geo:wktLiteral .
+    bd:serviceParam wikibase:radius \"5\" .
+  }
+ FILTER (
+  EXISTS { ?item wdt:P31/wdt:P279* wd:Q570116 } # Tourist attractions
+ )
+  OPTIONAL { ?item wdt:P18 ?image }
+  OPTIONAL {
+    ?item schema:description ?description .
+    FILTER(LANG(?description) = \"de\")
+  }
+  OPTIONAL {
+    ?wikipediaLink schema:about ?item ;
+                   schema:isPartOf <https://de.wikipedia.org/> .
+  }
+  FILTER EXISTS { 
+    ?wikipediaLink schema:about ?item ;
+                   schema:isPartOf <https://de.wikipedia.org/> .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+}
+LIMIT 100
+OFFSET 0""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

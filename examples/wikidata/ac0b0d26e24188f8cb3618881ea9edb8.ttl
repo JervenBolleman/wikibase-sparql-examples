@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ac0b0d26e24188f8cb3618881ea9edb8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?coord ?prec
+WHERE
+{
+ ?item p:P625 ?coordinate.
+ ?coordinate ps:P625 ?coord.
+ ?coordinate psv:P625 ?coordinate_node.
+ ?coordinate_node wikibase:geoLongitude ?lon.
+ ?coordinate_node wikibase:geoLatitude ?lat.  
+ ?coordinate_node wikibase:geoPrecision ?prec.  
+ FILTER (?lat=ROUND(?lat*60)/60) . # latitude  with 1 minute precision
+ FILTER (?lon=ROUND(?lon*60)/60) . # longitude with 1 minute precision
+ FILTER (?prec<1/60) .         # measurement precision less then one arcminute
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } 
+} limit 5000""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Bot_requests/Archive/2017/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

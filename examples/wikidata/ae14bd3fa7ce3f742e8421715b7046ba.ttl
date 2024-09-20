@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ae14bd3fa7ce3f742e8421715b7046ba> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX jps: <https://jpsearch.go.jp/term/property#>
+SELECT ?name ?work ?date ?url ?image WHERE {
+  {
+  SERVICE <https://jpsearch.go.jp/rdf/sparql/> {
+    ?jps_creator owl:sameAs wd:Q200798 .
+    ?work schema:creator ?jps_creator .
+    OPTIONAL {?work schema:dateCreated ?date}
+    OPTIONAL {?work schema:image ?image}
+    OPTIONAL {?work schema:name ?name}
+    FILTER (lang(?name)=\"ja\").  # Show only the Japanese name
+    }
+BIND(URI( REPLACE(STR(?work), \"/data/\", \"/item/\") ) AS ?url)
+    }
+UNION {
+  ?work wdt:P170 wd:Q200798.
+  OPTIONAL {?work wdt:P973 ?url}
+  OPTIONAL {?work wdt:P18 ?image}
+  OPTIONAL {?work wdt:P571 ?date}
+  ?work rdfs:label ?name FILTER (lang(?name)=\"ja\")
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Federated_queries>,
+    <https://www.wikidata.org//wiki/User:Battleofalma/Federated_queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,46 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-aefb082a6e913aa33ff70795f9d3c4f5> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Communes françaises sans département
+# Cette requête ne doit renvoyer aucun résultat.
+SELECT DISTINCT ?commune ?communeLabel ?communeDescription ?departementLabel ?insee {
+  ?commune p:P31 ?statement .	# Les éléments qui ont pour nature...
+  ?statement ps:P31 ?type . # ...un des types autorisés ci-dessous
+  VALUES ?type {
+     wd:Q484170 # commune française
+     wd:Q2989454 # commune nouvelle
+     wd:Q22927616 # commune française à statut particulier
+    }
+  FILTER NOT EXISTS { ?statement pq:P582 ?fin_com } . # La commune n'a pas de date de fin
+  
+  ?commune wdt:P374 ?insee . 
+  
+  # Il n'y a pas de département sans date de fin
+  FILTER NOT EXISTS { ?commune p:P131 ?departementStatement .
+            ?departementStatement ps:P131 ?directdepartement .
+            ?directdepartement wdt:P31 ?typeDep .
+            VALUES ?typeDep {
+              wd:Q6465 # département
+              wd:Q202216 # département d'Outre-mer
+              wd:Q719487 # collectivité d'Outre-mer
+              wd:Q3408484 # Province de la Nouvelle-Calédonie
+            }
+            FILTER NOT EXISTS { ?departementStatement pq:P582 ?fin_dep } .
+           } 
+  
+  # Il reste à ignorer Paris et les communes de la métropole lyonnaise
+  FILTER NOT EXISTS { ?commune wdt:P131 wd:Q16665897 . } # Métropole lyonnaise
+  FILTER ( ?commune != wd:Q90 ) . # Paris
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\" . }
+} ORDER BY ?communeLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_France/Queries/Communes>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a624c6ba5a9ecd65652a7a3d49342112> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select ?item ?itemLabel (GROUP_CONCAT(?CountryLabel; separator=\", \") AS ?Countrys) WITH {
+  SELECT ?item ?itemLabel ?CountryLabel ?sort where {
+  ?item wdt:P1440 \"900206\".
+  ?item p:P1532 [ps:P1532 ?Country].
+  BIND(xsd:integer(STRAFTER(STR(?Country),\"Q\")) as ?sort)
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+    ?item rdfs:label ?itemLabel .
+    ?Country rdfs:label ?CountryLabel           
+  }
+} order by desc(?sort) } as %i
+WHERE
+{
+  INCLUDE %i
+}          
+GROUP BY ?item ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

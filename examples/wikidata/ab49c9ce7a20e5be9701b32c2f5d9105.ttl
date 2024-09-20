@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ab49c9ce7a20e5be9701b32c2f5d9105> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?a ?aLabel ?birth_date ?death_date with {select ?a ?aLabel ?birth_date ?death_date WHERE {
+   ?a wdt:P21 wd:Q6581097 .
+   ?a p:P569/psv:P569 ?birth_date_node .            
+   ?a p:P570/psv:P570 ?death_date_node .
+   ?birth_date_node wikibase:timePrecision ?precision1 .
+   ?death_date_node wikibase:timePrecision ?precision2 .
+   ?birth_date_node wikibase:timeValue ?birth_date .
+   ?death_date_node wikibase:timeValue ?death_date .
+   FILTER ( (year(?death_date) - year(?birth_date)) >= 20
+            && (year(?death_date) - year(?birth_date)) <= 30 ) .
+  FILTER((?precision1 >= 7) && (?precision1 <= 11) && (?precision2 >= 7) && (?precision2 <= 11)).
+  } LIMIT 5000
+}as %i where {include %i
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"ru\" }
+ }
+ORDER BY ?birth_date ?aLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

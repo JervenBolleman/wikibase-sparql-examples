@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a5b779412a3cfea1b367cbd7bf79836a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:BarChart
+SELECT (STR(?decade) AS ?decade) (COUNT(DISTINCT ?taxon) AS ?number_of_new_taxa)
+WHERE 
+{
+  {?taxon wdt:P31 wd:Q16521 } UNION {?taxon wdt:P31 wd:Q310890} UNION {?taxon wdt:P31 wd:Q23038290} UNION {?taxon wdt:P31 wd:Q47487597 } UNION {?taxon wdt:P31 wd:Q98961713} UNION {?taxon wdt:P31 wd:Q2568288} .
+  MINUS { ?taxon p:P1403 ?status. }
+  ?taxon p:P225 ?name .
+  ?name ps:P225 []; pq:P574 ?date FILTER (?date > \"1819-12-31T00:00:00Z\"^^xsd:dateTime) .
+  ?name ps:P225 []; pq:P405 ?author .
+  {?author wdt:P108 wd:Q663025 } UNION {?author wdt:P937 wd:Q663025} .
+  BIND(YEAR(?date) AS ?year)
+  BIND(FLOOR(?year / 10) * 10 AS ?decade)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?decade
+ORDER BY ?decade""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Totodu74/Useful_queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

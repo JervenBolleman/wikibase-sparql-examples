@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a82747510cb5444de594d00ff87fb2e3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT 
+  ?works 
+  ?editor ?editorLabel
+  (CONCAT(\"#editor/\", SUBSTR(STR(?editor), 32)) AS ?editorUrl)
+  ?editorDescription
+
+  ?example_work ?example_workLabel 
+  (CONCAT(\"#work/\", SUBSTR(STR(?example_work), 32)) AS ?example_workUrl)
+WITH {
+  SELECT 
+    (COUNT(?work) AS ?works)
+    ?editor 
+    (SAMPLE(?work) AS ?example_work)
+  WHERE {
+    ?work wdt:P98 ?editor .
+  }
+  GROUP BY ?editor
+  ORDER BY DESC(?works)
+  LIMIT 1000
+} AS %editors
+WHERE {
+  INCLUDE %editors
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?works)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:editor-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

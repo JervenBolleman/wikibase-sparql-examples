@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a7e00377c334e0368d3aac8507231528> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Outdoor Gyms with pictures in Wikidata
+#defaultView:Map
+SELECT DISTINCT ?itemLabel ?image ?www ?coord 
+WITH 
+{ SELECT ?item ?itemLabel ?itemDescription ?www ?coord WHERE
+  { SERVICE <https://query.wikidata.org/sparql> 
+    {?item  wdt:P6104 wd:Q107186275.
+     OPTIONAL {?item wdt:P856 ?www}
+     OPTIONAL {?item wdt:P625 ?coord}
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,sv\". ?item rdfs:label ?itemLabel .}
+    }
+  }
+} AS %Wikidataitems
+
+WHERE 
+{  INCLUDE %Wikidataitems .
+  ?file wdt:P180 ?item.
+  ?file schema:contentUrl ?url. 
+  bind(iri(concat(\"http://commons.wikimedia.org/wiki/Special:FilePath/\", wikibase:decodeUri(substr(str(?url),53)))) AS ?image)
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WP_OGyms/Query_examples>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

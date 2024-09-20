@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ab507d4ecf55d879a52f5960d57ac893> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  (COUNT(?page) AS ?count) ?person ?personLabel
+WITH {
+  SELECT DISTINCT ?person WHERE {
+    hint:Query hint:optimizer \"None\".
+    ?person wdt:P569 ?birthdate .
+    BIND(MONTH(?birthdate) AS ?month)
+    FILTER (?month = 1)
+
+    ?person p:P569/psv:P569 ?timenode .
+    ?timenode wikibase:timePrecision 11 .
+    
+    VALUES ?year { 1964 1968 1972 1976 1980 1984 1988 1992 1996 2004 2008 }
+    BIND(YEAR(?birthdate) AS ?year)
+  }
+  LIMIT 1000
+} AS %persons
+WHERE {
+  INCLUDE %persons
+  ?page schema:about ?person .
+  ?person wdt:P31 wd:Q5 .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?person ?personLabel
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

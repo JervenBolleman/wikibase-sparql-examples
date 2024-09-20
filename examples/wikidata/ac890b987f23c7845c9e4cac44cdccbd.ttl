@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ac890b987f23c7845c9e4cac44cdccbd> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+?artwork
+(CONCAT('[', GROUP_CONCAT(DISTINCT ?class;SEPARATOR=', '), ']') as ?classes)
+?artworkLabel
+?artworkDescription
+?image
+(CONCAT('[',GROUP_CONCAT(DISTINCT ?creator;SEPARATOR=', '), ']') as ?creators)
+(CONCAT('[',GROUP_CONCAT(DISTINCT ?location;SEPARATOR=', '), ']') as ?locations)
+(CONCAT('[',GROUP_CONCAT(DISTINCT ?genre;SEPARATOR=', '), ']') as ?genres)
+(CONCAT('[',GROUP_CONCAT(DISTINCT ?movement;SEPARATOR=', '), ']') as ?movements)
+(YEAR(xsd:dateTime(?inception)) AS ?inceptionYear)
+(CONCAT('[',GROUP_CONCAT(DISTINCT ?material;SEPARATOR=', '), ']') as ?materials)
+(CONCAT('[',GROUP_CONCAT(DISTINCT ?depicts;SEPARATOR=', '), ']') as ?depictions)
+?countryLabel 
+?height 
+?width 
+WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+  ?class (wdt:P279*) wd:Q3305213 .
+  ?artwork wdt:P31 ?class ;
+    wdt:P170 ?creator ;
+    wdt:P18 ?image .
+  ?artwork  wdt:P276 ?location . 
+  ?artwork wdt:P136 ?genre . 
+  ?artwork wdt:P135 ?movement . 
+  ?artwork wdt:P571 ?inception . 
+  ?artwork wdt:P186 ?material .
+  ?artwork wdt:P180 ?depicts .
+  ?artwork wdt:P17 ?country .
+  ?artwork wdt:P2048 ?height .
+  ?artwork wdt:P2049 ?width .
+} GROUP BY ?artwork ?artworkLabel ?artworkDescription ?image ?inception ?countryLabel ?height ?width""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

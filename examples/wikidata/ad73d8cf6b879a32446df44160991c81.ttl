@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ad73d8cf6b879a32446df44160991c81> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT (?w as $Source) (?p AS $Target) (\"Directed\" AS ?Type) (?affiliationTypeLabel AS ?Label) ?Weight
+WHERE 
+{
+  ?p wdt:P31 wd:Q98270496 .
+  ?p p:P1416 ?statement .
+  ?statement ps:P1416 ?w .
+  OPTIONAL { 
+    ?statement pq:P3831 ?affiliationType . 
+    ?affiliationType rdfs:label ?affiliationTypeLabel 
+    OPTIONAL { FILTER (?affiliationTypeLabel = \"Beteiligter\"@de)
+      BIND(\"1\" AS ?Weight)
+    } 
+    OPTIONAL { FILTER (?affiliationTypeLabel = \"Mitantragsteller\"@de)
+      BIND(\"2\" AS ?Weight)
+    } 
+    OPTIONAL { FILTER (?affiliationTypeLabel = \"Bewerber\"@de)
+      BIND(\"3\" AS ?Weight)
+    } 
+  }  
+
+  FILTER (lang(?affiliationTypeLabel) = 'de')
+} ORDER BY ASC(?affiliationTypeLabel)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Wiljes/NFDI>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

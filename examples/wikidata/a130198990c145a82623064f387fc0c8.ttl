@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a130198990c145a82623064f387fc0c8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+SELECT ?item ?itemLabel ?coord ?layer
+WHERE {
+  ?item	wdt:P31/wdt:P279* wd:Q484170 ;
+    wdt:P17 wd:Q142 ;
+    rdfs:label ?itemLabel ;
+    wdt:P625 ?coord .
+  FILTER (LANG(?itemLabel) = \"fr\") . 
+  FILTER REGEX(?itemLabel, \"(^Plou)|(ac$)\") .
+  FILTER NOT EXISTS { ?item wdt:P131 wd:Q33788 } # excluding Koumac, New Caledonia
+  BIND(
+    IF(REGEX(?itemLabel, \"^Plou\"), \"plou\",
+    IF(REGEX(?itemLabel, \"ac$\"), \"ac\",
+    \"undefined\")) AS ?layer
+  ) .
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:XIIIfromTOKYO>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

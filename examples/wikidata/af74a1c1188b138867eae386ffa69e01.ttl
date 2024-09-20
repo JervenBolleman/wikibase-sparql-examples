@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-af74a1c1188b138867eae386ffa69e01> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select ?item ?itemLabel ?sitelinks
+with {
+   select distinct ?item 
+   where {
+      hint:Query hint:optimizer \"None\".
+      values ?item_class {wd:Q34 wd:Q183}
+      ?item wdt:P27 ?item_class; wdt:P21 wd:Q6581072; wdt:P31 wd:Q5.
+      filter not exists {[] schema:about ?item; schema:isPartOf <https://de.wikipedia.org/>}
+      minus {?item wdt:P106 wd:Q488111 . }
+      minus {?item wdt:P106 wd:Q852857 . }
+   }
+} as %subquery
+where {
+   include %subquery.
+   bind(xsd:integer(substr(str(?item), 33)) as ?num).
+   ?item wikibase:sitelinks ?sitelinks 
+   service wikibase:label {bd:serviceParam wikibase:language \"de,en\".}
+} 
+order by desc(?sitelinks) asc(?num)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ae5f9fe82f26eca9026592a1cb682a57> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Památné stromy okresu ZR
+SELECT ?item ?itemLabel ?datum ?obecLabel ?lon ?lat ?usop ?obvod ?obrazek ?commons ?pocetDruhu ?druhy ?okresLabel
+WHERE
+{
+  ?item wdt:P31 wd:Q811534 .          #Památný strom
+  ?item wdt:P131 ?obec . 
+  ?obec wdt:P131 ?okres . 
+  ?obec wdt:P131 wd:Q579648 .         #Okres ZR
+  OPTIONAL{?item wdt:P677 ?usop . } 
+  OPTIONAL {                          #Dekódovat souřadnice
+    ?item p:P625/psv:P625 ?node.
+    ?node wikibase:geoLatitude ?lat.
+    ?node wikibase:geoLongitude ?lon.
+   }
+  OPTIONAL{?item wdt:P2547 ?obvod . } 
+  OPTIONAL{?item wdt:P18 ?obrazek . }
+  OPTIONAL{?item wdt:P373 ?commons . }
+  OPTIONAL{?item p:P31/pq:P580 ?datum . } 
+  #Výpis druhů  
+  OPTIONAL{SELECT ?item (COUNT(?druh) AS ?pocetDruhu) (GROUP_CONCAT(?druhLabel; SEPARATOR = \" , \") AS ?druhy) WHERE { 
+        ?item wdt:P31 ?druh .
+        ?druh wdt:P31 wd:Q16521 .
+      SERVICE wikibase:label {    bd:serviceParam wikibase:language \"cs\" . 
+        ?druh rdfs:label ?druhLabel . 
+        ?item rdfs:label ?itemLabel . }
+    } GROUP BY ?item }
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"cs\" }
+}
+
+ORDER BY DESC(?pocetDruhu)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Maxx>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

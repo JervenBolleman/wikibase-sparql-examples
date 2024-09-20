@@ -1,0 +1,50 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a37eea66d310d8502e6c3de6f87eb9cc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT
+	?item ?itemLabel ?itemDescription ?wdimage # WHAT
+	?whatis ?whatisLabel # WHAT 2 (o ?type ?typeLabel o ?sport ?sportLabel)
+	?date ?Sdate ?Edate # WHEN
+	?country ?countryLabel ?coords ?where ?whereLabel # WHERE
+	?who ?whoLabel # WHO
+	?sitelinks # METADATA (number of internal references in wikidata)
+	?extra ?extraLabel # EXTRA WHAT (o ?edition ?editionLabel)
+WHERE {
+    ?item
+        wdt:P31 ?whatis; # que es?
+        wikibase:sitelinks ?sitelinks.
+    { ?item wdt:P577 ?date; } # publication date
+        UNION 
+    { ?item wdt:P571 ?date; } # inception date
+    OPTIONAL {
+        { ?item wdt:P17 ?country; } # country
+            UNION
+        { ?item wdt:P495 ?country; } # country of origin
+    }
+    OPTIONAL {
+        ?item wdt:P18 ?wdimage .
+    }
+    OPTIONAL {
+        { ?item wdt:P61 ?who; } # descubridor o inventor
+            UNION
+        { ?item wdt:P176 ?who; } # manufacturer
+        ?who wdt:P31 ?extra. # Ver si es persona, organización o qué - Ejemplo: wd:Q5 para persona
+    }
+    OPTIONAL {
+        { ?item wdt:P1071 ?where . } # location of creation
+            UNION
+        { ?item wdt:P291 ?where . } # place of publication
+        ?where wdt:P625 ?coords .
+    }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"es\" }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

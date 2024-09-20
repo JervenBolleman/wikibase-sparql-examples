@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a03213eefce4f03fbde9b9b63c75e4c0> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select distinct ?person ?personLabel 
+(GROUP_CONCAT(distinct ?seatLabel; separator=\"; \") as ?seats)
+(GROUP_CONCAT(distinct ?known_partyLabel; separator=\"; \") as ?known_parties) 
+(GROUP_CONCAT(distinct ?inferred_partyLabel; separator=\"; \") as ?inferred_parties) 
+WHERE {
+    ?position wdt:P279 wd:Q16707842 . ?person p:P39 ?positionStatement .
+    ?positionStatement ps:P39 ?position ; pq:P580 ?start . 
+    bind(year(?start) as ?startyear) . filter (?startyear < 2005 ) . filter (?startyear > 1802 ) 
+  # anyone who served as an MP between 1803 and 2005
+    optional { ?positionStatement pq:P768 ?seat } .
+    optional { ?positionStatement pq:P4100 ?known_party } .
+    optional { ?person wdt:P102 ?inferred_party } .
+  # seats and parties
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . 
+                           ?person rdfs:label ?personLabel .  
+                           ?inferred_party rdfs:label ?inferred_partyLabel .  
+                           ?known_party rdfs:label ?known_partyLabel .  
+                           ?seat rdfs:label ?seatLabel . }
+  # labels
+  
+} group by ?person ?personLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/hansard>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

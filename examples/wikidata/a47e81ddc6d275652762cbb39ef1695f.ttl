@@ -1,0 +1,61 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a47e81ddc6d275652762cbb39ef1695f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q113616501>
+
+SELECT
+  ?score
+  ?topic ?topicLabel
+  (CONCAT(\"#topic/\", SUBSTR(STR(?topic), 32)) AS ?topicUrl)
+  ?topicDescription
+WITH {
+  SELECT
+    (SUM(?score_) AS ?score)
+    ?topic
+  WHERE {
+    { 
+      target: wdt:P921 ?topic .
+      BIND(20 AS ?score_)
+    }
+    UNION
+    { 
+      target: wdt:P921 / wdt:P31 ?topic .
+      BIND(5 AS ?score_)
+    }
+    UNION
+    { 
+     target: wdt:P921/wdt:P279 ?topic .
+     BIND(3 AS ?score_)
+    }
+    UNION
+    {
+      # Topic of a cited work
+      target: wdt:P2860/wdt:P921 ?topic .
+      BIND(1 AS ?score_)
+    }
+    UNION
+    {
+      SELECT (1 AS ?score_) ?topic WHERE {
+        ?citing_work wdt:P2860 target: .
+        ?citing_work wdt:P921 ?topic . 
+      }
+    }
+  }
+  GROUP BY ?topic
+} AS %results 
+WHERE {
+  INCLUDE %results
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,da,de,es,jp,no,ru,sv,zh\". }
+}
+ORDER BY DESC(?score)
+LIMIT 200""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:eiareport>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,24 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ad312a7ebe56c6f07575c06768e9efee> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?Restaurieren ?RestaurierenLabel  (GROUP_CONCAT(DISTINCT ?DenkmalschutzLabel_;separator=\"; \") as ?DenkmalschutzLabel)  #Restaurierte Gebäude in der Schweiz, welche unter Denkmalschutz stehen seit den letzten 52 Jahren
+Where 
+{ 
+  ?Restaurieren wdt:P17 wd:Q39. hint:Prior hint:runFirst true.                        #Variable bezieht sich auf die Schweiz 
+  ?Restaurieren wdt:P1435 ?Denkmalschutz.                                             #Variable steht unter Denkmalschutz stehen ist optional 
+  ?Restaurieren wdt:P31/wdt:P279* wd:Q41176. hint:Prior hint:gearing \"forward\".       #Variable ist eine Gebäude                       
+  OPTIONAL {?Restaurieren wdt:P5816 ?restaurieren . }                                 #Variable enthält die Eigenschaft der Restauration 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de\". 
+                         ?Restaurieren rdfs:label ?RestaurierenLabel. 
+                         ?Denkmalschutz rdfs:label ?DenkmalschutzLabel_.}
+ } GROUP BY ?Restaurieren ?RestaurierenLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a74451028b607d05f8ea57b64e13669f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Archeologi italiani con VIAF in Wikidata che non hanno voce in it.wiki
+#occupation=archeologo
+#paese di cittadinanza = Italia
+#VIAF ID
+# get DOB for ordering.
+# look for articles (sitelinks) in italiano (\"it\")
+# but select items with no such article
+PREFIX schema: <http://schema.org/>
+SELECT ?item ?itemLabel ?dob WHERE {
+  ?item wdt:P106 wd:Q3621491.
+  ?item wdt:P27 wd:Q38.
+  ?item wdt:P214 ?VIAF_ID.
+  OPTIONAL { ?item wdt:P569 ?dob. }
+  OPTIONAL {
+    ?sitelink schema:about ?item.
+    ?sitelink schema:inLanguage \"it\".
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"it,en\". }
+  FILTER(!BOUND(?sitelink))
+}
+ORDER BY ?dob
+LIMIT 4999""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Uomovariabile/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

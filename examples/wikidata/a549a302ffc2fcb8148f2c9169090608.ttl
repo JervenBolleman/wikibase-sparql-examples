@@ -1,0 +1,42 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a549a302ffc2fcb8148f2c9169090608> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q2982867>
+
+SELECT 
+  ?artists
+
+  ?gallery ?galleryLabel
+  (CONCAT(\"#gallery/\", SUBSTR(STR(?gallery), 32)) AS ?galleryUrl)
+  ?galleryDescription
+
+  ?example_artist ?example_artistLabel
+  (CONCAT(\"#visualartist/\", SUBSTR(STR(?example_artist), 32)) AS ?example_artistUrl)
+  
+WITH {
+  SELECT 
+    (COUNT(DISTINCT ?artist) AS ?artists)
+    ?gallery
+    (SAMPLE(?artist) AS ?example_artist)
+  WHERE {
+    ?artist ^wdt:P170 / wdt:P195 target:, ?gallery .
+    FILTER (target: != ?gallery)
+  }
+  GROUP BY ?gallery
+} AS %galleries
+WHERE {
+  INCLUDE %galleries
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?artists)
+LIMIT 500""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:gallery>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

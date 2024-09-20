@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ab0acf898c74a778e9f600ed542d1634> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Беларускія тэнісісткі
+SELECT ?item ?itemLabel ?image ?рэйтынг
+WHERE {
+  BIND(wd:Q10833314 AS ?тэнісістка)                                  # замяніць на любую іншую прафэсію
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],be-tarask,uk,pl,en\". }   # фарматаваньне метак вываду
+
+  ?item wdt:P31 wd:Q5.                                               # толькі людзі
+  ?item wdt:P21 wd:Q6581072.                                         # жанчыны
+  { ?item wdt:P19 wd:Q184. }                                         # месца нараджэньня — Беларусь
+  UNION
+  { ?item wdt:P1532 wd:Q184. }                                       # альбо спартовае грамадзянства Беларусі
+  ?item p:P106 ?прафэсія.                                            # маюць прафэсію
+  ?прафэсія ps:P106 ?тэнісістка.                                     # …тэнісісткі
+  FILTER NOT EXISTS { ?прафэсія pq:P582 ?x }                         # …бяз даты сканчэньня
+  OPTIONAL { ?item wdt:P18 ?image. }                                 # выява
+  OPTIONAL { ?item p:P1352 ?адзінкавы.                               # спартовы рэйтынг
+             ?адзінкавы ps:P1352 ?рэйтынг.
+             ?адзінкавы pq:P641 wd:Q18123880. }                      # адзінкавы
+}
+GROUP BY ?item ?itemLabel ?image ?рэйтынг
+ORDER BY IF(BOUND(?рэйтынг), xsd:integer(?рэйтынг), 9999) ?itemLabel ?item""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

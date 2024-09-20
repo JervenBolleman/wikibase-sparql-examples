@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-aafbc0b9d08fa0c3966cb819a0c9f1c0> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#movies which were set in the future when they were releast, but this future is now in the past
+SELECT ?film ?filmLabel  (MIN(?pubDate) AS ?pubDate) ?periodTime WHERE {
+  #instance of film (or any subclass)
+  ?film wdt:P31/wdt:P279* wd:Q11424.
+  #set in a period
+  ?film p:P2408 ?periodStatement.
+  ?periodStatement ps:P2408 ?period.
+  #either the period statement has an earliest date (P1319) or latest date (P1326) qualifier
+  OPTIONAL { ?periodStatement pq:P1319 ?periodTime1. }
+  OPTIONAL { ?periodStatement pq:P1326 ?periodTime2. }
+  #or the period has a start time(P580) or a point in time (P585)
+  OPTIONAL { ?period wdt:P580 ?periodTime3. }
+  OPTIONAL { ?period wdt:P585 ?periodTime4. }
+  BIND(COALESCE(?periodTime1, ?periodTime2, ?periodTime3, ?periodTime4) AS ?periodTime)
+
+  #film has a publication date
+  ?film wdt:P577 ?pubDate.
+  #period is after publication date but before current time
+  FILTER ((?periodTime >= ?pubDate) && (?periodTime <= NOW()))
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?film ?filmLabel ?periodTime""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Frog23/My_Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

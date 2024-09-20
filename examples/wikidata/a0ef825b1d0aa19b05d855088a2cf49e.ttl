@@ -1,0 +1,79 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a0ef825b1d0aa19b05d855088a2cf49e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Rear Admiral of the Squadron issue
+SELECT DISTINCT ?person ?personLabel ?givenLabel ?familyLabel ?timeVice ?timeRear ?timeCaptain ?timeDeath ?threeID WHERE {
+  # restrict to known case of Paul Minchin
+  # BIND (wd:Q75707296 AS ?person) .
+  # restrict to known case of Isaac Coffin
+  # BIND (wd:Q7527341 AS ?person) .
+  VALUES ?person {wd:Q75707296 wd:Q7527341 wd:Q75245560}
+  
+  # Human
+  ?person wdt:P31 wd:Q5 .
+
+  # branch of service is Royal Navy
+  ?person wdt:P241 wd:Q172771 .
+  
+  optional {
+    # given name
+    ?person wdt:P735 ?given .
+  }
+
+  optional {
+    # family name
+    ?person wdt:P734 ?family .
+  }
+  
+  optional {
+    # Three Decks person ID
+    ?person wdt:P7389 ?threeID .
+  }
+
+  # There should only be one date for captain (or post captain)
+  optional {
+    ?person p:P410 ?stmtCaptain .
+    ?stmtCaptain ps:P410/wdt:P279* wd:Q5036514 .
+    ?stmtCaptain pq:P580 ?timeCaptain .
+  }
+  
+  # There may be several dates for rear admiral
+  optional {
+    # ?person p:P410 ?stmtRear .
+    # ?stmtRear ps:P410/wdt:P279* wd:Q15615347 .
+    # ?stmtRear pq:P580 ?timeRear .
+    SELECT ?person (MIN(?dRear) AS ?timeRear) WHERE {
+      ?person p:P410 ?stmtRear .
+      ?stmtRear ps:P410/wdt:P279* wd:Q15615347 .
+      ?stmtRear pq:P580 ?dRear .
+    } GROUP BY ?person
+  }
+  
+  # There may be several dates for vice admiral
+  optional {
+    SELECT ?person (MIN(?dVice) AS ?timeVice) WHERE {
+      ?person p:P410 ?stmtVice .
+      ?stmtVice ps:P410/wdt:P279* wd:Q4902790 .
+      ?stmtVice pq:P580 ?dVice .
+    } GROUP BY ?person
+  }
+  
+  optional {
+    ?person wdt:P570 ?timeDeath .
+  }
+  
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+  }
+}
+ORDER BY ?timeDeath""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Glrx>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

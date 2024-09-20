@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a75188d077ca49ac1f3cdc902b8f3cd6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?inst_subp_dc ?classLabel 
+WHERE {
+  # Subclasses or equivalent subproperty up to 1. order
+  {
+    bind (wd:Q11446 as ?class)
+  } # 0. order subclasses
+  union
+  {
+    _:sp1 wdt:P1647? wd:P279 . 
+    _:sp1 wikibase:directClaim ?class_subp_dc . 
+    ?class ?class_subp_dc wd:Q11446 . 
+  } # 1. order subclasses
+  #union
+  #{
+  #  _:sp2 wdt:P1647? wd:P279 . 
+  #  _:sp2 wikibase:directClaim ?class_subp_dc . 
+  #  _:c1 ?class_subp_dc wd:Q11446 . 
+  #  ?class ?class_subp_dc _:c1 . 
+  #} # 2. order subclasses 
+
+  # Instance of or equivalent subproperty predicates
+  _:sp3 wdt:P1647? wd:P31 .
+  _:sp3 wikibase:directClaim ?inst_subp_dc .
+
+  # Derived items
+  ?item ?inst_subp_dc ?class .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

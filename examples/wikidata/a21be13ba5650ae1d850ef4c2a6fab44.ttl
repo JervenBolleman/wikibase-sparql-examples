@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a21be13ba5650ae1d850ef4c2a6fab44> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?articlecount
+WITH
+{
+  SELECT ?item
+  WHERE
+  {
+    ?item wdt:P570 ?deathdate .
+    hint:Prior hint:rangeSafe true .
+    FILTER ( ?deathdate < \"1951-00-00\"^^xsd:dateTime && ?deathdate >= \"1950-00-00\"^^xsd:dateTime )
+  }
+}
+AS %1
+WHERE
+{
+  INCLUDE %1
+  ?item wikibase:sitelinks ?articlecount .
+  ?item p:P106 ?occupationStatement .
+  ?occupationStatement ps:P106/wdt:P279* wd:Q2500638 .
+  hint:Prior hint:gearing \"forward\" .
+  MINUS { ?occupationStatement wikibase:rank wikibase:DeprecatedRank . }
+}
+ORDER BY DESC (?articlecount)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

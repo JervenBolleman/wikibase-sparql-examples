@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ad25dde52d80f4be8704b8c4dceb9364> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?type ?typeLabel ?extension ?extensionLabel ?implemented ?usedSince ?usedSinceRef
+WHERE 
+{
+  ?type wdt:P31/wdt:P279* wd:Q19798645.
+  ?type wdt:P31*/wdt:P279* ?super.
+  ?super p:P1535 ?usedByStmt.
+  ?usedByStmt ps:P1535 wd:Q2013.
+  
+  OPTIONAL {?super wdt:P361 ?extension . ?extension wdt:P31 wd:Q6805426}
+  OPTIONAL {?type wdt:P571 ?implemented}
+  OPTIONAL {
+    ?usedByStmt pq:P580 ?usedSince.
+    OPTIONAL { ?usedByStmt prov:wasDerivedFrom [pr:P854 ?usedSinceRef] }
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY COALESCE(?usedSince, ?implemented)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Topics/Wikidata/Data_types>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,90 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a7f5801a9f6a3fec548c8921076e0f26> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q17085703>
+
+SELECT DISTINCT
+  ?description
+  ?value ?valueUrl
+
+  ?wikidata ?wikidataUrl
+
+  ?scholia ?scholiaUrl
+WHERE {
+  BIND(target: AS ?work)
+  {
+    BIND(1 AS ?order)
+    BIND(\"Title\" AS ?description)
+    ?work wdt:P1476 ?value .
+    
+    BIND(CONCAT(SUBSTR(STR(target:), 32), \"&nbsp;↗\") AS ?wikidata)
+    BIND(CONCAT(\"https://www.wikidata.org/wiki/\", SUBSTR(STR(target:), 32)) AS ?wikidataUrl)
+
+    BIND(\"Scholia&nbsp;↗\" AS ?scholia)
+    BIND(CONCAT(\"https://scholia.toolforge.org/podcast/\", SUBSTR(STR(target:), 32)) AS ?scholiaUrl)
+
+  }
+  UNION
+  {
+    SELECT
+      (2 AS ?order)
+      (\"Hosts\" AS ?description)
+      (GROUP_CONCAT(?value_; separator=\", \") AS ?value)
+      # (CONCAT(\"#authors/\", GROUP_CONCAT(?q; separator=\",\")) AS ?valueUrl)
+    {
+      BIND(1 AS ?dummy)
+      target: wdt:P371 ?iri .
+      BIND(SUBSTR(STR(?iri), 32) AS ?q) 
+      ?iri rdfs:label ?value_string . 
+      FILTER (LANG(?value_string) = 'en')
+      BIND(COALESCE(?value_string, ?q) AS ?value_)
+    }
+    GROUP BY ?dummy
+  }
+  UNION
+  {
+    BIND(2.5 AS ?order)
+    BIND(\"Language\" AS ?description)
+    ?work wdt:P407 ?iri .
+    BIND(SUBSTR(STR(?iri), 32) AS ?q) 
+    ?iri rdfs:label ?value_string .
+    FILTER (LANG(?value_string) = 'en')
+    BIND(STR(?value_string) AS ?value)
+    BIND(CONCAT(\"#language/\", ?q) AS ?valueUrl)
+  }
+  UNION
+  {
+    SELECT
+      (8 AS ?order)
+      (\"Topics\" AS ?description)
+      (GROUP_CONCAT(?value_; separator=\", \") AS ?value)
+      # (CONCAT(\"#topics/\", GROUP_CONCAT(?q; separator=\",\")) AS ?valueUrl)
+    {
+      BIND(1 AS ?dummy)
+      target: wdt:P921 ?iri .
+      BIND(SUBSTR(STR(?iri), 32) AS ?q) 
+      ?iri rdfs:label ?value_string . 
+      FILTER (LANG(?value_string) = 'en')
+      BIND(COALESCE(?value_string, ?q) AS ?value_)
+    }
+    GROUP BY ?dummy
+  }
+  UNION
+  {
+    BIND(11 AS ?order)
+    BIND(\"Homepage\" AS ?description)
+    ?work wdt:P856 ?valueUrl .
+    BIND(STR(?valueUrl) AS ?value)
+  }
+} 
+ORDER BY ?order""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:podcast>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

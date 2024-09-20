@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ada4dc8e28f6592da026340a3fff2bf7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?player ?playerLabel ?height_in_cm
+WHERE
+{
+  ?player wdt:P31 wd:Q5 . # ?player is human
+  ?player wdt:P21 wd:Q6581097 . # ?player is male
+  ?player wdt:P106 wd:Q10833314 . # ?player is tennis player
+  OPTIONAL {
+    ?player p:P2048 / psn:P2048 / wikibase:quantityAmount ?normalized_height .
+     BIND (?normalized_height * 100 AS ?height_in_cm)
+  }
+  
+  wd:Q102113 wdt:P527 ?grand_slam . # ?grand_slam is a tennis grand slam tournament
+  ?grand_slam_for_year wdt:P31 ?grand_slam . # ?grand_slam_for_year is a grand slam tourmament for a certain year
+  ?event wdt:P361 ?grand_slam_for_year . # event is grand slam event
+  ?event wdt:P2094 wd:Q16893072 . # event is a men's singles event
+  ?event wdt:P1346 ?player . # ?player won ?event
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?player ?playerLabel ?height_in_cm
+ORDER BY DESC(?height_in_cm)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

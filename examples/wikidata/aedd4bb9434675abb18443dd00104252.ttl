@@ -1,0 +1,94 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-aedd4bb9434675abb18443dd00104252> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:BarChart
+SELECT
+  ?mesEtiqueta
+  ?conteo
+# Subconsulta para obtener todos los peruanes que existen en Wikidata
+WITH {
+  SELECT DISTINCT
+    ?peruane
+  {
+    {?peruane wdt:P27 wd:Q419 }
+    UNION
+    {?peruane wdt:P19/wdt:P131* wd:Q419 }
+    UNION
+    {?peruane wdt:P1532 wd:Q419}
+  }
+} AS %peruane
+# Subconsulta para obtener el conteo de nacimientos de peruanos por
+# mes
+WITH {
+  SELECT
+    ?mes
+    (COUNT(?mes) AS ?conteo)
+  {
+    INCLUDE %peruane.
+    # Usando p:P569 y psv:P569, podemos saber que fechas de nacimiento
+    # especifican el mes. Recuerde que cuando la fecha no tiene mes ni
+    # dia, entonces la fecha se considera como Enero 1. Mayor
+    # información sobre este comportamiento puede ser encontrada en
+    # https://phabricator.wikimedia.org/T159160
+    #
+    # Especificando la precisión, nos podemos asegurar que la fecha de
+    # nacimiento tenga, al menos, mes.
+    #
+    # Mayor información sobre fechas y precisiones puede ser
+    # encontrada en
+    # https://en.wikibooks.org/wiki/SPARQL/WIKIDATA_Precision,_Units_and_Coordinates
+    VALUES ?precisión {10 11}.
+
+    ?peruane p:P569 [
+      psv:P569 [
+        wikibase:timeValue ?fechaDeNacimiento;
+        wikibase:timePrecision ?precisión
+      ]
+    ].
+
+    LET(?mes := MONTH(?fechaDeNacimiento)).
+  }
+  GROUP BY ?mes
+} AS %conteo
+# Subconsulta para convertir el número de un més a su versión
+# escrita. Por ejemplo, «1» a «Enero» o «2» a «Febrero».
+WITH {
+  SELECT
+    ?mes
+    ?mesEtiqueta
+  {
+    INCLUDE %conteo.
+    LET(?mesEtiqueta := COALESCE(
+      IF(?mes = 1, \"Enero\", 1/0),
+      IF(?mes = 2, \"Febrero\", 1/0),
+      IF(?mes = 3, \"Marzo\", 1/0),
+      IF(?mes = 4, \"Abril\", 1/0),
+      IF(?mes = 5, \"Mayo\", 1/0),
+      IF(?mes = 6, \"Junio\", 1/0),
+      IF(?mes = 7, \"Julio\", 1/0),
+      IF(?mes = 8, \"Agosto\", 1/0),
+      IF(?mes = 9, \"Septiembre\", 1/0),
+      IF(?mes = 10, \"Octubre\", 1/0),
+      IF(?mes = 11, \"Noviembre\", 1/0),
+      IF(?mes = 12, \"Diciembre\", 1/0)
+    ))
+  }
+}
+AS %mesEtiqueta
+{
+  INCLUDE %mesEtiqueta.
+  INCLUDE %conteo.
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/de>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,55 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a75ed10a1169a13d63cfdd8db40d928e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q56459943>
+
+SELECT
+  (xsd:date(MIN(?start)) AS ?date)  
+
+  ?event ?eventLabel
+  (CONCAT(\"#scientificevent/\", SUBSTR(STR(?event), 32)) AS ?eventUrl)
+
+  (GROUP_CONCAT(DISTINCT ?role; separator=\", \") AS ?roles)
+  (GROUP_CONCAT(DISTINCT ?location_label; separator=\", \") AS ?locations)
+WHERE {
+    BIND(target: AS ?person)
+    {
+      # speaker
+      ?speaker_statement ps:P823 ?person . 
+      ?event p:P823 ?speaker_statement .
+      OPTIONAL {
+        ?speaker_statement pq:P3831 / rdfs:label ?speaker_role .
+        FILTER (LANG(?speaker_role) = \"en\")
+      }
+      BIND(COALESCE(?speaker_role, \"speaker\") AS ?role)
+    }
+    UNION
+    {
+      # organizer
+      ?organizer_statement ps:P664 ?person .
+      ?event p:P664 ?organizer_statement . 
+      OPTIONAL {
+        ?organizer_statement pq:P3831 / rdfs:label ?organizer_role .
+        FILTER (LANG(?organizer_role) = \"en\")
+      }
+      BIND(COALESCE(?organizer_role, \"organizer\") AS ?role)
+    }
+    UNION
+    { 
+      # participant
+      ?person wdt:P1344| wdt:P585 ?start }
+ 
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,da,de,es,fr,jp,no,ru,sv,zh\". }
+}
+GROUP BY ?event ?eventLabel
+ORDER BY DESC(?date)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:author>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

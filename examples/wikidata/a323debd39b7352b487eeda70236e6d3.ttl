@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a323debd39b7352b487eeda70236e6d3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Query to return latitudes and longitudes for places in Paris
+
+SELECT (COUNT(?a) AS ?count) (MIN(?lat) AS ?min_lat) (MIN(?long) AS ?min_long) (MAX(?lat) AS ?max_lat) (MAX(?long) AS ?max_long)  WHERE {
+  ?a wdt:P131+ wd:Q90 .  # administrative territorial entity = Paris
+
+  ?a p:P625 ?statement . # coordinate-location statement
+  ?statement psv:P625 ?coordinate_node .
+  ?coordinate_node wikibase:geoLatitude ?lat .
+  ?coordinate_node wikibase:geoLongitude ?long .
+
+  {
+    SELECT ?a (COUNT(?a) AS ?count_stmt) WHERE {
+      ?a wdt:P131+ wd:Q90 .
+      ?a p:P625 ?statement
+    } GROUP BY ?a HAVING (?count_stmt < 2)
+  }
+
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

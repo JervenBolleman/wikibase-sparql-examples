@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ad73ed069bff493ab62d2685fc071e9a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel (GROUP_CONCAT(DISTINCT ?value; SEPARATOR = \" \") AS ?trailer) WHERE {
+  {
+    ?item p:P1651 ?statement.
+    ?statement ps:P1651 ?v;
+      pq:P3831 wd:Q65972034.
+    BIND(CONCAT(\"https://www.youtube.com/watch?v=\", ?v) AS ?value)
+  }
+  UNION
+  {
+    ?item p:P10 ?statement.
+    ?statement ps:P10 ?v;
+      pq:P3831 wd:Q65972034.
+    BIND(CONCAT(\"[\", STR(?v), \" C]\") AS ?value)
+  }
+  ?item (wdt:P31/(wdt:P279*)) wd:Q7889.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+GROUP BY ?item ?itemLabel
+ORDER BY DESC (xsd:integer(STRAFTER(STR(?item), \"Q\")))""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Video_games/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

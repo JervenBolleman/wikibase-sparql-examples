@@ -1,0 +1,69 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a250afc7eaf3ad0a571eee5880298b10> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SSELECT ?item ?itemLabel ?property ?propertyLabel ?statement
+WITH {
+  SELECT DISTINCT ?item WHERE {
+    ?item wdt:P361 wd:Q15852122.
+  }
+} AS %items
+WITH {
+  SELECT ?item ?itemLabel WHERE {
+    INCLUDE %items.
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,fr,it,en\". }
+  }
+} AS %itemLabels
+WITH {
+  SELECT ?item ?property ?statement WHERE {
+    INCLUDE %items.
+    ?property wikibase:claim ?p.
+    ?item ?p ?statement.
+    MINUS {
+      # TODO check what counts as good reference
+      ?statement prov:wasDerivedFrom [
+        pr:P248|pr:P854 ?goodReference
+      ].
+    }
+    # TODO expand list of properties that don’t need good references:
+    FILTER(?p NOT IN (p:P373,  #commons category
+                      p:P856,  #official website
+                      p:P18,   #image
+                      p:P227,   #identifier with weblink
+                      p:P214,   #identifier with weblink
+                      p:P269,   #identifier with weblink
+                      p:P2427,  #identifier with weblink
+                      p:P213,   #identifier with weblink
+                      p:P4678,  #identifier with weblink
+                      p:P3153,  #identifier with weblink
+                      p:P902    #identifier with weblink
+                      ))  
+  }
+} AS %statements
+WITH {
+  SELECT DISTINCT ?property WHERE {
+    INCLUDE %statements.
+  }
+} AS %properties
+WITH {
+  SELECT ?property ?propertyLabel WHERE {
+    INCLUDE %properties.
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,fr,it,en\". }
+  }
+} AS %propertyLabels
+WHERE {
+  INCLUDE %statements.
+  INCLUDE %itemLabels.
+  INCLUDE %propertyLabels.
+}
+
+ORDER BY ?item""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Beat_Estermann/WD-Intro-2020-08-25>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

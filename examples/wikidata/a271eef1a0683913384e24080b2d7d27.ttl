@@ -1,0 +1,86 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a271eef1a0683913384e24080b2d7d27> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Kategorie Künstler(München) inclusive Unterkategorien
+SELECT DISTINCT ?title ?page_title ?article ?item ?statements (GROUP_CONCAT(DISTINCT ?klasse;separator=\", \") as ?art) ?geboren_in ?jahr ?gestorben_in (GROUP_CONCAT(DISTINCT ?wirkortLabel;separator=\", \") as ?tätig_in) (GROUP_CONCAT(DISTINCT ?beruf;separator=\", \") as ?tätig_als) WHERE {
+   VALUES ?title { \"Kategorie: Künstler_(München)\" 
+\"Kategorie: Architekt_(München)\" 
+\"Kategorie: Grafiker_(München)\" 
+\"Kategorie: Intendant_(Bayerisches_Staatsschauspiel)\" 
+\"Kategorie: Intendant_(Bayerische_Staatsoper)\" 
+\"Kategorie: Musikdirektor_(Bayerische_Staatsoper)\" 
+\"Kategorie: Baumeister_(München)\" 
+\"Kategorie: Bildender_Künstler_(München)\" 
+\"Kategorie: Hochschullehrer_(Akademie_der_Bildenden_Künste_München)\" 
+\"Kategorie: Ehrenmitglied_der_Akademie_der_Bildenden_Künste_München\" 
+\"Kategorie: Hochschullehrer_(Hochschule_für_Musik_und_Theater_München)\" 
+\"Kategorie: Fotograf_(München)\" 
+\"Kategorie: Maler_(München)\" 
+\"Kategorie: Musiker_(München)\" 
+\"Kategorie: Darstellender_Künstler_(München)\" 
+\"Kategorie: Generalmusikdirektor_(Bayerische_Staatsoper)\" 
+\"Kategorie: Bildhauer_(München)\" 
+\"Kategorie: Komiker_(München)\" 
+\"Kategorie: Intendant_(Gärtnerplatztheater)\"  }
+    SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:endpoint \"de.wikipedia.org\";
+                     wikibase:api \"Generator\";
+                     mwapi:generator \"categorymembers\";
+                     mwapi:gcmtitle ?title;
+                     mwapi:gcmprop \"ids%7Ctitle%7Ctype\";
+                     mwapi:gcmlimit \"max\".
+     ?member wikibase:apiOutput mwapi:title.
+     ?ns wikibase:apiOutput \"@ns\".
+     ?item wikibase:apiOutputItem mwapi:item.
+  }
+  FILTER(BOUND(?item) && ?ns = \"0\")
+  OPTIONAL {   ?article schema:about ?item;
+      schema:isPartOf <https://de.wikipedia.org/>;
+      schema:name ?page_title.
+            }  
+OPTIONAL {  ?item wikibase:statements ?statements. }
+      OPTIONAL {
+    ?item wdt:P19 ?geburtsort.
+    }
+    OPTIONAL {
+    ?item wdt:P569 ?geboren_am.
+    }
+  OPTIONAL {
+    ?item wdt:P20 ?sterbeort.
+    }
+  OPTIONAL {
+    ?item wdt:P937 ?wirkort.
+    }
+  OPTIONAL {
+    ?item wdt:P21 ?gender.
+    }
+  OPTIONAL {
+    ?item wdt:P106 ?occupation.
+    }  
+  OPTIONAL {
+    ?item wdt:P31 ?class.
+    }  
+  FILTER(BOUND(?class))
+  BIND(IF((?class = wd:Q5),?gender,?class) AS ?cl).
+  BIND(YEAR(?geboren_am) AS ?jahr)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+            ?geburtsort rdfs:label ?geboren_in .
+            ?sterbeort rdfs:label ?gestorben_in .
+            ?wirkort rdfs:label ?wirkortLabel .
+            ?gender rdfs:label ?geschlecht.
+            ?occupation rdfs:label ?beruf.
+            ?cl rdfs:label ?klasse.
+    }
+}
+group by ?title ?page_title ?article ?item ?statements ?geboren_in ?jahr ?gestorben_in
+order by ?title ?page_title""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:No39188/personenQueries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

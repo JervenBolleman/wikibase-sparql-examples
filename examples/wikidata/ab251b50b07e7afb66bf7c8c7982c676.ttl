@@ -1,0 +1,53 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ab251b50b07e7afb66bf7c8c7982c676> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT DISTINCT ?locLabel ?airport ?airportLabel ?coord ?long ?lat ?ICAO ?IATA ?Local_Code ?dist
+{
+  {
+  SELECT DISTINCT ?loc ?airport (SAMPLE(?_coord) AS ?coord) (SAMPLE(?_long) AS ?long) (SAMPLE(?_lat) AS ?lat) ?ICAO ?IATA (SAMPLE(?Local_Code) AS ?Local_Code)
+  {
+    ?airport wdt:P31/(wdt:P279*) wd:Q62447;
+      wdt:P17 wd:Q30.
+    MINUS { ?airport wdt:P576 _:b2. }
+    MINUS { ?airport wdt:P582 _:b3. }
+    MINUS { ?airport wdt:P31/(wdt:P279*) wd:Q1311670. }
+    MINUS { ?airport wdt:P31/(wdt:P279*) wd:Q7373622. }
+    MINUS { ?airport wdt:P31/(wdt:P279*) wd:Q2265915. }
+    MINUS { ?airport wdt:P31/(wdt:P279*) wd:Q44665966. }
+    MINUS { ?airport wdt:P31/(wdt:P279*) wd:Q782667. }
+    MINUS { ?airport rdf:type wdno:P17. }
+    OPTIONAL {
+      ?airport p:P625 [
+        a wikibase:BestRank; ps:P625 ?_coord;
+        psv:P625 [ wikibase:geoLongitude ?_long; wikibase:geoLatitude ?_lat ]
+      ] .
+    } .
+    OPTIONAL { ?airport wdt:P239 ?ICAO. }
+    OPTIONAL { ?airport wdt:P238 ?IATA. }
+    OPTIONAL { ?airport wdt:P240 ?Local_Code. }
+    OPTIONAL {
+      ?airport wdt:P131* ?loc.
+      #?loc wdt:P31 ?type.
+      #?type (wdt:P279*) wd:Q35657.
+    ?loc wdt:P31/wdt:P279* wd:Q10864048 .
+    } .
+  } GROUP BY ?loc ?airport ?ICAO ?IATA
+  } .
+  wd:Q934 wdt:P625 ?pole .
+  BIND( geof:distance( ?pole, ?coord ) AS ?dist ) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,fr,[AUTO_LANGUAGE]\". }
+}
+ORDER BY ?locLabel ?airport ?airportLabel  ?dist""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Bouzinac/D%C3%A9doublonnages>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

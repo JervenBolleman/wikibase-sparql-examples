@@ -1,0 +1,52 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a53f3e9f49efdcfc62f4915a051b4aea> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q128933830>
+
+SELECT 
+  ?score
+
+  ?exhibition ?exhibitionLabel 
+  (CONCAT(\"#exhibition/\", SUBSTR(STR(?exhibition), 32)) AS ?exhibitionUrl)
+  ?exhibitionDescription
+
+  ?example_artwork ?example_artworkLabel
+  (CONCAT(\"#artwork/\", SUBSTR(STR(?example_artwork), 32)) AS ?example_artworkUrl)
+WITH {
+  SELECT
+    (SUM(?score_) AS ?score)
+    ?exhibition
+    (SAMPLE(?artwork) AS ?example_artwork)
+  WHERE {
+    {
+      BIND(2 AS ?score_)
+      ?artwork wdt:P608 target: , ?exhibition .
+    }
+    UNION
+    {
+      BIND(1 AS ?score_)
+      ?artwork wdt:P608 target: ;
+               wdt:P170 ?artist .
+      ?artist ^wdt:P170 / wdt:P608 ?exhibition .
+    }
+    FILTER (?exhibition != target:)
+  }
+  GROUP BY ?exhibition
+  ORDER BY DESC(?score)
+  LIMIT 500
+} AS %exhibitions
+WHERE {
+  INCLUDE %exhibitions
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en,cz,da,de,fr,nb,nn,sv\". }
+}
+ORDER BY DESC(?score)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:exhibition>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

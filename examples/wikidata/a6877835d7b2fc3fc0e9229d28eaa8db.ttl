@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a6877835d7b2fc3fc0e9229d28eaa8db> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """WITH {
+  # their categories (via P373 or commonswiki sitelink, which gets a bit complicated)
+  SELECT ?item ?commonsCategory WHERE {
+    hint:SubQuery hint:optimizer \"None\". # we have to disable the optimizer for this subquery because it gets confused by the ?commonsCategoryStatementEn part
+    INCLUDE %items.
+    OPTIONAL {
+      ?item wdt:P373 ?commonsCategoryStatement.
+      BIND(STRLANG(CONCAT(\"Category:\", ?commonsCategoryStatement), \"en\") AS ?commonsCategoryStatementEn)
+      ?commonsCategoryFromStatement schema:name ?commonsCategoryStatementEn;
+                                    schema:isPartOf <https://commons.wikimedia.org/>.
+    }
+    OPTIONAL {
+      ?commonsCategoryFromSitelink schema:about ?item;
+                                   schema:isPartOf <https://commons.wikimedia.org/>.
+      FILTER(STRSTARTS(STR(?commonsCategoryFromSitelink), \"https://commons.wikimedia.org/wiki/Category:\"))
+    }
+    BIND(COALESCE(?commonsCategoryFromStatement, ?commonsCategoryFromSitelink) AS ?commonsCategory)
+    FILTER(BOUND(?commonsCategory))
+  }
+} AS %itemsWithCommonsCategories""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/Commons_categories>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

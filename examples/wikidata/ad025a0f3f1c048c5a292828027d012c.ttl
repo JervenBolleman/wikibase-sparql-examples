@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ad025a0f3f1c048c5a292828027d012c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT distinct ?item ?itemLabel WHERE {
+  
+                                           #some means of cutting down the number of items considered
+  {
+   ?item wdt:P31 wd:Q55488.
+   ?item wdt:P17 wd:Q142. 
+  }
+  hint:Prior hint:runFirst true .
+  
+  ?item p:P18 ?stat .                        # has an image
+  ?stat wikibase:rank wikibase:NormalRank .  # normal rank
+
+  ?item p:P18 ?stat2 . 
+  ?stat2 wikibase:rank wikibase:NormalRank . 
+
+  filter(str(?stat) > str(?stat2) )          # image statements are different
+                                             # no P18s of other ranks
+  filter not exists {?item p:P18/wikibase:rank wikibase:PreferredRank . }
+  filter not exists {?item p:P18/wikibase:rank wikibase:DeprecatedRank . }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

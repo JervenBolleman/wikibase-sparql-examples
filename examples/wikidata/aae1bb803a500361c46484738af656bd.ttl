@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-aae1bb803a500361c46484738af656bd> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX v: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+
+SELECT ?firstLetter (COUNT(?muni) AS ?munis) (ROUND(MIN(?pop)) AS ?min) (ROUND(AVG(?pop)) AS ?average) (ROUND(MAX(?pop)) AS ?max) (SUM(?pop) AS ?population) WHERE {
+  VALUES ?instance {wd:Q262166 wd:Q42744322} .
+  ?muni wdt:P439 ?key .
+  ?muni p:P31 ?instanceBlock . 
+  ?instanceBlock v:P31 ?instance .
+  FILTER NOT EXISTS {?instanceBlock pq:P582 ?end} .
+  ?muni wdt:P1082 ?pop .
+  ?muni rdfs:label ?muniName . FILTER(lang(?muniName) = \"de\") .
+  BIND (SUBSTR(?muniName,1,1) AS ?firstLetter)
+  SERVICE wikibase:label{bd:serviceParam wikibase:language \"de\"}
+}
+GROUP BY ?firstLetter
+ORDER BY ?firstLetter""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jobu0101/Verwaltungsaufbau_Deutschlands>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

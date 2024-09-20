@@ -1,0 +1,43 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a29a5f6692171bced667b835a77ac87c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q15817015>
+
+SELECT
+  ?count
+  (CONCAT(\"#venue/\", SUBSTR(STR(target:), 32), 
+          \"/topic/\", SUBSTR(STR(?topic), 32)) AS ?countUrl)
+
+  ?topic ?topicLabel
+  (CONCAT(\"#topic/\", SUBSTR(STR(?topic), 32)) AS ?topicUrl)
+
+  ?example_work ?example_workLabel
+  (CONCAT(\"#work/\", SUBSTR(STR(?example_work), 32)) AS ?example_workUrl)
+WITH {
+  SELECT 
+    (COUNT(?work) as ?count)
+    ?topic
+    (SAMPLE(?work) AS ?example_work)
+  WHERE {
+    ?work wdt:P1433 target: ;
+          wdt:P921 ?topic .
+  }
+  GROUP BY ?topic
+  ORDER BY DESC(?count)
+  LIMIT 200
+} AS %result
+WHERE {
+  INCLUDE %result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . } 
+}
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:venue>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

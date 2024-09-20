@@ -1,0 +1,60 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a7b6704f37aafd2e09d5738a96aaa8c6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#----------------------------------------------------------
+#  Personen mit fehlenden Familiennamen (Result copy to QuickStatement)
+#----------------------------------------------------------
+SELECT DISTINCT ?item_output2 ?property ?lastname_item_output2 ?c ?itemLabel ?lastname ?itemDescription
+WITH {
+  SELECT ?lastname (SAMPLE(?item) AS ?lastname_item) {
+    ?item wdt:P31 wd:Q101352 ;                     # family names
+          wdt:P407 wd:Q188 ;                       # in German
+          rdfs:label ?lastname FILTER(LANG(?lastname) = \"de\")
+  } GROUP BY ?lastname HAVING(COUNT(?item) = 1)    # non-ambiguous, just in case
+} AS %SURNAMES
+{
+  hint:Query hint:optimizer \"None\" .               # Enable top-to-bottom execution
+  SERVICE bd:slice {
+    ?item wdt:P31 wd:Q5 .                          # only human
+    FILTER NOT EXISTS { ?item wdt:P734 [] } .      # no family name
+    bd:serviceParam bd:slice.offset 500000 .
+    bd:serviceParam bd:slice.limit 10000 .
+  }                 
+
+  ?item rdfs:label ?itemLabel .              
+  FILTER(LANG(?itemLabel) = 'de') .                 # german label 
+  FILTER NOT EXISTS { ?item wdt:P734 [] } .         # no family name
+  FILTER NOT EXISTS { ?item wdt:P1950 [] } .        # no first family name in Portuguese name
+  FILTER NOT EXISTS { ?item wdt:P742 [] } .         # pseudonym
+  
+  ?item schema:description ?itemDescription . 
+  filter (lang(?itemDescription) = \"de\").
+  FILTER(REGEX(STR(?itemDescription), \"deutsch|Schweizer|österreichisch\")).         # only German Person
+  
+  FILTER(REGEX(STR(?itemLabel), \"^\\\\p{Lu}[\\\\p{Ll}-]+( \\\\p{Lu}[\\\\p{Ll}-]+)+$\")) .    # like: Aaaa Bbbb Cccc 
+  BIND(REPLACE(?itemLabel, \"^.* ([^\\\\s]+)$\", \"$1\") AS ?lastname)                    # get lastname
+  FILTER(REGEX(STR(?lastname), \"...\")) .                                            # minimum 3 letters
+  
+  INCLUDE %SURNAMES                                                                 # hashjoin!
+
+  # OUTPUT
+  BIND(STR(?item) as ?item_output) .
+  BIND(REPLACE(?item_output, \"http://www.wikidata.org/entity/\", \"\", \"i\") AS ?item_output2) .
+  BIND(STR(\"P734\") as ?property) .
+  BIND(STR(\"#\") as ?c) .
+  BIND(STR(?lastname_item) as ?lastname_item_output) .
+  BIND(REPLACE(?lastname_item_output, \"http://www.wikidata.org/entity/\", \"\", \"i\") AS ?lastname_item_output2) .
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }  
+} GROUP BY ?item_output2 ?property ?lastname_item_output2 ?c ?itemLabel ?lastname ?itemDescription
+order by ?lastname ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stefan_K%C3%BChn/Persondata>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

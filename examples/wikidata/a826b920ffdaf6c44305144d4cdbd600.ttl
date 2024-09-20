@@ -1,0 +1,79 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a826b920ffdaf6c44305144d4cdbd600> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Three-layer MEDRS prototype algorithm, run on the SS focus list.
+
+#Not federated: the whitelist and blacklist items are given on Wikidata.
+
+#The MEDASSESS, MEDDATE and MEDREV jargon refers to section shortcuts on the MEDRS page
+#at https://en.wikipedia.org/wiki/Wikipedia:Identifying_reliable_sources_(medicine)
+#i.e WP:MEDASSESS and so on.
+
+#This is a minimalist working version of a MEDRS algorithm
+#that does enough to show where the edge case whitelists and blacklists
+#can be placed in a SPARQL query. 
+#Those lists are only present in placeholder form with realistic data, but the
+#VALUES statements can be scaled up into longer lists.
+
+#The DOAJ requirement means no \"predatory\" journals would
+#appear, with a caveat entered about start time of DOAJ status.
+
+#The case analysis can incorporate more than two cases, by using a multiple UNION.
+
+SELECT DISTINCT ?item ?itemLabel ?journalLabel
+
+  WHERE {
+  
+    #Layer 1: Wikidata box-ticking  
+    ?item wdt:P5008 wd:Q55439927;
+          wdt:P31 wd:Q7318358;
+          
+    #Allows only \"review article\" under MEDASSESS, so
+    #doesn't allow systematic reviews tagged as such (needs path pattern).
+          
+          wdt:P1433 ?journal.
+     ?journal wdt:P5115 [ ]. 
+    
+    #Tests only for the presence of the DOAJ property, but could be refined 
+    #to compare publication date with the start time of DOAJ approval.
+    #Missing DOAJ information means some journals may wrongly be excluded.
+    
+    #Layer 2: Case analysis for MEDDATE
+    #Currently \"main case\" for filtering by publication date no earlier than 2014, 
+    #to add \"whitelist case\" where MEDDATE is not applied 
+    
+    #Placeholder list of whitelist values held on Wikidata
+    #Q21092296 is a test item.
+    
+    { ?item wdt:P577 ?date.
+     
+    FILTER (?date >= \"2014-01-01T00:00:00Z\"^^xsd:dateTime)}
+    
+    UNION
+    
+    {VALUES ?item { wd:Q21092296 } }
+    
+    #Q21092296 is a review, but too old for the five-year criterion 
+    #and not recognised by publication type on PubMed.
+    #As a demo, it has been tagged \"review article\" on Wikidata.
+    
+    #Layer 3: Filter by MEDREV blacklist
+    
+    MINUS {VALUES ?item { wd:Q26746153 } }
+    
+    #Q26746153 is for a review \"The Potential of Curcumin in Treatment of Spinal Cord Injury\" 
+    #that has been deprecated as a source by WikiMed.
+      
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+             
+      }""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Charles_Matthews/LSHTM_workshop_19_February_2019>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

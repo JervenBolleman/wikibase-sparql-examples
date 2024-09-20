@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-afee392036af367cd767b30c6bb8de58> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q18507561>
+
+SELECT
+  ?count
+
+  ?work ?workLabel
+  (CONCAT(\"#work/\", SUBSTR(STR(?work), 32)) AS ?workUrl)
+  ?workDescription
+WITH {
+  SELECT
+    (COUNT(?work) AS ?count)
+    ?work
+  WHERE {
+    FILTER (target: != ?work)
+    target: (^wdt:P2860| wdt:P2860) / (^wdt:P2860 | wdt:P2860)? ?work .
+  }
+  GROUP BY ?work
+  LIMIT 500
+} AS %result
+WHERE {
+  INCLUDE %result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} 
+ORDER BY DESC(?count)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:work>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

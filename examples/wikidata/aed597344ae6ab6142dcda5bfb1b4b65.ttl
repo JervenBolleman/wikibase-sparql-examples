@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-aed597344ae6ab6142dcda5bfb1b4b65> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Malaysian subjects with no Malay article in Wikipedia
+
+SELECT ?item ?itemLabel ?cnt WHERE {
+{
+  SELECT ?item (COUNT(?sitelink) AS ?cnt) WHERE { 
+  ?item wdt:P27|wdt:P205|wdt:P17 wd:Q833 . #Malaysian subjects.
+  MINUS {?item wdt:P106 wd:Q488111 .} #Minus occupations that would be inappropriate in most situations.
+  MINUS {?item wdt:P106 wd:Q3286043 .}
+  MINUS {?item wdt:P106 wd:Q4610556 .}  
+  ?sitelink schema:about ?item .
+  FILTER NOT EXISTS {
+    ?article schema:about ?item .
+    ?article schema:isPartOf <https://ms.wikipedia.org/> . #Targeting Wikipedia language where subjects has no article.
+  }
+  } GROUP BY ?item ORDER BY DESC (?cnt) #Sorted by amount of articles in other languages.
+}
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],ms,en,zh,ta\" }  #Service to resolve labels in (fallback) languages: automatic user language, Malay, English, Chinese, Tamil.
+} ORDER BY DESC (?cnt)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Malaysia/Query>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

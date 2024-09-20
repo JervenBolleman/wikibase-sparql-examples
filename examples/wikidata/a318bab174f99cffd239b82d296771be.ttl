@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a318bab174f99cffd239b82d296771be> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Au 1er janvier 2017, il y avait 35 416 communes en France.
+SELECT ?insee ?commune 
+WHERE {
+  BIND ( \"2017-01-01\"^^xsd:dateTime as ?dateRecherche ) # Au 1er janvier 2017
+  ?commune p:P374 ?P374node . # existence d'un code Insee
+    ?P374node ps:P374 ?insee . # valeur du code Insee
+    OPTIONAL { ?P374node pq:P580 ?dateDébutCode . } # date de début du code Insee
+    OPTIONAL { ?P374node pq:P582 ?dateFinCode . } # date de fin du code Insee
+    FILTER ( !BOUND(?dateDébutCode) || ?dateDébutCode <= ?dateRecherche ) # ancien code Insee
+    FILTER ( !BOUND(?dateFinCode) || ?dateFinCode > ?dateRecherche ) # futur code Insee
+  { ?commune wdt:P31 wd:Q484170 . } UNION { VALUES ?commune {wd:Q90} } # nature de commune
+    OPTIONAL { ?commune wdt:P571 ?dateCréation . } # date de création
+    OPTIONAL { ?commune wdt:P576 ?dateDissolution . } # date de dissolution
+    FILTER ( !BOUND(?dateCréation) || ?dateCréation <= ?dateRecherche ) # communes futures
+    FILTER ( !BOUND(?dateDissolution) || ?dateDissolution > ?dateRecherche ) # communes passées
+}
+ORDER BY (?insee)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_France/Communes/Liste_des_communes>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

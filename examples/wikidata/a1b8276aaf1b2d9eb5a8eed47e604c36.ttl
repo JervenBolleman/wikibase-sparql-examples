@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a1b8276aaf1b2d9eb5a8eed47e604c36> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Isotopes of elements
+SELECT ?itemLabel ?z ?n ?symbol ?half_life ?half_life_units ?decay_modeLabel ?proportion WHERE {
+  {
+    SELECT ?item ?z ?n ?symbol WHERE {
+      ?isotope_of p:P279 ?stmt.
+      ?stmt ps:P279 wd:Q25276.
+      ?element wdt:P31 wd:Q11344.
+      ?stmt pq:P642 ?element.
+      ?element wdt:P246 ?symbol.
+      ?item wdt:P31 ?isotope_of;
+        wdt:P1148 ?n;
+        wdt:P1086 ?z.
+      MINUS { ?item wdt:P31 wd:Q846110. }
+    }
+  }
+  OPTIONAL {
+    ?item p:P2114 ?half_life_stmt.
+    ?half_life_stmt psv:P2114 ?half_life_val.
+    ?half_life_val wikibase:quantityAmount ?half_life;
+      wikibase:quantityUnit ?half_life_unitname .
+    ?half_life_unitname p:P5061 ?hlu_stmt. 
+    ?hlu_stmt ps:P5061 ?half_life_units.
+    filter (lang(?half_life_units)=\"en\")
+  }
+  OPTIONAL {
+    ?item p:P816 ?decay_stmt.
+    ?decay_stmt pq:P817 ?decay_mode;
+      pq:P1107 ?proportion.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY (?z) (?n)""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

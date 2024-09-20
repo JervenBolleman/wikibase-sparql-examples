@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ab11065d87f940348f1216863fe51374> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Outdoor Gyms with pictures in Wikidata
+#defaultView:Map{\"hide\":[\"?coord\"], \"layer\": \"?layer\"}
+SELECT ?node ?nodeLabel ?nodeDescription ?WikiShootMe ?layer ?countryLabel 
+(SAMPLE(?coord) AS ?coord) 
+(SAMPLE(?img) AS ?img) 
+(SAMPLE(?web) AS ?web) WHERE {
+  
+  ?node wdt:P6104 wd:Q107186275
+  OPTIONAL { ?node wdt:P18 ?img. }
+  OPTIONAL { ?node wdt:P17 ?country. }
+  OPTIONAL { ?node wdt:P856 ?web. }
+  ?node wdt:P625 ?coord.
+
+  BIND(IF(BOUND(?img), \"Picture\", \"Missing picture\") AS ?layer)
+  BIND(URI(CONCAT(\"https://wikishootme.toolforge.org/#q=\", REPLACE(STR(?node), \"http://www.wikidata.org/entity/\", \"\"))) AS ?WikiShootMe)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,sv\". }
+}
+GROUP BY ?node ?nodeLabel ?nodeDescription  ?countryLabel ?layer ?WikiShootMe""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WP_OGyms/Query_examples>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

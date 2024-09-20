@@ -1,0 +1,62 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-acca899b45fbb99e2de860d94f33be49> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# table of 2020 (2021) Summer Olympics medal winners (gold/silver/bronze medalists)
+SELECT DISTINCT ?competition ?competitionLabel ?sportLabel ?competition_classLabel ?sexLabel ?start ?end ?rank ?medalist ?medalistLabel ?countryLabel
+WHERE {
+  # ?competition is instance of (P31) \"subclass of (P279)\" [ZeroOrMorePath (*)] sports competition (Q13406554)
+  ?competition wdt:P31/wdt:P279* wd:Q13406554;
+               # and is part of (P361) [OneOrMorePath (+)] 2020 (2021) Summer Olympics (Q181278)
+               wdt:P361+ wd:Q181278
+  # there should not be ?x, which is part of (P361) ?competition
+  FILTER NOT EXISTS {?x wdt:P361 ?competition
+                     # ?x should not be instance of (P31) \"part of (P361) or subclass of (P279)\" [ZeroOrMorePath (*)] competition stage (Q106635272)
+                     FILTER NOT EXISTS {?x wdt:P31/(wdt:P361|wdt:P279)* wd:Q106635272} }
+  # ?competition should not be instance of (P31) \"part of (P361) or subclass of (P279)\" [ZeroOrMorePath (*)] competition stage (Q106635272)
+  FILTER NOT EXISTS {?competition wdt:P31/(wdt:P361|wdt:P279)* wd:Q106635272}
+  # optional: show ?competition's sport (P641) as ?sport
+  OPTIONAL {?competition wdt:P641 ?sport}
+  # optional: show ?competition's competition class (P2094) as ?competition_class
+  OPTIONAL {?competition wdt:P2094 ?competition_class
+            # optional: show ?competition_class's competition class (P2094) as ?sex
+            OPTIONAL {?competition_class wdt:P2094 ?sex
+                      # define ?sex as male (Q6581097), female (Q6581072), or mixed-sex sports (Q1940854)
+                      ### Note: VALUES has to be inside, not outside, of OPTIONAL.
+                      Values ?sex {wd:Q6581097 wd:Q6581072 wd:Q1940854} } }
+  # optional: show ?competition's start time (P580) as ?start
+  OPTIONAL {?competition wdt:P580 ?start}
+  # optional: show ?competition's end time (P582) as ?end
+  OPTIONAL {?competition wdt:P582 ?end}
+  # optional: ?competition's \"participant \" (P710) or \"participating team\" (P1923) statement is ?x_medalist
+  OPTIONAL {?competition (p:P710|p:P1923) ?x_medalist.
+            # ?x_medalist's value is ?medalist
+            ?x_medalist (ps:P710|ps:P1923) ?medalist;
+                        # ?x_medalist's qualifier \"ranking\" (P1352) is ?rank
+                        pq:P1352 ?rank
+            # ?rank is less than 4
+            ### Note: ?rank<4 can be changed to ?rank=1 (or 2 or 3) for gold (or silver or bronze) medalists.
+            FILTER (?rank<4)
+            # optional: ?x_medalist's qualifier \"country for sport\" (P1532) is ?country1
+            OPTIONAL {?x_medalist pq:P1532 ?country1}
+            # optional: ?medalist's country for sport (P1532) is ?country2
+            OPTIONAL {?medalist wdt:P1532 ?country2}
+            # use IF and Exists to bind ?country1 or ?country2 as ?country:
+            # if ?x_medalist's qualifier \"country for sport\" (P1532), ?country1, exists, bind ?country1 as ?country
+            # otherwise (?country1 doesn't exist), bind ?country2 as ?country
+            BIND(IF(Exists{?x_medalist pq:P1532 ?country1}, ?country1, ?country2) AS ?country) }
+  # ?country is United States (Q30)
+  ### Note: This line can be removed, and, if not removed, United States (Q30) can be replaced with another country.
+  FILTER (?country=wd:Q30)
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

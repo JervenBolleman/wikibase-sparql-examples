@@ -1,0 +1,80 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ab5fc9b41be781412389bf32876bb9f0> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# For a given UK parliament, find
+# - how many MPs sat in it
+# - how many of those have died
+# - how many of those who have died are in the ODNB
+# - how many *overall* are in the ODNB
+#   (remember the ODNB only adds people three years after their death)
+#
+
+SELECT ?start ?percent_died_in_odnb 
+#defaultView:LineChart
+
+WITH {
+  # all MPs with their associated parliament
+  SELECT DISTINCT ?mp ?parliament WHERE {
+    ?mp wdt:P31 wd:Q5.
+      # using the new data model - so limits how far back it goes
+      ?mp p:P39/ps:P39 ?position . 
+      ?position wdt:P279 wd:Q16707842; p:P279/pq:P2937|wdt:P2937 ?parliament.
+    }
+} AS %MPsWithParliament 
+
+WITH {
+  # count of ODNB entries in each parliament
+  SELECT ?parliament (COUNT(DISTINCT ?mp) AS ?odnb) WHERE {
+    INCLUDE %MPsWithParliament.
+    ?mp wdt:P1415 ?odnb
+  }
+  GROUP BY ?parliament
+} AS %odnb 
+
+WITH {
+  # count of dead MPs in each parliament
+  SELECT ?parliament (COUNT(DISTINCT ?mp) AS ?died) WHERE {
+    INCLUDE %MPsWithParliament.
+    ?mp wdt:P570 ?died . 
+  }
+  GROUP BY ?parliament
+} AS %died 
+
+WITH {
+  # count of members entries in each parliament
+  SELECT ?parliament (COUNT(DISTINCT ?mp) AS ?mps) WHERE {
+    ?mp wdt:P31 wd:Q5.
+      ?mp p:P39/ps:P39 ?position.
+      ?position wdt:P279 wd:Q16707842; p:P279/pq:P2937|wdt:P2937 ?parliament.
+  }
+  GROUP BY ?parliament
+} AS %mpcount 
+
+WHERE {
+  # get ?odnb
+  INCLUDE %odnb
+  INCLUDE %mpcount
+  INCLUDE %died
+  BIND(?odnb AS ?odnbcount)
+  BIND(?mps AS ?mpcount)
+  BIND(ROUND(100*(?odnbcount/?mpcount)) AS ?percent_in_odnb) 
+  BIND(?died AS ?diedcount)
+  BIND(ROUND(100*(?odnbcount/?diedcount)) AS ?percent_died_in_odnb) 
+
+  # get parliament dates
+  ?parliament wdt:P571|wdt:P580 ?start.
+  ?parliament wdt:P576|wdt:P582 ?end.
+  # add labels
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?start""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a4ef955a9a5fc1c0b257a24cbd088e6e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+SELECT ?monument ?monumentLabel ?person ?personLabel (SAMPLE(?coordinates_) AS ?coordinates) (SAMPLE(?image_) AS ?image) WITH {
+  SELECT DISTINCT ?monument ?person WHERE {
+    ?monument wdt:P31/wdt:P279* wd:Q4989906;
+              wdt:P138 ?person.
+    MINUS {
+      ?monument ?wdt ?person.
+      FILTER(?wdt != wdt:P138)
+    }
+    ?person wdt:P31 wd:Q5.
+  }
+  LIMIT 100
+} AS %results WHERE {
+  INCLUDE %results.
+  OPTIONAL { ?monument wdt:P625 ?coordinates_. }
+  OPTIONAL { ?monument wdt:P18 ?image_. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?monument ?monumentLabel ?person ?personLabel
+LIMIT 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/monuments_that_are_named_after_somebody_without_being_connected_to_them_by_any_other_property>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

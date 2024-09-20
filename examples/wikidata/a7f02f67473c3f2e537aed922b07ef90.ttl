@@ -1,0 +1,48 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a7f02f67473c3f2e537aed922b07ef90> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Which organisms are known to contain stereoisomers of Beta-Sitosterol (Q121802)?
+SELECT ?taxon_name ?compound ?InChIKey WITH {
+  SELECT ?queryKey ?srsearch ?filter WHERE {
+    VALUES ?queryKey {
+      \"KZJWDPNRJALLNS-VJSFXXLFSA-N\" # beta-sitosterol
+    }
+    BIND (CONCAT(substr($queryKey,1,14), \" haswbstatement:P235\") AS ?srsearch)
+    BIND (CONCAT(\"^\", substr($queryKey,1,14)) AS ?filter)
+  }
+} AS %comps WITH {
+  SELECT ?compound ?InChIKey WHERE {
+    INCLUDE %comps
+            SERVICE wikibase:mwapi {
+              bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+                              wikibase:api \"Search\";
+                              mwapi:srsearch ?srsearch;
+                              mwapi:srlimit \"max\".
+              ?compound wikibase:apiOutputItem mwapi:title.
+            }
+    ?compound wdt:P235 ?InChIKey .
+    FILTER (REGEX(STR(?InChIKey), ?filter))
+    FILTER (?InChIKey != ?queryKey)
+  }
+} AS %compounds
+WHERE {
+  INCLUDE %compounds
+          ?compound (wdt:P703/wdt:P225) ?taxon_name.
+}
+LIMIT 10000""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/de>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/it>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/ru>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/en>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

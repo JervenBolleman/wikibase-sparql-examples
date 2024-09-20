@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-af288bc3658e412a2f3ce927d2565af7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT 
+  ?item ?itemLabel
+  (GROUP_CONCAT(DISTINCT ?typeLabel; SEPARATOR=\", \") AS ?typeLabels)
+  (GROUP_CONCAT(DISTINCT ?districtLabel; SEPARATOR=\", \") AS ?districtLabels)
+  (GROUP_CONCAT(DISTINCT ?crossesLabel; SEPARATOR=\", \") AS ?crossesLabels)
+  (GROUP_CONCAT(DISTINCT ?carriesLabel; SEPARATOR=\", \") AS ?carriesLabels)
+  (SAMPLE(?coords) AS ?coordinates)
+WHERE
+{
+  ?item wdt:P31 / wdt:P279 * wd:Q12280 . # Bridges
+  ?item wdt:P131 + wd:Q90 . hint:Prior hint:gearing \"forward\" . # in Paris
+  ?item wdt:P31 ?type .
+  ?item wdt:P131 ?district .
+  OPTIONAL { ?item wdt:P177 ?crosses . }
+  OPTIONAL { ?item wdt:P205 ?carries . }
+  OPTIONAL { ?item wdt:P625 ?coords . }
+  SERVICE wikibase:label
+  {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr\" .
+    ?item rdfs:label ?itemLabel .
+    ?type rdfs:label ?typeLabel .
+    ?district rdfs:label ?districtLabel .
+    ?crosses rdfs:label ?crossesLabel .
+    ?carries rdfs:label ?carriesLabel .
+  }
+}
+GROUP BY ?item ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

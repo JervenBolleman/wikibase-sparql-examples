@@ -1,0 +1,68 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a9609971139c21dd54cb1bc533579e66> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#---------------------------------------------------------------------------------------
+# Objekte sortiert nach Schlüsselereignissen
+#---------------------------------------------------------------------------------------
+
+
+#defaultView:Table;Map
+SELECT DISTINCT ?item ?itemLabel ?time  ?coordinate ?layer ?image (CONCAT(?street,\" \", ?housenumber) as ?str)
+#?altesdresden
+WHERE {
+          
+   {
+      ?item (wdt:P131/wdt:P279*) wd:Q1731.  # in Dresden
+      ?item wdt:P571 ?time.               # erbaut
+      BIND(\"erbaut\" AS ?layer ) .
+   }
+   union
+   {
+      ?item (wdt:P131/wdt:P279*) wd:Q1731.  
+      ?item wdt:P1249 ?time.                # ?erste schrift
+      BIND(\"ErstErwähnung\" AS ?layer ) .
+   }
+   union
+   {
+      ?item (wdt:P131/wdt:P279*) wd:Q1731.  
+      ?item wdt:P813 ?time.                # ?auflösung
+      BIND(\"Auflösung\" AS ?layer ) .
+   } 
+   union
+   {
+      ?item (wdt:P131/wdt:P279*) wd:Q1731.  
+      ?item wdt:P1619 ?time.                # ?Einweihung
+      BIND(\"Einweihung\" AS ?layer ) .
+   } 
+   #union
+   #{
+   #   ?item (wdt:P131/wdt:P279*) wd:Q1731.  
+   #   ?item wdt:P793 [  pq:* ?time ].                # ?Schluesselereignis
+   #   BIND(\"Schluesselereignis\" AS ?layer ) .
+   #}   
+  
+
+
+  
+  FILTER (?time <= \"1946-01-01T00:00:00Z\"^^xsd:dateTime)  # vor 1945
+  
+  #OPTIONAL { ?item wdt:P11855 ?altesdresden. }
+  MINUS { ?item wdt:P11855 [] } . # kein altesdresden
+
+  OPTIONAL { ?item wdt:P18 ?image . }
+  OPTIONAL { ?item wdt:P625 ?coordinate . }
+  OPTIONAL { ?item wdt:P669 ?street.  }                     # Straße
+  OPTIONAL { ?item p:P669 [  pq:P670 ?housenumber ]  . }    # Hausnummer    
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en,[AUTO_LANGUAGE]\". }
+}
+order by ?time""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stefan_K%C3%BChn/altesdresden>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

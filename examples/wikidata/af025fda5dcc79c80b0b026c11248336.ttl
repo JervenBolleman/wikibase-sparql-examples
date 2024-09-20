@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-af025fda5dcc79c80b0b026c11248336> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?journalLabel ?item ?itemLabel
+WITH {
+  SELECT ?journal WHERE {
+    ?journal (wdt:P31/(wdt:P279*)) wd:Q5633421;
+             wdt:P921 wd:Q39286.
+    ?journal wdt:P1476 ?jtitle.
+    FILTER (STR(?jtitle) != \"Phytotaxa\")
+  } ORDER BY ?journal
+} AS %jj
+WHERE {
+  INCLUDE %jj
+  ?item wdt:P1433 ?journal .
+  ?item wdt:P1476 ?title.
+  FILTER (CONTAINS(LCASE(STR(?title)), \"nov.\"))
+  FILTER NOT EXISTS { ?taxon p:P225 [ prov:wasDerivedFrom [ pr:P248 ?item; pr:P6184 ?role ] ] }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+    ?item rdfs:label ?itemLabel .
+    ?journal rdfs:label ?journalLabel.
+    ?item schema:description ?itemDesc .
+  }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Kbseah/Link_taxa_to_publications>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

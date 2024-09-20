@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a4c53f2f5a4dcff0ee1e7302a9f05a36> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?song ?songLabel
+  (GROUP_CONCAT(DISTINCT ?composerLabel; separator=\", \") as ?comp)
+  (GROUP_CONCAT(DISTINCT ?lyrics_byLabel; separator=\", \") as ?lyri)
+  (CONCAT('\"', str(?songLabel), '\" by ', str(?comp), \" (comp.), \", str(?lyri), \" (lyrics)\") as ?songdesc)
+WHERE
+{
+    BIND(wd:Q530546 AS ?item) # this is the item of the album
+    ?item wdt:P658 ?song.
+    ?song wdt:P86 ?composer. # need concatenate all the composer
+    ?song wdt:P676 ?lyrics_by # need concatenate all the lyrics by
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,it\" .  ?composer rdfs:label ?composerLabel . ?lyrics_by rdfs:label ?lyrics_byLabel . ?song rdfs:label ?songLabel }
+}
+GROUP BY ?song ?songLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

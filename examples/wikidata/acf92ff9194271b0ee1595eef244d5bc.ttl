@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-acf92ff9194271b0ee1595eef244d5bc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map{\"hide\":[\"?cds\",\"?line\",\"?layer\"],\"layer\":\"?trackLabel\"}
+SELECT ?station ?stationLabel ?cds ?line ?trackLabel ?track ?image {
+{
+  SELECT * {
+  SERVICE gas:service {
+       gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\" ; gas:in wd:Q17163817 ; gas:linkType wdt:P197 ; gas:out ?station ; gas:out1 ?depth ; gas:out2 ?pred . }
+  FILTER(?station != wd:Q17163817)
+                      ?station wdt:P625 ?cds ;
+                               wdt:P17 wd:Q148.
+                             
+  ?station p:P197 ?adjST .
+  ?adjST ps:P197 ?adj ;
+                pq:P81 ?track .
+
+  ?adj p:P625/psv:P625/wikibase:geoLatitude ?lat1 ; p:P625/psv:P625/wikibase:geoLongitude ?lon1 .
+  ?station p:P625/psv:P625/wikibase:geoLatitude ?lat2 ; p:P625/psv:P625/wikibase:geoLongitude ?lon2 .
+  BIND(CONCAT('LINESTRING(', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) . BIND(STRDT(?str, geo:wktLiteral) AS ?line)}
+ 
+}
+  OPTIONAL { ?station wdt:P18 ?image .}
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Bangbang.S>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

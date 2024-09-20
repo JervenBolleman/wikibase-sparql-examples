@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a240e636aea2e6c7171eb4b0a5ba0f97> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?country ?countryLabel (COUNT(DISTINCT ?shares_border_with) AS ?border_count)
+WHERE
+{
+  ?country wdt:P31 / wdt:P279 * wd:Q6256 . # ?country is country
+  FILTER NOT EXISTS { ?country wdt:P576 ?dissolved . } # ?country is not dissolved
+  ?country p:P47 ?shares_border_with_statement .
+  ?shares_border_with_statement a wikibase:BestRank .
+  ?shares_border_with_statement ps:P47 ?shares_border_with .
+  ?shares_border_with wdt:P31 / wdt:P279 * wd:Q6256 . # ?shares_border_with is country
+  FILTER NOT EXISTS { ?shares_border_with wdt:P582 ?end_time . } # No end time 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
+GROUP BY ?country ?countryLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a9f9eda9308dbe52a8042eaa0e8180cd> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#author: Jan Ainali
+#title: QuickStatements-export för huvudtema
+SELECT DISTINCT ?qid ?P921 ?S887 # ?itemLabel ?item # Ta bort den första \"#\" för att kunna bedöma titlarna
+WHERE {
+VALUES ?topic { wd:Q61566  } # Ange Wikidataobjektet som du vill ange som huvudtema här
+?item wdt:P8433 [] ; # För att bara få med Riksdagsdokument.
+rdfs:label ?itemLabel .
+MINUS {?item wdt:P921 ?topic } # För att inte råka lägga till dubbla påståenden 
+                               # så kontrolleras det här om det redan finns 
+FILTER(CONTAINS(LCASE(?itemLabel), LCASE('skol')) ) .
+#|| CONTAINS(LCASE(?itemLabel), LCASE('Bildemontering'))
+#  ) . # Ange en lämplig söksträng för huvudtemat här
+#FILTER(!CONTAINS(LCASE(?itemLabel), LCASE('gymnasieskol'))) . # Ange en ev. uteslutning här
+BIND(REPLACE(STR(?item), 'http://www.wikidata.org/entity/', '' ) AS ?qid)
+BIND(REPLACE(STR(?topic), 'http://www.wikidata.org/entity/', '' ) AS ?P921)
+BIND('Q69652283' AS ?S887) # ändra inte (ska vara Q69652283)
+}
+offset 2000 limit 50
+#limit 100""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/pl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/cs>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .

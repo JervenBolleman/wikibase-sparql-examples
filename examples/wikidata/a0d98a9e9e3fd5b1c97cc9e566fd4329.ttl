@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a0d98a9e9e3fd5b1c97cc9e566fd4329> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Graph
+PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+
+SELECT ?item ?itemLabel ?linkTo ?linkToLabel ?pic 
+WHERE
+{
+  SERVICE gas:service {
+    gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.SSSP\" ;
+                gas:in wd:Q771712;                  # schwerer Tank (Ausgangspunkt)
+                gas:traversalDirection \"Reverse\" ;
+                gas:out ?item ;
+                gas:out1 ?depth ;
+                gas:maxIterations 2 ;               # Baumtiefe
+                gas:linkType wdt:P279 .             # genutztes Attribut (z.B. Unterklasse)
+  }
+  OPTIONAL { ?item wdt:P279 ?linkTo }               # Verlinkung über Attribut Unterklasse
+  OPTIONAL { ?item wdt:P18 ?pic }                   # Bild
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"de,en\" }
+}
+order by ?linkToLabel  ?itemLabel""";
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Forum/Archiv/2022/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql> .
