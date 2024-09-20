@@ -6,7 +6,19 @@
 
 <https://www.wikidata.org/#query-2ba7732a6183c0ef682d7699e1a547f8> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/de>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
   ?peruano
   ?peruanoLabel
   ?crimen
@@ -32,11 +44,29 @@ WITH {
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"es\"}.
 }
 ORDER BY ASC(?peruanoLabel)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/de>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/es>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT
+  ?peruano
+  ?peruanoLabel
+  ?crimen
+  ?crimenLabel
+WITH {
+  SELECT DISTINCT ?peruano {
+    {?peruano wdt:P27 wd:Q419 }
+    UNION
+    {?peruano wdt:P19/wdt:P131* wd:Q419 }
+    UNION
+    {?peruano wdt:P1532 wd:Q419}
+  }
+} AS %peruano
+WITH {
+  SELECT DISTINCT ?peruano ?crimen {
+    INCLUDE %peruano.
+    ?peruano wdt:P1399 ?crimen.
+  }
+} AS %crimen
+{
+  INCLUDE %crimen.
+  ?peruano wdt:P106/wdt:P279* wd:Q82955.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"es\"}.
+}
+ORDER BY ASC(?peruanoLabel)""" .

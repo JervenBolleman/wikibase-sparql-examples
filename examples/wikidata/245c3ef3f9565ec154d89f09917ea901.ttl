@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-245c3ef3f9565ec154d89f09917ea901> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
   # Number of works on the topic with the author name string
   ?count
 
@@ -43,8 +51,40 @@ WHERE {
 }
 ORDER BY DESC(?count) DESC(?count1)
 LIMIT 200""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT
+  # Number of works on the topic with the author name string
+  ?count
+
+  # Number of works with the author name string
+  ?count1
+
+  # Author as a string
+  ?authorstring
+
+  # Build URL to the Author disambiguator tool
+  (CONCAT(
+      'https://tools.wmflabs.org/author-disambiguator/names_oauth.php?name=',
+      ENCODE_FOR_URI(?authorstring)) AS ?resolver_url)
+WITH {
+  SELECT DISTINCT ?work ?authorstring WHERE {
+    SERVICE bd:sample { ?work wdt:P6104 wd:Q56241615 . bd:serviceParam bd:sample.limit 100000 }   
+    ?work wdt:P2093 ?authorstring .
+  }
+  LIMIT 10000
+} AS %works
+WITH {
+  SELECT
+    (COUNT(DISTINCT ?work) AS ?count)
+    (COUNT(DISTINCT ?work1) AS ?count1)
+    ?authorstring
+  WHERE {
+    INCLUDE %works
+    ?work1 wdt:P2093 ?authorstring .
+  }
+  GROUP BY ?authorstring
+} AS %result
+WHERE {
+  INCLUDE %result
+}
+ORDER BY DESC(?count) DESC(?count1)
+LIMIT 200""" .

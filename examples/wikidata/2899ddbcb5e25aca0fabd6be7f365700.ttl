@@ -6,7 +6,18 @@
 
 <https://www.wikidata.org/#query-2899ddbcb5e25aca0fabd6be7f365700> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT (COUNT(?statement) AS ?cnt) WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/misc/references>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT (COUNT(?statement) AS ?cnt) WITH {
   SELECT DISTINCT ?item WHERE { [] pr:P143 ?item }
 } AS %subquery1 WITH {
   SELECT DISTINCT ?item ?itemLabel WHERE {
@@ -19,8 +30,16 @@
   INCLUDE %subquery2 .
   ?statement prov:wasDerivedFrom/pr:P143 ?item .
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/misc/references>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT (COUNT(?statement) AS ?cnt) WITH {
+  SELECT DISTINCT ?item WHERE { [] pr:P143 ?item }
+} AS %subquery1 WITH {
+  SELECT DISTINCT ?item ?itemLabel WHERE {
+    INCLUDE %subquery1 .
+    MINUS { ?item wdt:P31/wdt:P279* wd:Q14827288 }
+    MINUS { ?item wdt:P31/wdt:P279* wd:Q63144794 }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+  }
+} AS %subquery2 WHERE {
+  INCLUDE %subquery2 .
+  ?statement prov:wasDerivedFrom/pr:P143 ?item .
+}""" .

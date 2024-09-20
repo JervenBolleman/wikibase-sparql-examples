@@ -33,4 +33,32 @@ LIMIT 100""";
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Realworldobject/ShowTell>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX bf: <http://bibframe.org/vocab/>
+PREFIX relators: <http://id.loc.gov/vocabulary/relators/>
+CONSTRUCT {
+  ?s bf:contributor ?lccnURI;
+    relators:cbt ?lccnURI;
+     bf:contributor [
+       a bf:Contributor;
+         bf:role \"creator\";
+         bf:agent ?lccnURI
+     ].
+  ?lccnURI a bf:Person;
+             rdfs:label ?contributorLabel;
+} WHERE {
+  ?s wdt:P767 ?contributor .
+  ?contributor wdt:P31 wd:Q5;
+               rdfs:label ?contributorLabel;
+               wdt:P244 ?lccn .
+  BIND(URI(CONCAT('http://id.loc.gov/rwo/', ?lccn)) AS ?lccnURI)
+#  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+  FILTER (LANG(?contributorLabel)='en')
+  FILTER (?s=wd:Q7785623)
+}
+LIMIT 100""" .

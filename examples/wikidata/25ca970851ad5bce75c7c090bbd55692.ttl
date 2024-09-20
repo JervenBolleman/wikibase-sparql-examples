@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-25ca970851ad5bce75c7c090bbd55692> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q18618629>
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:editor>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q18618629>
 
 SELECT
   ?works
@@ -31,9 +39,59 @@ WHERE {
   INCLUDE %coeditors
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?works)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q18618629>
+
+SELECT
+  ?works
+
+  ?coeditor ?coeditorLabel
+  (CONCAT(\"#editor/\", SUBSTR(STR(?coeditor), 32)) AS ?coeditorUrl)
+  ?coeditorDescription
+
+  ?example_work ?example_workLabel
+
+WHERE {
+  {
+  SELECT
+    (COUNT(?work) AS ?works)
+    ?coeditor 
+    (SAMPLE(?work) AS ?example_work)
+  WHERE {
+    ?work wdt:P98 target: , ?coeditor .
+    FILTER (target: != ?coeditor)
+  }
+  GROUP BY ?coeditor
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?works)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:editor>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q18618629>
+
+SELECT
+  ?works
+
+  ?coeditor ?coeditorLabel
+  (CONCAT(\"#editor/\", SUBSTR(STR(?coeditor), 32)) AS ?coeditorUrl)
+  ?coeditorDescription
+
+  ?example_work ?example_workLabel
+WITH {
+  SELECT
+    (COUNT(?work) AS ?works)
+    ?coeditor 
+    (SAMPLE(?work) AS ?example_work)
+  WHERE {
+    ?work wdt:P98 target: , ?coeditor .
+    FILTER (target: != ?coeditor)
+  }
+  GROUP BY ?coeditor
+} AS %coeditors
+WHERE {
+  INCLUDE %coeditors
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?works)""" .

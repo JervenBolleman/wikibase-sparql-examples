@@ -6,32 +6,6 @@
 
 <https://www.wikidata.org/#query-2e9a565763959f6d53153dc53daf5b62> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:Map{\"hide\":[\"?atm\",\"?geometry\"], \"layer\": \"?bankLabel\"}
-
-PREFIX lgdo: <http://linkedgeodata.org/ontology/>
-PREFIX geom: <http://geovocab.org/geometry#>
-PREFIX bif: <bif:>
-
-SELECT ?atm ?geometry ?bank ?bankLabel WHERE {
-  hint:Query hint:optimizer \"None\".
-
-  SERVICE <http://linkedgeodata.org/sparql> {
-    { ?atm a lgdo:Bank; lgdo:atm true. }
-    UNION { ?atm a lgdo:Atm. }
-
-    ?atm geom:geometry [geo:asWKT ?geometry];
-         lgdo:operator ?operator.
-    FILTER(bif:st_intersects(?geometry, bif:st_point(11.5746898, 48.1479876), 5)) # 5 km around Munich
-  }
-
-  BIND(STRLANG(?operator, \"de\") as ?bankLabel)
-  ?bank rdfs:label ?bankLabel.
-
-  # bank is part of the Bankcard service network, either via an explicit statement or implicitly due to its legal form (unless explicitly excluded)
-  { ?bank wdt:P527 wd:Q806724. }
-  UNION { ?bank wdt:P1454 wd:Q5349747. }
-  MINUS { wd:Q806724 wdt:P3113 ?bank. }
-}""";
   rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/lb>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/th>,
@@ -69,4 +43,34 @@ SELECT ?atm ?geometry ?bank ?bankLabel WHERE {
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+#defaultView:Map{\"hide\":[\"?atm\",\"?geometry\"], \"layer\": \"?bankLabel\"}
+
+PREFIX lgdo: <http://linkedgeodata.org/ontology/>
+PREFIX geom: <http://geovocab.org/geometry#>
+PREFIX bif: <bif:>
+
+SELECT ?atm ?geometry ?bank ?bankLabel WHERE {
+  hint:Query hint:optimizer \"None\".
+
+  SERVICE <http://linkedgeodata.org/sparql> {
+    { ?atm a lgdo:Bank; lgdo:atm true. }
+    UNION { ?atm a lgdo:Atm. }
+
+    ?atm geom:geometry [geo:asWKT ?geometry];
+         lgdo:operator ?operator.
+    FILTER(bif:st_intersects(?geometry, bif:st_point(11.5746898, 48.1479876), 5)) # 5 km around Munich
+  }
+
+  BIND(STRLANG(?operator, \"de\") as ?bankLabel)
+  ?bank rdfs:label ?bankLabel.
+
+  # bank is part of the Bankcard service network, either via an explicit statement or implicitly due to its legal form (unless explicitly excluded)
+  { ?bank wdt:P527 wd:Q806724. }
+  UNION { ?bank wdt:P1454 wd:Q5349747. }
+  MINUS { wd:Q806724 wdt:P3113 ?bank. }
+}""" .

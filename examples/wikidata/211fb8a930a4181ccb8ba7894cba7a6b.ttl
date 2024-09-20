@@ -6,7 +6,18 @@
 
 <https://www.wikidata.org/#query-211fb8a930a4181ccb8ba7894cba7a6b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?item ?statements WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/sysop/items_for_deletion>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT DISTINCT ?item ?statements WITH {
   SELECT DISTINCT ?class WHERE {
     ?class wdt:P279* wd:Q17537576 .
     FILTER(?class NOT IN (wd:Q13442814)) .
@@ -17,9 +28,34 @@
   MINUS { [] ?backlink ?item }
   MINUS { ?item p:P973|p:P1343|p:P528 [] }
   OPTIONAL { ?item ?p [ prov:wasDerivedFrom [ ?pr [] ] ] . FILTER(?pr NOT IN (pr:P143, pr:P3452, pr:P4656)) . } FILTER(!BOUND(?p)) .
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT DISTINCT ?item ?statements  WHERE {
+  {
+  SELECT DISTINCT ?class WHERE {
+    ?class wdt:P279* wd:Q17537576 .
+    FILTER(?class NOT IN (wd:Q13442814)) .
+  }
+} .
+  ?item wdt:P31 ?class; wikibase:identifiers 0; wikibase:sitelinks 0; wikibase:statements ?statements .
+  MINUS { [] ?backlink ?item }
+  MINUS { ?item p:P973|p:P1343|p:P528 [] }
+  OPTIONAL { ?item ?p [ prov:wasDerivedFrom [ ?pr [] ] ] . FILTER(?pr NOT IN (pr:P143, pr:P3452, pr:P4656)) . } FILTER(!BOUND(?p)) .
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/sysop/items_for_deletion>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?statements WITH {
+  SELECT DISTINCT ?class WHERE {
+    ?class wdt:P279* wd:Q17537576 .
+    FILTER(?class NOT IN (wd:Q13442814)) .
+  }
+} AS %subquery WHERE {
+  INCLUDE %subquery .
+  ?item wdt:P31 ?class; wikibase:identifiers 0; wikibase:sitelinks 0; wikibase:statements ?statements .
+  MINUS { [] ?backlink ?item }
+  MINUS { ?item p:P973|p:P1343|p:P528 [] }
+  OPTIONAL { ?item ?p [ prov:wasDerivedFrom [ ?pr [] ] ] . FILTER(?pr NOT IN (pr:P143, pr:P3452, pr:P4656)) . } FILTER(!BOUND(?p)) .
+}""" .

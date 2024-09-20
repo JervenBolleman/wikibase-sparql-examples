@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-2406c25cc95d748e32f8cc81422e5617> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#  d. median ingoing edges: number of ingoing edges
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Help:Dataset_sizing>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+#  d. median ingoing edges: number of ingoing edges
 # after the below, calculate median on ?nb_ingoing_edges
 SELECT ?item (COUNT(?wdt) as ?nb_ingoing_edges) 
 WITH 
@@ -24,8 +32,21 @@ WITH
   [] ?wdt ?item 
 }
 GROUP BY ?item""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Help:Dataset_sizing>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#  d. median ingoing edges: number of ingoing edges
+# after the below, calculate median on ?nb_ingoing_edges
+SELECT ?item (COUNT(?wdt) as ?nb_ingoing_edges) 
+WITH 
+{
+    SELECT DISTINCT ?item
+    WHERE
+    {
+        ?item wdt:P279* wd:Q181388 .
+     # ?item wdt:P641 wd:Q847 .
+    }      
+} as %a
+{
+  INCLUDE %a 
+  ?p wikibase:directClaim ?wdt ; wikibase:propertyType wikibase:WikibaseItem .
+  [] ?wdt ?item 
+}
+GROUP BY ?item""" .

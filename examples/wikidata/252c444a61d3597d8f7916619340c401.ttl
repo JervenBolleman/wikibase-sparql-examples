@@ -6,7 +6,18 @@
 
 <https://www.wikidata.org/#query-252c444a61d3597d8f7916619340c401> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?stat ?lat ?long WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Contact_the_development_team/Archive/2019/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?stat ?lat ?long WITH {
 SELECT ?item ?stat (COUNT(?lat)+COUNT(?long) AS ?count) WHERE {
 VALUES ?countries { wd:Q183 }
 ?item wdt:P17 ?countries;
@@ -19,9 +30,38 @@ HAVING(?count>2)
   ?stat psv:P625 [ wikibase:geoLatitude ?lat; wikibase:geoLongitude ?long ] .
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY ?item""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?stat ?lat ?long  WHERE {
+  {
+SELECT ?item ?stat (COUNT(?lat)+COUNT(?long) AS ?count) WHERE {
+VALUES ?countries { wd:Q183 }
+?item wdt:P17 ?countries;
+      p:P625 ?stat. ?stat psv:P625  [wikibase:geoLatitude ?lat ; wikibase:geoLongitude ?long ]  . 
+}
+GROUP BY ?item ?stat
+HAVING(?count>2)
+}
+  ?stat psv:P625 [ wikibase:geoLatitude ?lat; wikibase:geoLongitude ?long ] .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY ?item""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Contact_the_development_team/Archive/2019/11>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?stat ?lat ?long WITH {
+SELECT ?item ?stat (COUNT(?lat)+COUNT(?long) AS ?count) WHERE {
+VALUES ?countries { wd:Q183 }
+?item wdt:P17 ?countries;
+      p:P625 ?stat. ?stat psv:P625  [wikibase:geoLatitude ?lat ; wikibase:geoLongitude ?long ]  . 
+}
+GROUP BY ?item ?stat
+HAVING(?count>2)
+} AS %i WHERE {
+  include %i
+  ?stat psv:P625 [ wikibase:geoLatitude ?lat; wikibase:geoLongitude ?long ] .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?item""" .

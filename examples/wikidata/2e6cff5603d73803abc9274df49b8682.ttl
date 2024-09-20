@@ -6,7 +6,20 @@
 
 <https://www.wikidata.org/#query-2e6cff5603d73803abc9274df49b8682> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#title: Which compounds corresponding to a given mass ± 10ppm are found in which organism(s)?
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/de>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/it>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/ru>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/en>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+#title: Which compounds corresponding to a given mass ± 10ppm are found in which organism(s)?
 SELECT DISTINCT ?compound ?mf ?inchi (GROUP_CONCAT(?taxon_name; SEPARATOR = \", \") AS ?organism) WITH {
   SELECT ?compound WHERE {
     VALUES ?query {
@@ -25,15 +38,46 @@ SELECT DISTINCT ?compound ?mf ?inchi (GROUP_CONCAT(?taxon_name; SEPARATOR = \", 
     wdt:P274 ?mf.
 }
 GROUP BY ?compound ?mf ?inchi
+LIMIT 10000""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+#title: Which compounds corresponding to a given mass ± 10ppm are found in which organism(s)?
+SELECT DISTINCT ?compound ?mf ?inchi (GROUP_CONCAT(?taxon_name; SEPARATOR = \", \") AS ?organism)  WHERE {
+  {
+  SELECT ?compound WHERE {
+    VALUES ?query {
+      \"524.1765\"^^xsd:decimal
+    }
+    VALUES ?ppm {
+      \"10\"^^xsd:decimal
+    }
+    ?compound wdt:P2067 ?mass.
+    FILTER((?mass > (?query - ((?ppm * \"0.000001\"^^xsd:decimal) * ?query))) && (?mass < (?query + ((?ppm * \"0.000001\"^^xsd:decimal) * ?query))))
+  }
+}
+  ?compound (wdt:P703/wdt:P225) ?taxon_name;
+    wdt:P234 ?inchi;
+    wdt:P274 ?mf.
+}
+GROUP BY ?compound ?mf ?inchi
 LIMIT 10000""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/nl>,
-    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/de>,
-    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/it>,
-    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/ru>,
-    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/fr>,
-    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/en>,
-    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """#title: Which compounds corresponding to a given mass ± 10ppm are found in which organism(s)?
+SELECT DISTINCT ?compound ?mf ?inchi (GROUP_CONCAT(?taxon_name; SEPARATOR = \", \") AS ?organism) WITH {
+  SELECT ?compound WHERE {
+    VALUES ?query {
+      \"524.1765\"^^xsd:decimal
+    }
+    VALUES ?ppm {
+      \"10\"^^xsd:decimal
+    }
+    ?compound wdt:P2067 ?mass.
+    FILTER((?mass > (?query - ((?ppm * \"0.000001\"^^xsd:decimal) * ?query))) && (?mass < (?query + ((?ppm * \"0.000001\"^^xsd:decimal) * ?query))))
+  }
+} AS %compounds WHERE {
+  INCLUDE %compounds
+  ?compound (wdt:P703/wdt:P225) ?taxon_name;
+    wdt:P234 ?inchi;
+    wdt:P274 ?mf.
+}
+GROUP BY ?compound ?mf ?inchi
+LIMIT 10000""" .

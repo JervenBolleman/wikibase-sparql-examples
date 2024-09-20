@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-28e93c283d7d9760a9f6a80b05904c7c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?person ?personLabel ?personDescription ?birthplaceLabel ?dob ?dod ?image WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/05>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?person ?personLabel ?personDescription ?birthplaceLabel ?dob ?dod ?image WITH {
   SELECT ?person ?birthplace ?dob ?dod (SAMPLE(?img) AS ?image) WHERE {
   ?person wdt:P27 wd:Q30 ;
           wdt:P19/wdt:P131* wd:Q771 ;
@@ -22,9 +31,42 @@
     ?person wdt:P106/wdt:P279* wd:Q482980 .
     SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\"}
 } 
+ORDER BY ASC (?dob)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?person ?personLabel ?personDescription ?birthplaceLabel ?dob ?dod ?image  WHERE {
+    {
+  SELECT ?person ?birthplace ?dob ?dod (SAMPLE(?img) AS ?image) WHERE {
+  ?person wdt:P27 wd:Q30 ;
+          wdt:P19/wdt:P131* wd:Q771 ;
+          wdt:P19 ?birthplace ;
+          wdt:P569 ?dob ;
+  OPTIONAL {?person wdt:P18 ?img .}
+  OPTIONAL {?person wdt:P570 ?dod .}
+  MINUS {?person wdt:P570 [] .}
+  FILTER (YEAR(?dob) > 1919)
+} GROUP BY ?person ?birthplace ?dod ?dob
+} 
+    ?person wdt:P106/wdt:P279* wd:Q482980 .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\"}
+} 
 ORDER BY ASC (?dob)""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/05>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?person ?personLabel ?personDescription ?birthplaceLabel ?dob ?dod ?image WITH {
+  SELECT ?person ?birthplace ?dob ?dod (SAMPLE(?img) AS ?image) WHERE {
+  ?person wdt:P27 wd:Q30 ;
+          wdt:P19/wdt:P131* wd:Q771 ;
+          wdt:P19 ?birthplace ;
+          wdt:P569 ?dob ;
+  OPTIONAL {?person wdt:P18 ?img .}
+  OPTIONAL {?person wdt:P570 ?dod .}
+  MINUS {?person wdt:P570 [] .}
+  FILTER (YEAR(?dob) > 1919)
+} GROUP BY ?person ?birthplace ?dod ?dob
+} AS %i WHERE {
+    include %i 
+    ?person wdt:P106/wdt:P279* wd:Q482980 .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\"}
+} 
+ORDER BY ASC (?dob)""" .

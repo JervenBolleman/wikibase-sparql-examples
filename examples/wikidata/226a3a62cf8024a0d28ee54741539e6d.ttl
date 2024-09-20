@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-226a3a62cf8024a0d28ee54741539e6d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?item ?wdimage ?calculated_contentUrl ?calculated_contentUrl_is_verified ?wdimage_depicts_item
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX schema: <http://schema.org/>
+SELECT DISTINCT ?item ?wdimage ?calculated_contentUrl ?calculated_contentUrl_is_verified ?wdimage_depicts_item
 WITH 
 {
   SELECT ?item ?wdimage ?calculated_contentUrl
@@ -41,9 +49,77 @@ WHERE
     ?file wdt:P180 ?item .
     BIND (true AS ?wdimage_depicts_item)
   }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX schema: <http://schema.org/>
+SELECT DISTINCT ?item ?wdimage ?calculated_contentUrl ?calculated_contentUrl_is_verified ?wdimage_depicts_item
+
+WHERE 
+{
+  {
+  SELECT ?item ?wdimage ?calculated_contentUrl
+  WHERE
+  {
+    SERVICE <https://query.wikidata.org/sparql> 
+    {
+      ?item wdt:P1261 ?signum .
+      ?item wdt:P18 ?wdimage .
+    }
+    BIND (REPLACE(wikibase:decodeUri(SUBSTR(STR(?wdimage), 52)), \" \", \"_\") AS ?filename)
+    BIND (REPLACE(SUBSTR(STR(?wdimage), 52), \"%20\", \"_\") AS ?filenameUnencoded)
+    BIND (MD5(?filename) AS ?MD5)
+    BIND (URI(CONCAT(\"https://upload.wikimedia.org/wikipedia/commons/\",
+                     SUBSTR(?MD5, 1, 1), \"/\", SUBSTR(?MD5, 1, 2), \"/\", ?filenameUnencoded)) As ?calculated_contentUrl)
+  }
+}
+  # Check if the calculated contentURL is in WCQS. If not it may be newer than the latest update.
+  OPTIONAL
+  {
+    ?file schema:contentUrl ?calculated_contentUrl .
+    BIND (true AS ?calculated_contentUrl_is_verified)
+  }
+  # Check if ?wdimage depicts ?item
+  OPTIONAL
+  {
+    ?file schema:contentUrl ?calculated_contentUrl .
+    ?file wdt:P180 ?item .
+    BIND (true AS ?wdimage_depicts_item)
+  }
 }""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/03>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?wdimage ?calculated_contentUrl ?calculated_contentUrl_is_verified ?wdimage_depicts_item
+WITH 
+{
+  SELECT ?item ?wdimage ?calculated_contentUrl
+  WHERE
+  {
+    SERVICE <https://query.wikidata.org/sparql> 
+    {
+      ?item wdt:P1261 ?signum .
+      ?item wdt:P18 ?wdimage .
+    }
+    BIND (REPLACE(wikibase:decodeUri(SUBSTR(STR(?wdimage), 52)), \" \", \"_\") AS ?filename)
+    BIND (REPLACE(SUBSTR(STR(?wdimage), 52), \"%20\", \"_\") AS ?filenameUnencoded)
+    BIND (MD5(?filename) AS ?MD5)
+    BIND (URI(CONCAT(\"https://upload.wikimedia.org/wikipedia/commons/\",
+                     SUBSTR(?MD5, 1, 1), \"/\", SUBSTR(?MD5, 1, 2), \"/\", ?filenameUnencoded)) As ?calculated_contentUrl)
+  }
+}
+AS %Wikidataitems
+WHERE 
+{
+  INCLUDE %Wikidataitems
+  # Check if the calculated contentURL is in WCQS. If not it may be newer than the latest update.
+  OPTIONAL
+  {
+    ?file schema:contentUrl ?calculated_contentUrl .
+    BIND (true AS ?calculated_contentUrl_is_verified)
+  }
+  # Check if ?wdimage depicts ?item
+  OPTIONAL
+  {
+    ?file schema:contentUrl ?calculated_contentUrl .
+    ?file wdt:P180 ?item .
+    BIND (true AS ?wdimage_depicts_item)
+  }
+}""" .

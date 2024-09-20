@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-28360f64275b3f7b2b8cf7b27a3cf3db> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?art ?artLabel ?artDescription ?wdLabel ?ps_Label WITH {
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?art ?artLabel ?artDescription ?wdLabel ?ps_Label WITH {
    SELECT DISTINCT ?art WHERE {
        ?art wdt:P31 wd:Q3305213 ; # Get items that are instances of painting
             wdt:P170 wd:Q5598 ; # By creator Rembrandt
@@ -20,9 +29,38 @@
    ?wd wikibase:claim ?p.
    ?wd wikibase:statementProperty ?ps.
     SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+ } limit 100""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?art ?artLabel ?artDescription ?wdLabel ?ps_Label 
+ WHERE {
+   {
+   SELECT DISTINCT ?art WHERE {
+       ?art wdt:P31 wd:Q3305213 ; # Get items that are instances of painting
+            wdt:P170 wd:Q5598 ; # By creator Rembrandt
+            wdt:P195/wdt:P361* ?collection . # That are in some collection
+   }
+ }
+   ?art ?p ?statement .
+   ?statement ?ps ?ps_ .
+   ?wd wikibase:claim ?p.
+   ?wd wikibase:statementProperty ?ps.
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
  } limit 100""";
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/03>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql> .
+  <http://example.org/bigdata_select> """SELECT ?art ?artLabel ?artDescription ?wdLabel ?ps_Label WITH {
+   SELECT DISTINCT ?art WHERE {
+       ?art wdt:P31 wd:Q3305213 ; # Get items that are instances of painting
+            wdt:P170 wd:Q5598 ; # By creator Rembrandt
+            wdt:P195/wdt:P361* ?collection . # That are in some collection
+   }
+ } AS %select_art
+ WHERE {
+   include %select_art
+   ?art ?p ?statement .
+   ?statement ?ps ?ps_ .
+   ?wd wikibase:claim ?p.
+   ?wd wikibase:statementProperty ?ps.
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+ } limit 100""" .
