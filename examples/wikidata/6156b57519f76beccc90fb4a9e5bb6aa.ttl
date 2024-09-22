@@ -15,21 +15,19 @@
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?property ?propertyLabel ?propertyType ?count WITH { 
+SELECT ?property ?propertyLabel ?propertyType ?count WHERE
+{
+   { 
   SELECT ?property (count(distinct ?item) as ?count)  WHERE {
     SERVICE bd:slice {
       ?item wdt:P31 wd:Q3305213.
       bd:serviceParam bd:slice.offset 0 . # Start at item number (not to be confused with QID)
       bd:serviceParam bd:slice.limit 200000 . # List this many items
     }
-    hint:Prior hint:runFirst true .
+    
     ?item ?predicate ?value .
     ?property wikibase:directClaim ?predicate .
-  } group by ?property  } as %i
-WHERE
-{
-  INCLUDE %i
-  ?property wikibase:propertyType ?propertyType .
+  } group by ?property  }  ?property wikibase:propertyType ?propertyType .
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
 } order by desc(?count)""";
   <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>

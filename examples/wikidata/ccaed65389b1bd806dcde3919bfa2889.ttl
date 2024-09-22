@@ -17,22 +17,20 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?country ?poi ?min_inception ?max_dissolved WITH {
+SELECT ?item ?itemLabel ?country ?poi ?min_inception ?max_dissolved WHERE
+{
+   {
   SELECT ?item ?country (MIN(?inception) as ?min_inception) (MAX(?dissolved) as ?max_dissolved) WHERE
   {
  
   ?item wdt:P31/wdt:P279* wd:Q178561. # battle
-  ?item schema:dateModified ?date . hint:Prior hint:rangeSafe true.
+  ?item schema:dateModified ?date . 
   FILTER(\"2024-02-02\"^^xsd:dateTime <= ?date &&
          ?date < \"2024-02-03\"^^xsd:dateTime)
   ?item wdt:P17 ?country.
   ?country wdt:P571 ?inception.
   ?country wdt:P576 ?dissolved.
-  } GROUP BY ?item ?country } as %i
-WHERE
-{
-  INCLUDE %i
-  ?item wdt:P585 ?poi.
+  } GROUP BY ?item ?country }  ?item wdt:P585 ?poi.
   FILTER (?poi - ?max_dissolved > 600|| ?poi - ?min_inception < -600)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en-GB,en,mul\". } 
 }""";

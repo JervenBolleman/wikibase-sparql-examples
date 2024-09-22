@@ -18,16 +18,14 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?airport ?airportLabel ?country ?countryLabel WITH {
+SELECT DISTINCT ?airport ?airportLabel ?country ?countryLabel WHERE
+{
+   {
   SELECT ?airport WHERE {
-  ?airport (wdt:P31/wdt:P279*) wd:Q62447. hint:Prior hint:gearing \"forward\". #any aerodromes
+  ?airport (wdt:P31/wdt:P279*) wd:Q62447.  #any aerodromes
   optional {?airport wdt:P239|wdt:P238|wdt:P240|wdt:P5699|wdt:P5746|wdt:P5851|wdt:P6120 ?code.}#any airport code
   filter(!Bound(?code)).#who does not have any airport code
-} } as %i
-WHERE
-{
-  INCLUDE %i
-  FILTER NOT EXISTS { ?airport p:P239 [rdf:type wdno:P239].} #we do not want the ?item if ICAO has a <no value>   
+} }  FILTER NOT EXISTS { ?airport p:P239 [rdf:type wdno:P239].} #we do not want the ?item if ICAO has a <no value>   
   MINUS {?airport wdt:P576 [].} # remove items with P576 (dissolved, abolished or demolished) as a main property
   MINUS {?airport wdt:P582 [].} # remove items with P582 (end date) as a main property
     MINUS {?airport a wdno:P17.}                                    #exclude airports that aren't physically based in a country

@@ -11,58 +11,30 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  <http://example.org/bigdata_select> """select ?item ?itemLabel ?number
-with { # select all the numbers of sitelinks
-  select ?number (count(*) as ?total) { # we don't use ?total but without it the query times out, so we'll just ignore it
-    [] wikibase:sitelinks ?number .
-  } group by ?number
-} as %numbers
-where {
-  # include the numbers of sitelinks from above and filter out any numbers lower than n
-  # the higher the number here, the fewer items there are to check and the faster this query will run
-  include %numbers .
-  filter (?number > 50) .
-
-  # find items where the number of sitelinks is one of the remaining numbers, i.e. greater than 40
-  ?item wikibase:sitelinks ?number .
-  
-  # filter out various uninteresting things
-  minus { ?item wdt:P31/wdt:P279* wd:Q11266439 . hint:Prior hint:gearing \"forward\".} # No templates
-  minus { ?item wdt:P31/wdt:P279* wd:Q4167836 . hint:Prior hint:gearing \"forward\".} # No categories
-  minus { ?item wdt:P31 wd:Q14204246 } # No project pages
-  minus { ?item wdt:P31/wdt:P279* wd:Q15184295 . hint:Prior hint:gearing \"forward\".} # No modules
-  minus { ?item wdt:P31 wd:Q17442446 } # No other Wikipedia/Help pages
- 
-  # filter out items which have an fa.wiki sitelink
-  minus { ?article schema:about ?item ; schema:isPartOf <https://fa.wikipedia.org/> }
-
-  service wikibase:label { bd:serviceParam wikibase:language \"en\" }
-} order by desc(?number)""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 select ?item ?itemLabel ?number
-with { # select all the numbers of sitelinks
-  select ?number (count(*) as ?total) { # we don't use ?total but without it the query times out, so we'll just ignore it
-    [] wikibase:sitelinks ?number .
-  } group by ?number
-} as %numbers
 where {
   # include the numbers of sitelinks from above and filter out any numbers lower than n
   # the higher the number here, the fewer items there are to check and the faster this query will run
-  include %numbers .
+   { # select all the numbers of sitelinks
+  select ?number (count(*) as ?total) { # we don't use ?total but without it the query times out, so we'll just ignore it
+    [] wikibase:sitelinks ?number .
+  } group by ?number
+}.
   filter (?number > 50) .
 
   # find items where the number of sitelinks is one of the remaining numbers, i.e. greater than 40
   ?item wikibase:sitelinks ?number .
   
   # filter out various uninteresting things
-  minus { ?item wdt:P31/wdt:P279* wd:Q11266439 . hint:Prior hint:gearing \"forward\".} # No templates
-  minus { ?item wdt:P31/wdt:P279* wd:Q4167836 . hint:Prior hint:gearing \"forward\".} # No categories
+  minus { ?item wdt:P31/wdt:P279* wd:Q11266439 . } # No templates
+  minus { ?item wdt:P31/wdt:P279* wd:Q4167836 . } # No categories
   minus { ?item wdt:P31 wd:Q14204246 } # No project pages
-  minus { ?item wdt:P31/wdt:P279* wd:Q15184295 . hint:Prior hint:gearing \"forward\".} # No modules
+  minus { ?item wdt:P31/wdt:P279* wd:Q15184295 . } # No modules
   minus { ?item wdt:P31 wd:Q17442446 } # No other Wikipedia/Help pages
  
   # filter out items which have an fa.wiki sitelink
@@ -70,7 +42,7 @@ where {
 
   service wikibase:label { bd:serviceParam wikibase:language \"en\" }
 } order by desc(?number)""";
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>

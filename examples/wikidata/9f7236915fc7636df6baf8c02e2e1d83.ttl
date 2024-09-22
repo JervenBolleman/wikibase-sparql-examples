@@ -15,18 +15,16 @@
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?property ?propertyLabel ?count ?report WITH { 
+SELECT ?property ?propertyLabel ?count ?report WHERE
+{
+   { 
   SELECT ?property (count(distinct ?item) as ?count)  WHERE {
     {?item wdt:P31/wdt:P279* wd:Q23397 .}     # The class & subclasses 
-    hint:Prior hint:runFirst true .
+    
     ?item wdt:P17 wd:Q145 .                   # in UK
     ?item ?predicate ?value .
     ?property wikibase:directClaim ?predicate .
-  } group by ?property  } as %i
-WHERE
-{
-  INCLUDE %i
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+  } group by ?property  }  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
 BIND(IRI(CONCAT(\"https://query.wikidata.org/#SELECT%20%3Fitem%20%3FitemLabel%20%3Fvalue%20%3FvalueLabel%20WHERE%20%7B%0A%20%20%20%20%3Fitem%20wdt%3AP31%20wd%3AQ23397%20.%20%0A%20%20%20%20%3Fitem%20wdt%3AP17%20wd%3AQ145%20.%20%0A%20%20%20%20%3Fitem%20wdt%3A\",STRAFTER(STR(?property),\"http://www.wikidata.org/entity/\"),\"%20%3Fvalue.%0A%20%20SERVICE%20wikibase%3Alabel%20%7B%20bd%3AserviceParam%20wikibase%3Alanguage%20%22en%22%20.%20%7D%0A%7D%0A\")) as ?report)
   
 } order by desc(?count)""";
