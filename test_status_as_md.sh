@@ -35,7 +35,7 @@ do
         do
             file=$(echo "${j}" |cut -f 1 -d '✘')
             failure=$(echo "${j}" |cut -f 2 -d '✘')
-            echo "| [$file](examples/$file.md) | $failure |"
+            echo "| [$file](examples/${file:0:${#file}-5}.md) | $failure |"
         done < <(sed -n "${start},${i}p;${i}q" $1 | grep -oP '\w+\/.+✘.+')
         echo ""
     fi
