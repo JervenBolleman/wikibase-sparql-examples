@@ -2,7 +2,7 @@
 
 echo "# Summary regarding test failues"
 
-tail -n 14 $1 
+echo -e "$(tail -n 14 $1)"
 
 start=-1
 
@@ -10,7 +10,7 @@ while read i
 do
     if [[ $start -gt 0 ]]
     then
-        echo "# $(sed -n "${start}p;${i}q" $1 | grep -oP '(test.+)'|cut -c 5-)"
+        echo "## $(sed -n "${start}p;${i}q" $1 | grep -oP '(test.+)'|cut -c 5-)"
         echo ""
         echo "| Failures | Success |"
         echo "| -------- | ------- |"
@@ -27,7 +27,7 @@ while read i
 do
     if [[ $start -gt 0 ]]
     then
-        echo "# $(sed -n "${start}p;${i}q" $1 | grep -oP '(test.+)'|cut -c 5-)"
+        echo "## $(sed -n "${start}p;${i}q" $1 | grep -oP '(test.+)'|cut -c 5-)"
         echo ""
         echo "|File  | Error |"
         echo "| ---- | ----- |"
