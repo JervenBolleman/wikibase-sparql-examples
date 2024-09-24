@@ -33,77 +33,6 @@ WHERE {
      ) AS ?Score)
     (SAMPLE(DISTINCT ?Publication) AS ?ExamplePub)
       { 
-        INCLUDE %regexes
-        INCLUDE %titles
-        BIND( 
-          (CONCAT(
-            REPLACE(?Seeds, ?Regex1, \"$1\"), \" \", 
-            REPLACE(?Seeds, ?Regex1, \"$2\"), \" \", 
-            REPLACE(?Seeds, ?Regex2, \"$1\"), \" \", 
-            REPLACE(?Seeds, ?Regex2, \"$2\"), \" \", 
-            REPLACE(?Seeds, ?Regex3, \"$1\"), \" \", 
-            REPLACE(?Seeds, ?Regex3, \"$2\"), \" \", 
-            REPLACE(?Seeds, ?Regex4, \"$1\"), \" \", 
-            REPLACE(?Seeds, ?Regex4, \"$2\")
-          )
-        ) AS ?NgramCandidate) 
-                            
-        BIND( 
-          (REPLACE
-           (REPLACE
-            (REPLACE
-             (REPLACE
-              (STR(?NgramCandidate),\"([;:])\",\"\"),
-              \"(^\\\\s+)\",\"\"),
-             \"(\\\\s+$)\",\"\"),
-            \"([ ]{2,})\",\" \")
-          ) AS ?Ngram) 
-
-        BIND(STRLEN(?Ngram) AS ?Length) 
-        FILTER (?Length > 3 )  
-        FILTER (?Length <= ?ClearTitleLength )  
-
-        BIND(STRLEN(REPLACE(?Ngram, \"\\\\S\", \"\")) + 1 as ?N)
-        BIND((STRLEN(?Ngram) - STRLEN(REPLACE(?Ngram, \"-\", \"\")))  as ?Dashes)
-      }
-  GROUP BY ?Ngram ?N ?Count ?Length ?Dashes ?Score ?ExamplePub
-#   HAVING(?Count > 1)
-}
-  # Exclude Ngrams starting or ending with any of a set of blacklisted words
-  BIND(\"(a|and|between|during|for|from|in|of|on|or|the|to|with)\" AS ?blacklist)
-  BIND( CONCAT( \"(^\", ?blacklist ,\")+( )+\") AS ?RegexBlackStart)
-  BIND( CONCAT( \"( )+(\", ?blacklist ,\")+$\") AS ?RegexBlackEnd)
-  FILTER (!REGEX(?Ngram, ?RegexBlackStart))
-  FILTER (!REGEX(?Ngram, ?RegexBlackEnd))
-
-  ?ExamplePub wdt:P1476 ?ExamplePubTitle.
-  FILTER(LANG(?ExamplePubTitle)=\"en\") 
-}
-GROUP BY ?Ngram ?N ?Count ?Length ?Dashes ?Score ?ExamplePub ?ExamplePubTitle
-ORDER BY DESC(?Score) DESC(?Count) DESC(?Length)
-LIMIT 200""",
-    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-PREFIX target: <http://www.wikidata.org/entity/Q56241615>
-SELECT DISTINCT ?Ngram ?N ?Count ?Length ?Dashes ?Score ?ExamplePub ?ExamplePubTitle
-
-
-
-
-
-WHERE {
-  
-{ # Applying the regexes to the titles to extract ngrams, and counting occurrences of the ngrams across titles
-  SELECT 
-    DISTINCT ?Ngram 
-    ?N
-    (COUNT(DISTINCT ?Title) AS ?Count)
-    ?Length
-    ?Dashes
-    (( ?Count * ?Length * ( (?Dashes +1) / ?N) 
-     ) AS ?Score)
-    (SAMPLE(DISTINCT ?Publication) AS ?ExamplePub)
-      { 
         
 { # Generating a list of regexes to look for the NumericValue-th word in a string     
   # Based on https://w.wiki/KG$ by Jura1
@@ -184,9 +113,7 @@ WHERE {
 GROUP BY ?Ngram ?N ?Count ?Length ?Dashes ?Score ?ExamplePub ?ExamplePubTitle
 ORDER BY DESC(?Score) DESC(?Count) DESC(?Length)
 LIMIT 200""";
-  <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-PREFIX target: <http://www.wikidata.org/entity/Q56241615>
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q56241615>
 SELECT DISTINCT ?Ngram ?N ?Count ?Length ?Dashes ?Score ?ExamplePub ?ExamplePubTitle
 
 WITH

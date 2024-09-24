@@ -11,14 +11,7 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT
+  <http://example.org/bigdata_select> """SELECT
   # ?item ?itemLabel ?start_ ?end_ ?days_ # Subquery B
   # ?date_ ?diff ?changes_ # Subquery C
   # ?min ?max ?avg # Subquery D
@@ -135,8 +128,8 @@ WHERE {
   INCLUDE %e
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
 }
-ORDER BY ?date""",
-    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ORDER BY ?date""";
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
@@ -144,79 +137,6 @@ PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT
-  # ?item ?itemLabel ?start_ ?end_ ?days_ # Subquery B
-  # ?date_ ?diff ?changes_ # Subquery C
-  # ?min ?max ?avg # Subquery D
-  ?date ?amount ?changes # Subquery E
-#WITH {
-#  # Calculate average, min and max values
-#  SELECT ?min ?max ?avg
-#  WHERE {
-#    {
-#      SELECT (MIN(?amount) AS ?min) (MAX(?amount) AS ?max)
-#      WHERE {
-#         {
-  # Pretty-print with running count
-  SELECT ?date (SUM(?diff) AS ?amount) (SAMPLE(?changes_) AS ?changes)
-  WHERE {
-    {
-      SELECT ?date ?changes_
-      WHERE {
-        INCLUDE %c
-        BIND(?date_ AS ?date)
-      }
-    }
-    {
-      SELECT ?date2 ?diff
-      WHERE {
-        INCLUDE %c
-        BIND(?date_ AS ?date2)
-      }
-    }
-    FILTER(?date2 <= ?date)
-    # Ignore the last date as it is an artifact from clamping the date-range.
-    FILTER (?date != \"2021-12-31\"^^xsd:dateTime)
-  }
-  GROUP BY ?date
-}#      }
-#    }
-#    {
-#      # Seat-days divided by the days of the non-leap year 2021 should give us the average amount of seats.
-#      SELECT (ROUND(SUM(?days_)*1000/365)/1000 AS ?avg)
-#      WHERE {
-#        INCLUDE %b
-#      }
-#    }
-#  }
-#} AS %d
-WHERE {
-   {
-  # Pretty-print with running count
-  SELECT ?date (SUM(?diff) AS ?amount) (SAMPLE(?changes_) AS ?changes)
-  WHERE {
-    {
-      SELECT ?date ?changes_
-      WHERE {
-        INCLUDE %c
-        BIND(?date_ AS ?date)
-      }
-    }
-    {
-      SELECT ?date2 ?diff
-      WHERE {
-        INCLUDE %c
-        BIND(?date_ AS ?date2)
-      }
-    }
-    FILTER(?date2 <= ?date)
-    # Ignore the last date as it is an artifact from clamping the date-range.
-    FILTER (?date != \"2021-12-31\"^^xsd:dateTime)
-  }
-  GROUP BY ?date
-}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
-}
-ORDER BY ?date""";
-  <http://example.org/bigdata_select> """SELECT
   # ?item ?itemLabel ?start_ ?end_ ?days_ # Subquery B
   # ?date_ ?diff ?changes_ # Subquery C
   # ?min ?max ?avg # Subquery D

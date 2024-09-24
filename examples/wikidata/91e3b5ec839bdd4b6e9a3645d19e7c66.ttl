@@ -17,10 +17,7 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#title: What are examples of organisms where compounds were found in an organism sharing the same parent taxon, but not the organism itself?
+  <http://example.org/bigdata_select> """#title: What are examples of organisms where compounds were found in an organism sharing the same parent taxon, but not the organism itself?
 SELECT DISTINCT ?compound ?compoundLabel ?taxonname_with_compound ?taxonname_without_compound ?parent_taxon WITH{ 
   SELECT DISTINCT ?compound ?taxon_with_compound ?parent_taxon 
   WHERE {
@@ -47,43 +44,11 @@ WHERE {
   ?compound rdfs:label ?compoundLabel.
   FILTER(LANG(?compoundLabel) = \"en\").
 }
-LIMIT 10000""",
-    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+LIMIT 10000""";
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #title: What are examples of organisms where compounds were found in an organism sharing the same parent taxon, but not the organism itself?
-SELECT DISTINCT ?compound ?compoundLabel ?taxonname_with_compound ?taxonname_
-
-WHERE {
-  H{ 
-  SELECT DISTINCT ?compound ?taxon_with_compound ?parent_taxon 
-  WHERE {
-    ?compound wdt:P235 ?inchikey.
-    SERVICE bd:sample { ?compound wdt:P703 ?taxon_with_compound. bd:serviceParam bd:sample.limit 1000 }   
-    ?taxon_with_compound wdt:P171 ?parent_taxon.
-  }
-}  
-{ 
-  SELECT DISTINCT ?taxon_without_compound ?parent_taxon ?compound 
-  WHERE {
-    H{ 
-  SELECT DISTINCT ?compound ?taxon_with_compound ?parent_taxon 
-  WHERE {
-    ?compound wdt:P235 ?inchikey.
-    SERVICE bd:sample { ?compound wdt:P703 ?taxon_with_compound. bd:serviceParam bd:sample.limit 1000 }   
-    ?taxon_with_compound wdt:P171 ?parent_taxon.
-  }
-}    ?taxon_without_compound wdt:P171 ?parent_taxon.
-    FILTER (?taxon_with_compound != ?taxon_without_compound)
-  }
-}  FILTER NOT EXISTS {?compound wdt:P703 ?taxon_without_compound.}
-  ?taxon_with_compound wdt:P225 ?taxonname_with_compound.
-  ?taxon_without_compound wdt:P225 ?taxonname_without_compound.
-  ?compound rdfs:label ?compoundLabel.
-  FILTER(LANG(?compoundLabel) = \"en\").
-}
-LIMIT 10000""";
-  <http://example.org/bigdata_select> """#title: What are examples of organisms where compounds were found in an organism sharing the same parent taxon, but not the organism itself?
 SELECT DISTINCT ?compound ?compoundLabel ?taxonname_with_compound ?taxonname_without_compound ?parent_taxon WITH{ 
   SELECT DISTINCT ?compound ?taxon_with_compound ?parent_taxon 
   WHERE {

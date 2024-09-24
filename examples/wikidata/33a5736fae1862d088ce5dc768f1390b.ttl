@@ -19,8 +19,16 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?number ?property ?propertyLabel ?count ?maxcount  
 WHERE {                              # right now, get labels and an aggregation which does nothing
    { SELECT ?item ?number ?property (COUNT(?predicate) as ?count) WHERE {  # get & count claims for the items
-  INCLUDE %j
-  ?item ?predicate [].
+   { SELECT ?item ?number WHERE {     # get items having that many statements
+   {
+  SELECT ?number WHERE {                 # get numbers from 1k to 10k
+  ?nn wdt:P31 wd:Q21199.
+  ?nn wdt:P1181 ?number .
+  FILTER (?number >= 1000 && ?number <= 10000)
+} }  BIND(xsd:integer(?number) as ?b)
+  ?item wikibase:statements ?b.
+  FILTER NOT EXISTS {?item wdt:P31 wd:Q13442814 .}
+ } }  ?item ?predicate [].
   ?property wikibase:claim ?predicate . 
 } GROUP BY ?item ?number ?property ORDER BY DESC(?count) }   { SELECT  ?item (MAX(?count) AS ?maxcount) {
    { SELECT ?item ?number ?property (COUNT(?predicate) as ?count) WHERE {  # get & count claims for the items
@@ -29,8 +37,8 @@ WHERE {                              # right now, get labels and an aggregation 
   ?property wikibase:claim ?predicate . 
 } GROUP BY ?item ?number ?property ORDER BY DESC(?count) }} GROUP BY ?item }  FILTER (?count = ?maxcount) 
  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}  order by desc(?number)""",
-    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+}  order by desc(?number)""";
+  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -69,37 +77,5 @@ WHERE {                              # right now, get labels and an aggregation 
   ?item ?predicate [].
   ?property wikibase:claim ?predicate . 
 } GROUP BY ?item ?number ?property ORDER BY DESC(?count) }} GROUP BY ?item }  FILTER (?count = ?maxcount) 
- SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}  order by desc(?number)""";
-  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?number ?property ?propertyLabel ?count ?maxcount  WITH {
-  SELECT ?number WHERE {                 # get numbers from 1k to 10k
-  ?nn wdt:P31 wd:Q21199.
-  ?nn wdt:P1181 ?number .
-  FILTER (?number >= 1000 && ?number <= 10000)
-} } AS %i
-WITH { SELECT ?item ?number WHERE {     # get items having that many statements
-  INCLUDE %i
-  BIND(xsd:integer(?number) as ?b)
-  ?item wikibase:statements ?b.
-  FILTER NOT EXISTS {?item wdt:P31 wd:Q13442814 .}
- } } as %j
-WITH { SELECT ?item ?number ?property (COUNT(?predicate) as ?count) WHERE {  # get & count claims for the items
-  INCLUDE %j
-  ?item ?predicate [].
-  ?property wikibase:claim ?predicate . 
-} GROUP BY ?item ?number ?property ORDER BY DESC(?count) } as %k
-WITH { SELECT  ?item (MAX(?count) AS ?maxcount) {
-  INCLUDE %k
-} GROUP BY ?item } AS %max
-
-WHERE {                              # right now, get labels and an aggregation which does nothing
-  INCLUDE %k
-  INCLUDE %max
-  FILTER (?count = ?maxcount) 
  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }  order by desc(?number)""" .

@@ -37,63 +37,6 @@ SELECT
                                                            
 WHERE
 {   
-{    SELECT * { INCLUDE %titles  INCLUDE %positionalregexes  BIND( strlang(REPLACE(?input, ?re, \"$2\"),\"en\") as ?word) }
-}    hint:Query hint:optimizer \"None\".
-    FILTER ( ?word != \"Z\"@en )
-    # check against English forms of lexemes (\"en\")
-    OPTIONAL { ?lf lhasform: ?word . ?lexeme1 lforms: ?lf ; llang: wd:Q1860 }
-
-    # check against lowercase forms 
-    BIND( Lcase(?word) as ?lword)
-    OPTIONAL { ?lf lhasform: ?lword . ?lexeme2 lforms: ?lf ; llang: wd:Q1860 }
-
-    # check against noun forms with 's (incomplete, not en-gb, not different cases)
-    BIND( strlang(REPLACE(str(?word),\"^(.+)'s$\", \"$1\"),\"en\") as ?noun)
-    OPTIONAL { ?lf lhasform: ?noun . ?lexeme5 lforms: ?lf ; llang: wd:Q1860 ; lcat: wd:Q1084 }
- 
-    # check against British-English lowercase forms (\"en-gb\")
-    BIND( strlang(Lcase(str(?word)),\"en-gb\") as ?lword_engb)
-    OPTIONAL { ?lf lhasform: ?lword_engb . ?lexeme3 lforms: ?lf ; llang: wd:Q1860 }
-  
-    # exclude digits-only strings and 1-letter strings
-    FILTER ( !REGEX( str(?word), \"^\\\\d+$\" )  )
-    FILTER ( strlen( stR(?word)) != 1  ) 
- 
-    BIND( COALESCE( ?lexeme1, ?lexeme2, ?lexeme5, ?lexeme3, wd:L254535 ) as ?lexeme)
-    ?lexeme llemma: ?lemma ; lcat: ?lexcat .
-    ?lexcat rdfs:label ?lexcatLabel . FILTER(lang(?lexcatLabel) = \"en\") .
-    OPTIONAL { ?lexeme lsenses: ?sense .
-               OPTIONAL { ?sense lglos: ?glos_en . FILTER(lang(?glos_en) = \"en\")   }
-             }
-}
-GROUP BY ?a ?title ?nv ?word
-ORDER BY ?a ?nv""",
-    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX llemma:   <http://wikiba.se/ontology#lemma>
-PREFIX lcat:     <http://wikiba.se/ontology#lexicalCategory>
-PREFIX llang:    <http://purl.org/dc/terms/language>
-PREFIX lforms:   <http://www.w3.org/ns/lemon/ontolex#lexicalForm>
-PREFIX lhasform: <http://www.w3.org/ns/lemon/ontolex#representation>
-PREFIX lfeature: <http://wikiba.se/ontology#grammaticalFeature>
-PREFIX lsenses:  <http://www.w3.org/ns/lemon/ontolex#sense>
-PREFIX lglos:    <http://www.w3.org/2004/02/skos/core#definition>
-
-# List words of in some titles and corresponding lexemes (or \"placeholder\") 
-#  limited to the 42 first words & English language titles
-#  includes glos for any of the senses already defined on one of the lexemes (more generally needed)
-#  by Jura1, 10 March 2020
-
-SELECT
-  ?a ?title ?nv ?word (GROUP_CONCAT(DISTINCT ?lemma; separator=\"/\") as ?all_lemma) 
-  (SAMPLE(?lexeme) as ?a_lexeme) 
-  (GROUP_CONCAT(DISTINCT ?lexcatLabel; separator=\", \") as ?all_lexcat) 
-  (COUNT(DISTINCT ?sense) as ?senses)
-  (GROUP_CONCAT(DISTINCT ?glos_en; separator=\" [other sense: ]_\") as ?all_glos_en) 
-                                                           
-WHERE
-{   
 {    SELECT * { 
 {  SELECT ?a ?title (REPLACE(CONCAT(REPLACE(REPLACE(REPLACE(str(?title),'[\\\\.:,\\\\? %\";\\\\]\\\\[]',\"\"),\"[\\\\(\\\\)–“—”]\",\" \"),\"’\",\"'\"), 
   \" Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z\")
@@ -141,10 +84,7 @@ WHERE
 }
 GROUP BY ?a ?title ?nv ?word
 ORDER BY ?a ?nv""";
-  <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX llemma:   <http://wikiba.se/ontology#lemma>
+  <http://example.org/bigdata_select> """PREFIX llemma:   <http://wikiba.se/ontology#lemma>
 PREFIX lcat:     <http://wikiba.se/ontology#lexicalCategory>
 PREFIX llang:    <http://purl.org/dc/terms/language>
 PREFIX lforms:   <http://www.w3.org/ns/lemon/ontolex#lexicalForm>

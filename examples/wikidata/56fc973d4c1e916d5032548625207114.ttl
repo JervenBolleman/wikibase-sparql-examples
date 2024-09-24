@@ -27,60 +27,6 @@ WHERE
   SELECT ?organization ?located_in_the_administrative_territorial_entity ?county
   WHERE
   {
-    INCLUDE %get_organization_and_county_candidates
-    # The administrative unit (here county) is mentioned directly in the organization item
-    FILTER EXISTS { ?organization wdt:P131 ?located_in_the_administrative_territorial_entity . }
-  }
-}}
-  UNION
-  { 
-{
-  SELECT ?organization ?located_in_the_administrative_territorial_entity ?county
-  WHERE
-  {
-    INCLUDE %get_organization_and_county_candidates
-    # The administrative unit (here county) is deeper in the P131 hierarchy
-    # AND there is no \"next level in hierarchy\" qualifier in another P131 statement  
-    FILTER EXISTS
-    {
-      ?organization p:P131 ?P131_statement .
-      ?P131_statement ps:P131 ?first_level_adm_unit .
-      ?first_level_adm_unit wdt:P131+ ?located_in_the_administrative_territorial_entity .
-      FILTER NOT EXISTS
-      {
-        ?organization p:P131 ?another_P131_statement .
-        FILTER (?another_P131_statement != ?P131_statement)
-        ?another_P131_statement pq:P3831 wd:Q105528942 .
-      }
-    }
-  }
-}}
-  OPTIONAL { ?organization wdt:P6375 ?street_address . }
-  OPTIONAL { ?organization wdt:P625 ?coordinate_location . }
-  OPTIONAL { ?organization wdt:P1329 ?phone_number . }
-  OPTIONAL { ?organization wdt:P968 ?e_mail_address . }
-  OPTIONAL { ?organization wdt:P856 ?website . }
-  OPTIONAL { ?organization wdt:P2013 ?Facebook_ID . }
-  OPTIONAL { ?organization wdt:P2002 ?Twitter_username . }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
-}
-ORDER BY (?organization)""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?organization ?organizationLabel ?street_address ?coordinate_location
-  ?phone_number ?e_mail_address ?website ?Facebook_ID ?Twitter_username ?county
-WHERE
-{
-  { 
-{
-  SELECT ?organization ?located_in_the_administrative_territorial_entity ?county
-  WHERE
-  {
     
 {
   SELECT DISTINCT ?organization ?located_in_the_administrative_territorial_entity ?county
@@ -217,14 +163,7 @@ WHERE
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
 }
 ORDER BY (?organization)""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?organization ?organizationLabel ?street_address ?coordinate_location
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?organization ?organizationLabel ?street_address ?coordinate_location
   ?phone_number ?e_mail_address ?website ?Facebook_ID ?Twitter_username ?county
 WITH
 {

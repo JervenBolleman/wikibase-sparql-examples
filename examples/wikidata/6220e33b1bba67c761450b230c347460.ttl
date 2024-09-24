@@ -26,41 +26,6 @@ SELECT ?word ?count ?sample
 WHERE
 {
     
-{  SELECT ?word (COUNT(DISTINCT ?title) as ?count) (SAMPLE(?title) as ?sample) WHERE { INCLUDE %getwords FILTER ( ?word != \"Z\"@en ) } GROUP BY ?word
-}    hint:Query hint:optimizer \"None\".
-  
-    # check against English forms of lexemes (\"en\")
-    FILTER NOT EXISTS { ?lf lhasform: ?word 
-      # ?lexeme lforms: ?lf ; llang: wd:Q1860 .
-    }
-
-    # check against lowercase forms 
-    BIND( Lcase(?word) as ?lword)
-    FILTER NOT EXISTS { ?lf lhasform: ?lword }
-  
-    # check against British English lowercase forms (\"en-gb\")
-    BIND( strlang(Lcase(str(?word)),\"en-gb\") as ?lword_engb)
-    FILTER NOT EXISTS { ?lf lhasform: ?lword_engb }  
-
-    # exclude digits-only strings and 1-letter strings
-    FILTER ( !REGEX( str(?word), \"^\\\\d+$\" )  )
-    FILTER ( strlen( str(?word)) != 1  ) 
-}""",
-    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX lhasform: <http://www.w3.org/ns/lemon/ontolex#representation>
-PREFIX llang: <http://purl.org/dc/terms/language>
-PREFIX lforms:   <http://www.w3.org/ns/lemon/ontolex#lexicalForm>
-
-# List words of some titles that don't exists as lexeme form 
-#  limited to the 42 first words, English language titles
-#  by Jura1, 7-11 March 2020
-
-SELECT ?word ?count ?sample
-                                                           
-WHERE
-{
-    
 {  SELECT ?word (COUNT(DISTINCT ?title) as ?count) (SAMPLE(?title) as ?sample) WHERE { 
 {    SELECT * { INCLUDE %titles  INCLUDE %positionalregexes  BIND( strlang(REPLACE(?input, ?re, \"$2\"),\"en\") as ?word) }
 }FILTER ( ?word != \"Z\"@en ) } GROUP BY ?word
@@ -83,9 +48,7 @@ WHERE
     FILTER ( !REGEX( str(?word), \"^\\\\d+$\" )  )
     FILTER ( strlen( str(?word)) != 1  ) 
 }""";
-  <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX lhasform: <http://www.w3.org/ns/lemon/ontolex#representation>
+  <http://example.org/bigdata_select> """PREFIX lhasform: <http://www.w3.org/ns/lemon/ontolex#representation>
 PREFIX llang: <http://purl.org/dc/terms/language>
 PREFIX lforms:   <http://www.w3.org/ns/lemon/ontolex#lexicalForm>
 

@@ -20,26 +20,6 @@ SELECT ?item ?st ?sl ?ids (str(?i) as ?offset)
 WHERE
 {
   hint:Query hint:optimizer \"None\".
-   { SELECT (COUNT(*) AS ?count)  WHERE { INCLUDE %all }  }.
-  BIND(ROUND( ?count / 20) as ?slice ) BIND( ROUND(FLOOR( RAND() * ?count / 20 )) AS ?rnd) 
-  
-{
-  SELECT ?item (SUM(?x) AS ?i)  WHERE  { INCLUDE %all . INCLUDE %all2 .
-    BIND( IF( STR( ?item ) > STR( ?item2 ), 1, 0 ) AS ?x ) .
-  } GROUP BY ?item
-}.
-  FILTER( ROUND( ( ?i/ ?slice - FLOOR( ?i / ?slice ) ) * ?slice ) = ?rnd)
-  ?item wikibase:statements ?st; wikibase:sitelinks ?sl; wikibase:identifiers ?ids.
-}""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-#adapted from query by User:Matěj Suchánek
-SELECT ?item ?st ?sl ?ids (str(?i) as ?offset)
-
-WHERE
-{
-  hint:Query hint:optimizer \"None\".
    { SELECT (COUNT(*) AS ?count)  WHERE {  { SELECT DISTINCT ?item        WHERE { ?item wdt:P31 wd:Q7889 ; wikibase:statements ?st . FILTER(?st < 2) }  }}  }.
   BIND(ROUND( ?count / 20) as ?slice ) BIND( ROUND(FLOOR( RAND() * ?count / 20 )) AS ?rnd) 
   
@@ -51,10 +31,7 @@ WHERE
   FILTER( ROUND( ( ?i/ ?slice - FLOOR( ?i / ?slice ) ) * ?slice ) = ?rnd)
   ?item wikibase:statements ?st; wikibase:sitelinks ?sl; wikibase:identifiers ?ids.
 }""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-#adapted from query by User:Matěj Suchánek
+  <http://example.org/bigdata_select> """#adapted from query by User:Matěj Suchánek
 SELECT ?item ?st ?sl ?ids (str(?i) as ?offset)
 WITH { SELECT DISTINCT ?item        WHERE { ?item wdt:P31 wd:Q7889 ; wikibase:statements ?st . FILTER(?st < 2) }  } AS %all
 WITH { SELECT (COUNT(*) AS ?count)  WHERE { INCLUDE %all }  } AS %count
