@@ -16,61 +16,6 @@ PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?title_en ?article_en ?no ?da ?sv ?nn
-WITH
-{
-  SELECT ?title_en ?article_en
-  WHERE
-  {
-    SERVICE wikibase:mwapi
-    {
-      bd:serviceParam wikibase:endpoint \"en.wikipedia.org\" .
-
-      # Generator to get all transclusions of the Template \"WikiProject Climate change\"
-      bd:serviceParam wikibase:api \"Generator\" .
-      bd:serviceParam mwapi:generator \"alltransclusions\" .
-      bd:serviceParam mwapi:gatfrom \"WikiProject Climate change\" .
-      bd:serviceParam mwapi:gatto \"WikiProject Climate change\" .
-      bd:serviceParam mwapi:gatlimit \"max\" .
-
-      # Use the info module to get the name of associated page
-      # (the template is on talk pages, so this gives the subject pages)
-      bd:serviceParam mwapi:prop \"info\" .
-      bd:serviceParam mwapi:inprop \"associatedpage\" .
-
-      # Output
-      # (There is no point in trying to get associated items, because that would be for the found talk pages) 
-      ?title wikibase:apiOutput \"@associatedpage\" .
-    }
-    BIND (STRLANG(?title, \"en\") AS ?title_en)
-    OPTIONAL { ?article_en schema:name ?title_en . }
-    FILTER BOUND(?article_en)
-  }
-}
-AS %get_titles
-WHERE
-{
-  INCLUDE %get_titles
-  ?article_en schema:isPartOf <https://en.wikipedia.org/> .
-  ?article_en schema:about ?item .
-
-  OPTIONAL { ?article_no schema:about ?item ;
-  schema:isPartOf <https://no.wikipedia.org/> .}
-  OPTIONAL { ?article_sv schema:about ?item ;
-  schema:isPartOf <https://sv.wikipedia.org/> . }
-  OPTIONAL { ?article_da schema:about ?item ;
-  schema:isPartOf <https://da.wikipedia.org/> . }
-  OPTIONAL { ?article_nn schema:about ?item ;
-  schema:isPartOf <https://nn.wikipedia.org/> . }  
-  BIND(IF(BOUND(?article_no),\"yes\",\"no\") as ?no)
-  BIND(IF(BOUND(?article_da),\"yes\",\"no\") as ?da)
-  BIND(IF(BOUND(?article_sv),\"yes\",\"no\") as ?sv) 
-  BIND(IF(BOUND(?article_nn),\"yes\",\"no\") as ?nn) 
-}""",
-    """PREFIX mwapi: <http://wikiba.se/ontology#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX schema: <http://schema.org/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?title_en ?article_en ?no ?da ?sv ?nn
 WHERE
 {
   
@@ -118,7 +63,11 @@ WHERE
   BIND(IF(BOUND(?article_sv),\"yes\",\"no\") as ?sv) 
   BIND(IF(BOUND(?article_nn),\"yes\",\"no\") as ?nn) 
 }""";
-  <http://example.org/bigdata_select> """SELECT ?title_en ?article_en ?no ?da ?sv ?nn
+  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?title_en ?article_en ?no ?da ?sv ?nn
 WITH
 {
   SELECT ?title_en ?article_en

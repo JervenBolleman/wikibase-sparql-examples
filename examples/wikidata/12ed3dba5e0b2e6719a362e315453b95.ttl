@@ -20,34 +20,6 @@ PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Map{\"hide\":\"?rgb\"}
 #title: Border check (with distinct types, less timeout)
-SELECT ?item ?itemLabel ?itemDescription ?coord ?anz ?rgb ?layer WITH {
-  SELECT DISTINCT ?item (COUNT(DISTINCT ?country) as ?anz) WHERE {
-    hint:Query hint:optimizer \"None\".  
-    ?item wdt:P17 wd:Q215 . #16
-    #?item wdt:P131*/wdt:P279* wd:Q980 . # in case of timelimit restrict to sub unit
-    ?item wdt:P31 ?isA .
-    VALUES ?isA {wd:Q8502 wd:Q16887036 wd:Q2231510 wd:Q10862618 wd:Q35666 wd:Q23397 wd:Q133056} # distinct border related types
-    ?item wdt:P625 [] .
-    ?item wdt:P17 ?country .
-  }
-  GROUP BY ?item
-} AS %subquery1 WHERE {
-  INCLUDE %subquery1 .
-  ?item wdt:P31 [] .
-  ?item p:P625 ?coordStatement .
-  ?coordStatement ps:P625 ?coord .
-  BIND(IF(?anz = 1, '60ff60', 'ff0000') AS ?rgb) .
-  BIND(IF(?anz = 1, 'inside (single P17)', 'border (multiple P17)') AS ?layer) .
-  SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE,de,en]' }
-} GROUP BY ?item ?itemLabel ?itemDescription ?coord ?anz ?rgb ?layer # ORDER BY ASC(?item)""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#defaultView:Map{\"hide\":\"?rgb\"}
-#title: Border check (with distinct types, less timeout)
 SELECT ?item ?itemLabel ?itemDescription ?coord ?anz ?rgb ?layer WHERE {
    {
   SELECT DISTINCT ?item (COUNT(DISTINCT ?country) as ?anz) WHERE {
@@ -68,7 +40,13 @@ SELECT ?item ?itemLabel ?itemDescription ?coord ?anz ?rgb ?layer WHERE {
   BIND(IF(?anz = 1, 'inside (single P17)', 'border (multiple P17)') AS ?layer) .
   SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE,de,en]' }
 } GROUP BY ?item ?itemLabel ?itemDescription ?coord ?anz ?rgb ?layer # ORDER BY ASC(?item)""";
-  <http://example.org/bigdata_select> """#defaultView:Map{\"hide\":\"?rgb\"}
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map{\"hide\":\"?rgb\"}
 #title: Border check (with distinct types, less timeout)
 SELECT ?item ?itemLabel ?itemDescription ?coord ?anz ?rgb ?layer WITH {
   SELECT DISTINCT ?item (COUNT(DISTINCT ?country) as ?anz) WHERE {

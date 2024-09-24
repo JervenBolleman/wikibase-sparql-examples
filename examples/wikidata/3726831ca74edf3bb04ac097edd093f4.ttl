@@ -18,45 +18,6 @@ PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 # Buildings that are not a part of a bounding box covering the mainland of a country
 SELECT ?item ?itemLabel ?coord
-WITH {
-  SELECT *
-  WHERE {
-    VALUES ?country { wd:Q20 } # check that the bounding box only covers the mainland
-    ?country wdt:P1332 ?nmp ;
-      wdt:P1333 ?smp ;
-      wdt:P1334 ?emp ;
-      wdt:P1335 ?wmp .
-  }
-} AS %a
-WITH {
-  SELECT DISTINCT ?item ?coord
-  WHERE {
-    INCLUDE %a
-    ?item wdt:P17 ?country;
-      wdt:P31/wdt:P279* wd:Q811979.
-    ?item wdt:P625 ?coord . hint:Prior hint:rangeSafe true.
-    FILTER(geof:latitude(?coord) > geof:latitude(?nmp) || geof:latitude(?coord) < geof:latitude(?smp) ||
-           geof:longitude(?coord) > geof:longitude(?emp) || geof:longitude(?coord) < geof:longitude(?wmp))
-  }
-  LIMIT 1000
-} AS %b
-WHERE {
-  INCLUDE %b
-  # Try to remove things here to ensure it runs after the named subquery b
-  FILTER NOT EXISTS {
-    ?item wdt:P17 ?country2. FILTER(?country2 != ?country)
-  }
-  MINUS { ?item wdt:P5816 wd:Q19860854. }
-  MINUS { ?item wdt:P576|wdt:P3999 []. }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
-}""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-# Buildings that are not a part of a bounding box covering the mainland of a country
-SELECT ?item ?itemLabel ?coord
 WHERE {
    {
   SELECT DISTINCT ?item ?coord
@@ -76,8 +37,48 @@ WHERE {
   MINUS { ?item wdt:P5816 wd:Q19860854. }
   MINUS { ?item wdt:P576|wdt:P3999 []. }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Buildings that are not a part of a bounding box covering the mainland of a country
+SELECT ?item ?itemLabel ?coord
+WHERE {
+   {
+  SELECT DISTINCT ?item ?coord
+  WHERE {
+     {
+  SELECT *
+  WHERE {
+    VALUES ?country { wd:Q20 } # check that the bounding box only covers the mainland
+    ?country wdt:P1332 ?nmp ;
+      wdt:P1333 ?smp ;
+      wdt:P1334 ?emp ;
+      wdt:P1335 ?wmp .
+  }
+}    ?item wdt:P17 ?country;
+      wdt:P31/wdt:P279* wd:Q811979.
+    ?item wdt:P625 ?coord . 
+    FILTER(geof:latitude(?coord) > geof:latitude(?nmp) || geof:latitude(?coord) < geof:latitude(?smp) ||
+           geof:longitude(?coord) > geof:longitude(?emp) || geof:longitude(?coord) < geof:longitude(?wmp))
+  }
+  LIMIT 1000
+}  # Try to remove things here to ensure it runs after the named subquery b
+  FILTER NOT EXISTS {
+    ?item wdt:P17 ?country2. FILTER(?country2 != ?country)
+  }
+  MINUS { ?item wdt:P5816 wd:Q19860854. }
+  MINUS { ?item wdt:P576|wdt:P3999 []. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
 }""";
-  <http://example.org/bigdata_select> """# Buildings that are not a part of a bounding box covering the mainland of a country
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Buildings that are not a part of a bounding box covering the mainland of a country
 SELECT ?item ?itemLabel ?coord
 WITH {
   SELECT *

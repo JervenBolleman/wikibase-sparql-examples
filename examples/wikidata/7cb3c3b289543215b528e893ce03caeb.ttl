@@ -26,57 +26,6 @@ SELECT DISTINCT ?item ?itemLabel ?type
 # places that need tripadvisor entries to be notable
    VALUES ?notable {wd:Q23413 wd:Q16748868} # castle, city walls
 
-  ?item wdt:P3134 ?tripadvisor. hint:Prior hint:runFirst true.
-  ?item wdt:P17 wd:Q145.
-
-  ?item wdt:P31/wdt:P279* ?notable. hint:Prior hint:gearing \"forward\".
-
-VALUES ?registerclass {
- wd:Q18618628 # cultural heritage
-  wd:Q19829908 # places
-  wd:Q22964288 # military
-  wd:Q23779665 # maritime
-  wd:Q74568206 # archives
-}
-      {
-          ?registerclass ^wdt:P31 ?register.
-
-         ?register wikibase:claim ?claim .
-          ?register wikibase:statementProperty ?value.
-
-          ?item ?claim ?stat .
-          ?stat ?value ?entry .
-          OPTIONAL {
-          ?register wdt:P2378 ?issuer.
-          ?issuer rdfs:label ?issuerlabel. FILTER (LANG(?issuerlabel) = \"en\")
-          ?register wdt:P1630 ?URLprefix.
-                  {?stat pq:P1435 ?caveat.} # heritage designation
-            UNION {?stat pq:P518  ?caveat}  # applies to part
-            UNION {?stat pq:P1810 ?caveat}  # subject named as
-            ?caveat rdfs:label ?caveatlabel1. FILTER (LANG(?caveatlabel1) = \"en\")
-          }
-          BIND (IF(BOUND(?caveatlabel1),?caveatlabel1,\"entry\") AS ?caveatlabel2)
-
-          BIND(CONCAT(\"[[d:Special:EntityPage/\",STR(?ISSUERLABEL),\"|\",STR(?ISSUERLABEL),\"]] [[:Template:Website]]\") AS ?description)
-        }
-    }
-  }
-}""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?item ?itemLabel ?type 
-  (CONCAT(\"+\",STR(COALESCE(?pointintime,?starttime))) AS ?start)
-  ?description ?notes ?link ?title ?keywords WHERE {
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en-GB,en,fr,de,es,pt,pl,nl,cs\". }
-  { 
-    SELECT DISTINCT ?item ?type ?pointintime ?starttime ?description ?notes ?link ?title ?keywords WHERE {
-# places that need tripadvisor entries to be notable
-   VALUES ?notable {wd:Q23413 wd:Q16748868} # castle, city walls
-
   ?item wdt:P3134 ?tripadvisor. 
   ?item wdt:P17 wd:Q145.
 
@@ -113,7 +62,13 @@ VALUES ?registerclass {
     }
   }
 }""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?itemLabel ?type 
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?type 
   (CONCAT(\"+\",STR(COALESCE(?pointintime,?starttime))) AS ?start)
   ?description ?notes ?link ?title ?keywords WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en-GB,en,fr,de,es,pt,pl,nl,cs\". }

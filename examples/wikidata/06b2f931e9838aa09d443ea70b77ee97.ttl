@@ -16,37 +16,17 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?given ?givenLabel ?malecount ?femalecount ?ratio
 
-WITH {
-  select ?given (count(?given) as ?malecount) where
-{
-  ?item wdt:P735 ?given.
-  {?given wdt:P31 wd:Q202444 .}
-  UNION
-  {?given wdt:P31 wd:Q12308941 .}
-  ?item wdt:P21 wd:Q6581097.
-} group by ?given  } as %m
 
-WITH {
-  select ?given (count(?given) as ?femalecount) where
-{
-  ?item wdt:P735 ?given.
-  {?given wdt:P31 wd:Q202444.}
-  UNION
-  {?given wdt:P31 wd:Q11879590 .}
-  ?item wdt:P21 wd:Q6581072.
-} group by ?given  } as %f
 
-WITH {
+
+where
+{
+   {
   select ?givenLabel (sum(?malecount) as ?malecount) (sum(?femalecount) as ?femalecount) where
 { include %m
   include %f  
   ?given rdfs:label ?givenLabel . filter(lang(?givenLabel)=\"en\")  
- } group by ?givenLabel having(?malecount+?femalecount>49)} as %i
-
-where
-{
-  include %i
-  bind(?femalecount*100/?malecount as ?ratio)  
+ } group by ?givenLabel having(?malecount+?femalecount>49)}  bind(?femalecount*100/?malecount as ?ratio)  
 } order by desc(?ratio)""",
     """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -60,12 +40,30 @@ where
 {
    {
   select ?givenLabel (sum(?malecount) as ?malecount) (sum(?femalecount) as ?femalecount) where
-{ include %m
-  include %f  
+{  {
+  select ?given (count(?given) as ?malecount) where
+{
+  ?item wdt:P735 ?given.
+  {?given wdt:P31 wd:Q202444 .}
+  UNION
+  {?given wdt:P31 wd:Q12308941 .}
+  ?item wdt:P21 wd:Q6581097.
+} group by ?given  }   {
+  select ?given (count(?given) as ?femalecount) where
+{
+  ?item wdt:P735 ?given.
+  {?given wdt:P31 wd:Q202444.}
+  UNION
+  {?given wdt:P31 wd:Q11879590 .}
+  ?item wdt:P21 wd:Q6581072.
+} group by ?given  } 
   ?given rdfs:label ?givenLabel . filter(lang(?givenLabel)=\"en\")  
  } group by ?givenLabel having(?malecount+?femalecount>49)}  bind(?femalecount*100/?malecount as ?ratio)  
 } order by desc(?ratio)""";
-  <http://example.org/bigdata_select> """SELECT ?given ?givenLabel ?malecount ?femalecount ?ratio
+  <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?given ?givenLabel ?malecount ?femalecount ?ratio
 
 WITH {
   select ?given (count(?given) as ?malecount) where

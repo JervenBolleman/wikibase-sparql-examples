@@ -18,50 +18,6 @@ PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?player ?playerLabel ?dob ?goal_date ?goal_age_days ?goal_age_years
-WITH
-{
-  SELECT ?player ?dob ?date_first ?date_latest ?age_first ?age_latest
-  WHERE
-  {
-    ?player p:P6509 ?p6509stm . # goals
-    ?p6509stm pq:P7124 ?date_first .
-    ?p6509stm pq:P7125 ?date_latest .
-    ?p6509stm pq:P642 wd:Q484028 . # for UEFA Super Cup
-    ?player wdt:P569 ?dob . # Date of birth
-    BIND(?date_first - ?dob AS ?age_first)
-    BIND(?date_latest - ?dob AS ?age_latest)
-  }
-} as %query
-WHERE
-{
-  {
-    SELECT ?player ?dob (?date_first AS ?goal_date) (?age_first AS ?goal_age_days)
-    {
-      INCLUDE %query
-    }
-    ORDER BY ASC(?goal_age_days)
-    LIMIT 10
-  }
-  UNION
-  {
-    SELECT ?player ?dob (?date_latest AS ?goal_date) (?age_latest AS ?goal_age_days)
-    {
-      INCLUDE %query
-    }
-    ORDER BY DESC(?goal_age_days)
-    LIMIT 10
-  }
-  BIND(?goal_age_days/365.25 AS ?goal_age_years)
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-ORDER BY ASC(?goal_age_days)""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?player ?playerLabel ?dob ?goal_date ?goal_age_days ?goal_age_years
 WHERE
 {
   {
@@ -109,7 +65,13 @@ WHERE
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY ASC(?goal_age_days)""";
-  <http://example.org/bigdata_select> """SELECT ?player ?playerLabel ?dob ?goal_date ?goal_age_days ?goal_age_years
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?player ?playerLabel ?dob ?goal_date ?goal_age_days ?goal_age_years
 WITH
 {
   SELECT ?player ?dob ?date_first ?date_latest ?age_first ?age_latest

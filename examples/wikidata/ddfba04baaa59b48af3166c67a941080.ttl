@@ -18,48 +18,6 @@ PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?berufeLabel ?geboren ?geb_ortLabel ?geb_bundeslandLabel ?gestorben ?sterbeortLabel ?sterbe_bundeslandLabel ?sitelink
-WITH { SELECT DISTINCT ?item ?sitelink ?gestorben (GROUP_CONCAT(?berufeLabel_;separator=\"; \") as ?berufeLabel)  
-WHERE {
-    ?item wdt:P27 wd:Q183 . #Deutsche
-    hint:Prior hint:runFirst true.
-    ?item wdt:P21 wd:Q6581072 . #ist weiblich
-    #?item wdt:P21 ?geschlecht .
-    ?item wdt:P106/rdfs:label ?berufeLabel_ . filter(lang(?berufeLabel_)=\"de\")
-    ?item wdt:P570 ?gestorben .
-    FILTER(YEAR(?gestorben) < 2000).
-    ?sitelink schema:about ?item . ?sitelink schema:inLanguage \"de\"  .
-    ?item wdt:P31 wd:Q5 . #ist Mensch
-    #?item wdt:P27 ?land .
-} GROUP BY ?item ?sitelink ?gestorben
-# LIMIT 30000
-} as %i
-WITH { SELECT ?item ?berufeLabel ?geboren ?gestorben ?sitelink ?geb_ort ?sterbeort ?geb_bundesland ?sterbe_bundesland 
-WHERE {
-  INCLUDE %i
-  optional { ?item wdt:P569 ?geboren . }
-  optional { ?item wdt:P19 ?geb_ort .
-             ?geb_ort wdt:P131* ?geb_bundesland .
-             hint:Prior hint:gearing \"forward\".
-             ?geb_bundesland wdt:P31 wd:Q1221156 .
-            }
-  optional { ?item wdt:P20 ?sterbeort . 
-             ?sterbeort wdt:P131* ?sterbe_bundesland .
-             hint:Prior hint:gearing \"forward\".
-             ?sterbe_bundesland wdt:P31 wd:Q1221156 .
-            }
-  } } as %j
-WHERE
-{
-  INCLUDE %j
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" }
-}""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?berufeLabel ?geboren ?geb_ortLabel ?geb_bundeslandLabel ?gestorben ?sterbeortLabel ?sterbe_bundeslandLabel ?sitelink
 WHERE
 {
    { SELECT ?item ?berufeLabel ?geboren ?gestorben ?sitelink ?geb_ort ?sterbeort ?geb_bundesland ?sterbe_bundesland 
@@ -77,8 +35,52 @@ WHERE {
              ?sterbe_bundesland wdt:P31 wd:Q1221156 .
             }
   } }  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?berufeLabel ?geboren ?geb_ortLabel ?geb_bundeslandLabel ?gestorben ?sterbeortLabel ?sterbe_bundeslandLabel ?sitelink
+WHERE
+{
+   { SELECT ?item ?berufeLabel ?geboren ?gestorben ?sitelink ?geb_ort ?sterbeort ?geb_bundesland ?sterbe_bundesland 
+WHERE {
+   { SELECT DISTINCT ?item ?sitelink ?gestorben (GROUP_CONCAT(?berufeLabel_;separator=\"; \") as ?berufeLabel)  
+WHERE {
+    ?item wdt:P27 wd:Q183 . #Deutsche
+    
+    ?item wdt:P21 wd:Q6581072 . #ist weiblich
+    #?item wdt:P21 ?geschlecht .
+    ?item wdt:P106/rdfs:label ?berufeLabel_ . filter(lang(?berufeLabel_)=\"de\")
+    ?item wdt:P570 ?gestorben .
+    FILTER(YEAR(?gestorben) < 2000).
+    ?sitelink schema:about ?item . ?sitelink schema:inLanguage \"de\"  .
+    ?item wdt:P31 wd:Q5 . #ist Mensch
+    #?item wdt:P27 ?land .
+} GROUP BY ?item ?sitelink ?gestorben
+# LIMIT 30000
+}  optional { ?item wdt:P569 ?geboren . }
+  optional { ?item wdt:P19 ?geb_ort .
+             ?geb_ort wdt:P131* ?geb_bundesland .
+             
+             ?geb_bundesland wdt:P31 wd:Q1221156 .
+            }
+  optional { ?item wdt:P20 ?sterbeort . 
+             ?sterbeort wdt:P131* ?sterbe_bundesland .
+             
+             ?sterbe_bundesland wdt:P31 wd:Q1221156 .
+            }
+  } }  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" }
 }""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?berufeLabel ?geboren ?geb_ortLabel ?geb_bundeslandLabel ?gestorben ?sterbeortLabel ?sterbe_bundeslandLabel ?sitelink
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?berufeLabel ?geboren ?geb_ortLabel ?geb_bundeslandLabel ?gestorben ?sterbeortLabel ?sterbe_bundeslandLabel ?sitelink
 WITH { SELECT DISTINCT ?item ?sitelink ?gestorben (GROUP_CONCAT(?berufeLabel_;separator=\"; \") as ?berufeLabel)  
 WHERE {
     ?item wdt:P27 wd:Q183 . #Deutsche

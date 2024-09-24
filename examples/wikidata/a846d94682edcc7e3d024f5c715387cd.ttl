@@ -23,28 +23,6 @@ SELECT ?item (COUNT(DISTINCT ?p) as ?ct)
                               ; wdt:P31 wd:Q5 
                               ; wdt:P21 [] 
                    } LIMIT 1000 }
-	hint:Query hint:optimizer \"None\" . 	# avoid timeout on wikibase:claim / ?sp 
-  	?item ?sp ?claim .  				# double-check wikibase:statements
-	?p wikibase:claim ?sp .				# double-check wikibase:statements
-  	OPTIONAL{ ?backlink ?s ?item } 					FILTER(!BOUND(?backlink)) 
-  	OPTIONAL{ ?claim prov:wasDerivedFrom ?ref . ?ref ?p ?v . FILTER NOT EXISTS { ?v wdt:P31 wd:Q10876391 } }  	FILTER(!BOUND(?ref)) # exclude no source and wikipedia only source
-  	# OPTIONAL{ ?claim prov:wasDerivedFrom ?ref }  	FILTER(!BOUND(?ref)) # exclude any reference
-  	OPTIONAL{ ?art schema:about ?item } 			FILTER(!BOUND(?art))	# double-check wikibase:sitelinks
-}
-GROUP BY ?item
-HAVING (?ct = 2)	# double-check wikibase:statements""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-PREFIX prov: <http://www.w3.org/ns/prov#>
-SELECT ?item (COUNT(DISTINCT ?p) as ?ct) 
-{  
-  	{ SELECT ?item { 	?item wikibase:statements 2 
-                              ; wikibase:sitelinks 0 
-                              ; wdt:P31 wd:Q5 
-                              ; wdt:P21 [] 
-                   } LIMIT 1000 }
 	 	# avoid timeout on wikibase:claim / ?sp 
   	?item ?sp ?claim .  				# double-check wikibase:statements
 	?p wikibase:claim ?sp .				# double-check wikibase:statements
@@ -55,7 +33,12 @@ SELECT ?item (COUNT(DISTINCT ?p) as ?ct)
 }
 GROUP BY ?item
 HAVING (?ct = 2)	# double-check wikibase:statements""";
-  <http://example.org/bigdata_select> """SELECT ?item (COUNT(DISTINCT ?p) as ?ct) 
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+SELECT ?item (COUNT(DISTINCT ?p) as ?ct) 
 {  
   	{ SELECT ?item { 	?item wikibase:statements 2 
                               ; wikibase:sitelinks 0 

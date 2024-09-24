@@ -23,69 +23,6 @@ PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 # Scroll down and hit blue arrow down to run and see the results + the sources
 SELECT ?item ?itemLabel (MAX(?number) AS ?passengers)
-WITH
-{
-  SELECT ?item ?statement ?date ?year ?timevalue ?numberperperiod ?reference_URL
-  WHERE
-  {
-    ?item wdt:P238 ?airport_code.
-    ?item p:P3872 ?statement.
-    ?statement pqv:P585 ?timevalue;
-               ps:P3872 ?numberperperiod.
-    ?timevalue wikibase:timeValue ?date.
-    OPTIONAL { ?statement pq:P518 ?applies. }
-    OPTIONAL { ?statement prov:wasDerivedFrom / (pr:P854|pr:P4656) ?reference_URL. }
-    FILTER (BOUND(?applies)=false || ?applies = wd:Q2165236 )
-    MINUS { ?statement wikibase:rank wikibase:DeprecatedRank }
-    BIND (YEAR(?date) AS ?year)
-    FILTER (?year =2020).
-  }
-} AS %airport
-WHERE
-{
-  {
-    # Get the sum of monthly values within a year
-    SELECT ?item ?year (SUM(?max_numberperperiod) AS ?number) (SAMPLE(?monthly_reference_URL) AS ?monthly_reference_URL2)
-    WHERE
-    {
-      # Get the maximal value and a sample reference URL for each unique month
-      {
-        SELECT ?item ?year (MAX(?numberperperiod) AS ?max_numberperperiod) (SAMPLE(?reference_URL) AS ?monthly_reference_URL)
-        WHERE
-        {
-          INCLUDE %airport
-          ?timevalue wikibase:timePrecision ?prec.
-          FILTER (?prec > 9)# precision more precise or equal to month
-        }
-        GROUP BY ?item ?year ?date
-      }
-    }
-    GROUP BY ?item ?year
-  }
-  UNION
-  {
-    ?timevalue wikibase:timePrecision 9 .
-    BIND (?numberperperiod AS ?number)
-    BIND (?reference_URL AS ?sample_reference_URL)
-    INCLUDE %airport
-  }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
-}
-GROUP BY ?item ?itemLabel ?year
-ORDER BY DESC (?passengers)
-limit 20""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX prov: <http://www.w3.org/ns/prov#>
-PREFIX pr: <http://www.wikidata.org/prop/reference/>
-PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-# Scroll down and hit blue arrow down to run and see the results + the sources
-SELECT ?item ?itemLabel (MAX(?number) AS ?passengers)
 WHERE
 {
   {
@@ -151,7 +88,17 @@ WHERE
 GROUP BY ?item ?itemLabel ?year
 ORDER BY DESC (?passengers)
 limit 20""";
-  <http://example.org/bigdata_select> """# Scroll down and hit blue arrow down to run and see the results + the sources
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Scroll down and hit blue arrow down to run and see the results + the sources
 SELECT ?item ?itemLabel (MAX(?number) AS ?passengers)
 WITH
 {

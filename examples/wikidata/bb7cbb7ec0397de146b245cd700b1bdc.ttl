@@ -20,62 +20,6 @@ PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 # UK parliaments with count of Johns and count of women
 #defaultView:LineChart
-SELECT ?date ?count ?label WITH {
-  # all MPs with their associated parliament
-  SELECT DISTINCT ?mp ?parliament WHERE {
-    ?mp wdt:P31 wd:Q5.
-    {
-      # new data model: position held – Member of the nth Parliament of the United Kingdom
-      ?mp p:P39/ps:P39 ?position.
-      ?position wdt:P279 wd:Q16707842;
-                p:P279/pq:P2937|wdt:P2937 ?parliament.
-    } UNION {
-      # old data model: member of – nth Parliament of the United Kingdom
-      ?mp p:P463/ps:P463 ?parliament.
-      ?parliament wdt:P31 wd:Q21094819.
-    }
-  } 
-} AS %MPsWithParliament WITH {
-  # count of Johns in each parliament
-  SELECT ?parliament (COUNT(DISTINCT ?mp) AS ?johns) WHERE {
-    INCLUDE %MPsWithParliament.
-    ?mp wdt:P735 wd:Q4925477.
-  }
-  GROUP BY ?parliament
-} AS %johns WITH {
-  # count of women in each parliament
-  SELECT ?parliament (COUNT(DISTINCT ?mp) AS ?women) WHERE {
-    INCLUDE %MPsWithParliament.
-    ?mp wdt:P21/wdt:P279* wd:Q6581072. # (P279*: include transgender females – non yet, but will probably happen in the future)
-  }
-  GROUP BY ?parliament
-} AS %women WHERE {
-  # get ?johns and ?women
-  INCLUDE %johns.
-  INCLUDE %women.
-  # fan out single result
-  # ?parliament ?johns ?women
-  # into two results
-  # ?parliament \"Johns\" ?johns
-  # ?parliament \"women\" ?women
-  # so the line chart works
-  VALUES ?label { \"Johns\"@en \"women\"@en }
-  BIND(IF(?label = \"Johns\"@en, ?johns, ?women) AS ?count)
-  # get parliament date for the chart
-  ?parliament wdt:P571|wdt:P580 ?date.
-  # add labels
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-ORDER BY ?date""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-# UK parliaments with count of Johns and count of women
-#defaultView:LineChart
 SELECT ?date ?count ?label WHERE {
   # get ?johns and ?women
   INCLUDE %johns.
@@ -94,7 +38,14 @@ SELECT ?date ?count ?label WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY ?date""";
-  <http://example.org/bigdata_select> """# UK parliaments with count of Johns and count of women
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# UK parliaments with count of Johns and count of women
 #defaultView:LineChart
 SELECT ?date ?count ?label WITH {
   # all MPs with their associated parliament

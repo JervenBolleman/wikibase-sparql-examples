@@ -19,39 +19,6 @@ PREFIX schema: <http://schema.org/>
 PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?birth ?death ?statements ?linkcount with
-{SELECT ?item (sample(?dob) as ?birth) (sample(?dod) as ?death) (count(*) as ?count) WHERE 
-{
-  ?item wdt:P106/wdt:P279* wd:Q169470. # item has occupation = physicist or subclass thereof
-  ?article schema:about ?item ;        # has a de.wiki sitelink
-          schema:isPartOf <https://de.wikipedia.org/> .
-
-  ?item p:P569/psv:P569 ?birth_date_node . # has a dob with day precision
-  {?birth_date_node wikibase:timePrecision \"11\"^^xsd:integer .}
-  ?birth_date_node wikibase:timeValue ?dob .
-  
-  optional {
-  ?item p:P570/psv:P570 ?death_date_node . #if has a dod, it has day precision
-  {?death_date_node wikibase:timePrecision \"11\"^^xsd:integer .}
-  ?death_date_node wikibase:timeValue ?dod .
-  }
-} group by ?item } as %i
-where
-{
-  include %i
-  ?item wikibase:statements ?statements .
-  OPTIONAL {?item wikibase:sitelinks ?linkcount .}
-  filter (?count<2) #exclude people with more than one dob / dod
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}  order by ?birth""",
-    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?birth ?death ?statements ?linkcount where
 {
   
@@ -75,7 +42,15 @@ SELECT ?item ?itemLabel ?birth ?death ?statements ?linkcount where
   filter (?count<2) #exclude people with more than one dob / dod
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }  order by ?birth""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?birth ?death ?statements ?linkcount with
+  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?birth ?death ?statements ?linkcount with
 {SELECT ?item (sample(?dob) as ?birth) (sample(?dod) as ?death) (count(*) as ?count) WHERE 
 {
   ?item wdt:P106/wdt:P279* wd:Q169470. # item has occupation = physicist or subclass thereof

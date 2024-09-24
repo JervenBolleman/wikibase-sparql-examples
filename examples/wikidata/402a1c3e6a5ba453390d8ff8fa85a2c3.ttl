@@ -16,40 +16,6 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX p: <http://www.wikidata.org/prop/>
-SELECT * WITH {
-  SELECT ?country ?gender ?descriptionLanguage WHERE {
-    BIND(wd:Q38 AS ?country) .
-    BIND(wd:Q6581072 AS ?gender) .
-    BIND('it' AS ?descriptionLanguage) .
-  }
-} AS %input WITH {
-  SELECT (COUNT(DISTINCT ?item) AS ?items) WHERE {
-    INCLUDE %input .
-    ?item p:P106/ps:P106/wdt:P279* wd:Q26270618; wdt:P27 ?country; wdt:P21 ?gender .
-  }
-} AS %items WITH {
-  SELECT (COUNT(DISTINCT ?item) AS ?itemsWithAnyDescription) WHERE {
-    INCLUDE %input .
-    ?item p:P106/ps:P106/wdt:P279* wd:Q26270618; wdt:P27 ?country; wdt:P21 ?gender; schema:description ?description .
-    FILTER(LANG(?description) = ?descriptionLanguage) .
-  }
-} AS %itemsWithAnyDescription WITH {
-  SELECT ?description (COUNT(DISTINCT ?item) AS ?itemsWithThisDescription) WHERE {
-    INCLUDE %input .
-    ?item p:P106/ps:P106/wdt:P279* wd:Q26270618; wdt:P27 ?country; wdt:P21 ?gender; schema:description ?description .
-    FILTER(LANG(?description) = ?descriptionLanguage) .
-  } GROUP BY ?description ORDER BY DESC(?cnt)
-} AS %itemsWithThisDescription WHERE {
-  INCLUDE %itemsWithThisDescription .
-  INCLUDE %itemsWithAnyDescription .
-  INCLUDE %items .
-  INCLUDE %input .
-} ORDER BY DESC(?itemsWithThisDescription)""",
-    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX p: <http://www.wikidata.org/prop/>
 SELECT * WHERE {
    {
   SELECT ?description (COUNT(DISTINCT ?item) AS ?itemsWithThisDescription) WHERE {
@@ -97,7 +63,12 @@ SELECT * WHERE {
   }
 }.
 } ORDER BY DESC(?itemsWithThisDescription)""";
-  <http://example.org/bigdata_select> """SELECT * WITH {
+  <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT * WITH {
   SELECT ?country ?gender ?descriptionLanguage WHERE {
     BIND(wd:Q38 AS ?country) .
     BIND(wd:Q6581072 AS ?gender) .

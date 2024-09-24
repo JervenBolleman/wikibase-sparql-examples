@@ -19,45 +19,6 @@ PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #Search in category
 SELECT DISTINCT ?item ?itemLabel ?inst ?instLabel ?found_in
-WITH
-{
-  SELECT ?item (GROUP_CONCAT(?endpoint; SEPARATOR=\", \") AS ?found_in)
-  WHERE
-  {
-    ?cat schema:about wd:Q8682545 .
-    ?cat schema:isPartOf ?wikimedia_site.
-    ?cat schema:name ?category_title.
-    BIND (STRBEFORE(STRAFTER(STR(?wikimedia_site), \"https://\"), \"/\") AS ?endpoint)
-    OPTIONAL
-    {
-      SERVICE wikibase:mwapi
-      {
-        bd:serviceParam wikibase:endpoint ?endpoint.
-        bd:serviceParam wikibase:api \"Generator\".
-        bd:serviceParam mwapi:generator \"categorymembers\".
-        bd:serviceParam mwapi:gcmtitle ?category_title.
-        bd:serviceParam mwapi:gcmlimit \"max\".
-        ?item wikibase:apiOutputItem mwapi:item.
-      }
-    }
-    FILTER BOUND (?item)
-  }
-  GROUP BY ?item
-} AS %get_items
-WHERE
-{
-  INCLUDE %get_items
-  OPTIONAL { ?item wdt:P31 ?inst }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],it\". }
-}""",
-    """PREFIX mwapi: <http://wikiba.se/ontology#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#Search in category
-SELECT DISTINCT ?item ?itemLabel ?inst ?instLabel ?found_in
 WHERE
 {
   
@@ -87,7 +48,13 @@ WHERE
 }  OPTIONAL { ?item wdt:P31 ?inst }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],it\". }
 }""";
-  <http://example.org/bigdata_select> """#Search in category
+  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#Search in category
 SELECT DISTINCT ?item ?itemLabel ?inst ?instLabel ?found_in
 WITH
 {

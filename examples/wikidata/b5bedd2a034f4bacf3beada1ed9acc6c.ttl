@@ -27,14 +27,8 @@ SELECT
 
   ?example_work ?example_workLabel
   (CONCAT(\"#work/\", SUBSTR(STR(?example_work), 32)) AS ?example_workUrl)
-WITH {
-  SELECT 
-    ?work
-  WHERE {
-    ?work wdt:P921 / (wdt:P361| wdt:P1269 | wdt:P31 | wdt:P279)? target2:
-  }
-} AS %works
-WITH {
+WHERE {
+   {
   SELECT
     (COUNT(DISTINCT ?work) AS ?works)
     ?author 
@@ -45,10 +39,7 @@ WITH {
     ?author ( wdt:P108 | wdt:P1416 ) / wdt:P17 target1:
   }
   GROUP BY ?author
-} AS %author_works
-WHERE {
-  INCLUDE %author_works
-  service wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . } 
+}  service wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . } 
 }
 ORDER BY DESC(?works)
 LIMIT 2000""",
@@ -75,8 +66,13 @@ WHERE {
     ?author 
     (SAMPLE(?work) AS ?example_work)
   WHERE {
-    INCLUDE %works
-    ?work wdt:P50 ?author .
+     {
+  SELECT 
+    ?work
+  WHERE {
+    ?work wdt:P921 / (wdt:P361| wdt:P1269 | wdt:P31 | wdt:P279)? target2:
+  }
+}    ?work wdt:P50 ?author .
     ?author ( wdt:P108 | wdt:P1416 ) / wdt:P17 target1:
   }
   GROUP BY ?author
@@ -84,7 +80,10 @@ WHERE {
 }
 ORDER BY DESC(?works)
 LIMIT 2000""";
-  <http://example.org/bigdata_select> """PREFIX target1: <http://www.wikidata.org/entity/Q35>
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target1: <http://www.wikidata.org/entity/Q35>
 PREFIX target2: <http://www.wikidata.org/entity/Q2539>
 
 SELECT

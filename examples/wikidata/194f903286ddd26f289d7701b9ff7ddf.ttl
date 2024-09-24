@@ -17,45 +17,6 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT
   (?number_of_persons / ?total AS ?fraction) 
   ?occupation ?occupationLabel ?occupationDescription
-WITH {
-  SELECT 
-    ?person
-  WHERE {
-    ?person wdt:P496 [] .
-  }
-  LIMIT 10000
-} AS %persons
-WITH {
-  SELECT 
-    (COUNT(?person) AS ?number_of_persons)
-    ?occupation
-  WHERE {
-    INCLUDE %persons
-    ?person wdt:P106 ?occupation .
-  }
-  GROUP BY ?occupation
-} AS %counts
-WITH {
-  SELECT 
-    (SUM(?number_of_persons) AS ?total)
-  WHERE {
-    INCLUDE %counts
-    BIND(1 AS ?dummy)
-  }
-  GROUP BY ?dummy
-} AS %total
-WHERE {
-  INCLUDE %counts
-  INCLUDE %total
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-ORDER BY DESC(?number_of_persons)""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT
-  (?number_of_persons / ?total AS ?fraction) 
-  ?occupation ?occupationLabel ?occupationDescription
 WHERE {
    {
   SELECT 
@@ -84,8 +45,75 @@ WHERE {
   GROUP BY ?dummy
 }  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
+ORDER BY DESC(?number_of_persons)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
+  (?number_of_persons / ?total AS ?fraction) 
+  ?occupation ?occupationLabel ?occupationDescription
+WITH {
+  SELECT 
+    (SUM(?number_of_persons) AS ?total)
+  WHERE {
+     {
+  SELECT 
+    (COUNT(?person) AS ?number_of_persons)
+    ?occupation
+  WHERE {
+     {
+  SELECT 
+    ?person
+  WHERE {
+    ?person wdt:P496 [] .
+  }
+  LIMIT 10000
+}    ?person wdt:P106 ?occupation .
+  }
+  GROUP BY ?occupation
+}    BIND(1 AS ?dummy)
+  }
+  GROUP BY ?dummy
+} AS %total
+WHERE {
+   {
+  SELECT 
+    (COUNT(?person) AS ?number_of_persons)
+    ?occupation
+  WHERE {
+     {
+  SELECT 
+    ?person
+  WHERE {
+    ?person wdt:P496 [] .
+  }
+  LIMIT 10000
+}    ?person wdt:P106 ?occupation .
+  }
+  GROUP BY ?occupation
+}   {
+  SELECT 
+    (SUM(?number_of_persons) AS ?total)
+  WHERE {
+     {
+  SELECT 
+    (COUNT(?person) AS ?number_of_persons)
+    ?occupation
+  WHERE {
+    INCLUDE %persons
+    ?person wdt:P106 ?occupation .
+  }
+  GROUP BY ?occupation
+}    BIND(1 AS ?dummy)
+  }
+  GROUP BY ?dummy
+}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
 ORDER BY DESC(?number_of_persons)""";
-  <http://example.org/bigdata_select> """SELECT
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
   (?number_of_persons / ?total AS ?fraction) 
   ?occupation ?occupationLabel ?occupationDescription
 WITH {

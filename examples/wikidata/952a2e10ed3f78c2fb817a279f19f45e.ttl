@@ -26,38 +26,6 @@ SELECT DISTINCT ?person ?personLabel  ?propertyLabel ?dob ?dod WHERE {
   {wd:Q23733 ?predicate ?person .} # some people are mentioned in the main Seinfeld item, so get them too
   ?person wdt:P31 wd:Q5 .          # person must be a human 
   ?property wikibase:directClaim ?predicate . # deal with direct claims only, get the property
-  } hint:Prior hint:runFirst true. # do this bit first
-
-  OPTIONAL {?person p:P569 ?statement         # get the date of birth
-            OPTIONAL {?statement psv:P569 [   # deal with date precision issues
-                wikibase:timePrecision ?precision ;
-                wikibase:timeValue ?date_ ].
-                BIND(IF(strlen(str(month(?date_)))=2,str(month(?date_)),concat(\"0\",str(month(?date_)))) as ?month) 
-                BIND(IF(strlen(str(day(?date_)))=2,str(day(?date_)),concat(\"0\",str(day(?date_)))) as ?day) 
-                BIND(IF(?precision=9,year(?date_),
-                       IF(?precision=10,concat(str(year(?date_)),\":\",?month),
-                         IF(?precision=11,concat(str(year(?date_)),\":\",?month,\":\",?day),\"\"))) as ?dob)
-               }   
-           }
-  
-  OPTIONAL {?person wdt:P570 ?dod . } # get the date of death; don't need to deal with date precision issues here b/c they're all precision=11
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
-}""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?person ?personLabel  ?propertyLabel ?dob ?dod WHERE { 
-  
-  { {?item wdt:P179 wd:Q23733.
-  ?item ?predicate ?person .} # item = things which are part of the series Seinfeld
-                              # ?person is the object of a tripe within the item
-  UNION
-  {wd:Q23733 ?predicate ?person .} # some people are mentioned in the main Seinfeld item, so get them too
-  ?person wdt:P31 wd:Q5 .          # person must be a human 
-  ?property wikibase:directClaim ?predicate . # deal with direct claims only, get the property
   }  # do this bit first
 
   OPTIONAL {?person p:P569 ?statement         # get the date of birth
@@ -75,7 +43,13 @@ SELECT DISTINCT ?person ?personLabel  ?propertyLabel ?dob ?dod WHERE {
   OPTIONAL {?person wdt:P570 ?dod . } # get the date of death; don't need to deal with date precision issues here b/c they're all precision=11
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
 }""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT ?person ?personLabel  ?propertyLabel ?dob ?dod WHERE { 
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?person ?personLabel  ?propertyLabel ?dob ?dod WHERE { 
   
   { {?item wdt:P179 wd:Q23733.
   ?item ?predicate ?person .} # item = things which are part of the series Seinfeld

@@ -15,48 +15,17 @@
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?itemDescription ?somePositionLabel ?died ?kind WITH {
-  SELECT ?item (MAX(?died_) AS ?died) (SAMPLE(?kind_) AS ?kind) (SAMPLE(?position) AS ?somePosition) {
-    hint:SubQuery hint:optimizer \"None\".
-    # death in battle or killed in action
-    { ?item wdt:P1196 wd:Q18663901. BIND(\"death in battle\"@en AS ?kind_) } UNION
-    { ?item wdt:P509|wdt:P1347 wd:Q210392. BIND(\"killed in action\"@en AS ?kind_) }
-    # suitable item
-    ?item wdt:P31 wd:Q5;
-          wdt:P570 ?died_.
-    # head of state or government
-    {
-      VALUES ?class { wd:Q2285706 wd:Q48352 }
-      ?item wdt:P39 ?position.
-      ?position wdt:P279* ?class.
-    } UNION {
-      ?state wdt:P6 ?item.
-      OPTIONAL { ?state wdt:P1313 ?position_. }
-      BIND(COALESCE(?position_, wd:Q2285706) AS ?position)
-    } UNION {
-      ?state wdt:P35 ?item.
-      OPTIONAL { ?state wdt:P1906 ?position_. }
-      BIND(COALESCE(?position_, wd:Q48352) AS ?position)
-    }
-  }
-  GROUP BY ?item ?died_
-} AS %results WHERE {
-  INCLUDE %results.
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-ORDER BY DESC(?died)
-LIMIT 100""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?itemDescription ?somePositionLabel ?died ?kind WHERE {
   INCLUDE %results.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY DESC(?died)
 LIMIT 100""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?itemDescription ?somePositionLabel ?died ?kind WITH {
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?itemDescription ?somePositionLabel ?died ?kind WITH {
   SELECT ?item (MAX(?died_) AS ?died) (SAMPLE(?kind_) AS ?kind) (SAMPLE(?position) AS ?somePosition) {
     hint:SubQuery hint:optimizer \"None\".
     # death in battle or killed in action

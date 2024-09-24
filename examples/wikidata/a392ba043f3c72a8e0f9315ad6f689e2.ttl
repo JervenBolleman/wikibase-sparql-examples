@@ -26,61 +26,6 @@ SELECT
 
   ?roles
 
-WITH {
-  SELECT
-    (SUM(?score_) AS ?score)
-    ?organization
-    (GROUP_CONCAT(DISTINCT ?role; separator=\", \") AS ?roles)
-  WHERE {
-    {
-      target: wdt:P108 ?organization .
-      BIND(50 AS ?score_)
-      BIND(\"employer\" AS ?role)
-    }
-    UNION
-    {
-      [] wdt:P50 target: ;
-         wdt:P50 / wdt:P108 ?organization .
-      BIND(5 AS ?score_)
-      BIND(\"co-author organization\" AS ?role)
-    }
-    UNION
-    {
-      [] wdt:P50 target: ;
-         wdt:P2860 / wdt:P50 / wdt:P108 ?organization .
-      BIND(2 AS ?score_)
-      BIND(\"cited organization\" AS ?role)
-    }
-    UNION
-    {
-      [] wdt:P50 / wdt:P108 ?organization ;
-         wdt:P2860 / wdt:P50 target: .
-      BIND(3 AS ?score_)
-      BIND(\"citing organization\" AS ?role)
-    }
-  }
-  GROUP BY ?organization
-} AS %organizations
-WHERE {
-  INCLUDE %organizations
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-ORDER BY DESC(?score)""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-PREFIX target: <http://www.wikidata.org/entity/Q20980928>
-
-SELECT
-  ?score
-  (CONCAT(\"#author/\", SUBSTR(STR(target:), 32), \"/organization/\", SUBSTR(STR(?organization), 32)) AS ?scoreUrl)
-
-  ?organization ?organizationLabel
-  (CONCAT(\"#organization/\", SUBSTR(STR(?organization), 32)) AS ?organizationUrl)
-  ?organizationDescription
-
-  ?roles
-
 WHERE {
    {
   SELECT
@@ -119,7 +64,10 @@ WHERE {
 }  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY DESC(?score)""";
-  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q20980928>
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q20980928>
 
 SELECT
   ?score

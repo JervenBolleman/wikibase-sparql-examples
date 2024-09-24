@@ -14,28 +14,6 @@
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 #defaultView:ImageGrid
-SELECT ?flower (SAMPLE(?flowerLabel) AS ?flowerLabel) ?image WITH {
-  SELECT ?flower (SAMPLE(?image) AS ?image) WHERE {
-    ?flower wdt:P2827 ?color;
-            wdt:P18 ?image.
-  }
-  GROUP BY ?flower
-  HAVING(COUNT(DISTINCT ?color) > 1)
-} AS %results WHERE {
-  INCLUDE %results.
-  OPTIONAL { ?flower wdt:P1843 ?taxonCommonName. FILTER(LANGMATCHES(LANG(?taxonCommonName), \"[AUTO_LANGUAGE]\")) }
-  OPTIONAL { ?flower wdt:P1843 ?taxonCommonNameEn. FILTER(LANGMATCHES(LANG(?taxonCommonNameEn), \"en\")) }
-  OPTIONAL { ?flower wdt:P1843 ?taxonCommonNameAny. }
-  OPTIONAL { ?flower rdfs:label ?label. FILTER(LANGMATCHES(LANG(?label), \"[AUTO_LANGUAGE]\")) }
-  OPTIONAL { ?flower rdfs:label ?labelEn. FILTER(LANGMATCHES(LANG(?labelEn), \"en\")) }
-  OPTIONAL { ?flower rdfs:label ?labelAny. }
-  BIND(COALESCE(?taxonCommonName, ?label, ?taxonCommonNameEn, ?labelEn, ?taxonCommonNameAny, ?labelAny) AS ?flowerLabel)
-}
-GROUP BY ?flower ?image
-ORDER BY MD5(CONCAT(STR(?flower), STR(NOW()))) # shuffle""",
-    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-#defaultView:ImageGrid
 SELECT ?flower (SAMPLE(?flowerLabel) AS ?flowerLabel) ?image WHERE {
   INCLUDE %results.
   OPTIONAL { ?flower wdt:P1843 ?taxonCommonName. FILTER(LANGMATCHES(LANG(?taxonCommonName), \"[AUTO_LANGUAGE]\")) }
@@ -48,7 +26,9 @@ SELECT ?flower (SAMPLE(?flowerLabel) AS ?flowerLabel) ?image WHERE {
 }
 GROUP BY ?flower ?image
 ORDER BY MD5(CONCAT(STR(?flower), STR(NOW()))) # shuffle""";
-  <http://example.org/bigdata_select> """#defaultView:ImageGrid
+  <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+#defaultView:ImageGrid
 SELECT ?flower (SAMPLE(?flowerLabel) AS ?flowerLabel) ?image WITH {
   SELECT ?flower (SAMPLE(?image) AS ?image) WHERE {
     ?flower wdt:P2827 ?color;

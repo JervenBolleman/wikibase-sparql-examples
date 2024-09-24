@@ -36,41 +36,6 @@ WHERE
   OPTIONAL
   {
     # Find continent for the largest subunit in the country
-    ?item wdt:P131+ ?subunit. hint:Prior hint:gearing \"forward\".
-    ?subunit wdt:P131 ?Paese.
-    FILTER(?subunit != ?Paese)
-    ?subunit wdt:P30 ?continent_subunit.
-  }
-  # Use continent for subunit if present, otherwise for country
-  BIND(COALESCE(?continent_subunit,?continent_country) AS ?continent)
-  
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?item ?itemLabel ?codice_aeroportuale_IATA ?Paese ?PaeseLabel ?coordinate_geografiche ?continent ?continentLabel
-WHERE
-{
-  {
-    SELECT ?item ?codice_aeroportuale_IATA (SAMPLE(?coord) AS ?coordinate_geografiche) ?Paese
-    WHERE
-    {
-      ?item wdt:P238 ?codice_aeroportuale_IATA.
-      OPTIONAL { ?item wdt:P625 ?coord. }
-      OPTIONAL { ?item wdt:P17 ?Paese. }
-    }
-    GROUP BY ?item ?codice_aeroportuale_IATA ?Paese
-    LIMIT 10
-  }
-  OPTIONAL
-  {
-    # Find continent for the country
-    ?Paese wdt:P30 ?continent_country. 
-  }
-  OPTIONAL
-  {
-    # Find continent for the largest subunit in the country
     ?item wdt:P131+ ?subunit. 
     ?subunit wdt:P131 ?Paese.
     FILTER(?subunit != ?Paese)
@@ -81,7 +46,10 @@ WHERE
   
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?itemLabel ?codice_aeroportuale_IATA ?Paese ?PaeseLabel ?coordinate_geografiche ?continent ?continentLabel
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?codice_aeroportuale_IATA ?Paese ?PaeseLabel ?coordinate_geografiche ?continent ?continentLabel
 WHERE
 {
   {

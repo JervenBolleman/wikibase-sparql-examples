@@ -18,36 +18,6 @@ PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
 #defaultView:Map
-SELECT DISTINCT ?item ?itemLabel ?coord ?layer WITH {
-  SELECT DISTINCT ?item1 ?coord1 ?itemLabel {
-    VALUES ?links { 1 2 3 } .
-    VALUES ?wikis { <https://ceb.wikipedia.org/> <https://sv.wikipedia.org/> } .
-    ?item1 wdt:P17 wd:Q213; wikibase:sitelinks ?links; wdt:P625 ?coord1;
-           ^schema:about/schema:isPartOf ?wikis; rdfs:label ?label .
-    MINUS { ?item1 ^schema:about/schema:isPartOf <https://cs.wikipedia.org/> } .
-    BIND( STRLANG( STR( IF( CONTAINS( ?label, ' (' ), STRBEFORE( ?label, ' (' ), ?label ) ), 'cs' ) AS ?itemLabel ) .
-  }
-} AS %sub WHERE {
-  INCLUDE %sub .
-  ?itemLabel ^rdfs:label ?item2 .
-  FILTER( ?item2 != ?item1 ) .
-  FILTER EXISTS {
-    ?item2 wdt:P17 wd:Q213; wdt:P625 ?coord2 .
-    FILTER( geof:distance( ?coord1, ?coord2 ) < 2 ) .
-  } .
-  OPTIONAL { ?item2 wdt:P625 ?coord2 } .
-  VALUES ?x { 1 2 } .
-  BIND( IF( ?x = 1, ?item1, ?item2 ) AS ?item ) .
-  BIND( IF( ?x = 1, ?coord1, ?coord2 ) AS ?coord ) .
-  BIND( IF( ?x = 1, 'sv/ceb', 'ok' ) AS ?layer ) .
-} ORDER BY ?itemLabel""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
-#defaultView:Map
 SELECT DISTINCT ?item ?itemLabel ?coord ?layer WHERE {
    {
   SELECT DISTINCT ?item1 ?coord1 ?itemLabel {
@@ -71,7 +41,13 @@ SELECT DISTINCT ?item ?itemLabel ?coord ?layer WHERE {
   BIND( IF( ?x = 1, ?coord1, ?coord2 ) AS ?coord ) .
   BIND( IF( ?x = 1, 'sv/ceb', 'ok' ) AS ?layer ) .
 } ORDER BY ?itemLabel""";
-  <http://example.org/bigdata_select> """#defaultView:Map
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+#defaultView:Map
 SELECT DISTINCT ?item ?itemLabel ?coord ?layer WITH {
   SELECT DISTINCT ?item1 ?coord1 ?itemLabel {
     VALUES ?links { 1 2 3 } .

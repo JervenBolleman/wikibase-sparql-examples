@@ -19,35 +19,6 @@ PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
-SELECT DISTINCT ?item ?pocetobyvatel ?pocetobyvatel_upr ?rozloha (ROUND(?rozloha/1000000) AS ?rozloha_upr) ?date WITH {
-  SELECT DISTINCT ?item WHERE {
-    ?item wdt:P31/wdt:P279* wd:Q515 . } #city, dute to disuniformity expensive P31/wdt:P279* is needed
-} AS %subquery WHERE {
-  INCLUDE %subquery . #optimization
-  ?item wdt:P17 ?zeme . 
-  ?zeme wdt:P463 wd:Q458 .  #EU member
-  MINUS { ?zeme p:P463 ?P363node .                
-  ?P363node ps:P463  wd:Q458 .                 
-  ?P363node pq:P582 ?end .} #minus former EU member
-  ?item wdt:P1082 ?pocetobyvatel .
-  ?item p:P1082 ?pobSt .
-  ?pobSt a wikibase:BestRank .  #population with best rank
-  OPTIONAL { ?pobSt pq:P585 ?date }  
-  ?item p:P2046/psn:P2046/wikibase:quantityAmount ?rozloha . #normalized area
-  ?item p:P2046 ?ArSt .
-  ?ArSt rdf:type wikibase:BestRank #area with best rank (hope so), not sure how to select best rank before unit normalization
-  bind(concat(\"\",str(?pocetobyvatel),\"\") as ?pocetobyvatel_upr)
-}
-order by desc(?pocetobyvatel) desc(?rozloha)
-LIMIT 100""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
 SELECT DISTINCT ?item ?pocetobyvatel ?pocetobyvatel_upr ?rozloha (ROUND(?rozloha/1000000) AS ?rozloha_upr) ?date WHERE {
    {
   SELECT DISTINCT ?item WHERE {
@@ -69,7 +40,15 @@ SELECT DISTINCT ?item ?pocetobyvatel ?pocetobyvatel_upr ?rozloha (ROUND(?rozloha
 }
 order by desc(?pocetobyvatel) desc(?rozloha)
 LIMIT 100""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?pocetobyvatel ?pocetobyvatel_upr ?rozloha (ROUND(?rozloha/1000000) AS ?rozloha_upr) ?date WITH {
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT DISTINCT ?item ?pocetobyvatel ?pocetobyvatel_upr ?rozloha (ROUND(?rozloha/1000000) AS ?rozloha_upr) ?date WITH {
   SELECT DISTINCT ?item WHERE {
     ?item wdt:P31/wdt:P279* wd:Q515 . } #city, dute to disuniformity expensive P31/wdt:P279* is needed
 } AS %subquery WHERE {

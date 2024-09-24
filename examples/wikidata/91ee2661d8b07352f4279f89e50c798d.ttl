@@ -17,24 +17,16 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT
 ?person ?personLabel ?sexgenderLabel ?sport ?sportLabel ?citizenship ?citizenshipLabel
 
-WITH
-{ SELECT DISTINCT ?person 
-    WHERE { ?person wdt:P3171 ?value . 
-            ?person wikibase:statements ?statements .
-            FILTER (?statements > 50) . }
-} as %athletes
 
-WITH
+
+WHERE
+ { 
 { SELECT DISTINCT ?person ?sexgender ?sport ?citizenship
          WHERE { INCLUDE %athletes 
                  { ?person wdt:P21 ?sexgender . }
                  { ?person wdt:P2416 ?sport . }
                  { ?person wdt:P27 ?citizenship . }
-} } as %athletes2
-
-WHERE
- { INCLUDE %athletes2
-   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+} }   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
 }""",
     """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -47,13 +39,21 @@ SELECT DISTINCT
 WHERE
  { 
 { SELECT DISTINCT ?person ?sexgender ?sport ?citizenship
-         WHERE { INCLUDE %athletes 
+         WHERE { 
+{ SELECT DISTINCT ?person 
+    WHERE { ?person wdt:P3171 ?value . 
+            ?person wikibase:statements ?statements .
+            FILTER (?statements > 50) . }
+}
                  { ?person wdt:P21 ?sexgender . }
                  { ?person wdt:P2416 ?sport . }
                  { ?person wdt:P27 ?citizenship . }
 } }   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
 }""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT
 ?person ?personLabel ?sexgenderLabel ?sport ?sportLabel ?citizenship ?citizenshipLabel
 
 WITH

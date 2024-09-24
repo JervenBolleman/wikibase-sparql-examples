@@ -19,28 +19,13 @@ PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?country ?countryLabel ?item ?itemLabel ?level ?expected ?found ?samenumber
-WITH {
-  SELECT ?item ?expected ?country ?level (COUNT(DISTINCT ?place) AS ?found) {
-    ?item wdt:P279* ?acs ; wdt:P17 ?country.
-    FILTER NOT EXISTS { ?country wdt:P576 [] }
-    ?acs p:P279 [ ps:P279 wd:Q1799794 ; pq:P1545 ?level ] .
-    
-    OPTIONAL { ?item wdt:P1114 ?expected }    
-    OPTIONAL { 
-      ?place p:P31 ?placeStatement .
-      ?placeStatement ps:P31 ?item.
-      FILTER NOT EXISTS { ?placeStatement wdt:P582 [] }
-    }  
-  } 
-  GROUP BY ?item ?expected ?country ?level
-} AS %subdivisions
 WHERE {
   include %subdivisions.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
   BIND(IF(?expected = ?found, \"✓\", \"✘\") AS ?samenumber).
 } 
-ORDER BY ?countryLabel ?level DESC(?expected) ?itemLabel""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
+ORDER BY ?countryLabel ?level DESC(?expected) ?itemLabel""";
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
@@ -48,13 +33,6 @@ PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?country ?countryLabel ?item ?itemLabel ?level ?expected ?found ?samenumber
-WHERE {
-  include %subdivisions.
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-  BIND(IF(?expected = ?found, \"✓\", \"✘\") AS ?samenumber).
-} 
-ORDER BY ?countryLabel ?level DESC(?expected) ?itemLabel""";
-  <http://example.org/bigdata_select> """SELECT ?country ?countryLabel ?item ?itemLabel ?level ?expected ?found ?samenumber
 WITH {
   SELECT ?item ?expected ?country ?level (COUNT(DISTINCT ?place) AS ?found) {
     ?item wdt:P279* ?acs ; wdt:P17 ?country.

@@ -17,45 +17,6 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 # find an artist by the signing date of an art work and the initials of the artist.
-SELECT ?item ?itemLabel ?itemDescription ?yearOfBirth ?yearOfDeath $firstnameLabel ?lastnameLabel WITH {
-  SELECT DISTINCT ?item WHERE {
-    ?item wdt:P31 wd:Q5.
-    ?item wdt:P106/wdt:P279* wd:Q21148249 . #wd:Q3391743 . #Q483501 
-    ?item wdt:P569 [].
-    ?item wdt:P735 [].
-    ?item wdt:P734 [].
-}
-} AS %subquery1 WHERE {
-  INCLUDE %subquery1 .
-    BIND (1670 as ?yearOfWork). # year on the work of art
-    BIND (\"^J.*\" as ?firstnamePattern). # first letter of initials, assuming firstname
-    BIND (\"^B.*\" as ?lastnamePattern). # second letter of initials, assuming lastname
-
-    #?item wdt:P31 wd:Q5.
-    #?item wdt:P106/wdt:P279* wd:Q21148249 . #Q3391743 . #Q483501 
-    ?item wdt:P569 ?birthDate .
-    bind (year(?birthDate) as ?yearOfBirth)
-    Filter (?yearOfBirth+20 < ?yearOfWork) # assuming was not creative before the age of 20
-    optional {?item wdt:P570 ?deathDate .
-              bind (year(?deathDate) as ?yearOfDeath)
-              Filter (?yearOfDeath >= ?yearOfWork)
-             }
-    ?item wdt:P735 ?firstname.
-    ?item wdt:P734 ?lastname.
-    ?firstname rdfs:label ?firstnameLabel .
-    ?lastname rdfs:label ?lastnameLabel .
-    FILTER(LANG(?firstnameLabel) = 'de' && LANG(?lastnameLabel) = 'de'
-                && regex(?firstnameLabel, ?firstnamePattern, \"i\") && regex(?lastnameLabel, ?lastnamePattern, \"i\")) .
-
-  SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE,de,en]' }
-} GROUP BY ?item ?itemLabel ?itemDescription ?yearOfBirth ?yearOfDeath $firstnameLabel ?lastnameLabel ORDER BY ASC(?lastnameLabel)
- limit 100""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-# find an artist by the signing date of an art work and the initials of the artist.
 SELECT ?item ?itemLabel ?itemDescription ?yearOfBirth ?yearOfDeath $firstnameLabel ?lastnameLabel WHERE {
    {
   SELECT DISTINCT ?item WHERE {
@@ -89,7 +50,12 @@ SELECT ?item ?itemLabel ?itemDescription ?yearOfBirth ?yearOfDeath $firstnameLab
   SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE,de,en]' }
 } GROUP BY ?item ?itemLabel ?itemDescription ?yearOfBirth ?yearOfDeath $firstnameLabel ?lastnameLabel ORDER BY ASC(?lastnameLabel)
  limit 100""";
-  <http://example.org/bigdata_select> """# find an artist by the signing date of an art work and the initials of the artist.
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# find an artist by the signing date of an art work and the initials of the artist.
 SELECT ?item ?itemLabel ?itemDescription ?yearOfBirth ?yearOfDeath $firstnameLabel ?lastnameLabel WITH {
   SELECT DISTINCT ?item WHERE {
     ?item wdt:P31 wd:Q5.

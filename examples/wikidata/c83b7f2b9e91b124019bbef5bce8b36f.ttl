@@ -21,53 +21,6 @@ PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 # Nombre d'unités légales par catégorie juridique de niveau 3 (500+)
 SELECT ?catégorie ?nomfr ?count
-WITH
-{
-  SELECT ?catégorie ?nomfr (COUNT(?item) AS ?count_1)
-  WHERE
-  {
-    ?catégorie wdt:P31 wd:Q56427813; # catégorie juridique en France
-        wdt:P361 wd:Q112176282; # catégorie de niveau 3
-        wdt:P2561 ?nomfr. # nom de la catégorie
-    FILTER(LANG(?nomfr) = \"fr\"). # nom en français
-    ?item wdt:P1616 ?siren. # unité légale
-    {  ?item p:P1454 [ps:P1454 ?catégorie; pq:P1013 wd:Q87711223; prov:wasDerivedFrom [ pr:P248 wd:Q3509449]; prov:wasDerivedFrom [ pr:P5017 ?date] ]. } # catégorie
-    UNION
-    { ?item p:P1454 [ps:P1454 ?catégorie; pq:P1013 wd:Q87711223; prov:wasDerivedFrom [ pr:P248 wd:Q3509449]; prov:wasDerivedFrom [a wdno:P5017] ]. } # catégorie
-  }
-  GROUP BY ?catégorie ?nomfr
-} AS %all
-WHERE
-{
-  {
-    SELECT ?catégorie ?nomfr (?count_1 AS ?count) (?count as ?sortkey)
-    WHERE
-    {
-      INCLUDE %all
-      FILTER (?count_1 > 499) # minimum unités légales
-    }
-  }
-  UNION
-  {
-    SELECT (\"OTHER\" AS ?catégorie) (\"OTHER\" AS ?nomfr) (SUM(?count_1) AS ?count) (0 AS ?sortkey)
-    WHERE
-    {
-      INCLUDE %all
-      FILTER (?count_1 <= 499)
-    }    
-  }
-}
-ORDER BY DESC(?sortkey)""",
-    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX prov: <http://www.w3.org/ns/prov#>
-PREFIX pr: <http://www.wikidata.org/prop/reference/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-# Nombre d'unités légales par catégorie juridique de niveau 3 (500+)
-SELECT ?catégorie ?nomfr ?count
 WHERE
 {
   {
@@ -117,7 +70,15 @@ WHERE
   }
 }
 ORDER BY DESC(?sortkey)""";
-  <http://example.org/bigdata_select> """# Nombre d'unités légales par catégorie juridique de niveau 3 (500+)
+  <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+# Nombre d'unités légales par catégorie juridique de niveau 3 (500+)
 SELECT ?catégorie ?nomfr ?count
 WITH
 {

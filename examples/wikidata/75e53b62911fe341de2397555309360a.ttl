@@ -16,36 +16,6 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?placeLabel ?language ?count
-WITH {
-  SELECT DISTINCT ?item ?place ?placeLabel ?publishing_date ?decade ?gender ?language
-  WHERE {
-    ?item wdt:P291 ?place ;
-      wdt:P577 ?publishing_date; 
-      wdt:P31 ?inst. 
-    FILTER(?inst IN (wd:Q1261026, wd:Q732577))
-    FILTER(?place IN (wd:Q8692, wd:Q10313, wd:Q497801, wd:Q14318, wd:Q10282, wd:Q134674))
-    FILTER(?publishing_date >= \"1700-01-01\"^^xsd:dateTime && ?publishing_date < \"1800-01-01\"^^xsd:dateTime)
-    ?place rdfs:label ?placeLabel. FILTER(LANG(?placeLabel)=\"eu\")
-    OPTIONAL { ?item wdt:P872/wdt:P21/rdfs:label ?gender_ . FILTER(LANG(?gender_)=\"en\") }
-    OPTIONAL { ?item wdt:P407/rdfs:label ?language_ . FILTER(LANG(?language_)=\"eu\") }
-    BIND(COALESCE(?gender_, \"unspecified\") AS ?gender)
-    BIND(COALESCE(?language_, \"unspecified\") AS ?language)
-    BIND(CONCAT(SUBSTR(STR(?publishing_date), 1, 3), \"0\") AS ?decade)
-  }
-} AS %i
-WHERE {
-  {
-    SELECT ?placeLabel ?language (COUNT(?item) AS ?count)
-    WHERE { INCLUDE %i }
-    GROUP BY ?placeLabel ?language 
-  }
-}
-ORDER BY ?placeLabel DESC(?count)""",
-    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT ?placeLabel ?language ?count
 WHERE {
   {
     SELECT ?placeLabel ?language (COUNT(?item) AS ?count)
@@ -70,7 +40,11 @@ WHERE {
   }
 }
 ORDER BY ?placeLabel DESC(?count)""";
-  <http://example.org/bigdata_select> """SELECT ?placeLabel ?language ?count
+  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?placeLabel ?language ?count
 WITH {
   SELECT DISTINCT ?item ?place ?placeLabel ?publishing_date ?decade ?gender ?language
   WHERE {

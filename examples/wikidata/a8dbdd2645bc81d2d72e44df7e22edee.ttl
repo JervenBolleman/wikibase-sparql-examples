@@ -20,13 +20,8 @@ PREFIX prov: <http://www.w3.org/ns/prov#>
 PREFIX pr: <http://www.wikidata.org/prop/reference/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?property ?propertyLabel ?cnt_s ?cnt_refs ?ratio WITH {
-  SELECT DISTINCT ?property ?s WHERE {
-    [] p:P106/ps:P106/wdt:P279* wd:Q26270618; ?p ?s .
-    ?property wikibase:claim ?p; wikibase:propertyType ?type .
-    FILTER(?type != wikibase:ExternalId) .
-  }
-} AS %subquery1 WITH {
+SELECT ?property ?propertyLabel ?cnt_s ?cnt_refs ?ratio WHERE {
+   {
   SELECT ?property (COUNT(DISTINCT ?s) AS ?cnt_s) (COUNT(DISTINCT ?dummy) as ?cnt_refs) WHERE {
     INCLUDE %subquery1 .
     OPTIONAL {
@@ -35,8 +30,7 @@ SELECT ?property ?propertyLabel ?cnt_s ?cnt_refs ?ratio WITH {
     }
     BIND(CONCAT(STR(?s), STR(?refHandle)) AS ?dummy) .
   } GROUP BY ?property HAVING(?cnt_refs > 0)
-} AS %subquery2 WHERE {
-  INCLUDE %subquery2 .
+}.
   BIND(CONCAT(STR(ROUND((?cnt_refs / ?cnt_s)*1000)/10), '%') AS ?ratio) .
   SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
 } ORDER BY DESC(?cnt_refs) DESC(xsd:integer(STRBEFORE(?ratio, '%')))""",
@@ -52,7 +46,13 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?property ?propertyLabel ?cnt_s ?cnt_refs ?ratio WHERE {
    {
   SELECT ?property (COUNT(DISTINCT ?s) AS ?cnt_s) (COUNT(DISTINCT ?dummy) as ?cnt_refs) WHERE {
-    INCLUDE %subquery1 .
+     {
+  SELECT DISTINCT ?property ?s WHERE {
+    [] p:P106/ps:P106/wdt:P279* wd:Q26270618; ?p ?s .
+    ?property wikibase:claim ?p; wikibase:propertyType ?type .
+    FILTER(?type != wikibase:ExternalId) .
+  }
+}.
     OPTIONAL {
       ?s prov:wasDerivedFrom ?refHandle .
       ?refHandle pr:P143 ?val . # P143, P887, P4656, P3452, P5852
@@ -63,7 +63,16 @@ SELECT ?property ?propertyLabel ?cnt_s ?cnt_refs ?ratio WHERE {
   BIND(CONCAT(STR(ROUND((?cnt_refs / ?cnt_s)*1000)/10), '%') AS ?ratio) .
   SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
 } ORDER BY DESC(?cnt_refs) DESC(xsd:integer(STRBEFORE(?ratio, '%')))""";
-  <http://example.org/bigdata_select> """SELECT ?property ?propertyLabel ?cnt_s ?cnt_refs ?ratio WITH {
+  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?property ?propertyLabel ?cnt_s ?cnt_refs ?ratio WITH {
   SELECT DISTINCT ?property ?s WHERE {
     [] p:P106/ps:P106/wdt:P279* wd:Q26270618; ?p ?s .
     ?property wikibase:claim ?p; wikibase:propertyType ?type .

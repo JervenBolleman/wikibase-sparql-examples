@@ -16,34 +16,6 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?CofOLabel ?CofO_ISO ?formLabel ?Cform_ISO ?inception ?genre with 
-{  
-SELECT ?item ?CofO ?CofO_ISO ?Cform_ISO ?form ?inception (group_concat(?gl;separator=\", \") as ?genre)
-WHERE 
-{
-  ?item wdt:P31/wdt:P279* wd:Q215380. #is a band or subclass of a band
-  OPTIONAL {?item wdt:P495 ?CofO . # has a country of origin 
-  OPTIONAL {?CofO wdt:P297 ?CofO_ISO .} # which has an ISO
-            }
-  OPTIONAL {?item wdt:P740 ?form . # has a location of formation
-  OPTIONAL {?form wdt:P131* ?Cform.
-  ?Cform wdt:P31 wd:Q3624078 .
-  ?Cform wdt:P297 ?Cform_ISO .} # which can be mapped to a sovereign state with an ISO
-            }
-  OPTIONAL {?item wdt:P571 ?inception . } # has an inception date
-  OPTIONAL {?item wdt:P136 ?g .           # has a genre
-            ?g rdfs:label ?gl . filter(lang(?gl)=\"en\") } 
-} group by ?item ?CofO ?CofO_ISO ?Cform_ISO ?form ?inception } as %i
-where
-{
-  include %i
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-  }""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?CofOLabel ?CofO_ISO ?formLabel ?Cform_ISO ?inception ?genre where
 {
   
@@ -65,7 +37,12 @@ WHERE
             ?g rdfs:label ?gl . filter(lang(?gl)=\"en\") } 
 } group by ?item ?CofO ?CofO_ISO ?Cform_ISO ?form ?inception }  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
   }""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?CofOLabel ?CofO_ISO ?formLabel ?Cform_ISO ?inception ?genre with 
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?CofOLabel ?CofO_ISO ?formLabel ?Cform_ISO ?inception ?genre with 
 {  
 SELECT ?item ?CofO ?CofO_ISO ?Cform_ISO ?form ?inception (group_concat(?gl;separator=\", \") as ?genre)
 WHERE 

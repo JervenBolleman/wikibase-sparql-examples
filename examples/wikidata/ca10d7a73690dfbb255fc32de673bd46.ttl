@@ -25,59 +25,9 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT
   ?item ?articlename ?itemLabel ?itemDescription ?sl ?dob
   ?dod ?dod_refs ?cod ?mod
-WITH
+WHERE
 {
-  SELECT
-    ?item ?dod_stm ?dod
-    (GROUP_CONCAT(CONCAT(?dod_ref_propLabel, \": \", ?dod_ref_valueLabel); SEPARATOR=\" ~ \") AS ?dod_refs)
-  WHERE
-  {
-    VALUES ?dod {\"+1953-03-05\"^^xsd:dateTime}
-    ?dod ^wdt:P570 ?item .
-    ?item wdt:P31 wd:Q5 .
-    OPTIONAL
-    {
-      ?item p:P570 ?dod_stm .
-      ?dod_stm ps:P570 ?dod ;
-               psv:P570 [wikibase:timePrecision ?dod_precision].
-      FILTER( ?dod_precision >= \"11\"^^xsd:integer )
-      OPTIONAL
-      {
-        ?dod_stm prov:wasDerivedFrom ?dod_ref .
-        ?dod_ref ?dod_ref_pr ?dod_ref_value .
-        ?dod_ref_prop wikibase:reference ?dod_ref_pr .
-      }
-    }
-    SERVICE wikibase:label
-    {
-      bd:serviceParam wikibase:language \"en\" .
-      ?dod_ref_prop rdfs:label ?dod_ref_propLabel .
-      ?dod_ref_value rdfs:label ?dod_ref_valueLabel .
-    }
-  }
-  GROUP BY ?item ?dod_stm ?dod
-} AS %get_dod_refs
-WITH
-{
-  SELECT
-    ?item ?dod_stm ?dod ?dod_refs (GROUP_CONCAT(?codLabel; SEPARATOR=\", \") AS ?cod)
-  WHERE
-  {
-    INCLUDE %get_dod_refs
-    OPTIONAL
-    {
-      ?item p:P509 ?cod_stm .
-      ?cod_stm ps:P509 ?cod .
-    }
-    SERVICE wikibase:label
-    {
-      bd:serviceParam wikibase:language \"en\" .
-      ?cod rdfs:label ?codLabel .
-    }
-  }
-  GROUP BY ?item ?dod_stm ?dod ?dod_refs
-} AS %get_cod
-WITH
+  
 {
   SELECT
     ?item ?dod_stm ?dod ?dod_refs ?cod (SAMPLE(?modLabel) AS ?mod)
@@ -96,11 +46,7 @@ WITH
     }
   }
   GROUP BY ?item ?dod_stm ?dod ?dod_refs ?cod
-} AS %get_mod
-WHERE
-{
-  INCLUDE %get_mod
-  ?item wikibase:sitelinks ?sl .
+}  ?item wikibase:sitelinks ?sl .
   ?item ^schema:about ?article .
   ?article schema:isPartOf <https://en.wikipedia.org/> ;
            schema:name ?articlename .
@@ -140,8 +86,26 @@ WHERE
     ?item ?dod_stm ?dod ?dod_refs ?cod (SAMPLE(?modLabel) AS ?mod)
   WHERE
   {
-    INCLUDE %get_cod
+    
+{
+  SELECT
+    ?item ?dod_stm ?dod ?dod_refs (GROUP_CONCAT(?codLabel; SEPARATOR=\", \") AS ?cod)
+  WHERE
+  {
+    INCLUDE %get_dod_refs
     OPTIONAL
+    {
+      ?item p:P509 ?cod_stm .
+      ?cod_stm ps:P509 ?cod .
+    }
+    SERVICE wikibase:label
+    {
+      bd:serviceParam wikibase:language \"en\" .
+      ?cod rdfs:label ?codLabel .
+    }
+  }
+  GROUP BY ?item ?dod_stm ?dod ?dod_refs
+}    OPTIONAL
     {
       ?item p:P1196 ?mod_stm .
       ?mod_stm ps:P1196 ?mod .
@@ -171,7 +135,18 @@ WHERE
     }
   BIND(REPLACE(?itemLabel, \"^.*(?<! [Vv][ao]n| [Dd][aeiu]| [Dd][e][lns]| [Ll][ae]) (?!([SJ]r\\\\.?|[XVI]+)$)\", \"\") AS ?sortname)  
 } ORDER BY ASC(UCASE(?sortname)) ASC(UCASE(?itemLabel))""";
-  <http://example.org/bigdata_select> """SELECT
+  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
   ?item ?articlename ?itemLabel ?itemDescription ?sl ?dob
   ?dod ?dod_refs ?cod ?mod
 WITH

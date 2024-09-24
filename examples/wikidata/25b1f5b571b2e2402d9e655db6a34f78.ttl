@@ -19,18 +19,9 @@ PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?name ?language_tag ?rank ?epochLabel ?start ?point_of_time ?end
-WITH
+WHERE
 {
-  # Select items with more than 3 official names, i.e. it has changed at least 3 times.
-  SELECT ?item
-  WHERE
-  {
-    ?item p:P1448 []. # Official name
-  }
-  GROUP BY ?item
-  HAVING (COUNT(?item) > 3)
-} AS %multiple_names
-WITH
+  
 {
   SELECT ?item
   WHERE
@@ -41,11 +32,7 @@ WITH
   }
   GROUP BY ?item
   HAVING (COUNT(?item) > 3)
-} AS %multiple_French_names
-WHERE
-{
-  INCLUDE %multiple_French_names
-  ?item wdt:P31 / wdt:P279 wd:Q486972. # ?item is a settelement
+}  ?item wdt:P31 / wdt:P279 wd:Q486972. # ?item is a settelement
   ?item p:P1448 ?name_statement.
   ?name_statement wikibase:rank ?rank.
   ?name_statement ps:P1448 ?name.
@@ -72,8 +59,17 @@ WHERE
   SELECT ?item
   WHERE
   {
-    INCLUDE %multiple_names
-    ?item p:P1448 / ps:P1448 ?name.
+    
+{
+  # Select items with more than 3 official names, i.e. it has changed at least 3 times.
+  SELECT ?item
+  WHERE
+  {
+    ?item p:P1448 []. # Official name
+  }
+  GROUP BY ?item
+  HAVING (COUNT(?item) > 3)
+}    ?item p:P1448 / ps:P1448 ?name.
     FILTER LANGMATCHES(LANG(?name), \"fr\")
   }
   GROUP BY ?item
@@ -90,7 +86,14 @@ WHERE
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,en\". }
 }
 ORDER By ?item ?start ?point_of_time ?end""";
-  <http://example.org/bigdata_select> """SELECT ?item ?name ?language_tag ?rank ?epochLabel ?start ?point_of_time ?end
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?name ?language_tag ?rank ?epochLabel ?start ?point_of_time ?end
 WITH
 {
   # Select items with more than 3 official names, i.e. it has changed at least 3 times.

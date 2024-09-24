@@ -21,40 +21,6 @@ SELECT DISTINCT
   ?publisher ?publisherLabel
   (CONCAT(\"#publisher/\", SUBSTR(STR(?publisher), 32)) AS ?publisherUrl)
   ?publisherDescription
-WITH {
-  SELECT
-    (COUNT(DISTINCT ?author) + COUNT(DISTINCT ?topic) AS ?overlap)
-    ?publisher 
-  WHERE {
-    {
-      ?author ^wdt:P50 / wdt:P123 target: .
-      ?author ^wdt:P50 / wdt:P123 ?publisher .
-    }
-    UNION
-    {
-      ?topic ^wdt:P921 / wdt:P123 target: .
-      ?topic ^wdt:P921 / wdt:P123 ?publisher .
-    }
-    FILTER (target: != ?publisher)
-  }
-  GROUP BY ?publisher
-} AS %publishers
-WHERE {
-  INCLUDE %publishers
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-} 
-ORDER BY DESC(?overlap)
-LIMIT 200""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-PREFIX target: <http://www.wikidata.org/entity/Q3362362>
-
-SELECT DISTINCT
-  ?overlap
-  ?publisher ?publisherLabel
-  (CONCAT(\"#publisher/\", SUBSTR(STR(?publisher), 32)) AS ?publisherUrl)
-  ?publisherDescription
 WHERE {
    {
   SELECT
@@ -77,7 +43,10 @@ WHERE {
 } 
 ORDER BY DESC(?overlap)
 LIMIT 200""";
-  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q3362362>
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q3362362>
 
 SELECT DISTINCT
   ?overlap

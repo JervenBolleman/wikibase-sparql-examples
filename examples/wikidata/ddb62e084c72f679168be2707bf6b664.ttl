@@ -26,45 +26,6 @@ SELECT
   ?m2 ?m2Label
   # ?gf1 ?gf1Label    ?gm1 ?gm1Label
   # ?gf2 ?gf2Label    ?gm2 ?gm2Label
-WITH
-{
-  SELECT   ?person   ?f1   ?m1   ?relative ?f2 ?m2 ?link ?gf1 ?gf2 ?gm1 ?gm2
-  {
-    ?person wdt:P22 ?f1 ; wdt:P25 ?m1 .
-    ?relative wdt:P22 ?f2 ;wdt:P25 ?m2 .
-    { ?f1 wdt:P3373 ?f2 . ?m1 wdt:P3373 ?m2 . BIND(\"2 brothers/2 sisters\" as ?link)
-    # checks to avoid half-siblings:
-    ?f1 wdt:P22 ?gf1 ; wdt:P25 ?gm1 . 
-    ?f2 wdt:P22 ?gf1 ; wdt:P25 ?gm1 .
-    ?m1 wdt:P22 ?gf2 ; wdt:P25 ?gm2 .
-    ?m2 wdt:P22 ?gf2 ; wdt:P25 ?gm2 .
-    } 
-    FILTER ( ?person != ?relative && ?f1 != ?f2 && ?m1 != ?m2 && ?gf1 != ?gf2  && ?gm1 != ?gm2 )  #avoid more closely related
-  }  LIMIT 200
-} as %basic
-WHERE
-{
-    # hint:Query hint:optimizer \"None\".
-    INCLUDE %basic
-    ?person wdt:P31 wd:Q5 .
-    ?relative wdt:P31 wd:Q5 .
-    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-# Double cousins: children of 2 brothers marrying 2 sisters
-SELECT 
-  ?person ?personLabel
-  ?relative ?relativeLabel
-  ?link
-  ?f1 ?f1Label
-  ?m1 ?m1Label
-  ?f2 ?f2Label
-  ?m2 ?m2Label
-  # ?gf1 ?gf1Label    ?gm1 ?gm1Label
-  # ?gf2 ?gf2Label    ?gm2 ?gm2Label
 WHERE
 {
     # hint:Query hint:optimizer \"None\".
@@ -87,7 +48,11 @@ WHERE
     ?relative wdt:P31 wd:Q5 .
     SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <http://example.org/bigdata_select> """# Double cousins: children of 2 brothers marrying 2 sisters
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Double cousins: children of 2 brothers marrying 2 sisters
 SELECT 
   ?person ?personLabel
   ?relative ?relativeLabel

@@ -26,48 +26,6 @@ PREFIX sample: <http://www.wikidata.org/entity/Q30>
 SELECT ?type ?count
 WHERE
 {
-  hint:Query hint:optimizer \"None\".
-
-  { BIND(\"basis per item\" as ?type)  BIND(6 as ?count) }
-  UNION { BIND(\"labels*1\" as ?type)             { SELECT (COUNT(?label) AS ?count) { sample: rdfs:label ?label } } }
-  UNION { BIND(\"description*1\" as ?type)  { SELECT (COUNT(?description) AS ?count) { sample: schema:description  ?description } } }
-  UNION { BIND(\"alias*1\" as ?type)        { SELECT (COUNT(?alias) AS ?count) { sample: skos:altLabel ?alias } } }
-
-  UNION { BIND(\"sitelinks*5\" as ?type)     { SELECT (COUNT(?sitelink)*5 AS ?count) { ?sitelink schema:about sample: } } }
-  UNION { BIND(\"badge\" as ?type)        { SELECT (COUNT(?badge) AS ?count) { ?badge schema:about sample: ; wikibase:badge [] } } }
-
-  UNION { BIND(\"references\" as ?type)   { SELECT (COUNT(*) as ?count) {  sample: ?p ?st . ?st prov:wasDerivedFrom ?a . ?a ?b ?c } } }
-  UNION { BIND(\"qualifiers\" as ?type)   { SELECT (COUNT(?qualifier) AS ?count) { sample: ?p ?qualifier . ?qualifier ?pqv [] . [] wikibase:qualifierValue ?pqv . } } }  
-
-  UNION { BIND(\"best statements*2\" as ?type)   { SELECT (COUNT(?truthy)*2 AS ?count) { sample: ?p ?truthy . ?truthy a wikibase:BestRank . } } }
-  UNION { SELECT (\"statements\" as ?type) (SUM(?all) AS ?count) { 
-    SELECT ?datatype (COUNT(?c) as ?count0) (SAMPLE(?q) as ?per) (?per * ?count0 as ?all) 
-    {
-    hint:Query hint:optimizer \"None\".
-    sample: ?b ?c . 
-    ?prop wikibase:claim ?b .
-    ?prop wikibase:propertyType ?datatype .
-    OPTIONAL { ?typeitem wdt:P856 ?datatype ; p:P2670 
-                         [ ps:P2670 wd:Q3539534 ; pq:P1114 ?q ; pq:P1013 wd:Q20950365 ] .}
-    }
-    GROUP BY ?datatype } } 
-} 
-ORDER BY DESC(?count)""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-PREFIX schema: <http://schema.org/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX prov: <http://www.w3.org/ns/prov#>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX sample: <http://www.wikidata.org/entity/Q30>
-
-SELECT ?type ?count
-WHERE
-{
   
 
   { BIND(\"basis per item\" as ?type)  BIND(6 as ?count) }
@@ -95,7 +53,17 @@ WHERE
     GROUP BY ?datatype } } 
 } 
 ORDER BY DESC(?count)""";
-  <http://example.org/bigdata_select> """PREFIX sample: <http://www.wikidata.org/entity/Q30>
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX sample: <http://www.wikidata.org/entity/Q30>
 
 SELECT ?type ?count
 WHERE

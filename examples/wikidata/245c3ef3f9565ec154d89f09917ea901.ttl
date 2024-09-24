@@ -28,14 +28,8 @@ SELECT
   (CONCAT(
       'https://tools.wmflabs.org/author-disambiguator/names_oauth.php?name=',
       ENCODE_FOR_URI(?authorstring)) AS ?resolver_url)
-WITH {
-  SELECT DISTINCT ?work ?authorstring WHERE {
-    SERVICE bd:sample { ?work wdt:P6104 wd:Q56241615 . bd:serviceParam bd:sample.limit 100000 }   
-    ?work wdt:P2093 ?authorstring .
-  }
-  LIMIT 10000
-} AS %works
-WITH {
+WHERE {
+   {
   SELECT
     (COUNT(DISTINCT ?work) AS ?count)
     (COUNT(DISTINCT ?work1) AS ?count1)
@@ -45,10 +39,7 @@ WITH {
     ?work1 wdt:P2093 ?authorstring .
   }
   GROUP BY ?authorstring
-} AS %result
-WHERE {
-  INCLUDE %result
-}
+}}
 ORDER BY DESC(?count) DESC(?count1)
 LIMIT 200""",
     """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -75,14 +66,22 @@ WHERE {
     (COUNT(DISTINCT ?work1) AS ?count1)
     ?authorstring
   WHERE {
-    INCLUDE %works
-    ?work1 wdt:P2093 ?authorstring .
+     {
+  SELECT DISTINCT ?work ?authorstring WHERE {
+    SERVICE bd:sample { ?work wdt:P6104 wd:Q56241615 . bd:serviceParam bd:sample.limit 100000 }   
+    ?work wdt:P2093 ?authorstring .
+  }
+  LIMIT 10000
+}    ?work1 wdt:P2093 ?authorstring .
   }
   GROUP BY ?authorstring
 }}
 ORDER BY DESC(?count) DESC(?count1)
 LIMIT 200""";
-  <http://example.org/bigdata_select> """SELECT
+  <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
   # Number of works on the topic with the author name string
   ?count
 

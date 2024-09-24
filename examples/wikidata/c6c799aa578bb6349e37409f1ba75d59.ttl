@@ -24,52 +24,6 @@ PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
 PREFIX geo: <http://www.opengis.net/ont/geosparql#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?title ?wd_coord ?wiki_coord ?dist
-WITH
-{
-  SELECT DISTINCT ?item
-  {
-    ?item wdt:P31 / wdt:P279 * wd:Q55488 .
-    ?item wdt:P17 wd:Q145 .
-    FILTER STRENDS(STR(?item), \"0\")
-  }
-} AS %get_items
-{
-  INCLUDE %get_items
-  ?item p:P625 ?s .
-  ?s ps:P625 ?wd_coord .
-  ?s prov:wasDerivedFrom ?ref .
-  ?ref pr:P143 wd:Q328 .
-  ?sitelink schema:about ?item .
-  ?sitelink schema:isPartOf <https://en.wikipedia.org/> .
-  ?sitelink schema:name ?title .
-  SERVICE wikibase:mwapi
-  {
-    bd:serviceParam wikibase:endpoint \"en.wikipedia.org\" .
-    bd:serviceParam wikibase:api \"Generator\" .
-    bd:serviceParam mwapi:generator \"allpages\" .
-    bd:serviceParam mwapi:gapfrom ?title .
-    bd:serviceParam mwapi:gapto ?title .
-    bd:serviceParam mwapi:prop \"coordinates\" .
-    ?lat wikibase:apiOutput \"coordinates/co/@lat\" .
-    ?lon wikibase:apiOutput \"coordinates/co/@lon\" .
-  }
-  BIND (STRDT(CONCAT(\"Point(\", ?lon, \" \", ?lat, \")\"), geo:wktLiteral) AS ?wiki_coord)
-  BIND (geof:distance(?wd_coord, ?wiki_coord) AS ?dist)
-  FILTER (! BOUND(?dist) || ?dist > 0.0)
-}""",
-    """PREFIX mwapi: <http://wikiba.se/ontology#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX prov: <http://www.w3.org/ns/prov#>
-PREFIX pr: <http://www.wikidata.org/prop/reference/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
-PREFIX geo: <http://www.opengis.net/ont/geosparql#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?title ?wd_coord ?wiki_coord ?dist
 {
   
 {
@@ -101,7 +55,19 @@ SELECT ?item ?title ?wd_coord ?wiki_coord ?dist
   BIND (geof:distance(?wd_coord, ?wiki_coord) AS ?dist)
   FILTER (! BOUND(?dist) || ?dist > 0.0)
 }""";
-  <http://example.org/bigdata_select> """SELECT ?item ?title ?wd_coord ?wiki_coord ?dist
+  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?title ?wd_coord ?wiki_coord ?dist
 WITH
 {
   SELECT DISTINCT ?item

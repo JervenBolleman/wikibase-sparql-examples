@@ -18,44 +18,6 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?airport ?airportLabel ?pays ?paysLabel (SAMPLE(?coord) AS ?coord)
   ?ICAO ?IATA (SAMPLE(?Local_Code) AS ?Local_Code)
-WITH
-{
-  SELECT DISTINCT ?airport
-  WHERE
-  {
-    ?airport (wdt:P31/wdt:P279*) wd:Q62447.
-    #?airport wdt:P17 wd:Q408.                                       # make a country filter
-    MINUS { ?airport wdt:P576 _:b2. }                                # remove items with P576 (dissolved, abolished or demolished) as a main property
-    MINUS { ?airport wdt:P582 _:b3. }                                # remove items with P582 (end date) as a main property
-  MINUS {
-    ?airport (wdt:P31/(wdt:P279*)) ?thing.
-    VALUES ?thing {
-      wd:Q695850      wd:Q2265915      wd:Q1311670      wd:Q7373622      wd:Q782667      wd:Q502074      wd:Q44665966      wd:Q2071567
-      wd:Q3631092     wd:Q4930096
-    }
-  } 
-    MINUS { ?airport a wdno:P17.}                                    # exclude airports that aren't physically based in a country
-  }
-} AS %get_airport
-WHERE
-{
-  INCLUDE %get_airport
-  ?airport wdt:P625  ?coord. 
-  OPTIONAL { ?airport wdt:P239  ?ICAO. }
-  OPTIONAL { ?airport wdt:P238  ?IATA. }
-  ?airport wdt:P17   ?pays.
-  OPTIONAL { ?airport (wdt:P240|wdt:P5699|wdt:P5746|wdt:P5851|wdt:P6120) ?Local_Code. }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,fr,[AUTO_LANGUAGE]\". }
-}
-GROUP BY ?airport ?airportLabel ?ICAO ?IATA ?pays ?paysLabel
-ORDER BY ?paysLabel ?coord""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?airport ?airportLabel ?pays ?paysLabel (SAMPLE(?coord) AS ?coord)
-  ?ICAO ?IATA (SAMPLE(?Local_Code) AS ?Local_Code)
 WHERE
 {
   
@@ -85,7 +47,12 @@ WHERE
 }
 GROUP BY ?airport ?airportLabel ?ICAO ?IATA ?pays ?paysLabel
 ORDER BY ?paysLabel ?coord""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT ?airport ?airportLabel ?pays ?paysLabel (SAMPLE(?coord) AS ?coord)
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?airport ?airportLabel ?pays ?paysLabel (SAMPLE(?coord) AS ?coord)
   ?ICAO ?IATA (SAMPLE(?Local_Code) AS ?Local_Code)
 WITH
 {

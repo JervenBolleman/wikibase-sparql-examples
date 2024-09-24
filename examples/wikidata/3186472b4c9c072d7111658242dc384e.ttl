@@ -18,44 +18,6 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
 PREFIX p: <http://www.wikidata.org/prop/>
 SELECT ?item ?time ?count
-WITH
-{
-  SELECT ?time (COUNT(?time) AS ?count)
-  WHERE
-  {
-    ?item p:P585 / psv:P585 ?fullvalue.
-    ?fullvalue wikibase:timePrecision 11 . # Precision is date
-    ?fullvalue wikibase:timeValue ?time.
-#     FILTER ((?time < \"1900-01-01\"^^xsd:dateTime))
-    MINUS { ?item (wdt:P31/wdt:P279*) wd:Q6888. } # exclude transit astronomiques
-    MINUS { ?item (wdt:P31/wdt:P279*) wd:Q47150325. } # exclude calendar dates in themselves
-    MINUS { ?item (wdt:P31/wdt:P279*) wd:Q14795564. } # exclude OTHER calendar dates 
-    MINUS { ?item (wdt:P31/wdt:P279*) wd:Q2334719. } # exclude trials
-    ?item (wdt:P31/wdt:P279*) wd:Q141022.#éclipses
-  }
-  GROUP BY ?time
-  HAVING (?count > 1)
-} AS %get_duplicate_times
-WHERE
-{
-  INCLUDE %get_duplicate_times
-  ?item p:P585 / psv:P585 ?fullvalue.
-  ?fullvalue wikibase:timePrecision 11 . # Precision is date
-  ?fullvalue wikibase:timeValue ?time.
-#      FILTER ((?time < \"1900-01-01\"^^xsd:dateTime))
-  MINUS { ?item (wdt:P31/wdt:P279*) wd:Q6888. } # exclude transit astronomiques
-  MINUS { ?item (wdt:P31/wdt:P279*) wd:Q47150325. } # exclude calendar dates in themselves
-    MINUS { ?item (wdt:P31/wdt:P279*) wd:Q14795564. } # exclude  OTHER calendar dates 
-    MINUS { ?item (wdt:P31/wdt:P279*) wd:Q2334719. } # exclude trials
-      ?item (wdt:P31/wdt:P279*) wd:Q141022.#éclipses 
-} order by ?time""",
-    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
-PREFIX p: <http://www.wikidata.org/prop/>
-SELECT ?item ?time ?count
 WHERE
 {
   
@@ -85,7 +47,13 @@ WHERE
     MINUS { ?item (wdt:P31/wdt:P279*) wd:Q2334719. } # exclude trials
       ?item (wdt:P31/wdt:P279*) wd:Q141022.#éclipses 
 } order by ?time""";
-  <http://example.org/bigdata_select> """SELECT ?item ?time ?count
+  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?item ?time ?count
 WITH
 {
   SELECT ?time (COUNT(?time) AS ?count)

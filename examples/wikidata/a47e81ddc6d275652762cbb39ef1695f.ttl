@@ -21,57 +21,6 @@ SELECT
   ?topic ?topicLabel
   (CONCAT(\"#topic/\", SUBSTR(STR(?topic), 32)) AS ?topicUrl)
   ?topicDescription
-WITH {
-  SELECT
-    (SUM(?score_) AS ?score)
-    ?topic
-  WHERE {
-    { 
-      target: wdt:P921 ?topic .
-      BIND(20 AS ?score_)
-    }
-    UNION
-    { 
-      target: wdt:P921 / wdt:P31 ?topic .
-      BIND(5 AS ?score_)
-    }
-    UNION
-    { 
-     target: wdt:P921/wdt:P279 ?topic .
-     BIND(3 AS ?score_)
-    }
-    UNION
-    {
-      # Topic of a cited work
-      target: wdt:P2860/wdt:P921 ?topic .
-      BIND(1 AS ?score_)
-    }
-    UNION
-    {
-      SELECT (1 AS ?score_) ?topic WHERE {
-        ?citing_work wdt:P2860 target: .
-        ?citing_work wdt:P921 ?topic . 
-      }
-    }
-  }
-  GROUP BY ?topic
-} AS %results 
-WHERE {
-  INCLUDE %results
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,da,de,es,jp,no,ru,sv,zh\". }
-}
-ORDER BY DESC(?score)
-LIMIT 200""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-PREFIX target: <http://www.wikidata.org/entity/Q113616501>
-
-SELECT
-  ?score
-  ?topic ?topicLabel
-  (CONCAT(\"#topic/\", SUBSTR(STR(?topic), 32)) AS ?topicUrl)
-  ?topicDescription
 
 WHERE {
    {
@@ -112,7 +61,10 @@ WHERE {
 }
 ORDER BY DESC(?score)
 LIMIT 200""";
-  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q113616501>
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q113616501>
 
 SELECT
   ?score

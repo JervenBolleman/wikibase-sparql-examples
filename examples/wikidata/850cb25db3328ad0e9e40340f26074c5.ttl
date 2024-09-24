@@ -42,171 +42,6 @@ SELECT (COUNT(DISTINCT ?item) AS ?total)
   (COUNT(DISTINCT ?item_a_langueoeuvre) AS ?a_langueoeuvre) (?a_langueoeuvre / ?est_oeuvre * 100.0 AS ?pct_langue)
   (COUNT(DISTINCT ?oeuvre_est_fr) AS ?est_fr) (?est_fr / ?est_oeuvre * 100.0 AS ?pct_fr)
   (COUNT(DISTINCT ?oeuvre_est_en) AS ?est_en) (?est_en / ?est_oeuvre * 100.0 AS ?pct_en)
-WITH
-{
-  SELECT DISTINCT ?item
-  WHERE
-  {
-    # Trouver les éléments avec le CQT en référence
-    ?autre_statement pr:P248 wd:Q100443909 .
-    ?statement prov:wasDerivedFrom ?autre_statement .
-
-    # Quelles propriétés sont sourcées par le CQT
-    ?property a wikibase:Property ;
-       wikibase:claim ?ppp .
-    ?item ?ppp ?statement .
-  }
-}
-AS %items_CQT
-WHERE
-{
-  INCLUDE %items_CQT
-  OPTIONAL
-  {
-    ?item wdt:P463 wd:Q64402570 .
-    BIND (?item AS ?membre_CQT)
-  }
-  OPTIONAL
-  {
-    ?item (wdt:P17 | wdt:P27) ?pays .
-    BIND (?item AS ?item_a_pays)
-  }
-  OPTIONAL
-  {
-    ?item wdt:P18 ?image .
-    BIND (?item AS ?item_a_image)
-  }
-  OPTIONAL
-  {
-    ?item wdt:P625 ?géolocalisé .
-    BIND (?item AS ?item_est_géolocalisé)
-  }
-  OPTIONAL
-  {
-    ?item wdt:P31 / wdt:P279* wd:Q43229 .
-    hint:Prior hint:gearing \"forward\" .
-    BIND (?item AS ?item_est_organisation)
-  }
-    OPTIONAL
-  {
-    ?item wdt:P31 / wdt:P279* wd:Q43229 ;
-          (wdt:P1037|wdt:P169|wdt:P8938) ?direction .
-    BIND (?item AS ?organisation_a_direction)
-  }
-    OPTIONAL
-  {
-    ?item wdt:P31 / wdt:P279* wd:Q43229 ;
-          (wdt:P1037|wdt:P169|wdt:P8938) ?direction .
-    ?direction wdt:P21 wd:Q6581072 .
-    BIND (?item AS ?directionféminin)
-  }
-    OPTIONAL
-  {
-    ?item wdt:P31 / wdt:P279* wd:Q43229 ;
-          (wdt:P1037|wdt:P169|wdt:P8938) ?direction .
-    ?direction wdt:P21 wd:Q6581097 .
-    BIND (?item AS ?directionmasculin)
-  }
-    OPTIONAL
-  {
-    ?item wdt:P31 / wdt:P279* wd:Q386724 .
-    hint:Prior hint:gearing \"forward\" .
-    BIND (?item AS ?item_est_oeuvre)
-  }
-  OPTIONAL
-  {
-    ?item wdt:P31 wd:Q5 .
-    BIND (true AS ?item_est_humain)
-  }
-  OPTIONAL
-  {
-    ?item wdt:P31 wd:Q5.
-    minus {?item wdt:P21 ?sexe .}
-    BIND (true AS ?item_est_nonsexué)
-  }
-  OPTIONAL
-  {
-    ?item wdt:P21 wd:Q6581072 .
-    BIND (true AS ?item_est_féminin)
-  }
-  OPTIONAL
-  {
-    ?item wdt:P21 wd:Q6581097 .
-    BIND (true AS ?item_est_masculin)
-  }
-  OPTIONAL
-  {
-    ?item wdt:P569 ?naissance .
-    BIND (?item AS ?item_a_naissance)
-  }
-  OPTIONAL
-  {
-    ?item wdt:P570 ?mort .
-    BIND (?item AS ?item_a_mort)
-  }
-  OPTIONAL
-  {
-    ?item (p:P569/psv:P569|p:P570/psv:P570) [wikibase:timePrecision ?datePrecision; wikibase:timeValue ?naissance ] .
-  filter(?datePrecision=8)
-    BIND (?item AS ?date_décennie)
-  }
-  OPTIONAL
-  {
-    ?item wdt:P106 ?occupation .
-    BIND (?item AS ?item_a_occupation)
-  }
-  OPTIONAL
-  {
-    ?item wdt:P39 ?fonction .
-    BIND (?item AS ?item_a_fonction)
-  }
-   OPTIONAL
-  {
-    ?item wdt:P407 ?langueoeuvre .
-    BIND (?item AS ?item_a_langueoeuvre)
-  }
-    OPTIONAL
-  {
-    ?item wdt:P407 wd:Q150 .
-    BIND (?item AS ?oeuvre_est_fr)
-  }
-      OPTIONAL
-  {
-    ?item wdt:P407 wd:Q1860 .
-    BIND (?item AS ?oeuvre_est_en)
-  }
-}""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
-PREFIX prov: <http://www.w3.org/ns/prov#>
-PREFIX pr: <http://www.wikidata.org/prop/reference/>
-PREFIX p: <http://www.wikidata.org/prop/>
-#Tous les éléments distincts sourcés avec le CQT avec les pourcentages de certaines natures, pays, naissance, etc..
-
-SELECT (COUNT(DISTINCT ?item) AS ?total)
-  (COUNT(DISTINCT ?membre_CQT) AS ?est_membre_CQT) (?est_membre_CQT / ?total * 100.0 AS ?pct_membre_CQT)
-  (COUNT(DISTINCT ?item_a_pays) AS ?a_pays) (?a_pays / ?total * 100.0 AS ?pct_pays)
-  (COUNT(DISTINCT ?item_a_image) AS ?a_image) (?a_image / ?total * 100.0 AS ?pct_image)
-  (COUNT(DISTINCT ?item_est_géolocalisé) AS ?est_géolocalisé) (?est_géolocalisé / ?total * 100.0 AS ?pct_géolocalisé)
-  (COUNT(DISTINCT ?item_est_organisation) AS ?est_organisation) (?est_organisation / ?total * 100.0 AS ?pct_organisation)
-  (COUNT(?organisation_a_direction) AS ?a_direction) (?a_direction / ?est_organisation * 100.0 AS ?pct_direction)
-  (COUNT(DISTINCT ?directionféminin) AS ?direction_féminin) (?direction_féminin / ?a_direction * 100.0 AS ?pct_direction_féminin)
-  (COUNT(DISTINCT ?directionmasculin) AS ?direction_masculin) (?direction_masculin / ?a_direction * 100.0 AS ?pct_direction_masculin)
-  (COUNT(DISTINCT ?item_est_oeuvre) AS ?est_oeuvre) (?est_oeuvre / ?total * 100.0 AS ?pct_oeuvre)
-  (COUNT(?item_est_humain) AS ?est_humain) (?est_humain / ?total * 100.0 AS ?pct_humain)
-  (COUNT(?item_est_féminin) AS ?est_féminin) (?est_féminin / ?est_humain * 100.0 AS ?pct_féminin)
-  (COUNT(?item_est_masculin) AS ?est_masculin) (?est_masculin / ?est_humain * 100.0 AS ?pct_masculin)
-  (COUNT(?item_est_nonsexué) AS ?est_nonsexué) (?est_nonsexué / ?est_humain * 100.0 AS ?pct_nonsexué) #non précisé
-  (COUNT(DISTINCT ?item_a_naissance) AS ?a_naissance) (?a_naissance / ?est_humain * 100.0 AS ?pct_naissance)
-  (COUNT(DISTINCT ?item_a_mort) AS ?est_mort) (?est_mort / ?est_humain * 100.0 AS ?pct_mort)
-  (COUNT(DISTINCT ?date_décennie) AS ?a_décennie) (?a_décennie / ?est_humain * 100.0 AS ?pct_décennie)
-  (COUNT(DISTINCT ?occupation) AS ?a_occupation) (?a_occupation / ?est_humain * 100.0 AS ?pct_occupation)
-  (COUNT(DISTINCT ?fonction) AS ?a_fonction) (?a_fonction / ?est_humain * 100.0 AS ?pct_fonction)
-  (COUNT(DISTINCT ?item_a_langueoeuvre) AS ?a_langueoeuvre) (?a_langueoeuvre / ?est_oeuvre * 100.0 AS ?pct_langue)
-  (COUNT(DISTINCT ?oeuvre_est_fr) AS ?est_fr) (?est_fr / ?est_oeuvre * 100.0 AS ?pct_fr)
-  (COUNT(DISTINCT ?oeuvre_est_en) AS ?est_en) (?est_en / ?est_oeuvre * 100.0 AS ?pct_en)
 WHERE
 {
   
@@ -338,7 +173,14 @@ WHERE
     BIND (?item AS ?oeuvre_est_en)
   }
 }""";
-  <http://example.org/bigdata_select> """#Tous les éléments distincts sourcés avec le CQT avec les pourcentages de certaines natures, pays, naissance, etc..
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX p: <http://www.wikidata.org/prop/>
+#Tous les éléments distincts sourcés avec le CQT avec les pourcentages de certaines natures, pays, naissance, etc..
 
 SELECT (COUNT(DISTINCT ?item) AS ?total)
   (COUNT(DISTINCT ?membre_CQT) AS ?est_membre_CQT) (?est_membre_CQT / ?total * 100.0 AS ?pct_membre_CQT)

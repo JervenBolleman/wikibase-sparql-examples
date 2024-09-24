@@ -19,17 +19,9 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel
        ?rank1 (GROUP_CONCAT(DISTINCT ?qual1; SEPARATOR=\", \") AS ?qualifiers1)
        ?rank2 (GROUP_CONCAT(DISTINCT ?qual2; SEPARATOR=\", \") AS ?qualifiers2)
-WITH
+WHERE
 {
-  SELECT ?item
-  WHERE
-  {
-    ?item p:P227 [].
-  }
-  GROUP BY ?item
-  HAVING (COUNT(?item) > 1)
-} AS %multiple_GND1
-WITH
+  
 {
   SELECT ?item ?GND_statement1 ?GND_statement2
   WHERE
@@ -40,11 +32,7 @@ WITH
     FILTER (?GND_statement1 != ?GND_statement2)
     FILTER (STR(?GND_statement1) < STR(?GND_statement2))
   }
-} AS %multiple_GND2
-WHERE
-{
-  INCLUDE %multiple_GND2
-  ?sitelink schema:about ?item.
+}  ?sitelink schema:about ?item.
   ?sitelink schema:isPartOf <https://de.wikipedia.org/>.
   ?GND_statement1 wikibase:rank ?rank1.
   ?GND_statement2 wikibase:rank ?rank2.
@@ -74,8 +62,16 @@ WHERE
   SELECT ?item ?GND_statement1 ?GND_statement2
   WHERE
   {
-    INCLUDE %multiple_GND1
-    ?item p:P227 ?GND_statement1.
+    
+{
+  SELECT ?item
+  WHERE
+  {
+    ?item p:P227 [].
+  }
+  GROUP BY ?item
+  HAVING (COUNT(?item) > 1)
+}    ?item p:P227 ?GND_statement1.
     ?item p:P227 ?GND_statement2.
     FILTER (?GND_statement1 != ?GND_statement2)
     FILTER (STR(?GND_statement1) < STR(?GND_statement2))
@@ -95,7 +91,12 @@ WHERE
   }
 }
 GROUP BY ?item ?itemLabel ?GND_statement1 ?GND_statement2 ?rank1 ?rank2""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel
        ?rank1 (GROUP_CONCAT(DISTINCT ?qual1; SEPARATOR=\", \") AS ?qualifiers1)
        ?rank2 (GROUP_CONCAT(DISTINCT ?qual2; SEPARATOR=\", \") AS ?qualifiers2)
 WITH

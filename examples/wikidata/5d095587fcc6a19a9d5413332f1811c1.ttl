@@ -24,77 +24,6 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT distinct ?place ?placeLabel ?coordinate ?coordinate2 ?lon1 ?lat1 ?lon2 ?lat2 ?line ?distNum
 
 #####################################################################
-WITH {
-  # Liste der POIs, die man vom Aussichtspunkt sehen kann
-SELECT ?place
-              (SAMPLE(?coordinate) AS ?coordinate)
-       #(SAMPLE(?coordinate2) AS ?coordinate2)
-       (SAMPLE(?lon1) AS ?lon1)
-       (SAMPLE(?lat1) AS ?lat1)
-       (SAMPLE(?lon2) AS ?lon2)
-       (SAMPLE(?lat2) AS ?lat2)
-       (CONCAT(STR(ROUND(SAMPLE(?distNum)*100)/100),' km') AS ?distNum)  # Entfernung runden
-       (SAMPLE(?placeLabel) AS ?placeLabel) 
-       
-  WHERE {
-  {
-    BIND(wd:Q15296697 AS ?viewpoint)
-    ?viewpoint wdt:P625 ?coordinate2.
-    OPTIONAL { ?viewpoint (p:P625/psv:P625/wikibase:geoLatitude) ?lat1. }
-    OPTIONAL { ?viewpoint (p:P625/psv:P625/wikibase:geoLongitude) ?lon1. }
-    SERVICE wikibase:around {
-      ?place wdt:P625 ?coordinate.
-      bd:serviceParam wikibase:center ?coordinate2;
-        wikibase:radius \"2\".
-    }
-    BIND(\"im Umkreis\" AS ?layer)
-    FILTER(?place != wd:Q15296697)
-    OPTIONAL { ?place (p:P625/psv:P625/wikibase:geoLatitude) ?lat2. }
-    OPTIONAL { ?place (p:P625/psv:P625/wikibase:geoLongitude) ?lon2. }
-    BIND(CONCAT(\"LINESTRING (\", STR(?lon1), \" \", STR(?lat1), \",\", STR(?lon2), \" \", STR(?lat2), \")\") AS ?str)
-    BIND(STRDT(?str, geo:wktLiteral) AS ?line)
-    BIND(geof:distance(?coordinate, ?coordinate2) AS ?distNum)
-  }
-
-  }   
-GROUP BY ?place
-
-} AS %points
-##########################################
-WITH {
-  # Linien generieren 
-  SELECT ?line ?place (\"9B0058\" as ?rgb) 
-          WHERE {
-    INCLUDE %points 
-    BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
-    BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
-    
-  }
-} AS %lines 
-#########################################
-
-WHERE {
-  
-  # jetzt Punkte und Linien für Ausgabe auf Karte ausgeben
- { INCLUDE %points }
- union
- { INCLUDE %lines }
-  
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,en\" }
-}""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
-PREFIX geo: <http://www.opengis.net/ont/geosparql#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#defaultView:Map{\"hide\":[\"?coordinate\", \"?line\", \"?rgb\", \"?lon1\", \"?lat1\", \"?lon2\", \"?lat2\"]}
-
-SELECT distinct ?place ?placeLabel ?coordinate ?coordinate2 ?lon1 ?lat1 ?lon2 ?lat2 ?line ?distNum
-
-#####################################################################
 ##########################################
 
 #########################################
@@ -187,7 +116,15 @@ GROUP BY ?place
   
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,en\" }
 }""";
-  <http://example.org/bigdata_select> """#defaultView:Map{\"hide\":[\"?coordinate\", \"?line\", \"?rgb\", \"?lon1\", \"?lat1\", \"?lon2\", \"?lat2\"]}
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map{\"hide\":[\"?coordinate\", \"?line\", \"?rgb\", \"?lon1\", \"?lat1\", \"?lon2\", \"?lat2\"]}
 
 SELECT distinct ?place ?placeLabel ?coordinate ?coordinate2 ?lon1 ?lat1 ?lon2 ?lat2 ?line ?distNum
 

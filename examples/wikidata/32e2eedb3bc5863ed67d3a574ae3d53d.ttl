@@ -26,87 +26,29 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Map
 SELECT ?seq ?item ?itemLabel ?coord2 ?line ?riverLabel (?river AS ?layer)
 
-WITH {
-  SELECT DISTINCT ?river ?mouthlat ?mouthlong ?coord WHERE { 
-      VALUES ?river { wd:Q78707 } # Yenisey
-      ?river wdt:P31 wd:Q4022 .
-      ?river wdt:P17 wd:Q159 .
-      {
-        ?river p:P403 ?stat. 
-        ?stat pq:P625 ?coord .                          # get the coords for the main river  
-        ?stat pqv:P625/wikibase:geoLatitude ?mouthlat. 
-        ?stat pqv:P625/wikibase:geoLongitude ?mouthlong.
-      }
-      UNION
-      {
-        ?river p:P625 ?stat.                           # coordinates
-        ?stat pq:P518 wd:Q1233637.                     # applies to river mouth
-        ?stat ps:P625 ?coord .                         # get the coords for the main river  
-        ?stat psv:P625/wikibase:geoLatitude ?mouthlat. 
-        ?stat psv:P625/wikibase:geoLongitude ?mouthlong.
-      }
-  }
-} AS %rivers
-WITH {
-  SELECT ?river ?item ?lat ?long ?coord2 ?dist WHERE { 
-    {
-      INCLUDE %rivers .
-      ?stat2 ps:P403 ?river.
-      ?item p:P403 ?stat2. 
-      {
-        ?stat2 pqv:P625/wikibase:geoLatitude ?lat. 
-        ?stat2 pqv:P625/wikibase:geoLongitude ?long.
-        ?stat2 pq:P625 ?coord2 .                        # get coords for all tributary rivers
-      }
-      UNION
-      {
-        ?item p:P625 ?stat3. 
-        ?stat3 pq:P518 wd:Q1233637.                     # applies to river mouth
-        ?stat3 psv:P625/wikibase:geoLatitude ?lat. 
-        ?stat3 psv:P625/wikibase:geoLongitude ?long.
-        ?stat3 ps:P625 ?coord2 .                        # get coords for all tributary rivers
-      }
-      BIND(geof:distance(?coord, ?coord2) as ?dist)     # distance between tributary mouth and main river mouth
-    }
-    UNION
-    {
-      SELECT ?river (?river AS ?item) (?mouthlat AS ?lat) (?mouthlong AS ?long) (?coord AS ?coord2) (0.0 AS ?dist)
-      WHERE
-      { INCLUDE %rivers }
-    }
-  }
-} AS %points
 
-WITH {                                                  # work out the sequence of mouths based on distance
-  SELECT ?river ?item (COUNT(DISTINCT(?item2)) AS ?seq0) WHERE {
-    INCLUDE %points .
- 
-    {
-      SELECT ?river (?item AS ?item2) (?dist AS ?dist2) WHERE {
-         INCLUDE %points .
-      }
-    }
+
     
-    FILTER (?dist2 <= ?dist) .
-  } GROUP BY ?river ?item 
-} AS %seq
-
-WITH {                                                 # unite the sequence and the coordinate details on a single row
-  SELECT ?river ?seq0 ?item ?dist ?coord2 ?lat ?long  WHERE {
-       INCLUDE %points .
-       INCLUDE %seq .
-    }
-} AS %points_seq     
 
 WHERE {                                               # construct lines from mouth to mouth
   {
     SELECT ?river (?seq0 AS ?seq) ?item ?elev ?coord2 ?lat ?long  WHERE {
-       INCLUDE %points_seq .
+        {                                                 # unite the sequence and the coordinate details on a single row
+  SELECT ?river ?seq0 ?item ?dist ?coord2 ?lat ?long  WHERE {
+       INCLUDE %points .
+       INCLUDE %seq .
+    }
+}.
     }
   }
   {
     SELECT ?river ((?seq0-1) AS ?seq) (?lat AS ?lat2) (?long AS ?long2) WHERE {
-       INCLUDE %points_seq .
+        {                                                 # unite the sequence and the coordinate details on a single row
+  SELECT ?river ?seq0 ?item ?dist ?coord2 ?lat ?long  WHERE {
+       INCLUDE %points .
+       INCLUDE %seq .
+    }
+}.
     }
   }
   BIND(CONCAT('LINESTRING (', STR(?long), ' ', STR(?lat), ',', STR(?long2), ' ', STR(?lat2), ')') AS ?str) .
@@ -137,8 +79,48 @@ WHERE {                                               # construct lines from mou
     SELECT ?river (?seq0 AS ?seq) ?item ?elev ?coord2 ?lat ?long  WHERE {
         {                                                 # unite the sequence and the coordinate details on a single row
   SELECT ?river ?seq0 ?item ?dist ?coord2 ?lat ?long  WHERE {
-       INCLUDE %points .
-       INCLUDE %seq .
+        {
+  SELECT ?river ?item ?lat ?long ?coord2 ?dist WHERE { 
+    {
+      INCLUDE %rivers .
+      ?stat2 ps:P403 ?river.
+      ?item p:P403 ?stat2. 
+      {
+        ?stat2 pqv:P625/wikibase:geoLatitude ?lat. 
+        ?stat2 pqv:P625/wikibase:geoLongitude ?long.
+        ?stat2 pq:P625 ?coord2 .                        # get coords for all tributary rivers
+      }
+      UNION
+      {
+        ?item p:P625 ?stat3. 
+        ?stat3 pq:P518 wd:Q1233637.                     # applies to river mouth
+        ?stat3 psv:P625/wikibase:geoLatitude ?lat. 
+        ?stat3 psv:P625/wikibase:geoLongitude ?long.
+        ?stat3 ps:P625 ?coord2 .                        # get coords for all tributary rivers
+      }
+      BIND(geof:distance(?coord, ?coord2) as ?dist)     # distance between tributary mouth and main river mouth
+    }
+    UNION
+    {
+      SELECT ?river (?river AS ?item) (?mouthlat AS ?lat) (?mouthlong AS ?long) (?coord AS ?coord2) (0.0 AS ?dist)
+      WHERE
+      { INCLUDE %rivers }
+    }
+  }
+}.
+        {                                                  # work out the sequence of mouths based on distance
+  SELECT ?river ?item (COUNT(DISTINCT(?item2)) AS ?seq0) WHERE {
+    INCLUDE %points .
+ 
+    {
+      SELECT ?river (?item AS ?item2) (?dist AS ?dist2) WHERE {
+         INCLUDE %points .
+      }
+    }
+    
+    FILTER (?dist2 <= ?dist) .
+  } GROUP BY ?river ?item 
+}.
     }
 }.
     }
@@ -147,8 +129,48 @@ WHERE {                                               # construct lines from mou
     SELECT ?river ((?seq0-1) AS ?seq) (?lat AS ?lat2) (?long AS ?long2) WHERE {
         {                                                 # unite the sequence and the coordinate details on a single row
   SELECT ?river ?seq0 ?item ?dist ?coord2 ?lat ?long  WHERE {
-       INCLUDE %points .
-       INCLUDE %seq .
+        {
+  SELECT ?river ?item ?lat ?long ?coord2 ?dist WHERE { 
+    {
+      INCLUDE %rivers .
+      ?stat2 ps:P403 ?river.
+      ?item p:P403 ?stat2. 
+      {
+        ?stat2 pqv:P625/wikibase:geoLatitude ?lat. 
+        ?stat2 pqv:P625/wikibase:geoLongitude ?long.
+        ?stat2 pq:P625 ?coord2 .                        # get coords for all tributary rivers
+      }
+      UNION
+      {
+        ?item p:P625 ?stat3. 
+        ?stat3 pq:P518 wd:Q1233637.                     # applies to river mouth
+        ?stat3 psv:P625/wikibase:geoLatitude ?lat. 
+        ?stat3 psv:P625/wikibase:geoLongitude ?long.
+        ?stat3 ps:P625 ?coord2 .                        # get coords for all tributary rivers
+      }
+      BIND(geof:distance(?coord, ?coord2) as ?dist)     # distance between tributary mouth and main river mouth
+    }
+    UNION
+    {
+      SELECT ?river (?river AS ?item) (?mouthlat AS ?lat) (?mouthlong AS ?long) (?coord AS ?coord2) (0.0 AS ?dist)
+      WHERE
+      { INCLUDE %rivers }
+    }
+  }
+}.
+        {                                                  # work out the sequence of mouths based on distance
+  SELECT ?river ?item (COUNT(DISTINCT(?item2)) AS ?seq0) WHERE {
+    INCLUDE %points .
+ 
+    {
+      SELECT ?river (?item AS ?item2) (?dist AS ?dist2) WHERE {
+         INCLUDE %points .
+      }
+    }
+    
+    FILTER (?dist2 <= ?dist) .
+  } GROUP BY ?river ?item 
+}.
     }
 }.
     }
@@ -157,7 +179,18 @@ WHERE {                                               # construct lines from mou
   BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 } ORDER BY ?seq""";
-  <http://example.org/bigdata_select> """#title:line-map of rivers based on distance to the mouth
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#title:line-map of rivers based on distance to the mouth
 #defaultView:Map
 SELECT ?seq ?item ?itemLabel ?coord2 ?line ?riverLabel (?river AS ?layer)
 

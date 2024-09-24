@@ -21,19 +21,8 @@ SELECT
   (STR(?year) AS ?year_)
   ?works
   ?topic ?topicLabel
-WITH {
-  SELECT
-    (COUNT(?work) AS ?works_)
-    ?topic
-  WHERE {
-    ?work wdt:P1433 / wdt:P4745 / wdt:P179 target: ;
-          wdt:P921 ?topic .
-  }
-  GROUP BY ?topic 
-  ORDER BY DESC(?works_)
-  LIMIT 10
-} AS %topics
-WITH {
+WHERE {
+   {
   SELECT
     (COUNT(DISTINCT ?work) AS ?works)
     ?topic
@@ -47,10 +36,7 @@ WITH {
   }
   GROUP BY ?topic ?year
   ORDER BY DESC(?works)
-} AS %result
-WHERE {
-  INCLUDE %result
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" }
+}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" }
 }
 ORDER BY DESC(?year)""",
     """PREFIX wikibase: <http://wikiba.se/ontology#>
@@ -70,7 +56,18 @@ WHERE {
     ?topic
     ?year
   WHERE {
-    INCLUDE %topics 
+     {
+  SELECT
+    (COUNT(?work) AS ?works_)
+    ?topic
+  WHERE {
+    ?work wdt:P1433 / wdt:P4745 / wdt:P179 target: ;
+          wdt:P921 ?topic .
+  }
+  GROUP BY ?topic 
+  ORDER BY DESC(?works_)
+  LIMIT 10
+}
     ?work wdt:P1433 / wdt:P4745 / wdt:P179 target: ;
           wdt:P921 ?topic ;
           wdt:P577 ?publication_datetime .
@@ -81,7 +78,10 @@ WHERE {
 }  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\" }
 }
 ORDER BY DESC(?year)""";
-  <http://example.org/bigdata_select> """#defaultView:AreaChart
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:AreaChart
 PREFIX target: <http://www.wikidata.org/entity/Q17012957>
 
 SELECT

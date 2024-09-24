@@ -22,19 +22,8 @@ SELECT
   (STR(?year_) AS ?year)
   ?count
   ?genderLabel
-WITH {
-  SELECT
-    (MIN(?years) AS ?year_)
-    ?event
-  WHERE {
-    ?event wdt:P179 target: ;
-           wdt:P580 | wdt:P585 ?datetime . 
-    BIND(STR(YEAR(?datetime)) AS ?years)
-    FILTER (?years != \"0\")
-  }
-  GROUP BY ?event
-} AS %events
-WITH {
+WHERE {
+   {
   SELECT
     ?year_
     (COUNT(?event) AS ?count)
@@ -44,10 +33,7 @@ WITH {
     ?event wdt:P664 / wdt:P21 ?gender .
   }
   GROUP BY ?year_ ?gender
-} AS %results
-WHERE {
-  INCLUDE %results
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE,en\". }
+}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE,en\". }
 }""",
     """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -67,13 +53,26 @@ WHERE {
     (COUNT(?event) AS ?count)
     ?gender
   WHERE {
-    INCLUDE %events
-    ?event wdt:P664 / wdt:P21 ?gender .
+     {
+  SELECT
+    (MIN(?years) AS ?year_)
+    ?event
+  WHERE {
+    ?event wdt:P179 target: ;
+           wdt:P580 | wdt:P585 ?datetime . 
+    BIND(STR(YEAR(?datetime)) AS ?years)
+    FILTER (?years != \"0\")
+  }
+  GROUP BY ?event
+}    ?event wdt:P664 / wdt:P21 ?gender .
   }
   GROUP BY ?year_ ?gender
 }  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE,en\". }
 }""";
-  <http://example.org/bigdata_select> """#defaultView:BarChart
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:BarChart
 
 PREFIX target: <http://www.wikidata.org/entity/Q6053150>
 

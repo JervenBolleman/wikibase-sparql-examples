@@ -23,63 +23,6 @@ PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX target: <http://www.wikidata.org/entity/Q21393244>
 
 SELECT DISTINCT ?string (COUNT(?work) AS ?count) 
-WITH
-{
-  # Find strings associated with the target item
-  SELECT DISTINCT ?string_
-  WHERE
-  {
-    { target: rdfs:label ?string_. } # in label
-    UNION
-    { target: skos:altLabel ?string_. } # in alias
-    UNION
-    {
-      ?author_statement ps:P50 target: ; 
-                        pq:P1932 ?string_. # in \"stated as\" strings for \"author\" statements on work items
-    }
-  }
-} AS %RAWstrings
-WITH
-{
-  # Calculate capitalization variants of these raw strings
-  SELECT DISTINCT ?string
-  WHERE
-  {
-    {
-      INCLUDE %RAWstrings
-      BIND(STR(?string_) AS ?string) # the raw strings
-    }
-    UNION
-    {
-      INCLUDE %RAWstrings
-      BIND(UCASE(STR(?string_)) AS ?string) # uppercased versions of the raw strings
-    }
-    UNION
-    {
-      INCLUDE %RAWstrings
-      BIND(LCASE(STR(?string_)) AS ?string) # lowercased versions of the raw strings
-    }
-  }
-} AS %NORMALIZEDstrings
-WHERE {
-  # Find works that have \"author name string\" values equal to these normalized strings
-  INCLUDE %NORMALIZEDstrings
-  OPTIONAL { ?work wdt:P2093 ?string. }
-}
-GROUP BY ?string
-ORDER BY DESC (?count)""",
-    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-# Case variations of author name strings
-# Example uppercase strings: https://w.wiki/nDK
-# Example items: Q2381157 Q21076181 Q21339258 Q21391696 Q21393244 Q21514479 Q21609166 Q22112765 Q22222864 Q63496558 Q64008584 Q88059762
-
-PREFIX target: <http://www.wikidata.org/entity/Q21393244>
-
-SELECT DISTINCT ?string (COUNT(?work) AS ?count) 
 WHERE {
   # Find works that have \"author name string\" values equal to these normalized strings
   
@@ -106,8 +49,94 @@ WHERE {
 }  OPTIONAL { ?work wdt:P2093 ?string. }
 }
 GROUP BY ?string
+ORDER BY DESC (?count)""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+# Case variations of author name strings
+# Example uppercase strings: https://w.wiki/nDK
+# Example items: Q2381157 Q21076181 Q21339258 Q21391696 Q21393244 Q21514479 Q21609166 Q22112765 Q22222864 Q63496558 Q64008584 Q88059762
+
+PREFIX target: <http://www.wikidata.org/entity/Q21393244>
+
+SELECT DISTINCT ?string (COUNT(?work) AS ?count) 
+WHERE {
+  # Find works that have \"author name string\" values equal to these normalized strings
+  
+{
+  # Calculate capitalization variants of these raw strings
+  SELECT DISTINCT ?string
+  WHERE
+  {
+    {
+      
+{
+  # Find strings associated with the target item
+  SELECT DISTINCT ?string_
+  WHERE
+  {
+    { target: rdfs:label ?string_. } # in label
+    UNION
+    { target: skos:altLabel ?string_. } # in alias
+    UNION
+    {
+      ?author_statement ps:P50 target: ; 
+                        pq:P1932 ?string_. # in \"stated as\" strings for \"author\" statements on work items
+    }
+  }
+}      BIND(STR(?string_) AS ?string) # the raw strings
+    }
+    UNION
+    {
+      
+{
+  # Find strings associated with the target item
+  SELECT DISTINCT ?string_
+  WHERE
+  {
+    { target: rdfs:label ?string_. } # in label
+    UNION
+    { target: skos:altLabel ?string_. } # in alias
+    UNION
+    {
+      ?author_statement ps:P50 target: ; 
+                        pq:P1932 ?string_. # in \"stated as\" strings for \"author\" statements on work items
+    }
+  }
+}      BIND(UCASE(STR(?string_)) AS ?string) # uppercased versions of the raw strings
+    }
+    UNION
+    {
+      
+{
+  # Find strings associated with the target item
+  SELECT DISTINCT ?string_
+  WHERE
+  {
+    { target: rdfs:label ?string_. } # in label
+    UNION
+    { target: skos:altLabel ?string_. } # in alias
+    UNION
+    {
+      ?author_statement ps:P50 target: ; 
+                        pq:P1932 ?string_. # in \"stated as\" strings for \"author\" statements on work items
+    }
+  }
+}      BIND(LCASE(STR(?string_)) AS ?string) # lowercased versions of the raw strings
+    }
+  }
+}  OPTIONAL { ?work wdt:P2093 ?string. }
+}
+GROUP BY ?string
 ORDER BY DESC (?count)""";
-  <http://example.org/bigdata_select> """# Case variations of author name strings
+  <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+# Case variations of author name strings
 # Example uppercase strings: https://w.wiki/nDK
 # Example items: Q2381157 Q21076181 Q21339258 Q21391696 Q21393244 Q21514479 Q21609166 Q22112765 Q22222864 Q63496558 Q64008584 Q88059762
 

@@ -30,75 +30,6 @@ SELECT
   (URI(CONCAT(
       'https://author-disambiguator.toolforge.org/names_oauth.php?precise=0n&doit=Look+for+author&limit=50&filter=wdt%3AP31+wd%3AQ212971&name=',
       ENCODE_FOR_URI(?author))) AS ?resolver_url)
-WITH {
-  SELECT DISTINCT ?work WHERE {
-    ?work wdt:P31 target: .
-  }
-  LIMIT 10000
-} AS %works
-WITH {
-  SELECT
-    (COUNT(?work) AS ?count)
-    ?author
-  WHERE {
-    INCLUDE %works
-    ?work wdt:P2093 ?author .
-  }
-  GROUP BY ?author
-} AS %result
-
-# Generate a score for each author
-WITH {
-  SELECT (SUM(?score_) AS ?score) ?author
-  WHERE {
-    {
-      # Assign them 3 points if they are an author of a work on the subject
-      SELECT (3 AS ?score_) ?author ?work WHERE {
-        ?work wdt:P2093 ?author .
-        ?work wdt:P31 target: .
-      }
-    }
-    UNION
-    {
-      # Assign them 1 point if they are the author of a work that is cited by a work on the subject
-      SELECT (1 AS ?score_) ?author ?work WHERE {
-        ?work wdt:P2093 ?author .
-        ?citing_work wdt:P2860 ?work .
-        ?citing_work wdt:P31 target: .
-      }
-    }
-  }
-  GROUP BY ?author
-} AS %scores
-
-WHERE {
-  INCLUDE %result
-  INCLUDE %scores
-
-  # Label the result
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
-}
-ORDER BY DESC(?count) DESC(?score)
-LIMIT 6000""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-PREFIX target: <http://www.wikidata.org/entity/Q212971>
-
-SELECT
-  # Number of works with the author
-  ?count
-
-  # Author score - 3 points for authoring a work, 1 for being cited
-  ?score
-
-  # Author as a string
-  ?author
-
-  # Build URL to the Author disambiguator tool
-  (URI(CONCAT(
-      'https://author-disambiguator.toolforge.org/names_oauth.php?precise=0n&doit=Look+for+author&limit=50&filter=wdt%3AP31+wd%3AQ212971&name=',
-      ENCODE_FOR_URI(?author))) AS ?resolver_url)
 
 # Generate a score for each author
 
@@ -138,8 +69,74 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
 }
 ORDER BY DESC(?count) DESC(?score)
+LIMIT 6000""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q212971>
+
+SELECT
+  # Number of works with the author
+  ?count
+
+  # Author score - 3 points for authoring a work, 1 for being cited
+  ?score
+
+  # Author as a string
+  ?author
+
+  # Build URL to the Author disambiguator tool
+  (URI(CONCAT(
+      'https://author-disambiguator.toolforge.org/names_oauth.php?precise=0n&doit=Look+for+author&limit=50&filter=wdt%3AP31+wd%3AQ212971&name=',
+      ENCODE_FOR_URI(?author))) AS ?resolver_url)
+
+# Generate a score for each author
+
+WHERE {
+   {
+  SELECT
+    (COUNT(?work) AS ?count)
+    ?author
+  WHERE {
+     {
+  SELECT DISTINCT ?work WHERE {
+    ?work wdt:P31 target: .
+  }
+  LIMIT 10000
+}    ?work wdt:P2093 ?author .
+  }
+  GROUP BY ?author
+}   {
+  SELECT (SUM(?score_) AS ?score) ?author
+  WHERE {
+    {
+      # Assign them 3 points if they are an author of a work on the subject
+      SELECT (3 AS ?score_) ?author ?work WHERE {
+        ?work wdt:P2093 ?author .
+        ?work wdt:P31 target: .
+      }
+    }
+    UNION
+    {
+      # Assign them 1 point if they are the author of a work that is cited by a work on the subject
+      SELECT (1 AS ?score_) ?author ?work WHERE {
+        ?work wdt:P2093 ?author .
+        ?citing_work wdt:P2860 ?work .
+        ?citing_work wdt:P31 target: .
+      }
+    }
+  }
+  GROUP BY ?author
+}
+  # Label the result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
+ORDER BY DESC(?count) DESC(?score)
 LIMIT 6000""";
-  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q212971>
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q212971>
 
 SELECT
   # Number of works with the author

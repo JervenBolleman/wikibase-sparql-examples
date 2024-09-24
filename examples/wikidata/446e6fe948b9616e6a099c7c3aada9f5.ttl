@@ -17,42 +17,6 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?author ?authorLabel
-WITH
-{
-  SELECT ?author
-  {
-    [] schema:about ?author ; schema:isPartOf / wikibase:wikiGroup \"wikisource\" .
-    ?author wikibase:sitelinks ?sitelinks . 
-    ?author wdt:P31 wd:Q5 .
-  }
-  GROUP BY ?author
-  HAVING (COUNT(?author) = SAMPLE(?sitelinks))
-} AS %1
-WITH
-{
-  SELECT ?author
-  WHERE
-  {
-    INCLUDE %1
-    FILTER EXISTS
-    {
-      ?work wdt:P50 ?author .
-      ?work wdt:P31/wdt:P279* wd:Q47461344 . # Written work exists
-      hint:Prior hint:gearing \"forward\" .
-    }
-  }
-} AS %2
-WHERE
-{
-  INCLUDE %2
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
-}""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?author ?authorLabel
 WHERE
 {
   
@@ -69,8 +33,45 @@ WHERE
     }
   }
 }  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?author ?authorLabel
+WHERE
+{
+  
+{
+  SELECT ?author
+  WHERE
+  {
+    
+{
+  SELECT ?author
+  {
+    [] schema:about ?author ; schema:isPartOf / wikibase:wikiGroup \"wikisource\" .
+    ?author wikibase:sitelinks ?sitelinks . 
+    ?author wdt:P31 wd:Q5 .
+  }
+  GROUP BY ?author
+  HAVING (COUNT(?author) = SAMPLE(?sitelinks))
+}    FILTER EXISTS
+    {
+      ?work wdt:P50 ?author .
+      ?work wdt:P31/wdt:P279* wd:Q47461344 . # Written work exists
+      
+    }
+  }
+}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
 }""";
-  <http://example.org/bigdata_select> """SELECT ?author ?authorLabel
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?author ?authorLabel
 WITH
 {
   SELECT ?author

@@ -16,16 +16,9 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?country ?countryLabel  ?capital ?capitalLabel ?continent ?continentLabel ?continent_is_unknown
-WITH
+WHERE
 {
-  SELECT DISTINCT ?country
-  WHERE
-  {
-    ?country wdt:P31 / wdt:P279* wd:Q6256 .
-  }
-}
-AS %get_countries
-WITH
+  
 {
   SELECT ?country (SAMPLE(?continent) AS ?country_continent) (COUNT(?continent) = 1 AS ?one_continent)
   WHERE
@@ -34,12 +27,7 @@ WITH
     OPTIONAL { ?country wdt:P30 ?continent . }
   }
   GROUP BY ?country
-}
-AS %get_contry_continent
-WHERE
-{
-  INCLUDE %get_contry_continent
-  OPTIONAL
+}  OPTIONAL
   {
     ?country wdt:P36 ?capital .
     OPTIONAL { ?capital wdt:P30 ?capital_continent . }
@@ -60,8 +48,14 @@ WHERE
   SELECT ?country (SAMPLE(?continent) AS ?country_continent) (COUNT(?continent) = 1 AS ?one_continent)
   WHERE
   {
-    INCLUDE %get_countries
-    OPTIONAL { ?country wdt:P30 ?continent . }
+    
+{
+  SELECT DISTINCT ?country
+  WHERE
+  {
+    ?country wdt:P31 / wdt:P279* wd:Q6256 .
+  }
+}    OPTIONAL { ?country wdt:P30 ?continent . }
   }
   GROUP BY ?country
 }  OPTIONAL
@@ -73,7 +67,11 @@ WHERE
   BIND (! BOUND(?capital_continent) && ! ?one_continent AS ?continent_is_unknown)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
 }""";
-  <http://example.org/bigdata_select> """SELECT ?country ?countryLabel  ?capital ?capitalLabel ?continent ?continentLabel ?continent_is_unknown
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?country ?countryLabel  ?capital ?capitalLabel ?continent ?continentLabel ?continent_is_unknown
 WITH
 {
   SELECT DISTINCT ?country

@@ -22,64 +22,15 @@ SELECT
   ?withSensesRatio
   ?withoutSenses
   ?withoutSensesRatio
-WITH {
-  SELECT DISTINCT ?lexeme ?language {
-    ?lexeme dct:language ?language.
-  }
-} AS %0
-WITH {
-  SELECT ?language (COUNT(*) AS ?total) {
-    INCLUDE %0.
-  }
-  GROUP BY ?language
-} AS %1
-WITH {
-  SELECT ?language (COUNT(DISTINCT ?lexeme) AS ?withSenses) {
-    INCLUDE %0.
-    ?lexeme ontolex:sense [].
-  }
-  GROUP BY ?language
-} AS %2
-WITH {
-  SELECT * {
-    INCLUDE %1.
-    OPTIONAL{INCLUDE %2}.
-    BIND(IF(BOUND(?withSenses), ?withSenses, 0) AS ?withSenses).
-  }
-} AS %3
-WITH {
-  SELECT * {
-    INCLUDE %3.
-    BIND(?total - ?withSenses AS ?withoutSenses).
-  }
-} AS %4
-WITH {
-  SELECT * {
-    INCLUDE %4
-    BIND((?withSenses/?total * 100) AS ?withSensesRatio)
-    BIND((?withoutSenses/?total * 100) AS ?withoutSensesRatio)
-  }
-} AS %5
-{
-  INCLUDE %5.
-  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\"}.
-}""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
-PREFIX dct: <http://purl.org/dc/terms/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT
-  ?language
-  ?languageLabel
-  ?withSenses
-  ?withSensesRatio
-  ?withoutSenses
-  ?withoutSensesRatio
 {
   INCLUDE %5.
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\"}.
 }""";
-  <http://example.org/bigdata_select> """SELECT
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
   ?language
   ?languageLabel
   ?withSenses

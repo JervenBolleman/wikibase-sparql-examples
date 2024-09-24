@@ -25,67 +25,6 @@ PREFIX target5: <http://www.wikidata.org/entity/Q42985020> # invasion biology
 
 SELECT
   ?topic1 ?topic1Label ?rgb ?topic2 ?topic2Label 
-WITH {
-  SELECT
-    (COUNT(DISTINCT ?work) AS ?count) ?topic1 ?topic2 ?rgb
-  WHERE {
-    # Find works that are marked with main subject of the topic.
-    {?work wdt:P921 / ( wdt:P31*/wdt:P279* | wdt:P361+ | wdt:P1269+ ) target1: .}
-    UNION
-    {?work wdt:P921 / ( wdt:P31*/wdt:P279* | wdt:P361+ | wdt:P1269+ ) target2: .}
-    UNION
-    {?work wdt:P921 / ( wdt:P31*/wdt:P279* | wdt:P361+ | wdt:P1269+ ) target3: .}
-    UNION
-    {?work wdt:P921 / ( wdt:P31*/wdt:P279* | wdt:P361+ | wdt:P1269+ ) target4: .}
-    UNION
-    {?work wdt:P921 / ( wdt:P31*/wdt:P279* | wdt:P361+ | wdt:P1269+ ) target5: .}
-    
-    # Identify co-occuring topics. 
-    ?work wdt:P921 ?topic1, ?topic2 . 
-
-    # Exclude the topic it self
-    FILTER (target1: != ?topic1 && target1: != ?topic2 && ?topic1 != ?topic2)
-      BIND(IF(?topic1 = target5:,\"7FFF00\",
-              IF( ?topic1 = target4:, \"3080BB\",
-                IF( ?topic1 = target3:, \"3080BB\",
-                  IF( ?topic1 = target2:, \"3080BB\",
-                \"FFA500\"
-                     )
-                  )
-                )
-              )
-           AS ?rgb).
-  }
-  GROUP BY ?topic1 ?topic2 ?rgb
-  ORDER BY DESC(?count)
-
-  # There a performance problems in the browser: We cannot show large graphs,
-  # so we put a limit on the number of links displayed.
-  LIMIT 200
-
-} AS %results
-WHERE {
-  INCLUDE %results
-  
-  # Label the results
-  SERVICE wikibase:label {
-    bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\".
-  }
-}""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#defaultView:Graph
-#title: Invasion biology in a broader context that includes restoration ecology, urban ecology and freshwater ecology
-
-PREFIX target1: <http://www.wikidata.org/entity/Q183368> # invasive species
-PREFIX target2: <http://www.wikidata.org/entity/Q2428433>  # restoration ecology
-PREFIX target3: <http://www.wikidata.org/entity/Q60566657> # freshwater ecology
-PREFIX target4: <http://www.wikidata.org/entity/Q1430301> # urban ecology
-PREFIX target5: <http://www.wikidata.org/entity/Q42985020> # invasion biology
-
-SELECT
-  ?topic1 ?topic1Label ?rgb ?topic2 ?topic2Label 
 WHERE {
    {
   SELECT
@@ -131,7 +70,10 @@ WHERE {
     bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\".
   }
 }""";
-  <http://example.org/bigdata_select> """#defaultView:Graph
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Graph
 #title: Invasion biology in a broader context that includes restoration ecology, urban ecology and freshwater ecology
 
 PREFIX target1: <http://www.wikidata.org/entity/Q183368> # invasive species

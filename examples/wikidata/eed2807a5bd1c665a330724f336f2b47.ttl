@@ -25,47 +25,6 @@ SELECT
   ?short_name
   ?event ?eventLabel (CONCAT(\"#scientificevent/\", SUBSTR(STR(?event), 32)) AS ?eventUrl)
   ?location ?locationLabel (CONCAT(\"#location/\", SUBSTR(STR(?location), 32)) AS ?locationUrl)
-WITH {
-  SELECT
-    ?datetime ?deadline ?event
-    (SAMPLE(?location_) AS ?location) 
-    (SAMPLE(?short_name_) AS ?short_name)
-  WHERE {
-    ?event p:P793 ?key_event_statement . 
-    ?key_event_statement ps:P793 ?deadline ; 
-                         pq:P585 ?datetime . 
-    ?deadline wdt:P279* wd:Q2404808 .
-    
-    # Subtract a day from now to get events on the now date
-    FILTER (NOW() - \"P1DT0H0M0.000S\"^^xsd:duration < ?datetime)
-    OPTIONAL { ?event wdt:P276 ?location_ }
-    OPTIONAL { ?event wdt:P1813 ?short_name_ }
-  }
-  GROUP BY ?datetime ?deadline ?event
-  ORDER BY(?datetime)
-  LIMIT 200  
-} AS %events
-WHERE {
-  INCLUDE %events
-  
-  BIND(xsd:date(?datetime) AS ?date)
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-ORDER BY(?date)""",
-    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT
-  ?date
-  ?deadline ?deadlineLabel
-  ?short_name
-  ?event ?eventLabel (CONCAT(\"#scientificevent/\", SUBSTR(STR(?event), 32)) AS ?eventUrl)
-  ?location ?locationLabel (CONCAT(\"#location/\", SUBSTR(STR(?location), 32)) AS ?locationUrl)
 WHERE {
    {
   SELECT
@@ -91,7 +50,15 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY(?date)""";
-  <http://example.org/bigdata_select> """SELECT
+  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
   ?date
   ?deadline ?deadlineLabel
   ?short_name

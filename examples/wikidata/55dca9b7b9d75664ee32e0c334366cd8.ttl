@@ -23,57 +23,6 @@ SELECT DISTINCT ?item ?itemLabel ?instances ?properties ?position ?thumb ?start 
       (GROUP_CONCAT(DISTINCT ?propertylist; SEPARATOR = \", \") AS ?properties)
       (SAMPLE (DISTINCT ?thumbs) as ?thumb) 
       (SAMPLE (?positions) as ?position) WHERE {
-hint:Query hint:optimizer \"None\"
-{?item wdt:P17 wd:Q145.
-      {?item wdt:P31/wdt:P279* wd:Q1785071.  BIND(\"fort.png\"     AS ?thumbs) BIND(\"fort\"     AS ?instancelist)} # fort
-UNION {?item wdt:P31/wdt:P279* wd:Q56344492. BIND(\"fort.png\"     AS ?thumbs) BIND(\"fort\"     AS ?instancelist)} # battery
-UNION {?item wdt:P31/wdt:P279* wd:Q90754.    BIND(\"fort.png\"     AS ?thumbs) BIND(\"fort\"     AS ?instancelist)} # redoubt
-UNION {?item wdt:P31/wdt:P279* wd:Q947103.   BIND(\"tower.png\"    AS ?thumbs) BIND(\"tower\"    AS ?instancelist)} # watchtower
-#UNION {?item wdt:P31/wdt:P279* wd:Q91122.    BIND(\"bunker.png\"   AS ?thumbs) BIND(\"bunker\"   AS ?instancelist)} # bunker
-#UNION {?item wdt:P31 wd:Q575727.             BIND(\"vessel.png\"   AS ?thumbs) BIND(\"vessel\"   AS ?instancelist)} # museum ship
-UNION {?item wdt:P31 wd:Q2772772.  BIND(\"museum.png\"   AS ?thumbs) BIND(\"museum\"   AS ?instancelist)} # military museum
-#UNION {?item wdt:P31/wdt:P279* wd:Q245016.   BIND(\"base.png\"     AS ?thumbs) BIND(\"base\"     AS ?instancelist)} # military base
-#UNION {?item wdt:P31/wdt:P279* wd:Q645883.   BIND(\"conflict.png\" AS ?thumbs) BIND(\"conflict\" AS ?instancelist)} # military operation
-#UNION {?item wdt:P31/wdt:P279* wd:Q198.      BIND(\"conflict.png\" AS ?thumbs) BIND(\"conflict\" AS ?instancelist)} # military operation
-#UNION {?item wdt:P31/wdt:P279* wd:Q2973801.  BIND(\"walls.png\"    AS ?thumbs) BIND(\"walls\"    AS ?instancelist)} # fortified line
-#UNION {?item wdt:P31/wdt:P279* wd:Q67376938. BIND(\"region.png\"   AS ?thumbs) BIND(\"region\"   AS ?instancelist)} # historic county of the United Kingdom
-#UNION {?item wdt:P31/wdt:P279? wd:Q10864048. BIND(\"region.png\"   AS ?thumbs) BIND(\"region\"   AS ?instancelist)} # first-level administrative country subdivision
-# places that need tripadvisor entries to be notable
-#UNION {?item wdt:P31/wdt:P279? wd:Q23413.    ?item wdt:P3134 ?fred. BIND(\"castle.png\" AS ?thumbs) BIND(\"castle\" AS ?instancelist)}
-#UNION {?item wdt:P31/wdt:P279? wd:Q16748868. ?item wdt:P3134 ?fred. BIND(\"walls.png\"  AS ?thumbs) BIND(\"walls\"  AS ?instancelist)}
-}
-OPTIONAL {?item wdt:P3134 ?tripadvisor. BIND(CONCAT(\"[https://www.tripadvisor.com/\",?tripadvisor,\" tripadvisor]\") AS ?propertylist)}
-      OPTIONAL {?item wdt:P625 ?position1}
-      OPTIONAL {?item wdt:P276 ?locations. ?locations wdt:P625 ?position2}
-      BIND(COALESCE(?position1,?position2) AS ?positions)
-
-      OPTIONAL {?item wdt:P729 ?serviceentry}
-      OPTIONAL {?item wdt:P571 ?inception}
-      OPTIONAL {?item wdt:P585 ?pointintime}
-      OPTIONAL {?item wdt:P580 ?starttime}
-      
-      BIND(IF(?instancelist != \"region\",COALESCE(?awarded,?serviceentry,?inception,?pointintime,?starttime),\"\") as ?start)
-     
-      OPTIONAL {?item wdt:P730 ?serviceretirement}
-      OPTIONAL {?item wdt:P576 ?abolished}
-      OPTIONAL {?item wdt:P582 ?endtime}
-      BIND(COALESCE(?serviceretirement,?abolished,?pointintime,?endtime) as ?end)
-    }
-    GROUP by ?item ?start ?end
-  }
-}""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?item ?itemLabel ?instances ?properties ?position ?thumb ?start ?end  WHERE {
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en-GB,en,fr,de,es,pt,pl,nl,cs\". }
-  {
-    SELECT DISTINCT ?item ?start ?end
-      (GROUP_CONCAT(DISTINCT ?instancelist; SEPARATOR = \", \") AS ?instances)
-      (GROUP_CONCAT(DISTINCT ?propertylist; SEPARATOR = \", \") AS ?properties)
-      (SAMPLE (DISTINCT ?thumbs) as ?thumb) 
-      (SAMPLE (?positions) as ?position) WHERE {
 
       {?item wdt:P31/wdt:P279* wd:Q1785071.  BIND(\"fort.png\"     AS ?thumbs) BIND(\"fort\"     AS ?instancelist)} # fort
 UNION {?item wdt:P31/wdt:P279* wd:Q56344492. BIND(\"fort.png\"     AS ?thumbs) BIND(\"fort\"     AS ?instancelist)} # battery
@@ -112,7 +61,11 @@ OPTIONAL {?item wdt:P3134 ?tripadvisor. BIND(CONCAT(\"[https://www.tripadvisor.c
     GROUP by ?item ?start ?end
   }
 }""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?itemLabel ?instances ?properties ?position ?thumb ?start ?end  WHERE {
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?instances ?properties ?position ?thumb ?start ?end  WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en-GB,en,fr,de,es,pt,pl,nl,cs\". }
   {
     SELECT DISTINCT ?item ?start ?end

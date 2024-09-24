@@ -37,42 +37,6 @@ WHERE
       FILTER (?precision > 8) #only year or better precision
     }
   }
-  hint:Prior hint:runFirst \"true\".
-  FILTER NOT EXISTS { ?item wdt:P7763 [] } .#no copyright status
-  FILTER NOT EXISTS { ?item wdt:P570 [] }.  #no dod
-  FILTER NOT EXISTS { ?item wdt:P1317 [] } .#no floruit
-
-  #Get labels for item, property and qualifier:
-  ?qualifier wikibase:qualifierValue ?qualifiervalue.
-  ?property wikibase:claim ?claim.
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?property ?propertyLabel ?qualifier ?qualifierLabel ?time ?precision
-WHERE
-{
-  {
-    SELECT ?item ?claim ?qualifiervalue ?time ?precision
-    WHERE
-    {
-      ?item wdt:P31 wd:Q5.
-      ?item wdt:P6379 wd:Q17153751.
-      
-  
-      # Get truthy statements for ?item with any of time qualifiers in ?qualifiervalue:
-      VALUES ?qualifiervalue { pqv:P580 pqv:P582 pqv:P585 }
-      ?item ?claim ?statement.
-      ?statement a wikibase:BestRank.
-      ?statement ?qualifiervalue ?timenode.
-      ?timenode wikibase:timePrecision ?precision.
-      ?timenode wikibase:timeValue ?time.
-      FILTER (?precision > 8) #only year or better precision
-    }
-  }
   
   FILTER NOT EXISTS { ?item wdt:P7763 [] } .#no copyright status
   FILTER NOT EXISTS { ?item wdt:P570 [] }.  #no dod
@@ -83,7 +47,12 @@ WHERE
   ?property wikibase:claim ?claim.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?property ?propertyLabel ?qualifier ?qualifierLabel ?time ?precision
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?property ?propertyLabel ?qualifier ?qualifierLabel ?time ?precision
 WHERE
 {
   {

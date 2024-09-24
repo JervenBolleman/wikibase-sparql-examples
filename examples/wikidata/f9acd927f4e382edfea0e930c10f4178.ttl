@@ -18,38 +18,6 @@ PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 #title:Most common properties (excluding external ids) for a type of item on a given Wikipedia
 SELECT ?id (COUNT(DISTINCT ?item)*100/?total AS ?percent) # ?idlabel
-WITH { SELECT $WIKIPEDIA $TYPE WHERE {
-  VALUES $WIKIPEDIA  { <https://ary.wikipedia.org/> }
-  VALUES $TYPE { wd:Q5398426 }
-  } } AS %constants
-WITH {
- SELECT ?item WHERE {
-  INCLUDE %constants
-  ?item wdt:P31/wdt:P279? $TYPE .
-   ?arwp schema:about ?item ; schema:isPartOf $WIKIPEDIA
- } } AS %list
-WITH { SELECT (COUNT(?item) AS ?total) WHERE {
-  INCLUDE %constants
-  ?item wdt:P31/wdt:P279? $TYPE .
-   ?arwp schema:about ?item ; schema:isPartOf $WIKIPEDIA
- } } AS %total
-WHERE {
-  include %list .
-  include %total .
-  ?item ?p [] .
-  ?id wikibase:claim ?p FILTER(?id != wd:P31).
-  MINUS { ?id wikibase:propertyType wikibase:ExternalId }
- #  ?id rdfs:label ?idlabel FILTER (lang(?idlabel) = \"en\")
-} GROUP BY ?id ?total # ?idlabel
-ORDER BY DESC(?percent)
-LIMIT 20""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-#title:Most common properties (excluding external ids) for a type of item on a given Wikipedia
-SELECT ?id (COUNT(DISTINCT ?item)*100/?total AS ?percent) # ?idlabel
 WHERE {
    {
  SELECT ?item WHERE {
@@ -68,8 +36,43 @@ WHERE {
  #  ?id rdfs:label ?idlabel FILTER (lang(?idlabel) = \"en\")
 } GROUP BY ?id ?total # ?idlabel
 ORDER BY DESC(?percent)
+LIMIT 20""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+#title:Most common properties (excluding external ids) for a type of item on a given Wikipedia
+SELECT ?id (COUNT(DISTINCT ?item)*100/?total AS ?percent) # ?idlabel
+WHERE {
+   {
+ SELECT ?item WHERE {
+   { SELECT $WIKIPEDIA $TYPE WHERE {
+  VALUES $WIKIPEDIA  { <https://ary.wikipedia.org/> }
+  VALUES $TYPE { wd:Q5398426 }
+  } }  ?item wdt:P31/wdt:P279? $TYPE .
+   ?arwp schema:about ?item ; schema:isPartOf $WIKIPEDIA
+ } }.
+   { SELECT (COUNT(?item) AS ?total) WHERE {
+   { SELECT $WIKIPEDIA $TYPE WHERE {
+  VALUES $WIKIPEDIA  { <https://ary.wikipedia.org/> }
+  VALUES $TYPE { wd:Q5398426 }
+  } }  ?item wdt:P31/wdt:P279? $TYPE .
+   ?arwp schema:about ?item ; schema:isPartOf $WIKIPEDIA
+ } }.
+  ?item ?p [] .
+  ?id wikibase:claim ?p FILTER(?id != wd:P31).
+  MINUS { ?id wikibase:propertyType wikibase:ExternalId }
+ #  ?id rdfs:label ?idlabel FILTER (lang(?idlabel) = \"en\")
+} GROUP BY ?id ?total # ?idlabel
+ORDER BY DESC(?percent)
 LIMIT 20""";
-  <http://example.org/bigdata_select> """#title:Most common properties (excluding external ids) for a type of item on a given Wikipedia
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+#title:Most common properties (excluding external ids) for a type of item on a given Wikipedia
 SELECT ?id (COUNT(DISTINCT ?item)*100/?total AS ?percent) # ?idlabel
 WITH { SELECT $WIKIPEDIA $TYPE WHERE {
   VALUES $WIKIPEDIA  { <https://ary.wikipedia.org/> }

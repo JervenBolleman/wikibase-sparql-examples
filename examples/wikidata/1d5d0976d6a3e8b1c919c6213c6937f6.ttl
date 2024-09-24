@@ -25,97 +25,6 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 #title: Average coordinates of depicted place (P9149) positions for some Commons categories
 #SELECT ?cat  (COUNT(?file) AS ?no_of_files) ?avg_lat ?avg_lon ?point (MAX(?dist) AS ?max_distance) (AVG(?d2) AS ?variance)
 SELECT (IRI(CONCAT('https://commons.wikimedia.org/wiki/',?cat)) AS ?category) (COUNT(?file) AS ?no_of_files) ?point (MAX(?dist) AS ?max_distance) (AVG(?d2) AS ?variance)
-WITH {
-  SELECT ?cat WHERE {
-    VALUES ?cat {
-      \"Category:Moy Bridge\"
-      \"Category:Aberchalder Swing Bridge\"
-      \"Category:Tomatin Railway Viaduct, over old A9 road\" 
-      \"Category:Old Spey Bridge, Speybridge\"
-      \"Category:Tomatin Viaduct (A9)\"
-      \"Category:Tomatin Railway Viaduct, over old A9 road\"
-      \"Category:Telford Bridge, The Mound\"
-      \"Category:Clachnaharry Swing Bridge\"
-      \"Category:Drochaid Beul-ath Cheapain\"
-      \"Category:Moy Swing Bridge\"
-      \"Category:Bonar Bridge (bridge built 1973)\"
-      \"Category:Fort Augustus Swing Bridge\"
-      \"Category:Lochy Railway Bridge\"
-      \"Category:Soldiers Bridge\"
-      \"Category:Steall Wire Bridge\"
-      \"Category:Holm Mills Bridge\"
-      \"Category:Cairngorm Club Footbridge\"
-      \"Category:Gairlochy Swing Bridge\"
-      \"Category:Helmsdale New Bridge (A9)\"
-      \"Category:Devorgilla Bridge\"
-    } .
-  }
-} AS %cats 
-
-WITH
-{
-  SELECT ?cat ?file ?title 
-  WHERE {
-    INCLUDE %cats .
-    SERVICE wikibase:mwapi {
-      bd:serviceParam wikibase:api \"Generator\" .
-      bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
-      bd:serviceParam mwapi:gcmtitle ?cat .
-      bd:serviceParam mwapi:generator \"categorymembers\" .
-      bd:serviceParam mwapi:gcmtype \"file\" .
-      bd:serviceParam mwapi:gcmlimit \"max\" .
-      ?title wikibase:apiOutput mwapi:title .
-      ?pageid wikibase:apiOutput \"@pageid\" .
-    }
-    BIND (URI(CONCAT('https://commons.wikimedia.org/entity/M', ?pageid)) AS ?file) .
-  }
-} AS %get_files
-
-WITH {
-  SELECT ?cat ?file ?coords_stmt WHERE {
-     INCLUDE %get_files .
-     ?file p:P9149 ?coords_stmt  . 
-  }
-} AS %coords_stmts
-
-WITH {
-  SELECT ?cat (AVG(?lat) AS ?avg_lat)  (AVG(?lon) AS ?avg_lon) WHERE {
-    INCLUDE %coords_stmts .
-    ?coords_stmt psv:P9149 ?obj .
-    ?obj wikibase:geoLatitude ?lat .
-    ?obj wikibase:geoLongitude ?lon . 
-  } GROUP BY ?cat
-} AS %avg_coords
-
-WITH {
-  SELECT ?cat ?avg_lat ?avg_lon ?point WHERE {
-    INCLUDE %avg_coords .
-    BIND(strdt(CONCAT(\"Point(\", str(?avg_lon), ' ', str(?avg_lat), ')'), geo:wktLiteral) AS ?point) .
-  }
-} AS %avg_points 
-
-WHERE {
-  INCLUDE %avg_points . 
-  INCLUDE %coords_stmts .
-  ?coords_stmt ps:P9149 ?coords .
-  BIND(geof:distance(?point, ?coords) as ?dist) .
-  BIND((?dist * ?dist) AS ?d2) .
-} GROUP BY ?cat ?avg_lat ?avg_lon ?point
-ORDER BY ?cat""",
-    """PREFIX mwapi: <http://wikiba.se/ontology#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
-PREFIX geo: <http://www.opengis.net/ont/geosparql#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#defaultview:map
-#title: Average coordinates of depicted place (P9149) positions for some Commons categories
-#defaultView:Map
-#title: Average coordinates of depicted place (P9149) positions for some Commons categories
-#SELECT ?cat  (COUNT(?file) AS ?no_of_files) ?avg_lat ?avg_lon ?point (MAX(?dist) AS ?max_distance) (AVG(?d2) AS ?variance)
-SELECT (IRI(CONCAT('https://commons.wikimedia.org/wiki/',?cat)) AS ?category) (COUNT(?file) AS ?no_of_files) ?point (MAX(?dist) AS ?max_distance) (AVG(?d2) AS ?variance)
 
 
 
@@ -140,8 +49,159 @@ WHERE {
   BIND(geof:distance(?point, ?coords) as ?dist) .
   BIND((?dist * ?dist) AS ?d2) .
 } GROUP BY ?cat ?avg_lat ?avg_lon ?point
+ORDER BY ?cat""",
+    """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultview:map
+#title: Average coordinates of depicted place (P9149) positions for some Commons categories
+#defaultView:Map
+#title: Average coordinates of depicted place (P9149) positions for some Commons categories
+#SELECT ?cat  (COUNT(?file) AS ?no_of_files) ?avg_lat ?avg_lon ?point (MAX(?dist) AS ?max_distance) (AVG(?d2) AS ?variance)
+SELECT (IRI(CONCAT('https://commons.wikimedia.org/wiki/',?cat)) AS ?category) (COUNT(?file) AS ?no_of_files) ?point (MAX(?dist) AS ?max_distance) (AVG(?d2) AS ?variance)
+
+
+
+
+WITH {
+  SELECT ?cat (AVG(?lat) AS ?avg_lat)  (AVG(?lon) AS ?avg_lon) WHERE {
+     {
+  SELECT ?cat ?file ?coords_stmt WHERE {
+     
+{
+  SELECT ?cat ?file ?title 
+  WHERE {
+     {
+  SELECT ?cat WHERE {
+    VALUES ?cat {
+      \"Category:Moy Bridge\"
+      \"Category:Aberchalder Swing Bridge\"
+      \"Category:Tomatin Railway Viaduct, over old A9 road\" 
+      \"Category:Old Spey Bridge, Speybridge\"
+      \"Category:Tomatin Viaduct (A9)\"
+      \"Category:Tomatin Railway Viaduct, over old A9 road\"
+      \"Category:Telford Bridge, The Mound\"
+      \"Category:Clachnaharry Swing Bridge\"
+      \"Category:Drochaid Beul-ath Cheapain\"
+      \"Category:Moy Swing Bridge\"
+      \"Category:Bonar Bridge (bridge built 1973)\"
+      \"Category:Fort Augustus Swing Bridge\"
+      \"Category:Lochy Railway Bridge\"
+      \"Category:Soldiers Bridge\"
+      \"Category:Steall Wire Bridge\"
+      \"Category:Holm Mills Bridge\"
+      \"Category:Cairngorm Club Footbridge\"
+      \"Category:Gairlochy Swing Bridge\"
+      \"Category:Helmsdale New Bridge (A9)\"
+      \"Category:Devorgilla Bridge\"
+    } .
+  }
+}.
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:api \"Generator\" .
+      bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+      bd:serviceParam mwapi:gcmtitle ?cat .
+      bd:serviceParam mwapi:generator \"categorymembers\" .
+      bd:serviceParam mwapi:gcmtype \"file\" .
+      bd:serviceParam mwapi:gcmlimit \"max\" .
+      ?title wikibase:apiOutput mwapi:title .
+      ?pageid wikibase:apiOutput \"@pageid\" .
+    }
+    BIND (URI(CONCAT('https://commons.wikimedia.org/entity/M', ?pageid)) AS ?file) .
+  }
+}.
+     ?file p:P9149 ?coords_stmt  . 
+  }
+}.
+    ?coords_stmt psv:P9149 ?obj .
+    ?obj wikibase:geoLatitude ?lat .
+    ?obj wikibase:geoLongitude ?lon . 
+  } GROUP BY ?cat
+} AS %avg_coords
+
+
+
+WHERE {
+   {
+  SELECT ?cat ?avg_lat ?avg_lon ?point WHERE {
+     {
+  SELECT ?cat (AVG(?lat) AS ?avg_lat)  (AVG(?lon) AS ?avg_lon) WHERE {
+    INCLUDE %coords_stmts .
+    ?coords_stmt psv:P9149 ?obj .
+    ?obj wikibase:geoLatitude ?lat .
+    ?obj wikibase:geoLongitude ?lon . 
+  } GROUP BY ?cat
+}.
+    BIND(strdt(CONCAT(\"Point(\", str(?avg_lon), ' ', str(?avg_lat), ')'), geo:wktLiteral) AS ?point) .
+  }
+}. 
+   {
+  SELECT ?cat ?file ?coords_stmt WHERE {
+     
+{
+  SELECT ?cat ?file ?title 
+  WHERE {
+     {
+  SELECT ?cat WHERE {
+    VALUES ?cat {
+      \"Category:Moy Bridge\"
+      \"Category:Aberchalder Swing Bridge\"
+      \"Category:Tomatin Railway Viaduct, over old A9 road\" 
+      \"Category:Old Spey Bridge, Speybridge\"
+      \"Category:Tomatin Viaduct (A9)\"
+      \"Category:Tomatin Railway Viaduct, over old A9 road\"
+      \"Category:Telford Bridge, The Mound\"
+      \"Category:Clachnaharry Swing Bridge\"
+      \"Category:Drochaid Beul-ath Cheapain\"
+      \"Category:Moy Swing Bridge\"
+      \"Category:Bonar Bridge (bridge built 1973)\"
+      \"Category:Fort Augustus Swing Bridge\"
+      \"Category:Lochy Railway Bridge\"
+      \"Category:Soldiers Bridge\"
+      \"Category:Steall Wire Bridge\"
+      \"Category:Holm Mills Bridge\"
+      \"Category:Cairngorm Club Footbridge\"
+      \"Category:Gairlochy Swing Bridge\"
+      \"Category:Helmsdale New Bridge (A9)\"
+      \"Category:Devorgilla Bridge\"
+    } .
+  }
+}.
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:api \"Generator\" .
+      bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+      bd:serviceParam mwapi:gcmtitle ?cat .
+      bd:serviceParam mwapi:generator \"categorymembers\" .
+      bd:serviceParam mwapi:gcmtype \"file\" .
+      bd:serviceParam mwapi:gcmlimit \"max\" .
+      ?title wikibase:apiOutput mwapi:title .
+      ?pageid wikibase:apiOutput \"@pageid\" .
+    }
+    BIND (URI(CONCAT('https://commons.wikimedia.org/entity/M', ?pageid)) AS ?file) .
+  }
+}.
+     ?file p:P9149 ?coords_stmt  . 
+  }
+}.
+  ?coords_stmt ps:P9149 ?coords .
+  BIND(geof:distance(?point, ?coords) as ?dist) .
+  BIND((?dist * ?dist) AS ?d2) .
+} GROUP BY ?cat ?avg_lat ?avg_lon ?point
 ORDER BY ?cat""";
-  <http://example.org/bigdata_select> """#defaultview:map
+  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultview:map
 #title: Average coordinates of depicted place (P9149) positions for some Commons categories
 #defaultView:Map
 #title: Average coordinates of depicted place (P9149) positions for some Commons categories

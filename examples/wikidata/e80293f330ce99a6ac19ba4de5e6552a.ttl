@@ -21,47 +21,6 @@ PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel (max(?number) as ?passengers) 
 ?year
-with {
-  select ?item ?statement ?year ?timevalue ?numberperperiod{
-    ?item wdt:P238 ?IATA
- VALUES ?IATA {\"ICN\"}.
-    ?item p:P3872 ?statement.
-    ?statement pqv:P585 ?timevalue
-               ; ps:P3872 ?numberperperiod.
-    ?timevalue wikibase:timeValue ?date .
-    optional { ?statement pq:P518 ?applies .}
-filter(bound(?applies)=false || ?applies = wd:Q2165236 )
-bind(if(bound(?applies)=false,\"no applies\",\"everywhere\") as ?where )
-MINUS { ?statement wikibase:rank wikibase:DeprecatedRank }
-bind (YEAR(?date) AS ?year)
-FILTER (?year >1949).
-FILTER (?year < year(now())).
-}
-} as %airport
-where {
-  {
-select ?item ?year (sum(?numberperperiod) as ?number) {
-include %airport .
-?timevalue wikibase:timePrecision ?prec filter ( ?prec > 9 )
-} group by ?item  ?year
-  } union {
-      ?timevalue wikibase:timePrecision 9 .
-    bind (?numberperperiod as ?number)
-      include %airport
-  } .
-    SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
-} group by ?item ?itemLabel ?year
-order by ?item desc (?year)""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel (max(?number) as ?passengers) 
-?year
 where {
   {
 select ?item ?year (sum(?numberperperiod) as ?number) {
@@ -107,7 +66,15 @@ FILTER (?year < year(now())).
     SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
 } group by ?item ?itemLabel ?year
 order by ?item desc (?year)""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel (max(?number) as ?passengers) 
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel (max(?number) as ?passengers) 
 ?year
 with {
   select ?item ?statement ?year ?timevalue ?numberperperiod{

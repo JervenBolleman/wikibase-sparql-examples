@@ -18,40 +18,6 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?biennale ?biennaleLabel WITH {
-  SELECT ?biennale WHERE {
-    SERVICE wikibase:mwapi {
-      bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
-                      wikibase:api \"Search\";
-                      mwapi:srsearch \"inlabel:biennale@en\";
-                      mwapi:srlimit \"max\".
-      ?biennale wikibase:apiOutputItem mwapi:title.
-    }
-  }
-} AS %biennalesByLabel WITH {
-  SELECT ?biennale WHERE {
-    ?biennale wdt:P31/wdt:P279* wd:Q182683. hint:Prior hint:gearing \"reverse\".
-  }
-} AS %biennalesByStatement WITH {
-  SELECT DISTINCT ?biennale WHERE {
-    { INCLUDE %biennalesByLabel. } UNION
-    { INCLUDE %biennalesByStatement. }
-  }
-} AS %biennales WHERE {
-  INCLUDE %biennales.
-  ?biennale p:P2257/psv:P2257 ?interval.
-  ?interval wikibase:quantityAmount ?intervalAmount;
-            wikibase:quantityUnit ?intervalUnit.
-  FILTER(!(?intervalAmount = 2 && ?intervalUnit IN (wd:Q577, wd:Q1092296)))
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""",
-    """PREFIX mwapi: <http://wikiba.se/ontology#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?biennale ?biennaleLabel WHERE {
   INCLUDE %biennales.
   ?biennale p:P2257/psv:P2257 ?interval.
@@ -60,7 +26,14 @@ SELECT ?biennale ?biennaleLabel WHERE {
   FILTER(!(?intervalAmount = 2 && ?intervalUnit IN (wd:Q577, wd:Q1092296)))
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <http://example.org/bigdata_select> """SELECT ?biennale ?biennaleLabel WITH {
+  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?biennale ?biennaleLabel WITH {
   SELECT ?biennale WHERE {
     SERVICE wikibase:mwapi {
       bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
