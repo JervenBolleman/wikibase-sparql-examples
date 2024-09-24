@@ -23,54 +23,11 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT
   ?name ?minister ?moves ?seq ?place_name ?from_lat ?from_lon ?lat ?lon
 
-WITH {
-  SELECT DISTINCT ?minister ?place ?StartTime ?res_stmt WHERE {
-    ?minister wdt:P106 wd:Q1423891 .
-    ?minister p:P551 ?res_stmt .
-    ?res_stmt ps:P551 ?place .
-    ?res_stmt pq:P580 ?StartTime .
-      #pq:P582 ?EndTime .
-    
-  } ORDER BY ?minister ?StartTime
-} AS %ministers
-
-WITH {
-  SELECT DISTINCT ?minister (COUNT(DISTINCT(?rs1)) AS ?seq) ?place ?StartTime WHERE {
-    INCLUDE %ministers .
-    {
-      SELECT DISTINCT ?minister (?place AS ?pl1) (?StartTime AS ?st1) (?res_stmt AS ?rs1) WHERE {
-        INCLUDE %ministers .
-      }
-    }
-    FILTER ((?st1 < ?StartTime) || ((?st1 = ?StartTime) && (STR (?rs1) <= STR(?res_stmt)))) .
-  } GROUP BY ?minister ?place ?StartTime ?res_stmt
-  ORDER BY ?minister ?seq
-} AS %ministers_seq 
-
-WITH {
-  SELECT DISTINCT ?minister ?seq (COALESCE(?from1, ?place) AS ?from) ?place ?place_name ?StartTime WHERE {
-    INCLUDE %ministers_seq .
-    BIND ((?seq) AS ?seq1) .
-    OPTIONAL {
-      SELECT ?minister (?seq + 1 AS ?seq1) (?place AS ?from1) WHERE {
-         INCLUDE %ministers_seq .
-      }
-    }
-    FILTER (bound(?from1)|| bound(?place)) .
-    SERVICE wikibase:label {
-       bd:serviceParam wikibase:language \"en\".
-       ?place rdfs:label ?place_name .
-    }
-    
-  }
-} AS %ministers_moves
 
 
-WITH {
-  SELECT ?minister (MAX(?seq) AS ?moves) WHERE {
-    INCLUDE %ministers_seq
-  } GROUP BY ?minister
-} AS %ministers_total
+
+
+
 
 WHERE {  
   INCLUDE %ministers_moves.

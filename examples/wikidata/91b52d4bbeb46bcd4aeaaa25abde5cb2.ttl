@@ -11,22 +11,13 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX geo: <http://www.opengis.net/ont/geosparql#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#defaultView:Map;Table
-#------------------------------------------------------------------------------------
-# Straßenkarte zur Wartung der Eigenschaft \"physisch verbunden mit\"
-#------------------------------------------------------------------------------------
-
-SELECT  ?item ?itemLabel ?coord ?line 
+  sh:select """
 
 #########################################
-WITH {
+
+WHERE {
+  # jetzt Punkte und Linien für Ausgabe auf Karte ausgeben
+ {  {
     SELECT ?item  ?coord #(\"9B0058\" as ?rgb) 
     WHERE {
         ?item wdt:P131 wd:Q1731 .      # Objekt liegt in Verwaltungseinheit Dresden (oder Subklasse)
@@ -42,14 +33,27 @@ WITH {
         ?item wdt:P31 ?instance_of .   # Objekt ist eine Instanz von Verkehrsobjekt (Straße, Platz,...)
         ?item wdt:P625 ?coord .        # Objekt hat Koordinate
     }
-} as %points
+}}
+ union
+ { PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map;Table
+#------------------------------------------------------------------------------------
+# Straßenkarte zur Wartung der Eigenschaft \"physisch verbunden mit\"
+#------------------------------------------------------------------------------------
+
+SELECT  ?item ?itemLabel ?coord ?line 
 
 #########################################
-WITH {
-    # Linien generieren 
-    SELECT ?line #(\"009b0d\" as ?rgb) 
-    WHERE {
-        INCLUDE %points .               # Gefundenen Punkte von oberen Abfrage übernehmen
+Instanz von Verkehrsobjekt (Straße, Platz,...)
+        ?item wdt:P625 ?coord .        # Objekt hat Koordinate
+    }
+}.               # Gefundenen Punkte von oberen Abfrage übernehmen
         ?item wdt:P2789 ?item2 .        # Objekt1 ist physisch verbunden mit Objekt2
         ?item2 wdt:P625 ?coord2 .       # Objekt2 hat Koordinate
 
@@ -65,15 +69,7 @@ WITH {
         BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
         BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
     }
-} AS %lines 
-
-#########################################
-
-WHERE {
-  # jetzt Punkte und Linien für Ausgabe auf Karte ausgeben
- { INCLUDE %points }
- union
- { INCLUDE %lines }
+}}
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,en\" }
 }""";
   <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>

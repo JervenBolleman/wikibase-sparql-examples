@@ -27,71 +27,18 @@ SELECT
 # when the given number of images are found. Change the number of
 # LIMIT as needed, but note that the higher the number, the longer
 # the subquery will take to finish.
-WITH {
-  SELECT DISTINCT ?image {
-    ?image p:P180 [];
-           p:P921 [].
-  }
-  LIMIT 10
-} AS %0
 #
 # Get value of \"depict\" statements
 #
-WITH {
-  SELECT DISTINCT ?image ?depict {
-    INCLUDE %0.
-    ?image p:P180 [ps:P180 ?depict].
-  }
-} AS %1
 #
 # Get value of the \"main subject\" statements
 #
-WITH {
-  SELECT DISTINCT ?image ?mainSubject {
-    INCLUDE %0.
-    ?image p:P921 [ps:P921 ?mainSubject].
-  }
-} AS %2
 #
 # Concatenate the \"depict\" statements
 #
-WITH {
-  SELECT
-    ?image
-    (GROUP_CONCAT(DISTINCT CONCAT(?depictLabel, \" (\", ?depictQid, \")\"); SEPARATOR = ', ') AS ?depicts)
-  {
-    INCLUDE %1.
-
-    BIND(SUBSTR(STR(?depict), 32) AS ?depictQid).
-
-    SERVICE <https://query.wikidata.org/sparql> {
-      SELECT ?depict ?depictLabel {
-        SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
-      }
-    }
-  }
-  GROUP BY ?image
-} AS %3
 #
 # Concatenate the \"main subject\" statements
 #
-WITH {
-  SELECT
-    ?image
-    (GROUP_CONCAT(DISTINCT CONCAT(?mainSubjectLabel, \" (\", ?mainSubjectQid, \")\"); SEPARATOR = ', ') AS ?mainSubjects)
-  {
-    INCLUDE %2.
-
-    BIND(SUBSTR(STR(?mainSubject), 32) AS ?mainSubjectQid).
-
-    SERVICE <https://query.wikidata.org/sparql> {
-      SELECT ?mainSubject ?mainSubjectLabel {
-        SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
-      }
-    }
-  }
-  GROUP BY ?image
-} AS %4
 {
   INCLUDE %3.
   INCLUDE %4.

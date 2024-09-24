@@ -19,7 +19,11 @@ SELECT
   ?count
   (CONCAT('https://scholia.toolforge.org/taxon/', ENCODE_FOR_URI(REPLACE(STR(?topic), \".*Q\", \"Q\")), '/curation') AS ?taxon_curation) 
 
-WITH {
+
+WHERE {
+   {
+  SELECT DISTINCT ?topic ?speciesname ?count WHERE {
+     {
   SELECT DISTINCT ?topic 
   (COUNT(?paper) AS ?count)
   WHERE {
@@ -27,22 +31,14 @@ WITH {
          wdt:P921 ?topic .
   }  
   GROUP BY ?topic ?count
-} AS %papers
-WITH {
-  SELECT DISTINCT ?topic ?speciesname ?count WHERE {
-    INCLUDE %papers
-  ?topic wdt:P225 ?speciesname ;
+}  ?topic wdt:P225 ?speciesname ;
          wdt:P105 wd:Q7432 .
 
   }
   GROUP BY ?topic ?speciesname ?count
 #  HAVING (?count > 25)
   
-} AS %species
-
-WHERE {
-  INCLUDE %species
-  ?topic wdt:P171* ?class .
+}  ?topic wdt:P171* ?class .
   ?class wdt:P105 wd:Q37517;
          wdt:P225 ?classname .
 }
@@ -65,7 +61,9 @@ WITH {
   }  
   GROUP BY ?topic ?count
 } AS %papers
-WITH {
+
+WHERE {
+   {
   SELECT DISTINCT ?topic ?speciesname ?count WHERE {
     INCLUDE %papers
   ?topic wdt:P225 ?speciesname ;
@@ -75,11 +73,7 @@ WITH {
   GROUP BY ?topic ?speciesname ?count
 #  HAVING (?count > 25)
   
-} AS %species
-
-WHERE {
-  INCLUDE %species
-  ?topic wdt:P171* ?class .
+}  ?topic wdt:P171* ?class .
   ?class wdt:P105 wd:Q37517;
          wdt:P225 ?classname .
 }

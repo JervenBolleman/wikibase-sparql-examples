@@ -11,17 +11,15 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+  sh:select """where {
+   { select ?item ?descr { ?item wdt:P4342 ?odnb1 ; schema:description ?descr . filter (lang(?descr) = 'en') } }.
+  PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 select ?item ?itemLabel ?descr ?count
-with { select ?item ?descr { ?item wdt:P4342 ?odnb1 ; schema:description ?descr . filter (lang(?descr) = 'en') } } as %people 
-with { select (count(?item) as ?count) ?descr { include %people } group by ?descr having(?count>1)}  as %previous
-where {
-  include %people .
-  include %previous .
+ filter (lang(?descr) = 'en') } }} group by ?descr having(?count>1)}.
   service wikibase:label { bd:serviceParam wikibase:language \"en\". }
 } order by desc(?count) # asc(xsd:integer(substr(str(?item),33)))""";
   <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>

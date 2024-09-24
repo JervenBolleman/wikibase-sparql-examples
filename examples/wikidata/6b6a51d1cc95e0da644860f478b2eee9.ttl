@@ -17,15 +17,14 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 select ?item ?itemLabel ?number
-with { # select all the numbers of sitelinks
-  select ?number (count(*) as ?total) { # we don't use ?total but without it the query times out, so we'll just ignore it
-    [] wikibase:sitelinks ?number .
-  } group by ?number
-} as %numbers
 where {
   # include the numbers of sitelinks from above and filter out any numbers lower than 40
   # the higher the number here, the fewer items there are to check and the faster this query will run
-  include %numbers .
+   { # select all the numbers of sitelinks
+  select ?number (count(*) as ?total) { # we don't use ?total but without it the query times out, so we'll just ignore it
+    [] wikibase:sitelinks ?number .
+  } group by ?number
+}.
   filter (?number > 40) .
 
   # find items where the number of sitelinks is one of the remaining numbers, i.e. greater than 40

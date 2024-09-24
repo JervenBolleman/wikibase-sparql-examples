@@ -30,26 +30,25 @@ SELECT
   (URI(CONCAT(
       'https://author-disambiguator.toolforge.org/names_oauth.php?doit=Look+for+author&name=',
       ENCODE_FOR_URI(?author))) AS ?resolver_url)
-WITH {
+
+# Generate a score for each author
+
+WHERE {
+   {
+  SELECT
+    (COUNT(?work) AS ?count)
+    ?author
+  WHERE {
+     {
   SELECT DISTINCT ?work WHERE {
     ?work wdt:P6104 target: ;
           wdt:P356 ?doi .
   }
   LIMIT 1000
-} AS %works
-WITH {
-  SELECT
-    (COUNT(?work) AS ?count)
-    ?author
-  WHERE {
-    INCLUDE %works
-    ?work wdt:P2093 ?author .
+}    ?work wdt:P2093 ?author .
   }
   GROUP BY ?author
-} AS %result
-
-# Generate a score for each author
-WITH {
+}   {
   SELECT (SUM(?score_) AS ?score) ?author
   WHERE {
     {
@@ -70,12 +69,7 @@ WITH {
     }
   }
   GROUP BY ?author
-} AS %scores
-
-WHERE {
-  INCLUDE %result
-  INCLUDE %scores
-
+}
   # Label the result
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
 }
@@ -107,7 +101,11 @@ WITH {
   }
   LIMIT 1000
 } AS %works
-WITH {
+
+# Generate a score for each author
+
+WHERE {
+   {
   SELECT
     (COUNT(?work) AS ?count)
     ?author
@@ -116,10 +114,7 @@ WITH {
     ?work wdt:P2093 ?author .
   }
   GROUP BY ?author
-} AS %result
-
-# Generate a score for each author
-WITH {
+}   {
   SELECT (SUM(?score_) AS ?score) ?author
   WHERE {
     {
@@ -140,12 +135,7 @@ WITH {
     }
   }
   GROUP BY ?author
-} AS %scores
-
-WHERE {
-  INCLUDE %result
-  INCLUDE %scores
-
+}
   # Label the result
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
 }

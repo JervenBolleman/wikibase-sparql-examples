@@ -21,16 +21,16 @@ PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:LineChart
 SELECT (str(?date) as ?d) (str(?count) as ?c)
-WITH {
+WHERE
+{
+ {
+  SELECT ?date (count(?MP) as ?count) WHERE { 
+   {
   SELECT ?item ?date WHERE {
   ?item wdt:P31 wd:Q47150325. 
-  ?item wdt:P585 ?date . hint:Prior hint:rangeSafe true.
+  ?item wdt:P585 ?date . 
   filter(\"2021-01-01\"^^xsd:dateTime <= ?date && ?date < \"2022-01-01\"^^xsd:dateTime )
-} } as %dates
-WITH {
-  SELECT ?date (count(?MP) as ?count) WHERE { 
-  INCLUDE %dates
-  ?MP p:P39 ?stat . 
+} }  ?MP p:P39 ?stat . 
   ?stat ps:P39 wd:Q77685926.
   filter not exists {?stat pq:P580 ?start . filter(?start > ?date ) }        
   filter not exists {?stat pq:P582 ?end . filter(?end < ?date ) }
@@ -42,11 +42,7 @@ WITH {
     filter(str(?stat2) != str(?stat))
     filter(?endt = ?date)
     }
-} group by ?date } as %counts
-WHERE
-{
-INCLUDE %counts
-        
+} group by ?date }        
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
 } order by desc(?date)""";
   <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
@@ -65,7 +61,9 @@ WITH {
   ?item wdt:P585 ?date . hint:Prior hint:rangeSafe true.
   filter(\"2021-01-01\"^^xsd:dateTime <= ?date && ?date < \"2022-01-01\"^^xsd:dateTime )
 } } as %dates
-WITH {
+WHERE
+{
+ {
   SELECT ?date (count(?MP) as ?count) WHERE { 
   INCLUDE %dates
   ?MP p:P39 ?stat . 
@@ -80,10 +78,6 @@ WITH {
     filter(str(?stat2) != str(?stat))
     filter(?endt = ?date)
     }
-} group by ?date } as %counts
-WHERE
-{
-INCLUDE %counts
-        
+} group by ?date }        
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
 } order by desc(?date)""" .

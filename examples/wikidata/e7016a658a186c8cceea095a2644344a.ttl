@@ -19,22 +19,20 @@ PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 select ?uno ?unoLabel ?item ?itemLabel ?duos ?count
-with {
-  select ?uno ?duo ?duo_st where {
-    ?uno p:P2738 ?duo_st .
-    ?duo_st a wikibase:BestRank .
-    ?duo_st ps:P2738 wd:Q23766486 .
-    ?duo_st pq:P11260 ?duo .
-  }
-} as %du
 where {
   {
     select ?uno ?item
       (group_concat(distinct substr(str(?duo), 32); separator=\"; \") as ?duos)
       (count(distinct *) as ?count)
     where {
-      include %du
-      ?item wdt:P279 ?duo . # First order subclasses only
+       {
+  select ?uno ?duo ?duo_st where {
+    ?uno p:P2738 ?duo_st .
+    ?duo_st a wikibase:BestRank .
+    ?duo_st ps:P2738 wd:Q23766486 .
+    ?duo_st pq:P11260 ?duo .
+  }
+}      ?item wdt:P279 ?duo . # First order subclasses only
       #?item wdt:P279/wdt:P279? ?duo . # To include second order subclasses, uncomment this line and comment out the preceding line
     }
     group by ?uno ?duo_st ?item

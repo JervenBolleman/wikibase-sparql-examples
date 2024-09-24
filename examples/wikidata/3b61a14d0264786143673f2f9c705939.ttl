@@ -19,7 +19,14 @@ SELECT
   ?year
   ?works
   ?font ?fontLabel
-WITH {
+WHERE {
+   {
+  SELECT
+    ?year 
+    (COUNT(?work) AS ?works)
+    ?font
+  WHERE {
+     {
   SELECT
     (COUNT(?work) AS ?count)
     ?font
@@ -29,23 +36,12 @@ WITH {
   GROUP BY ?font
   ORDER BY DESC(?count)
   LIMIT 5
-} AS %works
-WITH {
-  SELECT
-    ?year 
-    (COUNT(?work) AS ?works)
-    ?font
-  WHERE {
-    INCLUDE %works
-    ?work wdt:P2739 ?font ;
+}    ?work wdt:P2739 ?font ;
           wdt:P577 ?publication_datetime .
     BIND(STR(YEAR(?publication_datetime)) AS ?year)
   }
   GROUP BY ?year ?font
-} AS %result
-WHERE {
-  INCLUDE %result
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY ?year""";
   <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
@@ -67,7 +63,8 @@ WITH {
   ORDER BY DESC(?count)
   LIMIT 5
 } AS %works
-WITH {
+WHERE {
+   {
   SELECT
     ?year 
     (COUNT(?work) AS ?works)
@@ -79,9 +76,6 @@ WITH {
     BIND(STR(YEAR(?publication_datetime)) AS ?year)
   }
   GROUP BY ?year ?font
-} AS %result
-WHERE {
-  INCLUDE %result
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY ?year""" .

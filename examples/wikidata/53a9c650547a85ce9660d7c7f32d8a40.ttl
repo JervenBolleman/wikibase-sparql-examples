@@ -88,7 +88,24 @@ WITH {
   }
   GROUP BY ?date_
 } AS %c
-WITH {
+(?date2 <= ?date)
+    # Ignore the last date as it is an artifact from clamping the date-range.
+    FILTER (?date != \"2021-12-31\"^^xsd:dateTime)
+  }
+  GROUP BY ?date
+}#      }
+#    }
+#    {
+#      # Seat-days divided by the days of the non-leap year 2021 should give us the average amount of seats.
+#      SELECT (ROUND(SUM(?days_)*1000/365)/1000 AS ?avg)
+#      WHERE {
+#        INCLUDE %b
+#      }
+#    }
+#  }
+#} AS %d
+WHERE {
+   {
   # Pretty-print with running count
   SELECT ?date (SUM(?diff) AS ?amount) (SAMPLE(?changes_) AS ?changes)
   WHERE {
@@ -111,29 +128,7 @@ WITH {
     FILTER (?date != \"2021-12-31\"^^xsd:dateTime)
   }
   GROUP BY ?date
-} AS %e
-#WITH {
-#  # Calculate average, min and max values
-#  SELECT ?min ?max ?avg
-#  WHERE {
-#    {
-#      SELECT (MIN(?amount) AS ?min) (MAX(?amount) AS ?max)
-#      WHERE {
-#        INCLUDE %e
-#      }
-#    }
-#    {
-#      # Seat-days divided by the days of the non-leap year 2021 should give us the average amount of seats.
-#      SELECT (ROUND(SUM(?days_)*1000/365)/1000 AS ?avg)
-#      WHERE {
-#        INCLUDE %b
-#      }
-#    }
-#  }
-#} AS %d
-WHERE {
-  INCLUDE %e
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
 }
 ORDER BY ?date""";
   <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>

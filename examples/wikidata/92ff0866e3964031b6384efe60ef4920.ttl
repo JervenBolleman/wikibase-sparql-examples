@@ -15,30 +15,18 @@
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT ?item ?author ?authorQID ?dob ?dod ?field ?description with 
-{ 
-  SELECT ?item ?author ?description
-WHERE 
+SELECT ?item ?author ?authorQID ?dob ?dod ?field ?description where
 {
-  ?article wdt:P1433 wd:Q35387261. # article was published in costume
-  ?article wdt:P50 ?item . # here's an author
-  optional {?item rdfs:label ?author .  filter(lang(?author)=\"en\")} 
-  optional {?item schema:description ?description .  filter(lang(?description)=\"en\")} 
-
-}
-} as %i with 
+{  include %i}
+          UNION
+{  
 { 
   select (sample(?it) as ?item) ?author ?description WHERE 
   {
     ?it wdt:P1433 wd:Q35387261. # article was published in costume
     ?it wdt:P2093 ?author . # here's an author (without a Wikidata object)
   } group by ?author ?description
-} as %j
-where
-{
-{  include %i}
-          UNION
-{  include %j }
+}}
 }""";
   <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -55,17 +43,16 @@ WHERE
   optional {?item schema:description ?description .  filter(lang(?description)=\"en\")} 
 
 }
-} as %i with 
+} as %i where
+{
+{  include %i}
+          UNION
+{  
 { 
   select (sample(?it) as ?item) ?author ?description WHERE 
   {
     ?it wdt:P1433 wd:Q35387261. # article was published in costume
     ?it wdt:P2093 ?author . # here's an author (without a Wikidata object)
   } group by ?author ?description
-} as %j
-where
-{
-{  include %i}
-          UNION
-{  include %j }
+}}
 }""" .

@@ -25,7 +25,12 @@ PREFIX target: <http://www.wikidata.org/entity/Q21393244>
 SELECT 
 DISTINCT ?string 
 (COUNT(?work) AS ?count) 
-WITH   {
+WHERE {
+  # Find works that have \"author name string\" values equal to these normalized strings
+   {
+  # Calculate capitalization variants of these raw strings
+  SELECT DISTINCT ?string WHERE {
+     {
   # Find strings associated with the target item
   SELECT DISTINCT ?string_ WHERE {
     { target: rdfs:label ?string_. } # in label
@@ -37,12 +42,7 @@ WITH   {
                         pq:P1932 ?string_. # in \"stated as\" strings for \"author\" statements on work items
     }
   }
-} AS %RAWstrings
-WITH {
-  # Calculate capitalization variants of these raw strings
-  SELECT DISTINCT ?string WHERE {
-    INCLUDE %RAWstrings
-            {
+}            {
    { BIND(STR(?string_) AS ?string)} # the raw strings
 #    UNION
 #    { BIND(UCASE(STR(?string_)) AS ?string)} # uppercased versions of the raw strings
@@ -50,11 +50,7 @@ WITH {
 #    { BIND(LCASE(STR(?string_)) AS ?string)} # lowercased versions of the raw strings
               }
   }
-} AS %NORMALIZEDstrings
-WHERE {
-  # Find works that have \"author name string\" values equal to these normalized strings
-  INCLUDE %NORMALIZEDstrings
-  OPTIONAL { ?work wdt:P2093 ?string. }
+}  OPTIONAL { ?work wdt:P2093 ?string. }
 
 }
 GROUP BY ?string
@@ -86,7 +82,9 @@ WITH   {
     }
   }
 } AS %RAWstrings
-WITH {
+WHERE {
+  # Find works that have \"author name string\" values equal to these normalized strings
+   {
   # Calculate capitalization variants of these raw strings
   SELECT DISTINCT ?string WHERE {
     INCLUDE %RAWstrings
@@ -98,11 +96,7 @@ WITH {
 #    { BIND(LCASE(STR(?string_)) AS ?string)} # lowercased versions of the raw strings
               }
   }
-} AS %NORMALIZEDstrings
-WHERE {
-  # Find works that have \"author name string\" values equal to these normalized strings
-  INCLUDE %NORMALIZEDstrings
-  OPTIONAL { ?work wdt:P2093 ?string. }
+}  OPTIONAL { ?work wdt:P2093 ?string. }
 
 }
 GROUP BY ?string

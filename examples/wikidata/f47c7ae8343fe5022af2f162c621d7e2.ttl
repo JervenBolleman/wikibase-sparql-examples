@@ -11,7 +11,27 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+  sh:select """WHERE
+{
+  
+{
+  # Dates where who is oldest living expresident can change
+  SELECT DISTINCT ?date
+  WHERE
+  {
+    {
+      INCLUDE %presidents
+      BIND(?president_enddate + \"P1D\"^^xsd:duration AS ?date)
+    }
+    UNION
+    {
+      INCLUDE %presidents
+      BIND(?president_deathdate + \"P1D\"^^xsd:duration AS ?date)
+    }
+  }
+}  OPTIONAL
+  {
+    PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -34,54 +54,23 @@ WITH
     OPTIONAL { ?president wdt:P570 ?president_deathdate. }
   }
 } AS %presidents
-WITH
-{
-  # Dates where who is oldest living expresident can change
-  SELECT DISTINCT ?date
-  WHERE
-  {
-    {
-      INCLUDE %presidents
-      BIND(?president_enddate + \"P1D\"^^xsd:duration AS ?date)
-    }
-    UNION
+
     {
       INCLUDE %presidents
       BIND(?president_deathdate + \"P1D\"^^xsd:duration AS ?date)
     }
   }
-} AS %dates
-WITH
-{
-  # Find the age for all living expresidents for each value of ?date
-  SELECT ?date ?age ?president
-  WHERE
-  {
-    INCLUDE %dates
-    INCLUDE %presidents
+}    INCLUDE %presidents
     FILTER (?president_enddate < ?date) # Must have become expresident
     FILTER IF(BOUND(?president_deathdate), ?president_deathdate >= ?date, true) # Must still be living
     BIND (?date - ?president_birthdate AS ?age)
   }
-} AS %ages
-WITH
-{
-  # Find the oldest age for a living exprrsident for each value of ?date
-  SELECT ?date (MAX(?age) AS ?oldest)
-  WHERE
-  {
-    INCLUDE %ages
+}    eathdate), ?president_deathdate >= ?date, true) # Must still be living
+    BIND (?date - ?president_birthdate AS ?age)
   }
+}  }
   GROUP BY ?date
-} AS %oldest
-WHERE
-{
-  INCLUDE %dates
-  OPTIONAL
-  {
-    INCLUDE %ages
-    INCLUDE %oldest
-    FILTER (?age = ?oldest)
+}    FILTER (?age = ?oldest)
   }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }

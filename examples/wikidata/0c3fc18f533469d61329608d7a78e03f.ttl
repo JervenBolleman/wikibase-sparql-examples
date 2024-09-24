@@ -16,7 +16,10 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?placeLabel ?language ?count
-WITH {
+WHERE {
+  {
+    SELECT ?placeLabel ?language (COUNT(?item) AS ?count)
+    WHERE {  {
   SELECT DISTINCT ?item ?place ?placeLabel ?publishing_date ?decade ?gender ?language
   WHERE {
     ?item wdt:P291 ?place ;
@@ -32,11 +35,7 @@ WITH {
     BIND(COALESCE(?language_, \"unspecified\") AS ?language)
     BIND(CONCAT(SUBSTR(STR(?publishing_date), 1, 3), \"0\") AS ?decade)
   }
-} AS %i
-WHERE {
-  {
-    SELECT ?placeLabel ?language (COUNT(?item) AS ?count)
-    WHERE { INCLUDE %i }
+}}
     GROUP BY ?placeLabel ?language 
   }
 }

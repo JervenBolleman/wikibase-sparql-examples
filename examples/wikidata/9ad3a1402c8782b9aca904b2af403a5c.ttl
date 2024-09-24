@@ -11,99 +11,11 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-SELECT DISTINCT ?hospitalLabel ?eMail ?message
-WITH{
-  SELECT DISTINCT ?hospital ?hospitalLabel
-  WHERE {
-    
-    ?hospital wdt:P31/wdt:P279* wd:Q16917; #hospital            
-              wdt:P131 wd:Q1711; #Potsdam
-              rdfs:label ?hospitalLabel.
-    FILTER(LANG(?hospitalLabel) = \"en\")
-    # filter out hospitals that have been closed
-    FILTER NOT EXISTS {
-      ?hospital wdt:P3999 ?closure
-    }
-  }
-} as %hospitals
+  sh:select """
 
-WITH {
-  SELECT DISTINCT ?hospital ?hospitalLabel ?pressPerson
-  WHERE{
-    INCLUDE %hospitals
-    ?hospital wdt:P1875 ?pressPerson.
-  }
-} as %pressHospital
 
-WITH {
-  SELECT DISTINCT ?hospital ?hospitalLabel ?eMail ?eMailBegin
-  WHERE {
-      INCLUDE %hospitals
-      FILTER NOT EXISTS {INCLUDE %pressHospital}
-      ?hospital wdt:P968 ?eMail.
-      BIND(CONCAT(\"Dear \", CONCAT(?hospitalLabel), \" staff member\") as ?eMailBegin)
-  }
-} as %nonPressHospitals
 
-WITH {
-  SELECT DISTINCT ?hospital ?hospitalLabel ?eMail ?eMailBegin
-  WHERE {
-   INCLUDE %pressHospital
-   ?hospital p:P1875 ?pressPersonStatement.
-    
-   ?pressPersonStatement pq:P968 ?eMail.
-    
-   ?pressPerson wdt:P21 wd:Q6581072; #female
-                 wdt:P734 ?familiyName.
-    
-   ?familiyName rdfs:label ?familiyNameLabel.
-   FILTER(LANG(?familiyNameLabel) = \"en\")
-    
-   BIND(CONCAT(\"Dear Ms. \", str(?familiyNameLabel) ) as ?eMailBegin)
-  }
-} as %femaleSpokespersonPress
 
-WITH {
-  SELECT DISTINCT ?hospital ?hospitalLabel ?eMail ?eMailBegin
-  WHERE {
-   INCLUDE %pressHospital
-   ?hospital p:P1875 ?pressPersonStatement.
-    
-   ?pressPersonStatement pq:P968 ?eMail.
-   ?pressPerson wdt:P21 wd:Q6581097; #male
-                wdt:P734 ?familiyName.
-    
-   ?familiyName rdfs:label ?familiyNameLabel.
-   FILTER(LANG(?familiyNameLabel) = \"en\")
-    
-   BIND(CONCAT(\"Dear Mr. \", ?familiyNameLabel) as ?eMailBegin).
-  }
-} as %maleSpokespersonPress
-
-WITH {
-  SELECT DISTINCT ?hospital ?hospitalLabel ?eMail ?eMailBegin
-  WHERE {
-   INCLUDE %pressHospital
-   ?hospital p:P1875 ?pressPersonStatement.
-    
-   ?pressPersonStatement pq:P968 ?eMail.
-   ?pressPerson wdt:P734 ?familiyName.
-   OPTIONAL{?pressPerson wdt:P21 ?gender }
-   ?familiyName rdfs:label ?familiyNameLabel.
-   FILTER(LANG(?familiyNameLabel) = \"en\")
-   FILTER NOT EXISTS {
-     {?pressPerson wdt:P21 wd:Q6581097}
-     UNION
-     {?pressPerson wdt:P21 wd:Q6581072}
-   }
-   BIND(CONCAT(\"Dear \", ?familiyNameLabel) as ?eMailBegin).
-  }
-} as %nonBinarySpokespersonPress
 
 WHERE{
   {INCLUDE %nonPressHospitals}

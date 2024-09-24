@@ -25,50 +25,7 @@ SELECT DISTINCT ?coordinates ?line ?item ?itemLabel ?connectLabel ?image ?openin
  
 
  
-WITH {
-  SELECT ?nextstation (SAMPLE(?lat2) AS ?lat2) (SAMPLE(?lon2) AS ?lon2) WHERE {
-    {?nextstation (wdt:P16|wdt:P361) wd:Q1552346}
-    UNION
-    {?nextstation (wdt:P16|wdt:P361) wd:Q449909}
-    UNION
-    {?nextstation (wdt:P16|wdt:P361) wd:Q1306245} .
-    ?nextstation p:P625 / psv:P625 / wikibase:geoLatitude ?lat2 .
-    ?nextstation p:P625 / psv:P625 / wikibase:geoLongitude ?lon2 .
-  } GROUP BY ?nextstation
-} AS %nextstations
  
-WITH {
-  SELECT ?line ?connect ?rgb WHERE {
-    {
-  SELECT ?item (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) (SAMPLE(?lat1) AS ?lat1) (SAMPLE(?lon1) AS ?lon1) (SAMPLE(?opening) AS ?opening) WHERE {
-    {?item (wdt:P16|wdt:P361) wd:Q1552346 }
-    UNION
-    {?item (wdt:P16|wdt:P361) wd:Q449909 }
-    UNION
-    {?item (wdt:P16|wdt:P361) wd:Q1306245 }.
-    ?item wdt:P625 ?coordinates  .
-    ?item p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 .
-    ?item p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
-    #?item wdt:P465 ?rgb .
-    OPTIONAL { ?item wdt:P18 ?image }.
-    OPTIONAL { ?item wdt:P1619 ?opening }.
-  } GROUP BY ?item
-} .
-    INCLUDE %nextstations .
-    ?item p:P197 ?nextstationstatement .
-    ?nextstationstatement ps:P197 ?nextstation .
-    {?nextstationstatement (pq:P81|pq:P1192) ?connect . ?connect (wdt:P16|wdt:P361) wd:Q1552346}
-    UNION
-    {?nextstationstatement (pq:P81|pq:P1192) ?connect . ?connect (wdt:P16|wdt:P361) wd:Q449909}
-    UNION
-    {?nextstationstatement (pq:P81|pq:P1192) ?connect . ?connect (wdt:P16|wdt:P361) wd:Q1306245} .
-    ?connect wdt:P465 ?rgb .
- 
-    FILTER(STR(?item) < STR(?nextstation)) .   
-    BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
-    BIND(STRDT(?str, geo:wktLiteral) AS ?line)
-  }
-} AS %lines
  
 WHERE {
   { {
@@ -85,7 +42,48 @@ WHERE {
     OPTIONAL { ?item wdt:P18 ?image }.
     OPTIONAL { ?item wdt:P1619 ?opening }.
   } GROUP BY ?item
-} }  UNION { INCLUDE %lines  } .
+} }  UNION {  {
+  SELECT ?line ?connect ?rgb WHERE {
+    {
+  SELECT ?item (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) (SAMPLE(?lat1) AS ?lat1) (SAMPLE(?lon1) AS ?lon1) (SAMPLE(?opening) AS ?opening) WHERE {
+    {?item (wdt:P16|wdt:P361) wd:Q1552346 }
+    UNION
+    {?item (wdt:P16|wdt:P361) wd:Q449909 }
+    UNION
+    {?item (wdt:P16|wdt:P361) wd:Q1306245 }.
+    ?item wdt:P625 ?coordinates  .
+    ?item p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 .
+    ?item p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
+    #?item wdt:P465 ?rgb .
+    OPTIONAL { ?item wdt:P18 ?image }.
+    OPTIONAL { ?item wdt:P1619 ?opening }.
+  } GROUP BY ?item
+} .
+     {
+  SELECT ?nextstation (SAMPLE(?lat2) AS ?lat2) (SAMPLE(?lon2) AS ?lon2) WHERE {
+    {?nextstation (wdt:P16|wdt:P361) wd:Q1552346}
+    UNION
+    {?nextstation (wdt:P16|wdt:P361) wd:Q449909}
+    UNION
+    {?nextstation (wdt:P16|wdt:P361) wd:Q1306245} .
+    ?nextstation p:P625 / psv:P625 / wikibase:geoLatitude ?lat2 .
+    ?nextstation p:P625 / psv:P625 / wikibase:geoLongitude ?lon2 .
+  } GROUP BY ?nextstation
+}.
+    ?item p:P197 ?nextstationstatement .
+    ?nextstationstatement ps:P197 ?nextstation .
+    {?nextstationstatement (pq:P81|pq:P1192) ?connect . ?connect (wdt:P16|wdt:P361) wd:Q1552346}
+    UNION
+    {?nextstationstatement (pq:P81|pq:P1192) ?connect . ?connect (wdt:P16|wdt:P361) wd:Q449909}
+    UNION
+    {?nextstationstatement (pq:P81|pq:P1192) ?connect . ?connect (wdt:P16|wdt:P361) wd:Q1306245} .
+    ?connect wdt:P465 ?rgb .
+ 
+    FILTER(STR(?item) < STR(?nextstation)) .   
+    BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
+    BIND(STRDT(?str, geo:wktLiteral) AS ?line)
+  }
+} } .
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
   <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
@@ -114,7 +112,23 @@ WITH {
   } GROUP BY ?nextstation
 } AS %nextstations
  
-WITH {
+ 
+WHERE {
+  { {
+  SELECT ?item (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) (SAMPLE(?lat1) AS ?lat1) (SAMPLE(?lon1) AS ?lon1) (SAMPLE(?opening) AS ?opening) WHERE {
+    {?item (wdt:P16|wdt:P361) wd:Q1552346 }
+    UNION
+    {?item (wdt:P16|wdt:P361) wd:Q449909 }
+    UNION
+    {?item (wdt:P16|wdt:P361) wd:Q1306245 }.
+    ?item wdt:P625 ?coordinates  .
+    ?item p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 .
+    ?item p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
+    #?item wdt:P465 ?rgb .
+    OPTIONAL { ?item wdt:P18 ?image }.
+    OPTIONAL { ?item wdt:P1619 ?opening }.
+  } GROUP BY ?item
+} }  UNION {  {
   SELECT ?line ?connect ?rgb WHERE {
     {
   SELECT ?item (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) (SAMPLE(?lat1) AS ?lat1) (SAMPLE(?lon1) AS ?lon1) (SAMPLE(?opening) AS ?opening) WHERE {
@@ -145,23 +159,6 @@ WITH {
     BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
     BIND(STRDT(?str, geo:wktLiteral) AS ?line)
   }
-} AS %lines
- 
-WHERE {
-  { {
-  SELECT ?item (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) (SAMPLE(?lat1) AS ?lat1) (SAMPLE(?lon1) AS ?lon1) (SAMPLE(?opening) AS ?opening) WHERE {
-    {?item (wdt:P16|wdt:P361) wd:Q1552346 }
-    UNION
-    {?item (wdt:P16|wdt:P361) wd:Q449909 }
-    UNION
-    {?item (wdt:P16|wdt:P361) wd:Q1306245 }.
-    ?item wdt:P625 ?coordinates  .
-    ?item p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 .
-    ?item p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
-    #?item wdt:P465 ?rgb .
-    OPTIONAL { ?item wdt:P18 ?image }.
-    OPTIONAL { ?item wdt:P1619 ?opening }.
-  } GROUP BY ?item
-} }  UNION { INCLUDE %lines  } .
+} } .
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""" .

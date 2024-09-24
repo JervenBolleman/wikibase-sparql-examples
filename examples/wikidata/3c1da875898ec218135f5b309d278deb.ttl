@@ -11,38 +11,7 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  <http://example.org/bigdata_select> """#title:wordcloud articles without statements MyLang Wikipedia (switch to \"Table\" view to list, at left border of screen)
-#defaultView:BubbleChart
-SELECT
-  ?word
-  (COUNT(*) as ?count) 
-  (URI(CONCAT(\"https://www.wikidata.org/w/index.php?search=inlabel%3A\",?word,\"%40[AUTO_LANGUAGE]+-haswbstatement%3A%2A&profile=advanced&fulltext=1&ns=1\")) as ?search)
-WITH
-{
-  SELECT ?item (CONCAT(?n, \" 1 1 1 1 1 1 1 1 \") as ?string) 
-  {
-    ?item wikibase:statements 0 .
-    [] schema:about ?item ; schema:name ?n ; schema:isPartOf <https://[AUTO_LANGUAGE].wikipedia.org/>
-  }
-  LIMIT 20000
-} as %aa
-WITH
-{
-  SELECT (str(?nv-1) as ?ord) { [] wdt:P5176 ?i ; wdt:P1181 ?nv . FILTER( ?nv < 8) } 
-} as %i  
-WHERE
-{
-  INCLUDE %i
-  INCLUDE %aa
-  BIND(  CONCAT(\"^([^ ]+ ){\",?ord,\"}([^ ]+) .+$\") as ?re)         
-  BIND(  REPLACE(?string, ?re, \"$2\") as ?word)
-  # FILTER( ?word != \"1\" && )
-  FILTER( strlen(?word) > 4)           
-} 
-GROUP BY ?word
-ORDER BY DESC(?count) 
-LIMIT 100""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX schema: <http://schema.org/>
 #title:wordcloud articles without statements MyLang Wikipedia (switch to \"Table\" view to list, at left border of screen)
@@ -51,7 +20,13 @@ SELECT
   ?word
   (COUNT(*) as ?count) 
   (URI(CONCAT(\"https://www.wikidata.org/w/index.php?search=inlabel%3A\",?word,\"%40[AUTO_LANGUAGE]+-haswbstatement%3A%2A&profile=advanced&fulltext=1&ns=1\")) as ?search)
-WITH
+ 
+WHERE
+{
+  
+{
+  SELECT (str(?nv-1) as ?ord) { [] wdt:P5176 ?i ; wdt:P1181 ?nv . FILTER( ?nv < 8) } 
+}  
 {
   SELECT ?item (CONCAT(?n, \" 1 1 1 1 1 1 1 1 \") as ?string) 
   {
@@ -59,16 +34,7 @@ WITH
     [] schema:about ?item ; schema:name ?n ; schema:isPartOf <https://[AUTO_LANGUAGE].wikipedia.org/>
   }
   LIMIT 20000
-} as %aa
-WITH
-{
-  SELECT (str(?nv-1) as ?ord) { [] wdt:P5176 ?i ; wdt:P1181 ?nv . FILTER( ?nv < 8) } 
-} as %i  
-WHERE
-{
-  INCLUDE %i
-  INCLUDE %aa
-  BIND(  CONCAT(\"^([^ ]+ ){\",?ord,\"}([^ ]+) .+$\") as ?re)         
+}  BIND(  CONCAT(\"^([^ ]+ ){\",?ord,\"}([^ ]+) .+$\") as ?re)         
   BIND(  REPLACE(?string, ?re, \"$2\") as ?word)
   # FILTER( ?word != \"1\" && )
   FILTER( strlen(?word) > 4)           
@@ -76,7 +42,7 @@ WHERE
 GROUP BY ?word
 ORDER BY DESC(?count) 
 LIMIT 100""";
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX schema: <http://schema.org/>
 #title:wordcloud articles without statements MyLang Wikipedia (switch to \"Table\" view to list, at left border of screen)

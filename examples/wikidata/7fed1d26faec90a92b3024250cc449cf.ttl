@@ -14,22 +14,18 @@
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
-SELECT ?count_linked_items (COUNT(?count_linked_items) as ?count_rivers_with_this_many_linked_items) WITH {
+SELECT ?count_linked_items (COUNT(?count_linked_items) as ?count_rivers_with_this_many_linked_items) WHERE
+{
+   {
+  SELECT ?river (COUNT(?item) as ?count_linked_items) WHERE {    # river, how many items link to the river
+     {
   SELECT ?river WHERE {
    ?river wdt:P131/wdt:P131 wd:Q22 .             # get things in Scotland
-    } } as %i
-WITH {
-  SELECT ?river (COUNT(?item) as ?count_linked_items) WHERE {    # river, how many items link to the river
-    INCLUDE %i
-    ?river wdt:P31/wdt:P279* wd:Q55659167.       # ensure it is a watercourse
-      hint:Prior hint:gearing \"forward\".
+    } }    ?river wdt:P31/wdt:P279* wd:Q55659167.       # ensure it is a watercourse
+      
     ?item ?predicate ?river .                    # something links to it
     ?property wikibase:directClaim ?predicate .  # using a wdt: predicate
-    } GROUP BY ?river } as %j
-WHERE
-{
-  INCLUDE %j
-} GROUP BY ?count_linked_items ORDER BY DESC(?count_linked_items)""";
+    } GROUP BY ?river }} GROUP BY ?count_linked_items ORDER BY DESC(?count_linked_items)""";
   <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -37,15 +33,13 @@ SELECT ?count_linked_items (COUNT(?count_linked_items) as ?count_rivers_with_thi
   SELECT ?river WHERE {
    ?river wdt:P131/wdt:P131 wd:Q22 .             # get things in Scotland
     } } as %i
-WITH {
+WHERE
+{
+   {
   SELECT ?river (COUNT(?item) as ?count_linked_items) WHERE {    # river, how many items link to the river
     INCLUDE %i
     ?river wdt:P31/wdt:P279* wd:Q55659167.       # ensure it is a watercourse
       hint:Prior hint:gearing \"forward\".
     ?item ?predicate ?river .                    # something links to it
     ?property wikibase:directClaim ?predicate .  # using a wdt: predicate
-    } GROUP BY ?river } as %j
-WHERE
-{
-  INCLUDE %j
-} GROUP BY ?count_linked_items ORDER BY DESC(?count_linked_items)""" .
+    } GROUP BY ?river }} GROUP BY ?count_linked_items ORDER BY DESC(?count_linked_items)""" .

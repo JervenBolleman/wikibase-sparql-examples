@@ -21,7 +21,14 @@ SELECT
   ?lexemes
   ?example_lexeme ?example_lexemeLabel
   (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)
-WITH {
+WHERE {
+   {
+  SELECT 
+    ?senses_per_lexeme
+    (COUNT(?lexeme) AS ?lexemes)
+    (SAMPLE(?lexeme) AS ?example_lexeme)
+  WHERE {
+     {
   SELECT 
     (COUNT(?sense) AS ?senses_per_lexeme)
     ?lexeme
@@ -30,20 +37,9 @@ WITH {
     OPTIONAL { ?lexeme ontolex:sense ?sense . }
   }
   GROUP BY ?lexeme
-} AS %lexemes
-WITH {
-  SELECT 
-    ?senses_per_lexeme
-    (COUNT(?lexeme) AS ?lexemes)
-    (SAMPLE(?lexeme) AS ?example_lexeme)
-  WHERE {
-    INCLUDE %lexemes
-  }
+}  }
   GROUP BY ?senses_per_lexeme
-} AS %senses
-WHERE {
-  INCLUDE %senses
-  ?example_lexeme wikibase:lemma ?example_lexemeLabel .
+}  ?example_lexeme wikibase:lemma ?example_lexemeLabel .
 }
 ORDER BY DESC(?senses_per_lexeme)""";
   <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
@@ -66,7 +62,8 @@ WITH {
   }
   GROUP BY ?lexeme
 } AS %lexemes
-WITH {
+WHERE {
+   {
   SELECT 
     ?senses_per_lexeme
     (COUNT(?lexeme) AS ?lexemes)
@@ -75,9 +72,6 @@ WITH {
     INCLUDE %lexemes
   }
   GROUP BY ?senses_per_lexeme
-} AS %senses
-WHERE {
-  INCLUDE %senses
-  ?example_lexeme wikibase:lemma ?example_lexemeLabel .
+}  ?example_lexeme wikibase:lemma ?example_lexemeLabel .
 }
 ORDER BY DESC(?senses_per_lexeme)""" .

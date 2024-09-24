@@ -18,7 +18,13 @@ PREFIX target: <http://www.wikidata.org/entity/Q107060118>
                    
 SELECT
   ?citations ?citing ?citingLabel
-WITH {
+WHERE {
+   {
+  SELECT 
+    (COUNT(?cited) AS ?citations)
+    ?citing
+  WHERE {
+     {
   SELECT DISTINCT
     ?citing ?cited
   WHERE {
@@ -42,22 +48,12 @@ WITH {
       ?citing wdt:P2860 ?cited .        
     }
   }
-} AS %citings
-WITH {
-  SELECT 
-    (COUNT(?cited) AS ?citations)
-    ?citing
-  WHERE {
-    INCLUDE %citings
-    ?citing wdt:P2860 ?cited .
+}    ?citing wdt:P2860 ?cited .
   }
   GROUP BY ?citing
   ORDER BY DESC(?citations)
   LIMIT 500
-} AS %citations
-WHERE {
-  INCLUDE %citations
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY DESC(?citations)""";
   <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
@@ -92,7 +88,8 @@ WITH {
     }
   }
 } AS %citings
-WITH {
+WHERE {
+   {
   SELECT 
     (COUNT(?cited) AS ?citations)
     ?citing
@@ -103,9 +100,6 @@ WITH {
   GROUP BY ?citing
   ORDER BY DESC(?citations)
   LIMIT 500
-} AS %citations
-WHERE {
-  INCLUDE %citations
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY DESC(?citations)""" .

@@ -11,74 +11,7 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  <http://example.org/bigdata_select> """#defaultView:Graph
-
-prefix violated_top: <http://www.wikidata.org/entity/Q35120>
-prefix violated_1:  <http://www.wikidata.org/entity/Q488383>
-prefix violated_2: <http://www.wikidata.org/entity/Q3249551>
-
-prefix instance: <http://www.wikidata.org/entity/Q566893>
-
-select ?class ?rgb ?classLabel ?img 
-      ?parent   
-      ?edgeLabel
-      ?size
-with {
-  select distinct ?class 
-                  (sample(?rgb_) as ?rgb) 
-                  (concat(?classLabel_, \" : \",group_concat(distinct ?violatedLabel_;separator=\", \")) as ?classLabel) 
-                  (group_concat(distinct ?violatedLabel_;separator=\", \") as ?edgeLabel) 
-                  {
-  
-    instance: wdt:P31 ?baseclass.
-  
-    ?baseclass wdt:P279* ?class .
-    ?class wdt:P279* ?violated .
-    values (?violated ?rgb_) {
-      (violated_1: \"223311\")
-      (violated_2: \"447711\")
-    }
-  
-    SERVICE wikibase:label { 
-      ?class rdfs:label ?classLabel_ .
-      ?violated rdfs:label ?violatedLabel_ .
-      bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
-    }
-  
-  } group by ?class ?classLabel_
-} as %edges
-
-{
-  {#{select * { include %edges} }
-  {select (?class as ?parent) { include %edges} }
-  include %edges .
-  ?class wdt:P279 ?parent .
-  }
-  union {
-    bind (instance: as ?class)
-    bind ( \"Base\" as ?classLabel)
-    ?class wdt:P31 ?parent .
-    bind (\"FFFF33\" as ?rgb)
-    bind (12 as ?taille)
-    bind (\"plop\" as ?edgeLabel)
-  } union {
-      values (?class ?rgb ?classLabel) {
-        (violated_1: \"223311\" \"vio1\")
-        (violated_2: \"447711\" \"vio2\")
-      }
-      values ?parent {
-        violated_top:
-      }
-      # values ?rgb { \"111111\" }
-      #SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". ?class rdfs:label ?classLabel}
-    
-  } union {
-    values (?class ?rgb ?size ?classLabel ){
-      (violated_top: \"FF0000\" \"10\"^^xsd:number \"Top !!\")
-    }
-    }
-}""",
-    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -95,7 +28,11 @@ select ?class ?rgb ?classLabel ?img
       ?parent   
       ?edgeLabel
       ?size
-with {
+
+{
+  {#{select * { include %edges} }
+  {select (?class as ?parent) { include %edges} }
+   {
   select distinct ?class 
                   (sample(?rgb_) as ?rgb) 
                   (concat(?classLabel_, \" : \",group_concat(distinct ?violatedLabel_;separator=\", \")) as ?classLabel) 
@@ -118,12 +55,7 @@ with {
     }
   
   } group by ?class ?classLabel_
-} as %edges
-
-{
-  {#{select * { include %edges} }
-  {select (?class as ?parent) { include %edges} }
-  include %edges .
+}.
   ?class wdt:P279 ?parent .
   }
   union {
@@ -150,7 +82,7 @@ with {
     }
     }
 }""";
-  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>

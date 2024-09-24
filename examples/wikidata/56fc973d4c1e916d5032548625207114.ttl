@@ -20,12 +20,19 @@ PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?organization ?organizationLabel ?street_address ?coordinate_location
   ?phone_number ?e_mail_address ?website ?Facebook_ID ?Twitter_username ?county
-WITH
+WHERE
+{
+  { 
+{
+  SELECT ?organization ?located_in_the_administrative_territorial_entity ?county
+  WHERE
+  {
+    
 {
   SELECT DISTINCT ?organization ?located_in_the_administrative_territorial_entity ?county
   WHERE
   {
-    hint:Query hint:optimizer \"None\".
+    
     VALUES (?located_in_the_administrative_territorial_entity ?county) {
       (wd:Q486843 \"Bleckley County\")
       (wd:Q498301 \"Pulaski County\")
@@ -68,28 +75,69 @@ WITH
       wd:Q51369558
     }
     ?organization wdt:P31/wdt:P279* ?instance_of .
-    hint:Prior hint:gearing \"forward\" .
+    
   }
-}
-AS %get_organization_and_county_candidates
-WITH
-{
-  SELECT ?organization ?located_in_the_administrative_territorial_entity ?county
-  WHERE
-  {
-    INCLUDE %get_organization_and_county_candidates
-    # The administrative unit (here county) is mentioned directly in the organization item
+}    # The administrative unit (here county) is mentioned directly in the organization item
     FILTER EXISTS { ?organization wdt:P131 ?located_in_the_administrative_territorial_entity . }
   }
-}
-AS %organizations_with_county_statement
-WITH
+}}
+  UNION
+  { 
 {
   SELECT ?organization ?located_in_the_administrative_territorial_entity ?county
   WHERE
   {
-    INCLUDE %get_organization_and_county_candidates
-    # The administrative unit (here county) is deeper in the P131 hierarchy
+    
+{
+  SELECT DISTINCT ?organization ?located_in_the_administrative_territorial_entity ?county
+  WHERE
+  {
+    
+    VALUES (?located_in_the_administrative_territorial_entity ?county) {
+      (wd:Q486843 \"Bleckley County\")
+      (wd:Q498301 \"Pulaski County\")
+      (wd:Q486791 \"Wilcox County\")
+      (wd:Q115272 \"Dodge County\")
+      (wd:Q691614 \"Telfair County\")
+      (wd:Q498332 \"Wheeler County\")
+      (wd:Q493125 \"Montgomery County\")
+      (wd:Q376822 \"Toombs County\")
+      (wd:Q505310 \"Tattnall County\")
+      (wd:Q111867 \"Ben Hill County\")
+      (wd:Q492057 \"Irwin County\")
+      (wd:Q156503 \"Coffee County\")
+      (wd:Q493071 \"Jeff Davis County\")
+      (wd:Q488186 \"Appling County\")
+      (wd:Q488219 \"Bacon County\")
+      (wd:Q488868 \"Berrien County\")
+      (wd:Q488194 \"Atkinson County\")
+      (wd:Q498353 \"Ware County\")
+      (wd:Q492070 \"Lanier County\")
+      (wd:Q493029 \"Echols County\")
+      (wd:Q486167 \"Clinch County\")
+    }
+    ?organization wdt:P131+ ?located_in_the_administrative_territorial_entity .
+    FILTER NOT EXISTS { ?organization wdt:P576 [] . }
+    VALUES ?instance_of {
+      wd:Q473972
+      wd:Q3152824
+      wd:Q210272
+      wd:Q570116
+      wd:Q57660343
+      wd:Q2668072
+      wd:Q188913
+      wd:Q15243209
+      wd:Q2867476
+      wd:Q635719
+      wd:Q7840289
+      wd:Q42998
+      wd:Q41710
+      wd:Q51369558
+    }
+    ?organization wdt:P31/wdt:P279* ?instance_of .
+    
+  }
+}    # The administrative unit (here county) is deeper in the P131 hierarchy
     # AND there is no \"next level in hierarchy\" qualifier in another P131 statement  
     FILTER EXISTS
     {
@@ -104,13 +152,7 @@ WITH
       }
     }
   }
-}
-AS %organizations_without_county_statement
-WHERE
-{
-  { INCLUDE %organizations_with_county_statement }
-  UNION
-  { INCLUDE %organizations_without_county_statement }
+}}
   OPTIONAL { ?organization wdt:P6375 ?street_address . }
   OPTIONAL { ?organization wdt:P625 ?coordinate_location . }
   OPTIONAL { ?organization wdt:P1329 ?phone_number . }
@@ -182,7 +224,9 @@ WITH
   }
 }
 AS %get_organization_and_county_candidates
-WITH
+WHERE
+{
+  { 
 {
   SELECT ?organization ?located_in_the_administrative_territorial_entity ?county
   WHERE
@@ -191,9 +235,9 @@ WITH
     # The administrative unit (here county) is mentioned directly in the organization item
     FILTER EXISTS { ?organization wdt:P131 ?located_in_the_administrative_territorial_entity . }
   }
-}
-AS %organizations_with_county_statement
-WITH
+}}
+  UNION
+  { 
 {
   SELECT ?organization ?located_in_the_administrative_territorial_entity ?county
   WHERE
@@ -214,13 +258,7 @@ WITH
       }
     }
   }
-}
-AS %organizations_without_county_statement
-WHERE
-{
-  { INCLUDE %organizations_with_county_statement }
-  UNION
-  { INCLUDE %organizations_without_county_statement }
+}}
   OPTIONAL { ?organization wdt:P6375 ?street_address . }
   OPTIONAL { ?organization wdt:P625 ?coordinate_location . }
   OPTIONAL { ?organization wdt:P1329 ?phone_number . }

@@ -19,15 +19,16 @@ PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?y ?exit ?new
-WITH
+WHERE
+{
+  
 {
   SELECT DISTINCT ?y WHERE
   {
     ?item wdt:P31/wdt:P279? wd:Q3186692 ; wdt:P585 ?d . 
     BIND(YEAR( ?d) as ?y) FILTER( ?y > 1900 && ?y < 2023 )
   }
-} as %a
-WITH
+}  OPTIONAL { 
 {
   SELECT DISTINCT ?y (GROUP_CONCAT(DISTINCT ?item2Label; separator=\"; \") as ?exit)
   {                     
@@ -37,8 +38,8 @@ WITH
     SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". ?item2 rdfs:label ?item2Label }
   }
   GROUP BY ?y
-} as %b
-WITH
+}}
+  OPTIONAL { 
 {
   SELECT DISTINCT ?y (GROUP_CONCAT(DISTINCT ?item0Label; separator=\"; \") as ?new)
   {                     
@@ -48,12 +49,7 @@ WITH
     SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". ?item0 rdfs:label ?item0Label }
   }
   GROUP BY ?y
-} as %c
-WHERE
-{
-  INCLUDE %a
-  OPTIONAL { INCLUDE %b }
-  OPTIONAL { INCLUDE %c }
+}}
 }
 ORDER BY ?y""";
   <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>

@@ -23,43 +23,43 @@ SELECT
   ?year
   ?works
   ?topic ?topicLabel
-WITH {
+WHERE {
+   {
+  SELECT
+    ?year 
+    (COUNT(?work) AS ?works)
+    ?topic
+  WHERE {
+     {
   SELECT 
     ?work
   WHERE {
     ?work wdt:P1433 target1: ;
           wdt:P921 target2: .
   }
-} AS %works
-WITH {
+}     {
   SELECT
     (COUNT(?work) AS ?count)
     ?topic
   WHERE {
-    INCLUDE %works
-    ?work wdt:P921 ?topic .
+     {
+  SELECT 
+    ?work
+  WHERE {
+    ?work wdt:P1433 target1: ;
+          wdt:P921 target2: .
+  }
+}    ?work wdt:P921 ?topic .
   }
   GROUP BY ?topic
   ORDER BY DESC(?count)
   LIMIT 5
-} AS %topics
-WITH {
-  SELECT
-    ?year 
-    (COUNT(?work) AS ?works)
-    ?topic
-  WHERE {
-    INCLUDE %works
-    INCLUDE %topics
-    ?work wdt:P921 ?topic ;
+}    ?work wdt:P921 ?topic ;
           wdt:P577 ?publication_datetime .
     BIND(STR(YEAR(?publication_datetime)) AS ?year)
   }
   GROUP BY ?year ?topic
-} AS %result
-WHERE {
-  INCLUDE %result
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY ?year""";
   <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
@@ -94,7 +94,8 @@ WITH {
   ORDER BY DESC(?count)
   LIMIT 5
 } AS %topics
-WITH {
+WHERE {
+   {
   SELECT
     ?year 
     (COUNT(?work) AS ?works)
@@ -107,9 +108,6 @@ WITH {
     BIND(STR(YEAR(?publication_datetime)) AS ?year)
   }
   GROUP BY ?year ?topic
-} AS %result
-WHERE {
-  INCLUDE %result
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY ?year""" .

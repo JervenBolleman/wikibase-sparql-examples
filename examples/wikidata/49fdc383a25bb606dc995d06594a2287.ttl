@@ -23,7 +23,14 @@ SELECT ?item ?itemLabel
        (GROUP_CONCAT(DISTINCT CONCAT(?qual1, \": \", IF(BOUND(?qvalue1Label), ?qvalue1Label, STR(?qvalue1))); SEPARATOR=\"; \") AS ?qualifiers1)
        ?rank2
        (GROUP_CONCAT(DISTINCT CONCAT(?qual2, \": \", IF(BOUND(?qvalue2Label), ?qvalue2Label, STR(?qvalue2))); SEPARATOR=\"; \") AS ?qualifiers2)
-WITH
+WHERE
+{
+  
+{
+  SELECT ?item ?GND_statement1 ?GND_statement2
+  WHERE
+  {
+    
 {
   SELECT ?item
   WHERE
@@ -32,24 +39,13 @@ WITH
   }
   GROUP BY ?item
   HAVING (COUNT(?item) > 1)
-} AS %multiple_GND1
-WITH
-{
-  SELECT ?item ?GND_statement1 ?GND_statement2
-  WHERE
-  {
-    INCLUDE %multiple_GND1
-    ?item wdt:P31 wd:Q5. # only humans
+}    ?item wdt:P31 wd:Q5. # only humans
     ?item p:P227 ?GND_statement1.
     ?item p:P227 ?GND_statement2.
     FILTER (?GND_statement1 != ?GND_statement2)
     FILTER (STR(?GND_statement1) < STR(?GND_statement2))
   }
-} AS %multiple_GND2
-WHERE
-{
-  INCLUDE %multiple_GND2
-  ?sitelink schema:about ?item.
+}  ?sitelink schema:about ?item.
   ?sitelink schema:isPartOf <https://de.wikipedia.org/>.
   ?GND_statement1 wikibase:rank ?rank1.
   ?GND_statement2 wikibase:rank ?rank2.
@@ -88,7 +84,9 @@ WITH
   GROUP BY ?item
   HAVING (COUNT(?item) > 1)
 } AS %multiple_GND1
-WITH
+WHERE
+{
+  
 {
   SELECT ?item ?GND_statement1 ?GND_statement2
   WHERE
@@ -100,11 +98,7 @@ WITH
     FILTER (?GND_statement1 != ?GND_statement2)
     FILTER (STR(?GND_statement1) < STR(?GND_statement2))
   }
-} AS %multiple_GND2
-WHERE
-{
-  INCLUDE %multiple_GND2
-  ?sitelink schema:about ?item.
+}  ?sitelink schema:about ?item.
   ?sitelink schema:isPartOf <https://de.wikipedia.org/>.
   ?GND_statement1 wikibase:rank ?rank1.
   ?GND_statement2 wikibase:rank ?rank2.

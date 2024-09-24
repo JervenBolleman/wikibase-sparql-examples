@@ -21,7 +21,16 @@ PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel (max(?number) as ?passengers) 
 ?year
-with {
+ER (?year >1949).
+FILTER (?year < year(now())).
+}
+}.
+?timevalue wikibase:timePrecision ?prec filter ( ?prec > 9 )
+} group by ?item  ?year
+  } union {
+      ?timevalue wikibase:timePrecision 9 .
+    bind (?numberperperiod as ?number)
+       {
   select ?item ?statement ?year ?timevalue ?numberperperiod{
     ?item wdt:P238 ?IATA
  VALUES ?IATA {\"ICN\"}.
@@ -37,18 +46,7 @@ bind (YEAR(?date) AS ?year)
 FILTER (?year >1949).
 FILTER (?year < year(now())).
 }
-} as %airport
-where {
-  {
-select ?item ?year (sum(?numberperperiod) as ?number) {
-include %airport .
-?timevalue wikibase:timePrecision ?prec filter ( ?prec > 9 )
-} group by ?item  ?year
-  } union {
-      ?timevalue wikibase:timePrecision 9 .
-    bind (?numberperperiod as ?number)
-      include %airport
-  } .
+}  } .
     SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
 } group by ?item ?itemLabel ?year
 order by ?item desc (?year)""";

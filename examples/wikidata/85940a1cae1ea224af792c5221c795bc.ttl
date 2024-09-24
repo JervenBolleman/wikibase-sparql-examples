@@ -22,31 +22,22 @@ PREFIX p: <http://www.wikidata.org/prop/>
 #title: Which pigments are found in which taxa, according to which reference?
 # special thanks goes to User:Lmichan for updating this information!
 SELECT DISTINCT ?compound ?compoundLabel ?taxon ?taxonname ?DOI 
-WITH {
-  SELECT ?compound WHERE {
-    ?compound (wdt:P31*/wdt:P279*) wd:Q161179.  # get pigments
-  }
-} AS %compounds
-WITH {
+WHERE {
+  {
+     {
+  SELECT ?compound ?taxon ?DOI WHERE {
+     {
   SELECT ?compound ?P703statement WHERE {
     INCLUDE %compounds
             ?compound p:P703 ?P703statement.
             ?P703statement wikibase:rank wikibase:NormalRank.    # check for \"found in taxon\" statements
   }
-} AS %P703statement
-WITH {
-  SELECT ?compound ?taxon ?DOI WHERE {
-    INCLUDE %P703statement
-            ?P703statement ps:P703 ?taxon ;     # get the respective taxa
+}            ?P703statement ps:P703 ?taxon ;     # get the respective taxa
             prov:wasDerivedFrom / pr:P248 [     # get the reference supporting that statement
               wdt:P356 ?DOI                     # get the DOI for the reference
             ] .
   }
-} AS %taxa
-WHERE {
-  {
-    INCLUDE %taxa
-
+}
             ?taxon wdt:P225 ?taxonname .        # get the taxon name
   }
   ?compound rdfs:label ?compoundLabel .         # get compound labels
@@ -77,7 +68,9 @@ WITH {
             ?P703statement wikibase:rank wikibase:NormalRank.    # check for \"found in taxon\" statements
   }
 } AS %P703statement
-WITH {
+WHERE {
+  {
+     {
   SELECT ?compound ?taxon ?DOI WHERE {
     INCLUDE %P703statement
             ?P703statement ps:P703 ?taxon ;     # get the respective taxa
@@ -85,11 +78,7 @@ WITH {
               wdt:P356 ?DOI                     # get the DOI for the reference
             ] .
   }
-} AS %taxa
-WHERE {
-  {
-    INCLUDE %taxa
-
+}
             ?taxon wdt:P225 ?taxonname .        # get the taxon name
   }
   ?compound rdfs:label ?compoundLabel .         # get compound labels

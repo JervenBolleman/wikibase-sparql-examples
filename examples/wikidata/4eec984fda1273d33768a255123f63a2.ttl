@@ -17,7 +17,10 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 #defaultView:BubbleChart
 SELECT ?clabel ?count
-WITH {
+WHERE {
+  {
+    SELECT ?placeLabel (count(?item) as ?count)
+    WHERE {  {
   SELECT DISTINCT ?item ?place ?placeLabel ?publishing_date ?gender ?language
   WHERE {
     ?item wdt:P291 ?place ;
@@ -32,11 +35,7 @@ WITH {
     BIND(COALESCE(?gender_, \"unspecified\") AS ?gender)
     BIND(COALESCE(?language_, \"unspecified\") AS ?language)
   }
-} AS %i
-WHERE {
-  {
-    SELECT ?placeLabel (count(?item) as ?count)
-    WHERE { INCLUDE %i }
+}}
     GROUP BY ?placeLabel
   }
   BIND(CONCAT(?placeLabel, \" \", STR(?count)) AS ?clabel)

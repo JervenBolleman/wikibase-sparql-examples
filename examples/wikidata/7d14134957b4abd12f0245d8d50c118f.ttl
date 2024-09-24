@@ -22,7 +22,13 @@ PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?year ?item ?itemLabel ?number_of_months ?first_month ?last_month ?have_value_for_year
-WITH
+WHERE
+{
+  {
+    SELECT ?item (COUNT(DISTINCT ?date) AS ?number_of_months) (MAX(?date) AS ?last_month) (MIN(?date) AS ?first_month)
+    WHERE
+    {
+      
 {
   SELECT ?item ?statement ?date ?year ?timevalue ?numberperperiod ?reference_URL
   WHERE
@@ -39,15 +45,7 @@ WITH
     BIND (YEAR(?date) AS ?year)
     FILTER (?year=2020).
   }
-} AS %airport
-WHERE
-{
-  {
-    SELECT ?item (COUNT(DISTINCT ?date) AS ?number_of_months) (MAX(?date) AS ?last_month) (MIN(?date) AS ?first_month)
-    WHERE
-    {
-      INCLUDE %airport
-      ?timevalue wikibase:timePrecision 10 . # Precicision is month
+}      ?timevalue wikibase:timePrecision 10 . # Precicision is month
     }
     GROUP BY ?item
     HAVING (?number_of_months != 12)
@@ -58,8 +56,24 @@ WHERE
       SELECT ?item
       WHERE
       {
-        INCLUDE %airport
-        ?timevalue wikibase:timePrecision 9 . # Precicision is year
+        
+{
+  SELECT ?item ?statement ?date ?year ?timevalue ?numberperperiod ?reference_URL
+  WHERE
+  {
+?item (wdt:P31/wdt:P279*) wd:Q62447.
+    ?item p:P3872 ?statement.
+    ?statement pqv:P585 ?timevalue;
+               ps:P3872 ?numberperperiod.
+    ?timevalue wikibase:timeValue ?date.
+    OPTIONAL { ?statement pq:P518 ?applies. }
+    OPTIONAL { ?statement prov:wasDerivedFrom / (pr:P854|pr:P4656) ?reference_URL. }
+    FILTER (BOUND(?applies)=false || ?applies = wd:Q2165236 )
+    MINUS { ?statement wikibase:rank wikibase:DeprecatedRank }
+    BIND (YEAR(?date) AS ?year)
+    FILTER (?year=2020).
+  }
+}        ?timevalue wikibase:timePrecision 9 . # Precicision is year
       }
       GROUP BY ?item
     }

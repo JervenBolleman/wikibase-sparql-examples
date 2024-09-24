@@ -11,7 +11,13 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+  sh:select """
+WHERE {                              # right now, get labels and an aggregation which does nothing
+   { SELECT ?item ?number ?property (COUNT(?predicate) as ?count) WHERE {  # get & count claims for the items
+  INCLUDE %j
+  ?item ?predicate [].
+  ?property wikibase:claim ?predicate . 
+} GROUP BY ?item ?number ?property ORDER BY DESC(?count) }  PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -28,19 +34,7 @@ WITH { SELECT ?item ?number WHERE {     # get items having that many statements
   ?item wikibase:statements ?b.
   FILTER NOT EXISTS {?item wdt:P31 wd:Q13442814 .}
  } } as %j
-WITH { SELECT ?item ?number ?property (COUNT(?predicate) as ?count) WHERE {  # get & count claims for the items
-  INCLUDE %j
-  ?item ?predicate [].
-  ?property wikibase:claim ?predicate . 
-} GROUP BY ?item ?number ?property ORDER BY DESC(?count) } as %k
-WITH { SELECT  ?item (MAX(?count) AS ?maxcount) {
-  INCLUDE %k
-} GROUP BY ?item } AS %max
-
-WHERE {                              # right now, get labels and an aggregation which does nothing
-  INCLUDE %k
-  INCLUDE %max
-  FILTER (?count = ?maxcount) 
+?number ?property ORDER BY DESC(?count) }} GROUP BY ?item }  FILTER (?count = ?maxcount) 
  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }  order by desc(?number)""";
   <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>

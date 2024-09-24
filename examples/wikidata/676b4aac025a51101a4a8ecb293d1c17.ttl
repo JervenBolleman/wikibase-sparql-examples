@@ -17,23 +17,19 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?item ?itemLabel ?lastname ?lastnameLabel with {
-  SELECT (COUNT(*) AS ?count) ?lastname WHERE {
-    ?person wdt:P27 wd:Q20 . hint:Prior hint:runFirst true.
-    ?person wdt:P734 ?lastname . 
-  } GROUP BY ?lastname HAVING (?count>99) } as %i
-
-WITH { SELECT ?lastname ?lastnameLabel WHERE
-{
-  INCLUDE %i
-  ?lastname rdfs:label ?lastnameLabel. filter(lang(?lastnameLabel)=\"nn\") 
-} } as %j
+SELECT DISTINCT ?item ?itemLabel ?lastname ?lastnameLabel 
 
 WHERE
 {
-  INCLUDE %j
-          
-  hint:Query hint:optimizer \"None\".
+   { SELECT ?lastname ?lastnameLabel WHERE
+{
+   {
+  SELECT (COUNT(*) AS ?count) ?lastname WHERE {
+    ?person wdt:P27 wd:Q20 . 
+    ?person wdt:P734 ?lastname . 
+  } GROUP BY ?lastname HAVING (?count>99) }  ?lastname rdfs:label ?lastnameLabel. filter(lang(?lastnameLabel)=\"nn\") 
+} }          
+  
   SERVICE wikibase:mwapi {
     bd:serviceParam wikibase:api \"Search\";
                     wikibase:endpoint \"www.wikidata.org\";
@@ -59,16 +55,14 @@ SELECT DISTINCT ?item ?itemLabel ?lastname ?lastnameLabel with {
     ?person wdt:P734 ?lastname . 
   } GROUP BY ?lastname HAVING (?count>99) } as %i
 
-WITH { SELECT ?lastname ?lastnameLabel WHERE
-{
-  INCLUDE %i
-  ?lastname rdfs:label ?lastnameLabel. filter(lang(?lastnameLabel)=\"nn\") 
-} } as %j
 
 WHERE
 {
-  INCLUDE %j
-          
+   { SELECT ?lastname ?lastnameLabel WHERE
+{
+  INCLUDE %i
+  ?lastname rdfs:label ?lastnameLabel. filter(lang(?lastnameLabel)=\"nn\") 
+} }          
   hint:Query hint:optimizer \"None\".
   SERVICE wikibase:mwapi {
     bd:serviceParam wikibase:api \"Search\";

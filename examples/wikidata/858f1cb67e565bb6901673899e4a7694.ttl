@@ -29,35 +29,24 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 
 SELECT ?parliamentLabel ?start ?end ?mpcount ?odnbcount ?percent_in_odnb ?diedcount ?percent_died_in_odnb 
 
-WITH {
-  # all MPs with their associated parliament
-  SELECT DISTINCT ?mp ?parliament WHERE {
-    ?mp wdt:P31 wd:Q5.
-      # using the new data model - so limits how far back it goes
-      ?mp p:P39/ps:P39 ?position . 
-      ?position wdt:P279 wd:Q16707842; p:P279/pq:P2937|wdt:P2937 ?parliament.
-    }
-} AS %MPsWithParliament 
 
-WITH {
+
+
+
+
+
+
+
+WHERE {
+  # get ?odnb
+   {
   # count of ODNB entries in each parliament
   SELECT ?parliament (COUNT(DISTINCT ?mp) AS ?odnb) WHERE {
     INCLUDE %MPsWithParliament.
     ?mp wdt:P1415 ?odnb
   }
   GROUP BY ?parliament
-} AS %odnb 
-
-WITH {
-  # count of dead MPs in each parliament
-  SELECT ?parliament (COUNT(DISTINCT ?mp) AS ?died) WHERE {
-    INCLUDE %MPsWithParliament.
-    ?mp wdt:P570 ?died . 
-  }
-  GROUP BY ?parliament
-} AS %died 
-
-WITH {
+}   {
   # count of members entries in each parliament
   SELECT ?parliament (COUNT(DISTINCT ?mp) AS ?mps) WHERE {
     ?mp wdt:P31 wd:Q5.
@@ -65,14 +54,14 @@ WITH {
       ?position wdt:P279 wd:Q16707842; p:P279/pq:P2937|wdt:P2937 ?parliament.
   }
   GROUP BY ?parliament
-} AS %mpcount 
-
-WHERE {
-  # get ?odnb
-  INCLUDE %odnb
-  INCLUDE %mpcount
-  INCLUDE %died
-  BIND(?odnb AS ?odnbcount)
+}   {
+  # count of dead MPs in each parliament
+  SELECT ?parliament (COUNT(DISTINCT ?mp) AS ?died) WHERE {
+    INCLUDE %MPsWithParliament.
+    ?mp wdt:P570 ?died . 
+  }
+  GROUP BY ?parliament
+}  BIND(?odnb AS ?odnbcount)
   BIND(?mps AS ?mpcount)
   BIND(ROUND(100*(?odnbcount/?mpcount)) AS ?percent_in_odnb) 
   BIND(?died AS ?diedcount)
@@ -113,25 +102,22 @@ WITH {
     }
 } AS %MPsWithParliament 
 
-WITH {
+
+
+
+
+
+
+WHERE {
+  # get ?odnb
+   {
   # count of ODNB entries in each parliament
   SELECT ?parliament (COUNT(DISTINCT ?mp) AS ?odnb) WHERE {
     INCLUDE %MPsWithParliament.
     ?mp wdt:P1415 ?odnb
   }
   GROUP BY ?parliament
-} AS %odnb 
-
-WITH {
-  # count of dead MPs in each parliament
-  SELECT ?parliament (COUNT(DISTINCT ?mp) AS ?died) WHERE {
-    INCLUDE %MPsWithParliament.
-    ?mp wdt:P570 ?died . 
-  }
-  GROUP BY ?parliament
-} AS %died 
-
-WITH {
+}   {
   # count of members entries in each parliament
   SELECT ?parliament (COUNT(DISTINCT ?mp) AS ?mps) WHERE {
     ?mp wdt:P31 wd:Q5.
@@ -139,14 +125,14 @@ WITH {
       ?position wdt:P279 wd:Q16707842; p:P279/pq:P2937|wdt:P2937 ?parliament.
   }
   GROUP BY ?parliament
-} AS %mpcount 
-
-WHERE {
-  # get ?odnb
-  INCLUDE %odnb
-  INCLUDE %mpcount
-  INCLUDE %died
-  BIND(?odnb AS ?odnbcount)
+}   {
+  # count of dead MPs in each parliament
+  SELECT ?parliament (COUNT(DISTINCT ?mp) AS ?died) WHERE {
+    INCLUDE %MPsWithParliament.
+    ?mp wdt:P570 ?died . 
+  }
+  GROUP BY ?parliament
+}  BIND(?odnb AS ?odnbcount)
   BIND(?mps AS ?mpcount)
   BIND(ROUND(100*(?odnbcount/?mpcount)) AS ?percent_in_odnb) 
   BIND(?died AS ?diedcount)

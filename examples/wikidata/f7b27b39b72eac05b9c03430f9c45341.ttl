@@ -17,17 +17,14 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?author ?authorLabel
-WITH
+WHERE
 {
-  SELECT DISTINCT ?author
+  
+{
+  SELECT ?author
   WHERE
   {
-    ?work wdt:P50 ?author .
-    [] schema:about ?author ; schema:isPartOf / wikibase:wikiGroup \"wikisource\" .
-    MINUS { ?author wdt:P31 wd:Q5 . }
-  }
-} AS %0
-WITH
+    
 {
   SELECT ?author
   {
@@ -37,25 +34,14 @@ WITH
   }
   GROUP BY ?author
   HAVING (COUNT(?author) = SAMPLE(?sitelinks))
-} AS %1
-WITH
-{
-  SELECT ?author
-  WHERE
-  {
-    INCLUDE %1
-    FILTER EXISTS
+}    FILTER EXISTS
     {
       ?work wdt:P50 ?author .
       ?work wdt:P31/wdt:P279* wd:Q47461344 . # Written work exists
       hint:Prior hint:gearing \"forward\" .
     }
   }
-} AS %2
-WHERE
-{
-  INCLUDE %2
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
 }""";
   <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -84,7 +70,9 @@ WITH
   GROUP BY ?author
   HAVING (COUNT(?author) = SAMPLE(?sitelinks))
 } AS %1
-WITH
+WHERE
+{
+  
 {
   SELECT ?author
   WHERE
@@ -97,9 +85,5 @@ WITH
       hint:Prior hint:gearing \"forward\" .
     }
   }
-} AS %2
-WHERE
-{
-  INCLUDE %2
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
 }""" .

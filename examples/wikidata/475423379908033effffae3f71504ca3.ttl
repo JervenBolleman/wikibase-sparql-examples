@@ -22,30 +22,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 # (Note: results should hopefully be ordered, but this is not guaranteed.
 # In particular, it’s possible that the order flips from ascending to descending
 # if something about the way the query is optimized changes.)
-SELECT ?identifierProperties ?otherProperties WITH {
-  SELECT ?property ?propertyId ?label WHERE {
-    ?property a wikibase:Property.
-    BIND(SUBSTR(STR(?property), STRLEN(STR(wd:)) + 1) AS ?propertyId)
-    BIND(xsd:integer(SUBSTR(?propertyId, 2)) AS ?propertyNumber)
-    FILTER(?propertyNumber > 4721)
-    OPTIONAL {
-      ?property rdfs:label ?labelEn.
-      FILTER(LANG(?labelEn) = \"en\")
-    }
-    BIND(COALESCE(?labelEn, \"no label\"@en) AS ?label)
-  }
-  ORDER BY DESC(?propertyNumber)
-} AS %results WITH {
-  SELECT (GROUP_CONCAT(CONCAT(\"[[:d:Property:\", ?propertyId, \"|\", ?label, \"]]\"); separator = \", \") AS ?identifierProperties) WHERE {
-    INCLUDE %results.
-    ?property wikibase:propertyType wikibase:ExternalId.
-  }
-} AS %identifierProperties WITH {
-  SELECT (GROUP_CONCAT(CONCAT(\"[[:d:Property:\", ?propertyId, \"|\", ?label, \"]]\"); separator = \", \") AS ?otherProperties) WHERE {
-    INCLUDE %results.
-    MINUS { ?property wikibase:propertyType wikibase:ExternalId. }
-  }
-} AS %otherProperties WHERE {
+SELECT ?identifierProperties ?otherProperties WHERE {
   INCLUDE %identifierProperties.
   INCLUDE %otherProperties.
 }""";

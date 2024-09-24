@@ -25,7 +25,11 @@ select ?property ?propertyLabel ?propertyDescription
                            \"(\", str(round(?effectif / sum(?effectif) * 100)), \"%\",\")\") ; separator=\" - \") as ?sexes) 
        (sum(?effectif) as ?total)
 
-with {
+
+where {
+  {
+    select ?property ?propertyLabel ?propertyDescription ?sexe ?sexe_label_final ?effectif{
+       {
 
 select ?property ?sexe (count(?person) as ?effectif)
 {
@@ -44,12 +48,7 @@ select ?property ?sexe (count(?person) as ?effectif)
  
 } group by ?property ?sexe
   order by ?property ?sexe
-} as %dataset
-
-where {
-  {
-    select ?property ?propertyLabel ?propertyDescription ?sexe ?sexe_label_final ?effectif{
-      include %dataset .
+}.
       optional { ?sexe rdfs:label ?label_sexe filter langmatches(lang(?label_sexe), \"fr\") }
       SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
       bind (if(bound(?label_sexe), ?label_sexe, ?sexe) as ?sexe_label_final)

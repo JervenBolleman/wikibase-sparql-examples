@@ -29,7 +29,11 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 
 SELECT distinct ?election ?electionLabel ?members ?westminster_experience ?has_devolved_experience ?devolved_experience_only ?held_at_dissolution ?new
 
-WITH {
+
+WHERE {
+  
+  { SELECT ?election ?electiondate (count(distinct ?item) as ?members) where 
+    {  {
    SELECT DISTINCT ?item ?membership ?election ?electiondate ?membership2 ?positionStatement2 ?devolvedmembership ?positionStatement3 ?reason WHERE {
      
      # find all general elections and their date
@@ -61,23 +65,82 @@ WITH {
          # is counted (1998-date), as previous incarnations do yet not have term dates available
      }
    }
-} AS %members
-
-WHERE {
-  
-  { SELECT ?election ?electiondate (count(distinct ?item) as ?members) where 
-    { INCLUDE %members .
+}.
     } group by ?election ?electiondate 
   } # count all members for each election
 
   { SELECT ?election ?electiondate (count(distinct ?item) as ?westminster_experience) where 
-    { INCLUDE %members .
+    {  {
+   SELECT DISTINCT ?item ?membership ?election ?electiondate ?membership2 ?positionStatement2 ?devolvedmembership ?positionStatement3 ?reason WHERE {
+     
+     # find all general elections and their date
+     ?election wdt:P31 wd:Q15283424 . ?election wdt:P585 ?electiondate . 
+     filter (?electiondate >= \"1832-01-01T00:00:00Z\"^^xsd:dateTime) . 
+  
+     # item holds a term which began with the election
+     ?item p:P39 ?positionStatement . ?positionStatement ps:P39 ?membership . 
+     ?membership wdt:P2715 ?election . ?positionStatement pq:P2715 ?election . 
+ 
+     OPTIONAL {
+         # find other positions held
+         ?item p:P39 ?positionStatement2 .
+         ?positionStatement2 ps:P39 ?membership2 .
+         ?positionStatement2 pq:P580 ?start . filter ( ?start < ?electiondate ) .
+         ?membership2 wdt:P279 wd:Q16707842 .
+         optional {?positionStatement2 pq:P1534 ?reason .}
+         # optionally find whether they held office during a previous term, and if so why they left
+     }
+     OPTIONAL {
+         # find other positions held
+         ?item p:P39 ?positionStatement3 .
+         ?positionStatement3 ps:P39 ?devolvedmembership .
+         ?positionStatement3 pq:P580 ?start3 . filter ( ?start3 < ?electiondate ) .
+         { ?devolvedmembership wdt:P279 wd:Q1711695 . } union
+         { ?devolvedmembership wdt:P279 wd:Q3406079 . } union
+         { ?devolvedmembership wdt:P279 wd:Q3272410. } 
+         # ... where they previously were an MSP, MLA, or AM; only the \"modern\" NI assembly 
+         # is counted (1998-date), as previous incarnations do yet not have term dates available
+     }
+   }
+}.
       FILTER (BOUND (?membership2)) .
     } group by ?election ?electiondate
   } # count all peoiple with any earlier term, for each election
   
   { SELECT ?election ?electiondate (count(distinct ?item) as ?held_at_dissolution) where 
-    { INCLUDE %members .
+    {  {
+   SELECT DISTINCT ?item ?membership ?election ?electiondate ?membership2 ?positionStatement2 ?devolvedmembership ?positionStatement3 ?reason WHERE {
+     
+     # find all general elections and their date
+     ?election wdt:P31 wd:Q15283424 . ?election wdt:P585 ?electiondate . 
+     filter (?electiondate >= \"1832-01-01T00:00:00Z\"^^xsd:dateTime) . 
+  
+     # item holds a term which began with the election
+     ?item p:P39 ?positionStatement . ?positionStatement ps:P39 ?membership . 
+     ?membership wdt:P2715 ?election . ?positionStatement pq:P2715 ?election . 
+ 
+     OPTIONAL {
+         # find other positions held
+         ?item p:P39 ?positionStatement2 .
+         ?positionStatement2 ps:P39 ?membership2 .
+         ?positionStatement2 pq:P580 ?start . filter ( ?start < ?electiondate ) .
+         ?membership2 wdt:P279 wd:Q16707842 .
+         optional {?positionStatement2 pq:P1534 ?reason .}
+         # optionally find whether they held office during a previous term, and if so why they left
+     }
+     OPTIONAL {
+         # find other positions held
+         ?item p:P39 ?positionStatement3 .
+         ?positionStatement3 ps:P39 ?devolvedmembership .
+         ?positionStatement3 pq:P580 ?start3 . filter ( ?start3 < ?electiondate ) .
+         { ?devolvedmembership wdt:P279 wd:Q1711695 . } union
+         { ?devolvedmembership wdt:P279 wd:Q3406079 . } union
+         { ?devolvedmembership wdt:P279 wd:Q3272410. } 
+         # ... where they previously were an MSP, MLA, or AM; only the \"modern\" NI assembly 
+         # is counted (1998-date), as previous incarnations do yet not have term dates available
+     }
+   }
+}.
       FILTER (BOUND (?positionStatement2)) .
       FILTER EXISTS {?membership wdt:P155 ?membership2} .
       filter(?reason=wd:Q741182)
@@ -86,14 +149,78 @@ WHERE {
    
   # people with devolved experience
   optional { SELECT ?election ?electiondate (count(distinct ?item) as ?has_devolved_experience) where 
-    { INCLUDE %members .
+    {  {
+   SELECT DISTINCT ?item ?membership ?election ?electiondate ?membership2 ?positionStatement2 ?devolvedmembership ?positionStatement3 ?reason WHERE {
+     
+     # find all general elections and their date
+     ?election wdt:P31 wd:Q15283424 . ?election wdt:P585 ?electiondate . 
+     filter (?electiondate >= \"1832-01-01T00:00:00Z\"^^xsd:dateTime) . 
+  
+     # item holds a term which began with the election
+     ?item p:P39 ?positionStatement . ?positionStatement ps:P39 ?membership . 
+     ?membership wdt:P2715 ?election . ?positionStatement pq:P2715 ?election . 
+ 
+     OPTIONAL {
+         # find other positions held
+         ?item p:P39 ?positionStatement2 .
+         ?positionStatement2 ps:P39 ?membership2 .
+         ?positionStatement2 pq:P580 ?start . filter ( ?start < ?electiondate ) .
+         ?membership2 wdt:P279 wd:Q16707842 .
+         optional {?positionStatement2 pq:P1534 ?reason .}
+         # optionally find whether they held office during a previous term, and if so why they left
+     }
+     OPTIONAL {
+         # find other positions held
+         ?item p:P39 ?positionStatement3 .
+         ?positionStatement3 ps:P39 ?devolvedmembership .
+         ?positionStatement3 pq:P580 ?start3 . filter ( ?start3 < ?electiondate ) .
+         { ?devolvedmembership wdt:P279 wd:Q1711695 . } union
+         { ?devolvedmembership wdt:P279 wd:Q3406079 . } union
+         { ?devolvedmembership wdt:P279 wd:Q3272410. } 
+         # ... where they previously were an MSP, MLA, or AM; only the \"modern\" NI assembly 
+         # is counted (1998-date), as previous incarnations do yet not have term dates available
+     }
+   }
+}.
       FILTER (BOUND (?positionStatement3)) .
     } group by ?election ?electiondate
   } 
   
   # people with devolved experience but not Westminster experience
   optional { SELECT ?election ?electiondate (count(distinct ?item) as ?devolved_experience_only) where 
-    { INCLUDE %members .
+    {  {
+   SELECT DISTINCT ?item ?membership ?election ?electiondate ?membership2 ?positionStatement2 ?devolvedmembership ?positionStatement3 ?reason WHERE {
+     
+     # find all general elections and their date
+     ?election wdt:P31 wd:Q15283424 . ?election wdt:P585 ?electiondate . 
+     filter (?electiondate >= \"1832-01-01T00:00:00Z\"^^xsd:dateTime) . 
+  
+     # item holds a term which began with the election
+     ?item p:P39 ?positionStatement . ?positionStatement ps:P39 ?membership . 
+     ?membership wdt:P2715 ?election . ?positionStatement pq:P2715 ?election . 
+ 
+     OPTIONAL {
+         # find other positions held
+         ?item p:P39 ?positionStatement2 .
+         ?positionStatement2 ps:P39 ?membership2 .
+         ?positionStatement2 pq:P580 ?start . filter ( ?start < ?electiondate ) .
+         ?membership2 wdt:P279 wd:Q16707842 .
+         optional {?positionStatement2 pq:P1534 ?reason .}
+         # optionally find whether they held office during a previous term, and if so why they left
+     }
+     OPTIONAL {
+         # find other positions held
+         ?item p:P39 ?positionStatement3 .
+         ?positionStatement3 ps:P39 ?devolvedmembership .
+         ?positionStatement3 pq:P580 ?start3 . filter ( ?start3 < ?electiondate ) .
+         { ?devolvedmembership wdt:P279 wd:Q1711695 . } union
+         { ?devolvedmembership wdt:P279 wd:Q3406079 . } union
+         { ?devolvedmembership wdt:P279 wd:Q3272410. } 
+         # ... where they previously were an MSP, MLA, or AM; only the \"modern\" NI assembly 
+         # is counted (1998-date), as previous incarnations do yet not have term dates available
+     }
+   }
+}.
       FILTER (BOUND (?positionStatement3)) .
       FILTER (!BOUND (?positionStatement2)) .
     } group by ?election ?electiondate

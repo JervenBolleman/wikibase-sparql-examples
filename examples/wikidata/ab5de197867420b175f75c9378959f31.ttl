@@ -14,23 +14,22 @@
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 SELECT DISTINCT ?all ?names
-WITH
+WHERE
+{
+  SELECT ?other (sum(?count) as ?all) (GROUP_CONCAT(DISTINCT CONCAT(?ru, \" (\",str(?count),\"), \")  ) as ?names)
+  { 
 {
 SELECT ?other ?ru (COUNT(DISTINCT ?p ) as ?count)
 WHERE 
 {
-    hint:Query hint:optimizer \"None\".
+    
     ?p wdt:P27 wd:Q159 ; wdt:P21 wd:Q6581072 ; wdt:P734 ?item . 
     ?item wdt:P1705 ?ru . 
     { ?item wdt:P460* ?other } UNION { ?other wdt:P460* ?item } .
 } 
 GROUP BY ?other ?ru
 ORDER BY ?ru
-} as %a
-WHERE
-{
-  SELECT ?other (sum(?count) as ?all) (GROUP_CONCAT(DISTINCT CONCAT(?ru, \" (\",str(?count),\"), \")  ) as ?names)
-  { INCLUDE %a }
+}}
   GROUP bY ?other  
 }
 ORDER BY DESC(?all)

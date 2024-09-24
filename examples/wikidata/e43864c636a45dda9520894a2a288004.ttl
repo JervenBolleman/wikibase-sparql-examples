@@ -22,76 +22,18 @@ SELECT DISTINCT
   ?lemmaZh
   ?lemmaEs
   ?lemmaEn
-WITH {
-  SELECT DISTINCT ?lexeme {
-    ?lexeme dct:language wd:Q5218.
-    # Escogemos aquellos lexemas que tienen una definición enlazada a
-    # una subclase de polígono.
-    {?lexeme ontolex:sense/wdt:P5137/wdt:P279* wd:Q37555}
-    UNION
-    # Escogemos aquellos lexemas que tienen una definición enlazada a
-    # una subclase de elipse.
-    {?lexeme ontolex:sense/wdt:P5137/wdt:P279* wd:Q40112}
-  }
-} AS %0
 # La siguiente subconsulta obtiene la información de los lexemas en
 # mandarín estándar.
-WITH {
-  SELECT * {
-    INCLUDE %0.
-    ?lexeme ontolex:sense ?sense.
-    ?sense wdt:P5972 ?senseZh.
-    ?lexemeZh
-      dct:language wd:Q727694;
-      ontolex:sense ?senseZh;
-      wikibase:lemma ?lemmaZhHansHant.
-  }
-} AS %1
 # La siguiente subconsulta obtiene la información de los lexemas en
 # español
-WITH {
-  SELECT * {
-    INCLUDE %1.
-    ?lexeme ontolex:sense ?sense.
-    ?sense wdt:P5972 ?senseEn.
-    ?lexemeEn
-      dct:language wd:Q1860;
-      ontolex:sense ?senseEn;
-      wikibase:lemma ?lemmaEn.
-  }
-} AS %2
 # La siguiente subconsulta obtiene la información de los lexemas en
 # inglés
-WITH {
-  SELECT * {
-    INCLUDE %2.
-    ?lexeme ontolex:sense ?sense.
-    ?sense wdt:P5972 ?senseEs.
-    ?lexemeEs
-      dct:language wd:Q1321;
-      ontolex:sense ?senseEs;
-      wikibase:lemma ?lemmaEs.
-  }
-} AS %3
 # La siguiente subconsulta une los diferentes lemas de aquellos
 # lexemas en mandarín estándar
 #
 # Algunos lexemas en Chino tienen 2 lemas: 1 lema para el caracter
 # chino simplificado y otro para el caracter simplificado
-WITH {
-  SELECT ?lexemeZh (GROUP_CONCAT(?lemmaZhHansHant; SEPARATOR=\"/\") AS ?lemmaZh)  {
-    INCLUDE %1.
-    ?lexemeZh wikibase:lemma ?lemmaZhHansHant.
-  }
-  GROUP BY ?lexemeZh
-} AS %4
 # La siguiente subconsulta obtiene el lema de los lexemas en quechua
-WITH {
-  SELECT ?lexeme ?lemma {
-    INCLUDE %0.
-    ?lexeme wikibase:lemma ?lemma.
-  }
-} AS %5
 {
   INCLUDE %3.
   INCLUDE %4.

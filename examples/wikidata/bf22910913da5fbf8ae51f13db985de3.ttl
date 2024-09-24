@@ -32,7 +32,15 @@ SELECT
 
   ?example_work ?example_workLabel
   (CONCAT(\"#work/\", SUBSTR(STR(?example_work), 32)) AS ?example_workUrl)
-WITH {
+ 
+WHERE {
+   {
+  SELECT
+    (COUNT(?work) AS ?number_of_publications)
+    ?roles
+    ?person (SAMPLE(?work) AS ?example_work)
+  WHERE {
+     {
   SELECT
     (GROUP_CONCAT(DISTINCT ?role; separator=\", \") AS ?roles) ?person
   WHERE {
@@ -85,22 +93,12 @@ WITH {
     }
   }
   GROUP BY ?person
-} AS %people  
-WITH {
-  SELECT
-    (COUNT(?work) AS ?number_of_publications)
-    ?roles
-    ?person (SAMPLE(?work) AS ?example_work)
-  WHERE {
-    INCLUDE %people .
+}.
     ?person wdt:P31 wd:Q5.
     OPTIONAL { ?work wdt:P50 ?person . }
   }
   GROUP BY ?roles ?person
-} AS %results
-WHERE {
-  INCLUDE %results
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY DESC(?number_of_publications)""";
   <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
@@ -178,7 +176,8 @@ WITH {
   }
   GROUP BY ?person
 } AS %people  
-WITH {
+WHERE {
+   {
   SELECT
     (COUNT(?work) AS ?number_of_publications)
     ?roles
@@ -189,9 +188,6 @@ WITH {
     OPTIONAL { ?work wdt:P50 ?person . }
   }
   GROUP BY ?roles ?person
-} AS %results
-WHERE {
-  INCLUDE %results
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY DESC(?number_of_publications)""" .

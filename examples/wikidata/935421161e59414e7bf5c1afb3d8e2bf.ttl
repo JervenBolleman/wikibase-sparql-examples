@@ -19,20 +19,18 @@ PREFIX pr: <http://www.wikidata.org/prop/reference/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #title: Durchschnittliche Zahl an Quellenangabe (URL bzw. Item) bei Objekten in Kunstmuseen
 SELECT ?collection ?collectionLabel (AVG(?numberOfReferences) AS ?revAverage)
-WITH {
+
+WHERE {
+  SELECT ?collection ?collectionLabel ?obj (COUNT(?refnode) AS ?numberOfReferences)
+  WHERE {
+     {
   #named Subquery via https://renenyffenegger.ch/notes/development/Data/open/Wikidata/index nach https://w.wiki/5pWb
   SELECT ?obj $collection WHERE {
     ?obj wdt:P276 $collection .
     ?collection wdt:P31 wd:Q207694;
                 wdt:P17 wd:Q183 .
   }
-} AS %objects
-
-WHERE {
-  SELECT ?collection ?collectionLabel ?obj (COUNT(?refnode) AS ?numberOfReferences)
-  WHERE {
-    include %objects
-    ?obj ?x ?statement.
+}    ?obj ?x ?statement.
     ?statement prov:wasDerivedFrom ?refnode.
     ?refnode (pr:P248| pr:P854) ?ref.
     SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }

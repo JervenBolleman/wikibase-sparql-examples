@@ -11,16 +11,8 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-# geoshapes coloured by their distance from a central point
-#defaultView:Map{\"hide\":[\"?geoshape\",\"?rgb\"]}
-SELECT ?x ?xLabel ?description ?geoshape ?rgb  WITH {
+  sh:select """WHERE {
+   {
 # extract the data
 SELECT ?data ?x ?geoshape $CENTRE WHERE {
   VALUES $CENTRE { wd:Q84 }
@@ -34,16 +26,22 @@ SELECT ?data ?x ?geoshape $CENTRE WHERE {
   BIND(geof:distance($CENTRE_COORDS, ?x_coords) as ?data) 
   FILTER (?data < $LIMIT)
   }
-} AS %totals
-# determine the max and min values (used to calculate the spread
-WITH { 
-  SELECT (MAX(?data) AS ?max_data)  (MIN(?data) AS ?min_data) WHERE {
-  INCLUDE %totals            
+}  PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# geoshapes coloured by their distance from a central point
+#defaultView:Map{\"hide\":[\"?geoshape\",\"?rgb\"]}
+SELECT ?x ?xLabel ?description ?geoshape ?rgb  Q145, wd:Q22, wd:Q21, wd:Q25, wd:Q26))
+  BIND(geof:distance($CENTRE_COORDS, ?x_coords) as ?data) 
+  FILTER (?data < $LIMIT)
+  }
+}           
  }
-} AS %min_max
-WHERE {
-  INCLUDE %totals
-  INCLUDE %min_max   
+}  
   ?x rdfs:label ?xLabel. FILTER (LANG(?xLabel) = \"en\") .
   $CENTRE rdfs:label $CENTRELabel. FILTER (LANG($CENTRELabel) = \"en\") .
 

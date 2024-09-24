@@ -15,34 +15,18 @@
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT ?item ?author ?authorQID ?dob ?dod ?field ?description with 
-{ 
-  select (sample(?it) as ?item) ?author ?description (sample(?aut3) as ?authorQID) (group_concat(distinct ?fiel;separator=\", \") as ?field) ?dob ?dod
-WHERE 
+SELECT ?item ?author ?authorQID ?dob ?dod ?field ?description where
 {
-  ?it wdt:P1433 wd:Q35387261. # article was published in costume
-  ?it wdt:P50 ?aut . # here's an author
-  bind(strafter(str(?aut),\"http://www.wikidata.org/entity/\") as ?aut2)
-  BIND (CONCAT (\"[http://www.wikidata.org/entity/\", ?aut2, \" \", ?aut2,\"]\") as ?aut3) .
-  optional {?aut wdt:P569 ?dob .}
-  optional {?aut wdt:P570 ?dod .}
-  optional {?aut wdt:P101 ?fi . ?fi rdfs:label ?fiel . filter(lang(?fiel)=\"en\")} 
-  optional {?aut rdfs:label ?author .  filter(lang(?author)=\"en\")} 
-  optional {?aut schema:description ?description .  filter(lang(?description)=\"en\")} 
-} group by ?author ?dob ?dod ?description
-} as %i with 
+{  include %i}
+          UNION
+{  
 { 
   select (sample(?it) as ?item) ?author ?authorQID ?field ?dob ?dod ?description WHERE 
   {
     ?it wdt:P1433 wd:Q35387261. # article was published in costume
     ?it wdt:P2093 ?author . # here's an author (without a Wikidata object)
   } group by ?author ?authorQID ?field ?dob ?dod ?description
-} as %j
-where
-{
-{  include %i}
-          UNION
-{  include %j }
+}}
 }""";
   <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -63,17 +47,16 @@ WHERE
   optional {?aut rdfs:label ?author .  filter(lang(?author)=\"en\")} 
   optional {?aut schema:description ?description .  filter(lang(?description)=\"en\")} 
 } group by ?author ?dob ?dod ?description
-} as %i with 
+} as %i where
+{
+{  include %i}
+          UNION
+{  
 { 
   select (sample(?it) as ?item) ?author ?authorQID ?field ?dob ?dod ?description WHERE 
   {
     ?it wdt:P1433 wd:Q35387261. # article was published in costume
     ?it wdt:P2093 ?author . # here's an author (without a Wikidata object)
   } group by ?author ?authorQID ?field ?dob ?dod ?description
-} as %j
-where
-{
-{  include %i}
-          UNION
-{  include %j }
+}}
 }""" .

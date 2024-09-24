@@ -71,32 +71,31 @@ WITH
   }
 } AS %get_files
 
-WITH {
-  SELECT ?cat ?file ?coords_stmt WHERE {
-     INCLUDE %get_files .
+NCLUDE %get_files .
      ?file p:P9149 ?coords_stmt  . 
   }
-} AS %coords_stmts
-
-WITH {
-  SELECT ?cat (AVG(?lat) AS ?avg_lat)  (AVG(?lon) AS ?avg_lon) WHERE {
-    INCLUDE %coords_stmts .
+}.
     ?coords_stmt psv:P9149 ?obj .
     ?obj wikibase:geoLatitude ?lat .
     ?obj wikibase:geoLongitude ?lon . 
   } GROUP BY ?cat
 } AS %avg_coords
 
-WITH {
+
+
+WHERE {
+   {
   SELECT ?cat ?avg_lat ?avg_lon ?point WHERE {
     INCLUDE %avg_coords .
     BIND(strdt(CONCAT(\"Point(\", str(?avg_lon), ' ', str(?avg_lat), ')'), geo:wktLiteral) AS ?point) .
   }
-} AS %avg_points 
-
-WHERE {
-  INCLUDE %avg_points . 
-  INCLUDE %coords_stmts .
+}. 
+   {
+  SELECT ?cat ?file ?coords_stmt WHERE {
+     INCLUDE %get_files .
+     ?file p:P9149 ?coords_stmt  . 
+  }
+}.
   ?coords_stmt ps:P9149 ?coords .
   BIND(geof:distance(?point, ?coords) as ?dist) .
   BIND((?dist * ?dist) AS ?d2) .

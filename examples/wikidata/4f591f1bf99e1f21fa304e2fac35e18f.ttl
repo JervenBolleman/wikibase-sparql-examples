@@ -24,54 +24,6 @@ SELECT
   ?yearLabel
   ?software
   ?softwareLabel
-WITH {
-  SELECT DISTINCT ?year
-  {
-    # \"2010\" (Q1995) is an instance of \"calendar year\" (Q3186692), but is not an instance of \"year\" (Q577)
-    {?year wdt:P31 wd:Q3186692}
-    UNION
-    # \"1582\" (Q6719) is an instance of \"year\" (Q577), but is not an instance of \"calendar year\" (Q3186692)
-    {?year wdt:P31 wd:Q577}.
-  }
-} AS %0
-WITH {
-  SELECT ?year ?yearLabel {
-    INCLUDE %0.
-    ?year rdfs:label ?yearLabelWithLang.
-    FILTER(LANG(?yearLabelWithLang) = \"en\").
-    # Initially, the label of a year item is a monolingual string. We need to convert it to a string, in order to compare it with the year which is obtained by using YEAR(...) in the inception date of the item of free software.
-    BIND(STR(?yearLabelWithLang) AS ?yearLabel).
-  }  
-} AS %1
-WITH {
-  SELECT DISTINCT ?license {
-    ?license wdt:P629*/wdt:P31/wdt:P279* wd:Q3943414.
-  }
-} AS %license
-WITH {
-  SELECT DISTINCT ?software ?P571 ?P31 {
-    INCLUDE %license.
-    {?software wdt:P31/wdt:P279* wd:Q341}
-    UNION
-    {?software wdt:P275 ?license}
-    ?software wdt:P571 ?P571;
-              wdt:P31 ?P31.
-  }
-} AS %2
-WITH {
-  SELECT ?software ?yearLabel ?P31 {
-    INCLUDE %2.
-    BIND(STR(YEAR(?P571)) AS ?yearLabel).
-    # Filter out \"unknown value\"
-    FILTER(!wikibase:isSomeValue(?P571))
-  }
-} AS %3
-WITH {
-  SELECT DISTINCT ?P31 (COUNT(DISTINCT ?yearLabel) AS ?count) {
-    INCLUDE %3.
-  }
-  GROUP BY ?P31
-} AS %4
 {
   INCLUDE %1.
   INCLUDE %3.

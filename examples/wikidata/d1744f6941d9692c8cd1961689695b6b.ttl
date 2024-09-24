@@ -18,7 +18,9 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT distinct ?item ?label_de ?lastname ?itemlastname ?itemlastnameLabel WITH {
+SELECT distinct ?item ?label_de ?lastname ?itemlastname ?itemlastnameLabel WHERE
+{
+   {
   SELECT distinct ?item ?label_de ?lastname ?itemlastname
 WHERE 
 {
@@ -45,11 +47,7 @@ WHERE
   
   BIND(REPLACE(?label_de, \"^.* ([^\\\\s]+)$\", \"$1\") AS ?lastname)  # get lastname
   FILTER(REGEX(STR(?lastname), \"....*\")) .                       # minimum 3 letters  
-  } } as %i
-WHERE
-{
-  INCLUDE %i
-  BIND (concat(?lastname,\" haswbstatement:P31=Q101352\") as ?searchinput)
+  } }  BIND (concat(?lastname,\" haswbstatement:P31=Q101352\") as ?searchinput)
   SERVICE wikibase:mwapi {
     bd:serviceParam wikibase:api \"Search\";
                     wikibase:endpoint \"www.wikidata.org\";

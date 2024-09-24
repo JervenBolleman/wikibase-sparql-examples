@@ -16,26 +16,22 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?property ?propertyLabel ?count ?propertyType
-WITH
+{
+  
+{
+  SELECT ?property (COUNT(DISTINCT ?country) AS ?count)
+  {
+    
 {
   SELECT DISTINCT ?country
   {
     ?country wdt:P31 / wdt:P279 * wd:Q6256 . # ?country is a country or a subclass of it
   }
-} AS %countries
-WITH
-{
-  SELECT ?property (COUNT(DISTINCT ?country) AS ?count)
-  {
-    INCLUDE %countries
-    ?country ?truthy_claim [] .
+}    ?country ?truthy_claim [] .
     ?property wikibase:directClaim ?truthy_claim
   }
   GROUP BY ?property
-} AS %count
-{
-  INCLUDE %count
-  OPTIONAL { ?property wikibase:propertyType wikibase:ExternalId.
+}  OPTIONAL { ?property wikibase:propertyType wikibase:ExternalId.
              BIND(\"External-ID\" as ?propertyType) }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
 }
@@ -52,7 +48,8 @@ WITH
     ?country wdt:P31 / wdt:P279 * wd:Q6256 . # ?country is a country or a subclass of it
   }
 } AS %countries
-WITH
+{
+  
 {
   SELECT ?property (COUNT(DISTINCT ?country) AS ?count)
   {
@@ -61,10 +58,7 @@ WITH
     ?property wikibase:directClaim ?truthy_claim
   }
   GROUP BY ?property
-} AS %count
-{
-  INCLUDE %count
-  OPTIONAL { ?property wikibase:propertyType wikibase:ExternalId.
+}  OPTIONAL { ?property wikibase:propertyType wikibase:ExternalId.
              BIND(\"External-ID\" as ?propertyType) }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
 }

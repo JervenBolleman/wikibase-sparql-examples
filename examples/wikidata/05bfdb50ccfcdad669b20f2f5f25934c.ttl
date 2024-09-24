@@ -17,27 +17,19 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 #defaultView:BubbleChart
 #Based on https://w.wiki/KG$
 SELECT ?word (COUNT(DISTINCT ?title) as ?count)
-WITH
-{  SELECT ?formatterstring 
-   {  wd:Q87572880 wdt:P1181 ?formatterstring_raw .
-      BIND(REPLACE(str(?formatterstring_raw), \"1\", \" \") as ?formatterstring)
-   } 
-} as %a0
-WITH
-{  SELECT ?title  (CONCAT( REPLACE(str(?title),\"[\\\\.:,\\\\[\\\\]()$]\",\"\"), ?formatterstring) as ?input) 
-   { INCLUDE %a0 [] wdt:P921 wd:Q202864 ; wdt:P1476 ?title . FILTER(lang(?title)=\"en\") }   LIMIT 1000
-} as %a
-WITH
-{    SELECT ?re ?nv { ?n wdt:P5176 []; wdt:P1181 ?nv . FILTER( ?nv < 51) 
-     BIND( CONCAT( \"^([^ ]+ ){\", str( ?nv - 1 ),\"}([^ ]+) .*\") as ?re) }
-} as %nb                                                            
-WITH
-{    SELECT * { INCLUDE %a  INCLUDE %nb  FILTER (strlen(?word) > 3 )  BIND( REPLACE(?input, ?re, \"$2\") as ?word) }
-} as %b 
+                                                           
+
 WHERE
 {
-    INCLUDE %b
-    FILTER ( ?word != \"from\" && ?word != \"with\" && ?word != \"after\"
+    
+{    SELECT * { 
+{  SELECT ?title  (CONCAT( REPLACE(str(?title),\"[\\\\.:,\\\\[\\\\]()$]\",\"\"), ?formatterstring) as ?input) 
+   { INCLUDE %a0 [] wdt:P921 wd:Q202864 ; wdt:P1476 ?title . FILTER(lang(?title)=\"en\") }   LIMIT 1000
+} 
+{    SELECT ?re ?nv { ?n wdt:P5176 []; wdt:P1181 ?nv . FILTER( ?nv < 51) 
+     BIND( CONCAT( \"^([^ ]+ ){\", str( ?nv - 1 ),\"}([^ ]+) .*\") as ?re) }
+} FILTER (strlen(?word) > 3 )  BIND( REPLACE(?input, ?re, \"$2\") as ?word) }
+}    FILTER ( ?word != \"from\" && ?word != \"with\" && ?word != \"after\"
            )               
 }
 GROUP BY ?word
@@ -63,13 +55,12 @@ WITH
 {    SELECT ?re ?nv { ?n wdt:P5176 []; wdt:P1181 ?nv . FILTER( ?nv < 51) 
      BIND( CONCAT( \"^([^ ]+ ){\", str( ?nv - 1 ),\"}([^ ]+) .*\") as ?re) }
 } as %nb                                                            
-WITH
-{    SELECT * { INCLUDE %a  INCLUDE %nb  FILTER (strlen(?word) > 3 )  BIND( REPLACE(?input, ?re, \"$2\") as ?word) }
-} as %b 
+
 WHERE
 {
-    INCLUDE %b
-    FILTER ( ?word != \"from\" && ?word != \"with\" && ?word != \"after\"
+    
+{    SELECT * { INCLUDE %a  INCLUDE %nb  FILTER (strlen(?word) > 3 )  BIND( REPLACE(?input, ?re, \"$2\") as ?word) }
+}    FILTER ( ?word != \"from\" && ?word != \"with\" && ?word != \"after\"
            )               
 }
 GROUP BY ?word

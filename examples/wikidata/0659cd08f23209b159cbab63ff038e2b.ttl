@@ -19,7 +19,14 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
-SELECT distinct ?item ?image ?label ?description ?latitude ?longitude ?nazev_obce ?nazev_okresu ?nazev_kraje ?username (group_concat(DISTINCT ?llabel; separator=\", \") as ?licencni_ujednani) WITH
+SELECT distinct ?item ?image ?label ?description ?latitude ?longitude ?nazev_obce ?nazev_okresu ?nazev_kraje ?username (group_concat(DISTINCT ?llabel; separator=\", \") as ?licencni_ujednani) WHERE
+{
+  
+{
+  SELECT distinct ?item ?file ?image ?coord1 ?municipality1
+  WHERE
+  {
+    
 {
   SELECT distinct ?item ?image ?filename (sample(?coord) as ?coord1)  (sample(?municipality) as ?municipality1) ?contentUrl WHERE
   {
@@ -40,20 +47,9 @@ SELECT distinct ?item ?image ?label ?description ?latitude ?longitude ?nazev_obc
     BIND (MD5(?filename) AS ?MD5)
     BIND (URI(CONCAT(\"https://upload.wikimedia.org/wikipedia/commons/\", SUBSTR(?MD5, 1, 1), \"/\", SUBSTR(?MD5, 1, 2), \"/\", ?filenameUnencoded)) As ?contentUrl)
   } group by ?item ?image ?filename ?contentUrl
-} AS %get_items
-WITH
-{
-  SELECT distinct ?item ?file ?image ?coord1 ?municipality1
-  WHERE
-  {
-    INCLUDE %get_items
-    ?file schema:contentUrl ?contentUrl .
+}    ?file schema:contentUrl ?contentUrl .
   }
-} AS %get_files
-WHERE
-{
-  INCLUDE %get_files
-  ?file p:P170 / pq:P4174 ?username .
+}  ?file p:P170 / pq:P4174 ?username .
   ?file wdt:P275 ?licence .
   SERVICE <https://query.wikidata.org/sparql>
           {
@@ -103,7 +99,9 @@ SELECT distinct ?item ?image ?label ?description ?latitude ?longitude ?nazev_obc
     BIND (URI(CONCAT(\"https://upload.wikimedia.org/wikipedia/commons/\", SUBSTR(?MD5, 1, 1), \"/\", SUBSTR(?MD5, 1, 2), \"/\", ?filenameUnencoded)) As ?contentUrl)
   } group by ?item ?image ?filename ?contentUrl
 } AS %get_items
-WITH
+WHERE
+{
+  
 {
   SELECT distinct ?item ?file ?image ?coord1 ?municipality1
   WHERE
@@ -111,11 +109,7 @@ WITH
     INCLUDE %get_items
     ?file schema:contentUrl ?contentUrl .
   }
-} AS %get_files
-WHERE
-{
-  INCLUDE %get_files
-  ?file p:P170 / pq:P4174 ?username .
+}  ?file p:P170 / pq:P4174 ?username .
   ?file wdt:P275 ?licence .
   SERVICE <https://query.wikidata.org/sparql>
           {

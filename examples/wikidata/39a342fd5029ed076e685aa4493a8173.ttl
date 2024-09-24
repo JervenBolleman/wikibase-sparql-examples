@@ -18,15 +18,16 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT distinct ?item ?itemLabel ?countryLabel ?iata ?icao 
 
-with {select ?item 
+
+
+where {
+  { {select ?item 
 WHERE {
   ?item wdt:P31 wd:Q1248784.
   OPTIONAL { ?item wdt:P238 ?iata. }
   OPTIONAL { ?item wdt:P239 ?icao. }
   filter(bound(?iata)|| bound(?icao))
-  } } as %i
-
-with {select ?item 
+  } }.} union {   {select ?item 
 where {
   ?item wdt:P31 wd:Q695850.
   minus {?item wdt:P31 wd:Q1248784.}
@@ -35,10 +36,7 @@ where {
   filter not exists {?iata ^wdt:P238 ?item2. ?item2 wdt:P31 wd:Q1248784}
   filter not exists {?icao ^wdt:P239 ?item2. ?item2 wdt:P31 wd:Q1248784}
   filter(bound(?iata) || bound(?icao))
-  } } as %j
-
-where {
-  {include %i .} union {  include %j .}
+  } }.}
   OPTIONAL { ?item wdt:P238 ?iata. }
   OPTIONAL { ?item wdt:P239 ?icao. }
   OPTIONAL { ?item wdt:P17 ?country. }

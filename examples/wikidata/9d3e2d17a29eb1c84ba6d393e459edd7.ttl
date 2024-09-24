@@ -17,7 +17,12 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?coord ?item2 ?item2Label ?coord2 ?dist
-WITH
+{
+  
+{
+  SELECT ?item ?coord ?item2 ?coord2 ?dist
+  {
+    
 {
   SELECT DISTINCT ?item (SAMPLE(?coord_) AS ?coord)
   {
@@ -29,23 +34,26 @@ WITH
     FILTER (?long < 138)
   }
   GROUP BY ?item
-} AS %items
-WITH
+}    {
+      SELECT (?item AS ?item2) (?coord AS ?coord2) { 
 {
-  SELECT ?item ?coord ?item2 ?coord2 ?dist
+  SELECT DISTINCT ?item (SAMPLE(?coord_) AS ?coord)
   {
-    INCLUDE %items
-    {
-      SELECT (?item AS ?item2) (?coord AS ?coord2) { INCLUDE %items }
+    ?item wdt:P31 / wdt:P279 * wd:Q12323 . # Instance of Dam or subclass
+    ?item wdt:P17 wd:Q17 . # In Japan
+    ?item wdt:P625 ?coord_ .
+    BIND (geof:longitude(?coord_) AS ?long)
+    FILTER (?long > 136)
+    FILTER (?long < 138)
+  }
+  GROUP BY ?item
+}}
     }
     FILTER (STR(?item) < STR(?item2))
     BIND(geof:distance(?coord, ?coord2) as ?dist)
     FILTER (?dist <= 10)
   }
-} AS %dists
-{
-  INCLUDE %dists
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,ja\" }
+}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,ja\" }
 }
 ORDER BY ?dist""";
   <http://example.org/bigdata_select> """PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
@@ -67,7 +75,8 @@ WITH
   }
   GROUP BY ?item
 } AS %items
-WITH
+{
+  
 {
   SELECT ?item ?coord ?item2 ?coord2 ?dist
   {
@@ -79,9 +88,6 @@ WITH
     BIND(geof:distance(?coord, ?coord2) as ?dist)
     FILTER (?dist <= 10)
   }
-} AS %dists
-{
-  INCLUDE %dists
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,ja\" }
+}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,ja\" }
 }
 ORDER BY ?dist""" .

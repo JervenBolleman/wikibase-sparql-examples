@@ -22,7 +22,10 @@ PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #title: Which organisms are known to contain stereoisomers of Beta-Sitosterol (Q121802)?
-SELECT ?taxon_name ?compound ?InChIKey WITH {
+SELECT ?taxon_name ?compound ?InChIKey WHERE {
+   {
+  SELECT ?compound ?InChIKey WHERE {
+     {
   SELECT ?queryKey ?srsearch ?filter WHERE {
     VALUES ?queryKey {
       \"KZJWDPNRJALLNS-VJSFXXLFSA-N\" # beta-sitosterol
@@ -30,10 +33,7 @@ SELECT ?taxon_name ?compound ?InChIKey WITH {
     BIND (CONCAT(substr($queryKey,1,14), \" haswbstatement:P235\") AS ?srsearch)
     BIND (CONCAT(\"^\", substr($queryKey,1,14)) AS ?filter)
   }
-} AS %comps WITH {
-  SELECT ?compound ?InChIKey WHERE {
-    INCLUDE %comps
-            SERVICE wikibase:mwapi {
+}            SERVICE wikibase:mwapi {
               bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
                               wikibase:api \"Search\";
                               mwapi:srsearch ?srsearch;
@@ -44,10 +44,7 @@ SELECT ?taxon_name ?compound ?InChIKey WITH {
     FILTER (REGEX(STR(?InChIKey), ?filter))
     FILTER (?InChIKey != ?queryKey)
   }
-} AS %compounds
-WHERE {
-  INCLUDE %compounds
-          ?compound (wdt:P703/wdt:P225) ?taxon_name.
+}          ?compound (wdt:P703/wdt:P225) ?taxon_name.
 }
 LIMIT 10000""";
   <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
@@ -63,7 +60,8 @@ SELECT ?taxon_name ?compound ?InChIKey WITH {
     BIND (CONCAT(substr($queryKey,1,14), \" haswbstatement:P235\") AS ?srsearch)
     BIND (CONCAT(\"^\", substr($queryKey,1,14)) AS ?filter)
   }
-} AS %comps WITH {
+} AS %comps WHERE {
+   {
   SELECT ?compound ?InChIKey WHERE {
     INCLUDE %comps
             SERVICE wikibase:mwapi {
@@ -77,9 +75,6 @@ SELECT ?taxon_name ?compound ?InChIKey WITH {
     FILTER (REGEX(STR(?InChIKey), ?filter))
     FILTER (?InChIKey != ?queryKey)
   }
-} AS %compounds
-WHERE {
-  INCLUDE %compounds
-          ?compound (wdt:P703/wdt:P225) ?taxon_name.
+}          ?compound (wdt:P703/wdt:P225) ?taxon_name.
 }
 LIMIT 10000""" .

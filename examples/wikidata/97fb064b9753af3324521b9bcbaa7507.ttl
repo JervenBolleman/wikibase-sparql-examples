@@ -23,7 +23,16 @@ PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX target: <http://www.wikidata.org/entity/Q21393244>
 
 SELECT DISTINCT ?string (COUNT(?work) AS ?count) 
-WITH
+WHERE {
+  # Find works that have \"author name string\" values equal to these normalized strings
+  
+{
+  # Calculate capitalization variants of these raw strings
+  SELECT DISTINCT ?string
+  WHERE
+  {
+    {
+      
 {
   # Find strings associated with the target item
   SELECT DISTINCT ?string_
@@ -38,33 +47,48 @@ WITH
                         pq:P1932 ?string_. # in \"stated as\" strings for \"author\" statements on work items
     }
   }
-} AS %RAWstrings
-WITH
+}      BIND(STR(?string_) AS ?string) # the raw strings
+    }
+    UNION
+    {
+      
 {
-  # Calculate capitalization variants of these raw strings
-  SELECT DISTINCT ?string
+  # Find strings associated with the target item
+  SELECT DISTINCT ?string_
   WHERE
   {
-    {
-      INCLUDE %RAWstrings
-      BIND(STR(?string_) AS ?string) # the raw strings
-    }
+    { target: rdfs:label ?string_. } # in label
+    UNION
+    { target: skos:altLabel ?string_. } # in alias
     UNION
     {
-      INCLUDE %RAWstrings
-      BIND(UCASE(STR(?string_)) AS ?string) # uppercased versions of the raw strings
-    }
-    UNION
-    {
-      INCLUDE %RAWstrings
-      BIND(LCASE(STR(?string_)) AS ?string) # lowercased versions of the raw strings
+      ?author_statement ps:P50 target: ; 
+                        pq:P1932 ?string_. # in \"stated as\" strings for \"author\" statements on work items
     }
   }
-} AS %NORMALIZEDstrings
-WHERE {
-  # Find works that have \"author name string\" values equal to these normalized strings
-  INCLUDE %NORMALIZEDstrings
-  OPTIONAL { ?work wdt:P2093 ?string. }
+}      BIND(UCASE(STR(?string_)) AS ?string) # uppercased versions of the raw strings
+    }
+    UNION
+    {
+      
+{
+  # Find strings associated with the target item
+  SELECT DISTINCT ?string_
+  WHERE
+  {
+    { target: rdfs:label ?string_. } # in label
+    UNION
+    { target: skos:altLabel ?string_. } # in alias
+    UNION
+    {
+      ?author_statement ps:P50 target: ; 
+                        pq:P1932 ?string_. # in \"stated as\" strings for \"author\" statements on work items
+    }
+  }
+}      BIND(LCASE(STR(?string_)) AS ?string) # lowercased versions of the raw strings
+    }
+  }
+}  OPTIONAL { ?work wdt:P2093 ?string. }
 }
 GROUP BY ?string
 ORDER BY DESC (?count)""";
@@ -96,7 +120,9 @@ WITH
     }
   }
 } AS %RAWstrings
-WITH
+WHERE {
+  # Find works that have \"author name string\" values equal to these normalized strings
+  
 {
   # Calculate capitalization variants of these raw strings
   SELECT DISTINCT ?string
@@ -117,11 +143,7 @@ WITH
       BIND(LCASE(STR(?string_)) AS ?string) # lowercased versions of the raw strings
     }
   }
-} AS %NORMALIZEDstrings
-WHERE {
-  # Find works that have \"author name string\" values equal to these normalized strings
-  INCLUDE %NORMALIZEDstrings
-  OPTIONAL { ?work wdt:P2093 ?string. }
+}  OPTIONAL { ?work wdt:P2093 ?string. }
 }
 GROUP BY ?string
 ORDER BY DESC (?count)""" .

@@ -13,21 +13,25 @@
   schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
-SELECT * WITH { 
-  SELECT DISTINCT ?item WHERE { ?item wdt:P279 wd:Q18602249 }
-} AS %all WITH {
-  SELECT (COUNT(*) AS ?count) { INCLUDE %all }
-} AS %count WITH {
-  SELECT (?item AS ?item2) WHERE { INCLUDE %all }
-} AS %all2 WITH {
+SELECT * WHERE {
+   {
   SELECT ?item (SUM(?x) AS ?i) WHERE {
-    INCLUDE %all .
-    INCLUDE %all2 .
+     { 
+  SELECT DISTINCT ?item WHERE { ?item wdt:P279 wd:Q18602249 }
+}.
+     {
+  SELECT (?item AS ?item2) WHERE {  { 
+  SELECT DISTINCT ?item WHERE { ?item wdt:P279 wd:Q18602249 }
+}}
+}.
     BIND( IF( STR( ?item ) > STR( ?item2 ), 1, 0 ) AS ?x ) .
   } GROUP BY ?item
-} AS %main WHERE {
-  INCLUDE %main .
-  INCLUDE %count .
+}.
+   {
+  SELECT (COUNT(*) AS ?count) {  { 
+  SELECT DISTINCT ?item WHERE { ?item wdt:P279 wd:Q18602249 }
+}}
+}.
   BIND( FLOOR( RAND() * ?count ) AS ?rnd ) .
   FILTER( ?rnd = ?i ) .
 }""";
@@ -36,18 +40,18 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 SELECT * WITH { 
   SELECT DISTINCT ?item WHERE { ?item wdt:P279 wd:Q18602249 }
 } AS %all WITH {
-  SELECT (COUNT(*) AS ?count) { INCLUDE %all }
-} AS %count WITH {
   SELECT (?item AS ?item2) WHERE { INCLUDE %all }
-} AS %all2 WITH {
+} AS %all2 WHERE {
+   {
   SELECT ?item (SUM(?x) AS ?i) WHERE {
     INCLUDE %all .
     INCLUDE %all2 .
     BIND( IF( STR( ?item ) > STR( ?item2 ), 1, 0 ) AS ?x ) .
   } GROUP BY ?item
-} AS %main WHERE {
-  INCLUDE %main .
-  INCLUDE %count .
+}.
+   {
+  SELECT (COUNT(*) AS ?count) { INCLUDE %all }
+}.
   BIND( FLOOR( RAND() * ?count ) AS ?rnd ) .
   FILTER( ?rnd = ?i ) .
 }""" .

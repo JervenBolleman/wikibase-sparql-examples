@@ -17,23 +17,25 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #title:Top 10 & others (occupations)
 SELECT ?group (SUM(?count) as ?occ_count) (IF(?group=\">10\", \" other\", SAMPLE(?itemLabel)) as ?occ)
-WITH  {  
-        SELECT DISTINCT ?item (COUNT(?p) as ?count) WHERE { ?p wdt:P8034 []; wdt:P106 ?item } GROUP BY ?item ORDER BY DESC(?count) 
-      } AS %all 
-WITH  {
-        SELECT (?item as ?item2) (?count AS ?count2) WHERE { INCLUDE %all }
-      } AS %all2 
-WITH  {
-        SELECT ?item (SUM(?x) AS ?rank) ?count WHERE {
-          INCLUDE %all .
-          INCLUDE %all2 .
-          BIND( IF( ?count  <= ?count2 , 1, 0 ) AS ?x ) .
-        } GROUP BY ?item ?count
-      } AS %main 
+
+
+
 WHERE
 {
-  hint:Query hint:optimizer \"None\".    
-  INCLUDE %main .
+      
+   {
+        SELECT ?item (SUM(?x) AS ?rank) ?count WHERE {
+           {  
+        SELECT DISTINCT ?item (COUNT(?p) as ?count) WHERE { ?p wdt:P8034 []; wdt:P106 ?item } GROUP BY ?item ORDER BY DESC(?count) 
+      }.
+           {
+        SELECT (?item as ?item2) (?count AS ?count2) WHERE {  {  
+        SELECT DISTINCT ?item (COUNT(?p) as ?count) WHERE { ?p wdt:P8034 []; wdt:P106 ?item } GROUP BY ?item ORDER BY DESC(?count) 
+      }}
+      }.
+          BIND( IF( ?count  <= ?count2 , 1, 0 ) AS ?x ) .
+        } GROUP BY ?item ?count
+      }.
   BIND( IF(?rank < 11, str(?rank), 
         \">10\")
         as ?group)
@@ -53,17 +55,17 @@ WITH  {
 WITH  {
         SELECT (?item as ?item2) (?count AS ?count2) WHERE { INCLUDE %all }
       } AS %all2 
-WITH  {
+
+WHERE
+{
+  hint:Query hint:optimizer \"None\".    
+   {
         SELECT ?item (SUM(?x) AS ?rank) ?count WHERE {
           INCLUDE %all .
           INCLUDE %all2 .
           BIND( IF( ?count  <= ?count2 , 1, 0 ) AS ?x ) .
         } GROUP BY ?item ?count
-      } AS %main 
-WHERE
-{
-  hint:Query hint:optimizer \"None\".    
-  INCLUDE %main .
+      }.
   BIND( IF(?rank < 11, str(?rank), 
         \">10\")
         as ?group)

@@ -22,7 +22,15 @@ SELECT
 
   # Either show the ORCID iD or construct part of a URL to search on the ORCID homepage
   (COALESCE(?orcid_, CONCAT(\"orcid-search/quick-search/?searchQuery=\", ENCODE_FOR_URI(?citing_authorLabel))) AS ?orcid)
-WITH {
+WHERE {
+   {
+  # An author might have multiple ORCID iDs
+  SELECT
+    ?count
+    ?citing_author
+    (SAMPLE(?orcids) AS ?orcid_)
+  WHERE {
+     {
   SELECT (COUNT(?citing_work) AS ?count) ?citing_author WHERE {
     ?work wdt:P50 wd:Q42712203 .
     ?citing_work ^wdt:P2860 ?work . 
@@ -32,22 +40,10 @@ WITH {
   GROUP BY ?citing_author 
   ORDER BY DESC(?count)
   LIMIT 500
-} AS %counts
-WITH {
-  # An author might have multiple ORCID iDs
-  SELECT
-    ?count
-    ?citing_author
-    (SAMPLE(?orcids) AS ?orcid_)
-  WHERE {
-    INCLUDE %counts
-    OPTIONAL { ?citing_author wdt:P496 ?orcids }
+}    OPTIONAL { ?citing_author wdt:P496 ?orcids }
   }
   GROUP BY ?count ?citing_author
-} AS %result
-WHERE {
-  INCLUDE %result
-  
+}  
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\". }
 } 
 ORDER BY DESC(?count)""";
@@ -73,7 +69,8 @@ WITH {
   ORDER BY DESC(?count)
   LIMIT 500
 } AS %counts
-WITH {
+WHERE {
+   {
   # An author might have multiple ORCID iDs
   SELECT
     ?count
@@ -84,10 +81,7 @@ WITH {
     OPTIONAL { ?citing_author wdt:P496 ?orcids }
   }
   GROUP BY ?count ?citing_author
-} AS %result
-WHERE {
-  INCLUDE %result
-  
+}  
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\". }
 } 
 ORDER BY DESC(?count)""" .

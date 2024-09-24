@@ -16,22 +16,18 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?count ?name ?name_label ?check_url 
 
-WITH {
+
+
+WHERE {
+   {
+  SELECT (COUNT(*) AS ?count) ?name WHERE {
+      {
   SELECT ?item ?name WHERE {
     ?item wdt:P734 ?name
   } LIMIT 1000000 
-} AS %uses
-
-WITH {
-  SELECT (COUNT(*) AS ?count) ?name WHERE {
-     INCLUDE %uses
-  } GROUP BY ?name
+}  } GROUP BY ?name
   HAVING (?count > 4)
-} AS %names
-
-WHERE {
-  INCLUDE %names
-  MINUS {?name wdt:P5452 [] } .
+}  MINUS {?name wdt:P5452 [] } .
   ?name rdfs:label ?name_label FILTER(lang(?name_label) = 'en') .
 
   wd:P5452 wdt:P1630 ?fmt .
@@ -48,16 +44,14 @@ WITH {
   } LIMIT 1000000 
 } AS %uses
 
-WITH {
+
+WHERE {
+   {
   SELECT (COUNT(*) AS ?count) ?name WHERE {
      INCLUDE %uses
   } GROUP BY ?name
   HAVING (?count > 4)
-} AS %names
-
-WHERE {
-  INCLUDE %names
-  MINUS {?name wdt:P5452 [] } .
+}  MINUS {?name wdt:P5452 [] } .
   ?name rdfs:label ?name_label FILTER(lang(?name_label) = 'en') .
 
   wd:P5452 wdt:P1630 ?fmt .

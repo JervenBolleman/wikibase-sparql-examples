@@ -16,18 +16,17 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Map
 SELECT  ?coauthor_countryLabel ?shape ?numOfCoAuthors ?rgb ?layer
-WITH {
+WHERE {
+   {
+  SELECT ?shape ?coauthor_country (COUNT(?author) AS ?numOfCoAuthors) WHERE {
+     {
   SELECT ?author ?searched_author WHERE {
     # Find co-authors
     ?searched_author wdt:P496  \"0000-0002-6778-0887\".
     ?work wdt:P50 ?searched_author, ?author .
   }
   GROUP BY ?author  ?searched_author
-} AS %authors
-WITH {
-  SELECT ?shape ?coauthor_country (COUNT(?author) AS ?numOfCoAuthors) WHERE {
-    INCLUDE %authors
-           
+}           
     # Exclude self-links
     FILTER (?searched_author != ?author)
     
@@ -36,10 +35,7 @@ WITH {
 
 
   }GROUP BY ?shape ?coauthor_country
-} AS %result
-WHERE {
-  INCLUDE %result
-  # Label the results 
+}  # Label the results 
   BIND(IF(?numOfCoAuthors <= 2,\"< 2 Authors\",
           IF(?numOfCoAuthors < 5,\"< 5 Authors\",
           IF(?numOfCoAuthors < 10,\"< 10 Authors\",\"> 10 Authors\"))) AS ?layer).
@@ -65,7 +61,8 @@ WITH {
   }
   GROUP BY ?author  ?searched_author
 } AS %authors
-WITH {
+WHERE {
+   {
   SELECT ?shape ?coauthor_country (COUNT(?author) AS ?numOfCoAuthors) WHERE {
     INCLUDE %authors
            
@@ -77,10 +74,7 @@ WITH {
 
 
   }GROUP BY ?shape ?coauthor_country
-} AS %result
-WHERE {
-  INCLUDE %result
-  # Label the results 
+}  # Label the results 
   BIND(IF(?numOfCoAuthors <= 2,\"< 2 Authors\",
           IF(?numOfCoAuthors < 5,\"< 5 Authors\",
           IF(?numOfCoAuthors < 10,\"< 10 Authors\",\"> 10 Authors\"))) AS ?layer).

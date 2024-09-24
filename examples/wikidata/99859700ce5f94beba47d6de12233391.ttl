@@ -16,14 +16,39 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX target: <http://www.wikidata.org/entity/Q56241615>
 SELECT DISTINCT ?Ngram ?N ?Count ?Length ?Dashes ?Score ?ExamplePub ?ExamplePubTitle
 
-WITH
-{ # Generating a list of entities to be analyzed
-  SELECT ?Publication
-   { 
-      SERVICE bd:sample { ?Publication wdt:P6104 target: . bd:serviceParam bd:sample.limit 100000 }   
-   }
-} AS %items 
-WITH
+
+
+
+
+WHERE {
+  
+{ # Applying the regexes to the titles to extract ngrams, and counting occurrences of the ngrams across titles
+  SELECT 
+    DISTINCT ?Ngram 
+    ?N
+    (COUNT(DISTINCT ?Title) AS ?Count)
+    ?Length
+    ?Dashes
+    (( ?Count * ?Length * ( (?Dashes +1) / ?N) 
+     ) AS ?Score)
+    (SAMPLE(DISTINCT ?Publication) AS ?ExamplePub)
+      { 
+        
+{ # Generating a list of regexes to look for the NumericValue-th word in a string     
+  # Based on https://w.wiki/KG$ by Jura1
+  SELECT ?Regex1 ?Regex2 ?Regex3 ?Regex4 ?NumericValue 
+    { 
+      ?NumberItem wdt:P5176 []; wdt:P1181 ?NumericValue . 
+      FILTER( ?NumericValue > 0 ) 
+      FILTER( ?NumericValue < 151)
+      BIND(\"^([^ ]+ ){\" AS ?RegexStart)
+      BIND(\"}([^ ]+) .*\" AS ?RegexEnd)
+      BIND( CONCAT( ?RegexStart , STR( ?NumericValue - 1 ), ?RegexEnd ) AS ?Regex1)
+      BIND( CONCAT( ?RegexStart , STR( ?NumericValue + 1 ), ?RegexEnd ) AS ?Regex2) 
+      BIND( CONCAT( ?RegexStart , STR( ?NumericValue + 3 ), ?RegexEnd ) AS ?Regex3) 
+      BIND( CONCAT( ?RegexStart , STR( ?NumericValue + 5 ), ?RegexEnd ) AS ?Regex4) 
+    }
+}        
 { # Preprocessing the titles
   SELECT ?Title ?Publication ?Seeds ?ClearTitleLength
    { 
@@ -41,38 +66,7 @@ WITH
                             ?StopCodon)) # add stop codon of semicolons to assist with processing of n-grams at end of title
                      AS ?Seeds )
    }
-} AS %titles 
-WITH
-{ # Generating a list of regexes to look for the NumericValue-th word in a string     
-  # Based on https://w.wiki/KG$ by Jura1
-  SELECT ?Regex1 ?Regex2 ?Regex3 ?Regex4 ?NumericValue 
-    { 
-      ?NumberItem wdt:P5176 []; wdt:P1181 ?NumericValue . 
-      FILTER( ?NumericValue > 0 ) 
-      FILTER( ?NumericValue < 151)
-      BIND(\"^([^ ]+ ){\" AS ?RegexStart)
-      BIND(\"}([^ ]+) .*\" AS ?RegexEnd)
-      BIND( CONCAT( ?RegexStart , STR( ?NumericValue - 1 ), ?RegexEnd ) AS ?Regex1)
-      BIND( CONCAT( ?RegexStart , STR( ?NumericValue + 1 ), ?RegexEnd ) AS ?Regex2) 
-      BIND( CONCAT( ?RegexStart , STR( ?NumericValue + 3 ), ?RegexEnd ) AS ?Regex3) 
-      BIND( CONCAT( ?RegexStart , STR( ?NumericValue + 5 ), ?RegexEnd ) AS ?Regex4) 
-    }
-} AS %regexes 
-WITH
-{ # Applying the regexes to the titles to extract ngrams, and counting occurrences of the ngrams across titles
-  SELECT 
-    DISTINCT ?Ngram 
-    ?N
-    (COUNT(DISTINCT ?Title) AS ?Count)
-    ?Length
-    ?Dashes
-    (( ?Count * ?Length * ( (?Dashes +1) / ?N) 
-     ) AS ?Score)
-    (SAMPLE(DISTINCT ?Publication) AS ?ExamplePub)
-      { 
-        INCLUDE %regexes
-        INCLUDE %titles
-        BIND( 
+}        BIND( 
           (CONCAT(
             REPLACE(?Seeds, ?Regex1, \"$1\"), \" \", 
             REPLACE(?Seeds, ?Regex1, \"$2\"), \" \", 
@@ -105,9 +99,7 @@ WITH
       }
   GROUP BY ?Ngram ?N ?Count ?Length ?Dashes ?Score ?ExamplePub
 #   HAVING(?Count > 1)
-} AS %ngrams 
-WHERE {
-  INCLUDE %ngrams 
+}
   # Exclude Ngrams starting or ending with any of a set of blacklisted words
   BIND(\"(a|and|between|during|for|from|in|of|on|or|the|to|with)\" AS ?blacklist)
   BIND( CONCAT( \"(^\", ?blacklist ,\")+( )+\") AS ?RegexBlackStart)
@@ -168,7 +160,9 @@ WITH
       BIND( CONCAT( ?RegexStart , STR( ?NumericValue + 5 ), ?RegexEnd ) AS ?Regex4) 
     }
 } AS %regexes 
-WITH
+
+WHERE {
+  
 { # Applying the regexes to the titles to extract ngrams, and counting occurrences of the ngrams across titles
   SELECT 
     DISTINCT ?Ngram 
@@ -215,9 +209,7 @@ WITH
       }
   GROUP BY ?Ngram ?N ?Count ?Length ?Dashes ?Score ?ExamplePub
 #   HAVING(?Count > 1)
-} AS %ngrams 
-WHERE {
-  INCLUDE %ngrams 
+}
   # Exclude Ngrams starting or ending with any of a set of blacklisted words
   BIND(\"(a|and|between|during|for|from|in|of|on|or|the|to|with)\" AS ?blacklist)
   BIND( CONCAT( \"(^\", ?blacklist ,\")+( )+\") AS ?RegexBlackStart)

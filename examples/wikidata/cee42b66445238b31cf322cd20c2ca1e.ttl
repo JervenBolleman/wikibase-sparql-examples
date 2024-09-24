@@ -18,7 +18,10 @@ PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?countryLabel ?lat ?lon ?nlat ?slat ?elong ?wlong with 
+SELECT ?item ?itemLabel ?countryLabel ?lat ?lon ?nlat ?slat ?elong ?wlong 
+
+{ 
+  
 {
  select distinct ?country  ?nlat ?stal ?elong ?wlong (count(?country) as ?count) where
   { # restrict query to countries that have only one set of bounding coords
@@ -27,18 +30,13 @@ SELECT ?item ?itemLabel ?countryLabel ?lat ?lon ?nlat ?slat ?elong ?wlong with
     ?country p:P1333 [psv:P1333 [wikibase:geoLatitude ?slat;] ; ] .   #if there is more than one northrn coord
     ?country p:P1334 [psv:P1334 [wikibase:geoLongitude ?elong;] ; ] . # the having( ?count=1) at the foot of this
     ?country p:P1335 [psv:P1335 [wikibase:geoLongitude ?wlong;] ; ] . # named-query will reject the country
-  } group by ?country ?nlat ?stal ?elong ?wlong having( ?count=1) } as %countries
-
-with {select ?item ?country (count(?item) as ?count2) where
+  } group by ?country ?nlat ?stal ?elong ?wlong having( ?count=1) }
+   {select ?item ?country (count(?item) as ?count2) where
 {  # restrict query to airports that are in one country only
   ?item wdt:P31 wd:Q644371.
   ?item wdt:P17 ?country .          #get country for the airport
   # values ?airport_country {wd:Q30 wd:Q123 wd:Q456}  #restrict the set of countries for which we will examine airports
-  } group by ?item ?country having (?count2=1) } as %airports
-
-{ 
-  include %countries 
-  include %airports   
+  } group by ?item ?country having (?count2=1) }  
   ?item p:P625 [ps:P625 ?coord; psv:P625 [           # get coords for the airport        
              wikibase:geoLongitude ?lon;
              wikibase:geoLatitude ?lat;] ; ] .

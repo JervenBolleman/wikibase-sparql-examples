@@ -27,47 +27,6 @@ SELECT
   ?premioLabel
   ?mujer
   ?mujerLabel
-WITH {
-  SELECT DISTINCT ?mujer {
-    ?mujer wdt:P19/wdt:P131* wd:Q419;
-           wdt:P21 wd:Q6581072.
-  }
-} AS %0
-WITH {
-  SELECT DISTINCT ?mujer ?premio {
-    INCLUDE %0.
-    ?mujer wdt:P166 ?premio.
-  }
-} AS %1
-WITH {
-  SELECT DISTINCT ?institucion ?premio {
-    INCLUDE %1.
-    {?institucion wdt:P5460 ?premio}
-    UNION
-    {?premio wdt:P1027 ?institucion}.
-  }
-} AS %2
-WITH {
-  SELECT ?institucion ?coordenadas {
-    INCLUDE %2.
-
-    OPTIONAL{?institucion wdt:P625 ?coordenadasDirecto}.
-    OPTIONAL{?institucion wdt:P159/wdt:P625 ?coordenadasSede}.
-    OPTIONAL{?institucion wdt:P131/wdt:P625 ?coordenadasUbicacion}.
-
-    # Si todas las condiciones dentro de COALESCE fallan, entonces el
-    # valor de la variables será indefinido.
-
-    BIND(COALESCE(IF(BOUND(?coordenadasDirecto), ?coordenadasDirecto, 1/0),
-                  IF(BOUND(?coordenadasSede), ?coordenadasSede, 1/0),
-                  IF(BOUND(?coordenadasUbicacion), ?coordenadasUbicacion, 1/0))
-         AS ?coordenadas)
-
-    # Solo mostraremos aquellas cuyas coordenadas se saben
-
-    FILTER(BOUND(?coordenadas))
-  }
-} AS %3
 {
   INCLUDE %1.
   INCLUDE %2.
