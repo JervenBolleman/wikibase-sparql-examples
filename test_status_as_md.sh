@@ -33,10 +33,12 @@ do
         echo "| ---- | ----- |"
         while read j
         do
-            file=$(echo "${j}" |cut -f 1 -d '✘')
-            failure=$(echo "${j}" |cut -f 2 -d '✘')
-            echo "| [$file](examples/${file:0:${#file}-5}.md) | $failure |"
-        done < <(sed -n "${start},${i}p;${i}q" $1 | grep -oP '\w+\/.+✘.+')
+            file=$(echo "${j}" | cut -f 1 -d '.')
+            fileL=${#file}
+            fileA=$((fileL + 5))
+            failure=${j:$fileA}
+            echo "| [$file](examples/${file}.md) | $failure |"
+        done < <(sed -n "${start},${i}p;${i}q" $1 | grep -oP '\w+\/.+✘.+' | sort)
         echo ""
     fi
     start=$i
