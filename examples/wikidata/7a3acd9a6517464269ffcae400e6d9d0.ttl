@@ -17,18 +17,46 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Map,Table
 SELECT distinct ?item ?itemLabel ?itemDescription ?image ?coord ?verwaltungseinheitLabel ?streetLabel ?zip ?adress ?website
-
-
-WHERE {
-  {
+WITH {
  SELECT distinct ?region                   # Unterabfrage für alle Verwaltungseinheiten (Kreise, Städte, Gemeinden, Ortsteile, etc.)
  WHERE {
-          
+ hint:Query hint:optimizer \"None\" .         
  BIND(wd:Q1202 AS ?state).                 # liegt in Sachsen
  ?region wdt:P131* ?state.            
  MINUS { ?region wdt:P576 _:b0. }          # ohne Auflösungsdatum   
  }
-}.
+} AS %region
+
+WHERE {
+  INCLUDE %region.
+  ?item wdt:P131 ?region.      
+  #?item (wdt:P31/wdt:P279*) wd:Q33506 .    # ist ein Museum (oder Unterklasse)
+  ?item (wdt:P31/wdt:P279*) wd:Q18674739 . # ist ein Veranstaltungsort (oder Unterklasse) 
+  MINUS { ?item wdt:P582  _:b1.}           # ohne Endzeitpunkt
+  MINUS { ?item wdt:P576  _:b2.}           # ohne Auflösungsdatum
+  MINUS { ?item wdt:P3999 _:b3.}           # ohne Schließungsdatum  
+  MINUS { ?item wdt:P31 wd:Q19860854 }     # abgegangenes Bauwerk
+  MINUS { ?item wdt:P31 wd:Q15893266 }     # ehemalige Entität
+  
+  OPTIONAL { ?item wdt:P18 ?image . }     
+  OPTIONAL { ?item wdt:P625 ?coord. }  
+  OPTIONAL { ?item wdt:P669 ?street. }  
+  OPTIONAL { ?item wdt:P281 ?zip. }  
+  OPTIONAL { ?item wdt:P6375 ?adress. }  
+  OPTIONAL { ?item wdt:P856 ?website. }  
+  OPTIONAL { ?item wdt:P131 ?verwaltungseinheit. }  
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map,Table
+SELECT distinct ?item ?itemLabel ?itemDescription ?image ?coord ?verwaltungseinheitLabel ?streetLabel ?zip ?adress ?website
+
+WHERE {
+  INCLUDE %region.
   ?item wdt:P131 ?region.      
   #?item (wdt:P31/wdt:P279*) wd:Q33506 .    # ist ein Museum (oder Unterklasse)
   ?item (wdt:P31/wdt:P279*) wd:Q18674739 . # ist ein Veranstaltungsort (oder Unterklasse) 
@@ -48,16 +76,9 @@ WHERE {
   
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,en\". }
 }""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#defaultView:Map,Table
+  <http://example.org/bigdata_select> """#defaultView:Map,Table
 SELECT distinct ?item ?itemLabel ?itemDescription ?image ?coord ?verwaltungseinheitLabel ?streetLabel ?zip ?adress ?website
-
-
-WHERE {
-  {
+WITH {
  SELECT distinct ?region                   # Unterabfrage für alle Verwaltungseinheiten (Kreise, Städte, Gemeinden, Ortsteile, etc.)
  WHERE {
  hint:Query hint:optimizer \"None\" .         
@@ -65,7 +86,10 @@ WHERE {
  ?region wdt:P131* ?state.            
  MINUS { ?region wdt:P576 _:b0. }          # ohne Auflösungsdatum   
  }
-}.
+} AS %region
+
+WHERE {
+  INCLUDE %region.
   ?item wdt:P131 ?region.      
   #?item (wdt:P31/wdt:P279*) wd:Q33506 .    # ist ein Museum (oder Unterklasse)
   ?item (wdt:P31/wdt:P279*) wd:Q18674739 . # ist ein Veranstaltungsort (oder Unterklasse) 

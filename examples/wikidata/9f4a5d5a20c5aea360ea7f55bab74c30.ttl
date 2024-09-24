@@ -24,17 +24,52 @@ SELECT
   ?peruaneLabel
   ?obraLiteraria
   ?obraLiterariaLabel
+WITH {
+  SELECT DISTINCT ?peruane {
+    ?peruane
+      wdt:P27 wd:Q419;
+      wdt:P31 wd:Q5;
+      wdt:P21 wd:Q6581072.
+  }
+} AS %0
+WITH {
+  SELECT DISTINCT ?obraLiteraria ?peruane {
+    INCLUDE %0.
+
+    ?obraLiteraria
+      wdt:P50 ?peruane;
+      wdt:P31/wdt:P279* wd:Q7725634.
+  }
+} AS %1
+WITH {
+  SELECT ?peruane (COUNT(*) AS ?count) {
+    INCLUDE %1
+  }
+  GROUP BY ?peruane
+} AS %2
+{
+  INCLUDE %1.
+  INCLUDE %2.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"es,qu,en\"}.
+}
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Tree
+SELECT
+  ?peruane
+  ?peruaneLabel
+  ?obraLiteraria
+  ?obraLiterariaLabel
 {
   INCLUDE %1.
   INCLUDE %2.
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"es,qu,en\"}.
 }
 ORDER BY DESC(?count)""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#defaultView:Tree
+  <http://example.org/bigdata_select> """#defaultView:Tree
 SELECT
   ?peruane
   ?peruaneLabel
@@ -49,8 +84,6 @@ WITH {
   }
 } AS %0
 WITH {
-  SELECT ?peruane (COUNT(*) AS ?count) {
-     {
   SELECT DISTINCT ?obraLiteraria ?peruane {
     INCLUDE %0.
 
@@ -58,7 +91,11 @@ WITH {
       wdt:P50 ?peruane;
       wdt:P31/wdt:P279* wd:Q7725634.
   }
-}  }
+} AS %1
+WITH {
+  SELECT ?peruane (COUNT(*) AS ?count) {
+    INCLUDE %1
+  }
   GROUP BY ?peruane
 } AS %2
 {

@@ -16,6 +16,43 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?registry ?registryLabel ?count
+WITH {
+  SELECT DISTINCT ?item WHERE {
+    ?item wdt:P31 wd:Q30612 ;
+  }
+  LIMIT 400000
+} AS %items 
+WITH {
+  SELECT DISTINCT ?registry ?registryIDitem WHERE {
+    ?registry wdt:P31 wd:Q2138567 .
+    ?registryIDitem wdt:P1535 ?registry .
+  }
+  GROUP BY ?registry ?registryIDitem
+  LIMIT 100
+} AS %registries 
+WITH {
+  SELECT DISTINCT ?registry (COUNT(*) AS ?count) WHERE {
+    INCLUDE %items.
+    INCLUDE %registries.
+    ?item ?p [ ] .
+    ?property wdt:P1629 ?registryIDitem;
+              wikibase:claim ?p.
+    ?property wikibase:propertyType wikibase:ExternalId .
+  }
+  GROUP BY ?registry 
+  LIMIT 100
+} AS %results 
+WHERE {
+  INCLUDE %results.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY DESC(?count)
+LIMIT 100""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?registry ?registryLabel ?count
 
 
 
@@ -25,11 +62,7 @@ WHERE {
 }
 ORDER BY DESC(?count)
 LIMIT 100""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?registry ?registryLabel ?count
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?registry ?registryLabel ?count
 WITH {
   SELECT DISTINCT ?item WHERE {
     ?item wdt:P31 wd:Q30612 ;

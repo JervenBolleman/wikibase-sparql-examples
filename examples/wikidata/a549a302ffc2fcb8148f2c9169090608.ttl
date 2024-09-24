@@ -26,35 +26,6 @@ SELECT
   ?example_artist ?example_artistLabel
   (CONCAT(\"#visualartist/\", SUBSTR(STR(?example_artist), 32)) AS ?example_artistUrl)
   
-
-WHERE {
-  {
-  SELECT 
-    (COUNT(DISTINCT ?artist) AS ?artists)
-    ?gallery
-    (SAMPLE(?artist) AS ?example_artist)
-  WHERE {
-    ?artist ^wdt:P170 / wdt:P195 target:, ?gallery .
-    FILTER (target: != ?gallery)
-  }
-  GROUP BY ?gallery
-}
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-ORDER BY DESC(?artists)
-LIMIT 500""";
-  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q2982867>
-
-SELECT 
-  ?artists
-
-  ?gallery ?galleryLabel
-  (CONCAT(\"#gallery/\", SUBSTR(STR(?gallery), 32)) AS ?galleryUrl)
-  ?galleryDescription
-
-  ?example_artist ?example_artistLabel
-  (CONCAT(\"#visualartist/\", SUBSTR(STR(?example_artist), 32)) AS ?example_artistUrl)
-  
 WITH {
   SELECT 
     (COUNT(DISTINCT ?artist) AS ?artists)
@@ -76,6 +47,33 @@ LIMIT 500""",
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX target: <http://www.wikidata.org/entity/Q2982867>
+
+SELECT 
+  ?artists
+
+  ?gallery ?galleryLabel
+  (CONCAT(\"#gallery/\", SUBSTR(STR(?gallery), 32)) AS ?galleryUrl)
+  ?galleryDescription
+
+  ?example_artist ?example_artistLabel
+  (CONCAT(\"#visualartist/\", SUBSTR(STR(?example_artist), 32)) AS ?example_artistUrl)
+  
+WHERE {
+   {
+  SELECT 
+    (COUNT(DISTINCT ?artist) AS ?artists)
+    ?gallery
+    (SAMPLE(?artist) AS ?example_artist)
+  WHERE {
+    ?artist ^wdt:P170 / wdt:P195 target:, ?gallery .
+    FILTER (target: != ?gallery)
+  }
+  GROUP BY ?gallery
+}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?artists)
+LIMIT 500""";
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q2982867>
 
 SELECT 
   ?artists

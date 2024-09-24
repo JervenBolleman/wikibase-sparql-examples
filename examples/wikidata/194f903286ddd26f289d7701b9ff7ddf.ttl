@@ -11,17 +11,7 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """WHERE {
-   {
-  SELECT 
-    (COUNT(?person) AS ?number_of_persons)
-    ?occupation
-  WHERE {
-    INCLUDE %persons
-    ?person wdt:P106 ?occupation .
-  }
-  GROUP BY ?occupation
-}  PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT
@@ -35,7 +25,58 @@ WITH {
   }
   LIMIT 10000
 } AS %persons
-son wdt:P106 ?occupation .
+WITH {
+  SELECT 
+    (COUNT(?person) AS ?number_of_persons)
+    ?occupation
+  WHERE {
+    INCLUDE %persons
+    ?person wdt:P106 ?occupation .
+  }
+  GROUP BY ?occupation
+} AS %counts
+WITH {
+  SELECT 
+    (SUM(?number_of_persons) AS ?total)
+  WHERE {
+    INCLUDE %counts
+    BIND(1 AS ?dummy)
+  }
+  GROUP BY ?dummy
+} AS %total
+WHERE {
+  INCLUDE %counts
+  INCLUDE %total
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?number_of_persons)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
+  (?number_of_persons / ?total AS ?fraction) 
+  ?occupation ?occupationLabel ?occupationDescription
+WHERE {
+   {
+  SELECT 
+    (COUNT(?person) AS ?number_of_persons)
+    ?occupation
+  WHERE {
+    INCLUDE %persons
+    ?person wdt:P106 ?occupation .
+  }
+  GROUP BY ?occupation
+}   {
+  SELECT 
+    (SUM(?number_of_persons) AS ?total)
+  WHERE {
+     {
+  SELECT 
+    (COUNT(?person) AS ?number_of_persons)
+    ?occupation
+  WHERE {
+    INCLUDE %persons
+    ?person wdt:P106 ?occupation .
   }
   GROUP BY ?occupation
 }    BIND(1 AS ?dummy)
@@ -44,10 +85,7 @@ son wdt:P106 ?occupation .
 }  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY DESC(?number_of_persons)""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT
+  <http://example.org/bigdata_select> """SELECT
   (?number_of_persons / ?total AS ?fraction) 
   ?occupation ?occupationLabel ?occupationDescription
 WITH {

@@ -15,14 +15,14 @@
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?character ?characterLabel ?birth ?death 
+SELECT DISTINCT ?character ?characterLabel ?birth ?death WITH {
+    SELECT ?fictiontype WHERE {
+      ?fictiontype wdt:P279* wd:Q95074. hint:Prior hint:gearing \"forward\".
+    }
+  } AS %i
 WHERE
 {
-  {
-    SELECT ?fictiontype WHERE {
-      ?fictiontype wdt:P279* wd:Q95074. 
-    }
-  }
+  INCLUDE %i
   ?character wdt:P31 ?fictiontype.
   # Date of birth
   { ?character wdt:P569 ?birth . }
@@ -31,19 +31,34 @@ WHERE
   SERVICE wikibase:label {
     bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . 
   }
-} ORDER BY ?birth ?death""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+} ORDER BY ?birth ?death""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?character ?characterLabel ?birth ?death 
-WHERE
+SELECT DISTINCT ?character ?characterLabel ?birth ?death WHERE
 {
-  {
+   {
+    SELECT ?fictiontype WHERE {
+      ?fictiontype wdt:P279* wd:Q95074. 
+    }
+  }  ?character wdt:P31 ?fictiontype.
+  # Date of birth
+  { ?character wdt:P569 ?birth . }
+  # Date of death
+  UNION { ?character wdt:P570 ?death }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . 
+  }
+} ORDER BY ?birth ?death""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?character ?characterLabel ?birth ?death WITH {
     SELECT ?fictiontype WHERE {
       ?fictiontype wdt:P279* wd:Q95074. hint:Prior hint:gearing \"forward\".
     }
-  }
+  } AS %i
+WHERE
+{
+  INCLUDE %i
   ?character wdt:P31 ?fictiontype.
   # Date of birth
   { ?character wdt:P569 ?birth . }

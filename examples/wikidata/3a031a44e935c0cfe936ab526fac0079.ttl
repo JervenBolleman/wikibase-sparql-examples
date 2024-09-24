@@ -20,6 +20,29 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 #item has no statements, search term may occur anywhere in the item record
 SELECT DISTINCT ?item ?itemLabel ?itemDescription ?sitelink
 WHERE {
+  hint:Query hint:optimizer \"None\".
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"aero\".  # <<<<<<<This is where you set the search term
+    ?title wikibase:apiOutput mwapi:title.
+  }
+  BIND(IRI(CONCAT(STR(wd:), ?title)) AS ?item)
+  ?item wikibase:statements \"0\"^^xsd:integer.
+  optional {  ?article schema:about ?item .
+              ?sitelink ^schema:name ?article . 
+           }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#item has no statements, search term may occur anywhere in the item record
+SELECT DISTINCT ?item ?itemLabel ?itemDescription ?sitelink
+WHERE {
   
   SERVICE wikibase:mwapi {
     bd:serviceParam wikibase:api \"Search\";
@@ -34,13 +57,7 @@ WHERE {
            }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#item has no statements, search term may occur anywhere in the item record
+  <http://example.org/bigdata_select> """#item has no statements, search term may occur anywhere in the item record
 SELECT DISTINCT ?item ?itemLabel ?itemDescription ?sitelink
 WHERE {
   hint:Query hint:optimizer \"None\".

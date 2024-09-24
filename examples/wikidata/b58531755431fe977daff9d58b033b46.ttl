@@ -14,22 +14,32 @@
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
-SELECT DISTINCT ?item 
+SELECT DISTINCT ?item WITH {
+  SELECT ?item WHERE {  
+  	{ ?item wdt:P291 wd:Q812 . }
+	UNION  
+    { ?item wdt:P291 ?place . ?place wdt:P131* wd:Q812 . }
+} } as %i
 where
+{ 
+  include %i
+  FILTER NOT EXISTS { ?wen schema:about ?item . ?wen schema:isPartOf <https://en.wikipedia.org/>.}
+  ?item wdt:P31 / wdt:P279* wd:Q11032 .  hint:Prior hint:gearing \"forward\".
+}""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+SELECT DISTINCT ?item where
 { 
    {
   SELECT ?item WHERE {  
   	{ ?item wdt:P291 wd:Q812 . }
 	UNION  
     { ?item wdt:P291 ?place . ?place wdt:P131* wd:Q812 . }
-} }
-  FILTER NOT EXISTS { ?wen schema:about ?item . ?wen schema:isPartOf <https://en.wikipedia.org/>.}
+} }  FILTER NOT EXISTS { ?wen schema:about ?item . ?wen schema:isPartOf <https://en.wikipedia.org/>.}
   ?item wdt:P31 / wdt:P279* wd:Q11032 .  
 }""";
-  <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-SELECT DISTINCT ?item WITH {
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item WITH {
   SELECT ?item WHERE {  
   	{ ?item wdt:P291 wd:Q812 . }
 	UNION  

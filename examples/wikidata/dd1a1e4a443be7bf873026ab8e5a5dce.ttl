@@ -16,35 +16,7 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?personaLabel ?genderLabel ?occupazioneLabel (YEAR(?dob) AS ?anno) ?pobLabel ?coord ?articolo  WHERE {
-  {
-SELECT DISTINCT ?persona ?dob WHERE {
-  ?persona wdt:P1412 wd:Q652; # All records with Italian as spoken language
-           wdt:P27 wd:Q38;    # with Italian citizenship
-           wdt:P31 wd:Q5.     # that are human
-  
-  FILTER EXISTS { ?persona wdt:P569 ?data_nascita. }   # that have a date of birth field
-  FILTER NOT EXISTS { ?persona wdt:P570 ?data_morte. } # that don\"t have a date of death field
-  
-  # that has at least a sitelink in Wikipedia of any language
-  ?articolo schema:about ?persona.
-  FILTER (SUBSTR(str(?articolo), 16, 5) = \"pedia\").
-  
-  # only people with age minus that 110 (in order to avoid results with undefined or inconsistent birth year)
-  ?persona wdt:P569 ?dob. # fetch date of birth data value
-  BIND(YEAR(now()) - YEAR(?dob) as ?age)
-  FILTER(?age <= 110)
-} 
-} 
-  ?persona wdt:P21 ?gender;       # fetch gender data value
-           wdt:P106 ?occupazione; # fetch occupation data value
-           wdt:P19 ?pob .         # fetch place of birth data value
-  ?pob wdt:P625 ?coord .          # specify place of birth coordinates
-  
-  # with element label in Italian or in English
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"it,en\". }
-} ORDER BY ?personaLabel""";
-  <http://example.org/bigdata_select> """SELECT ?personaLabel ?genderLabel ?occupazioneLabel (YEAR(?dob) AS ?anno) ?pobLabel ?coord ?articolo WITH {
+SELECT ?personaLabel ?genderLabel ?occupazioneLabel (YEAR(?dob) AS ?anno) ?pobLabel ?coord ?articolo WITH {
 SELECT DISTINCT ?persona ?dob WHERE {
   ?persona wdt:P1412 wd:Q652; # All records with Italian as spoken language
            wdt:P27 wd:Q38;    # with Italian citizenship
@@ -77,7 +49,35 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?personaLabel ?genderLabel ?occupazioneLabel (YEAR(?dob) AS ?anno) ?pobLabel ?coord ?articolo WITH {
+SELECT ?personaLabel ?genderLabel ?occupazioneLabel (YEAR(?dob) AS ?anno) ?pobLabel ?coord ?articolo WHERE {
+   {
+SELECT DISTINCT ?persona ?dob WHERE {
+  ?persona wdt:P1412 wd:Q652; # All records with Italian as spoken language
+           wdt:P27 wd:Q38;    # with Italian citizenship
+           wdt:P31 wd:Q5.     # that are human
+  
+  FILTER EXISTS { ?persona wdt:P569 ?data_nascita. }   # that have a date of birth field
+  FILTER NOT EXISTS { ?persona wdt:P570 ?data_morte. } # that don\"t have a date of death field
+  
+  # that has at least a sitelink in Wikipedia of any language
+  ?articolo schema:about ?persona.
+  FILTER (SUBSTR(str(?articolo), 16, 5) = \"pedia\").
+  
+  # only people with age minus that 110 (in order to avoid results with undefined or inconsistent birth year)
+  ?persona wdt:P569 ?dob. # fetch date of birth data value
+  BIND(YEAR(now()) - YEAR(?dob) as ?age)
+  FILTER(?age <= 110)
+} 
+}
+  ?persona wdt:P21 ?gender;       # fetch gender data value
+           wdt:P106 ?occupazione; # fetch occupation data value
+           wdt:P19 ?pob .         # fetch place of birth data value
+  ?pob wdt:P625 ?coord .          # specify place of birth coordinates
+  
+  # with element label in Italian or in English
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"it,en\". }
+} ORDER BY ?personaLabel""";
+  <http://example.org/bigdata_select> """SELECT ?personaLabel ?genderLabel ?occupazioneLabel (YEAR(?dob) AS ?anno) ?pobLabel ?coord ?articolo WITH {
 SELECT DISTINCT ?persona ?dob WHERE {
   ?persona wdt:P1412 wd:Q652; # All records with Italian as spoken language
            wdt:P27 wd:Q38;    # with Italian citizenship

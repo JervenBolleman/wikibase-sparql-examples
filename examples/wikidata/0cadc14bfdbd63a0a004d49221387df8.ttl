@@ -14,6 +14,49 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
+  ?plato
+  ?platoLabel
+  ?conteo
+WITH {
+  SELECT DISTINCT ?plato {
+    ?plato wdt:P361 wd:Q749847;
+  }
+} AS %plato
+WITH {
+  SELECT
+    ?plato
+    (COUNT(*) AS ?conteo)
+  {
+    INCLUDE %plato.
+    ?plato wdt:P18 ?imagen.
+  }
+  GROUP BY ?plato
+} AS %conteo
+{
+  INCLUDE %plato.
+  OPTIONAL{INCLUDE %conteo}.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"es\"}.
+}
+ORDER BY DESC(?conteo)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
+  ?plato
+  ?platoLabel
+  ?conteo
+{
+  INCLUDE %plato.
+  OPTIONAL{INCLUDE %conteo}.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"es\"}.
+}
+ORDER BY DESC(?conteo)""";
   <http://example.org/bigdata_select> """SELECT
   ?plato
   ?platoLabel
@@ -36,101 +79,6 @@ WITH {
 {
   INCLUDE %plato.
   OPTIONAL{INCLUDE %conteo}.
-  SERVICE wikibase:label {bd:serviceParam wikibase:language \"es\"}.
-}
-ORDER BY DESC(?conteo)""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT
-  ?plato
-  ?platoLabel
-  ?conteo
-WITH {
-  SELECT DISTINCT ?plato {
-    ?plato wdt:P361 wd:Q749847;
-  }
-} AS %plato
-WITH {
-  SELECT
-    ?plato
-    (COUNT(*) AS ?conteo)
-  {
-    INCLUDE %plato.
-    ?plato wdt:P18 ?imagen.
-  }
-  GROUP BY ?plato
-} AS %conteo
-{
-  INCLUDE %plato.
-  OPTIONAL{INCLUDE %conteo}.
-  SERVICE wikibase:label {bd:serviceParam wikibase:language \"es\"}.
-}
-ORDER BY DESC(?conteo)""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT
-  ?plato
-  ?platoLabel
-  ?conteo
-
-WITH {
-  SELECT
-    ?plato
-    (COUNT(*) AS ?conteo)
-  {
-    {
-  SELECT DISTINCT ?plato {
-    ?plato wdt:P361 wd:Q749847;
-  }
-}.
-    ?plato wdt:P18 ?imagen.
-  }
-  GROUP BY ?plato
-} AS %conteo
-{
-  {
-  SELECT DISTINCT ?plato {
-    ?plato wdt:P361 wd:Q749847;
-  }
-}.
-  OPTIONAL{INCLUDE %conteo}.
-  SERVICE wikibase:label {bd:serviceParam wikibase:language \"es\"}.
-}
-ORDER BY DESC(?conteo)""";
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT
-  ?plato
-  ?platoLabel
-  ?conteo
-
-
-{
-  {
-  SELECT DISTINCT ?plato {
-    ?plato wdt:P361 wd:Q749847;
-  }
-}.
-  OPTIONAL{ {
-  SELECT
-    ?plato
-    (COUNT(*) AS ?conteo)
-  {
-    {
-  SELECT DISTINCT ?plato {
-    ?plato wdt:P361 wd:Q749847;
-  }
-}.
-    ?plato wdt:P18 ?imagen.
-  }
-  GROUP BY ?plato
-} }.
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"es\"}.
 }
 ORDER BY DESC(?conteo)""" .

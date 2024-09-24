@@ -17,6 +17,31 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Map
 SELECT ?item ?country ?coord ?dist {
+  hint:Query hint:optimizer \"None\" .
+  VALUES ?country { wd:Q40 } .
+  OPTIONAL{?country wdt:P5140 ?centerGeog .}
+  OPTIONAL{?country wdt:P625 ?Coords .}
+   BIND(COALESCE(?centerGeog,?Coords) as ?center)
+  SERVICE wikibase:around {
+    ?item wdt:P625 ?coord .
+    bd:serviceParam wikibase:center ?center .
+    bd:serviceParam wikibase:radius \"50\" .
+    bd:serviceParam wikibase:distance ?dist .
+    bd:serviceParam wikibase:geoGlobe ?globe . 
+  } .
+  BIND(COALESCE(?globe,wd:Q2) as ?Globe)
+  FILTER (?Globe =wd:Q2)
+  MINUS { ?item wdt:P17 [] } .
+MINUS { ?item (wdt:P31/wdt:P279*) wd:Q4830453. }              # exclude ENTREPRISES
+MINUS { ?item (wdt:P31/wdt:P279*) wd:Q15893266. }              # exclude old entities
+MINUS { ?item wdt:P576 _:b2. } # remove items with P576 (dissolved, abolished or demolished) as a main property
+} ORDER BY ?dist""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map
+SELECT ?item ?country ?coord ?dist {
   
   VALUES ?country { wd:Q40 } .
   OPTIONAL{?country wdt:P5140 ?centerGeog .}
@@ -36,11 +61,7 @@ MINUS { ?item (wdt:P31/wdt:P279*) wd:Q4830453. }              # exclude ENTREPRI
 MINUS { ?item (wdt:P31/wdt:P279*) wd:Q15893266. }              # exclude old entities
 MINUS { ?item wdt:P576 _:b2. } # remove items with P576 (dissolved, abolished or demolished) as a main property
 } ORDER BY ?dist""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#defaultView:Map
+  <http://example.org/bigdata_select> """#defaultView:Map
 SELECT ?item ?country ?coord ?dist {
   hint:Query hint:optimizer \"None\" .
   VALUES ?country { wd:Q40 } .

@@ -11,6 +11,51 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?species ?speciesLabel ?statusLabel
+WITH {
+  SELECT ?species ?status WHERE {
+    ?species (wdt:P171|wdt:P279)* wd:Q189804; # apparently (some?) goat species are subclasses of rather than subtaxons of goat?
+             wdt:P141 ?status.
+  }
+} AS %results
+WITH {
+  # assign a numerical rank to each possible status so we can order them properly
+  SELECT ?status ?rank WHERE {
+    VALUES (?status ?rank) {
+      (wd:Q3245245 0)
+      (wd:Q56660255 0)
+      (wd:Q211005 1)
+      (wd:Q158862 2)
+      (wd:Q719675 3)
+      (wd:Q278113 4)
+      (wd:Q11394 5)
+      (wd:Q219127 6)
+      (wd:Q239509 7)
+      (wd:Q237350 8)
+    }
+  }
+} AS %status
+WHERE {
+  INCLUDE %results.
+  INCLUDE %status.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?rank)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?species ?speciesLabel ?statusLabel
+WHERE {
+  INCLUDE %results.
+  INCLUDE %status.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?rank)""";
   <http://example.org/bigdata_select> """SELECT ?species ?speciesLabel ?statusLabel
 WITH {
   SELECT ?species ?status WHERE {
@@ -38,108 +83,6 @@ WITH {
 WHERE {
   INCLUDE %results.
   INCLUDE %status.
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-ORDER BY DESC(?rank)""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?species ?speciesLabel ?statusLabel
-WITH {
-  SELECT ?species ?status WHERE {
-    ?species (wdt:P171|wdt:P279)* wd:Q189804; # apparently (some?) goat species are subclasses of rather than subtaxons of goat?
-             wdt:P141 ?status.
-  }
-} AS %results
-WITH {
-  # assign a numerical rank to each possible status so we can order them properly
-  SELECT ?status ?rank WHERE {
-    VALUES (?status ?rank) {
-      (wd:Q3245245 0)
-      (wd:Q56660255 0)
-      (wd:Q211005 1)
-      (wd:Q158862 2)
-      (wd:Q719675 3)
-      (wd:Q278113 4)
-      (wd:Q11394 5)
-      (wd:Q219127 6)
-      (wd:Q239509 7)
-      (wd:Q237350 8)
-    }
-  }
-} AS %status
-WHERE {
-  INCLUDE %results.
-  INCLUDE %status.
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-ORDER BY DESC(?rank)""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?species ?speciesLabel ?statusLabel
-
-WITH {
-  # assign a numerical rank to each possible status so we can order them properly
-  SELECT ?status ?rank WHERE {
-    VALUES (?status ?rank) {
-      (wd:Q3245245 0)
-      (wd:Q56660255 0)
-      (wd:Q211005 1)
-      (wd:Q158862 2)
-      (wd:Q719675 3)
-      (wd:Q278113 4)
-      (wd:Q11394 5)
-      (wd:Q219127 6)
-      (wd:Q239509 7)
-      (wd:Q237350 8)
-    }
-  }
-} AS %status
-WHERE {
-  {
-  SELECT ?species ?status WHERE {
-    ?species (wdt:P171|wdt:P279)* wd:Q189804; # apparently (some?) goat species are subclasses of rather than subtaxons of goat?
-             wdt:P141 ?status.
-  }
-}.
-  INCLUDE %status.
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-ORDER BY DESC(?rank)""";
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?species ?speciesLabel ?statusLabel
-
-
-WHERE {
-  {
-  SELECT ?species ?status WHERE {
-    ?species (wdt:P171|wdt:P279)* wd:Q189804; # apparently (some?) goat species are subclasses of rather than subtaxons of goat?
-             wdt:P141 ?status.
-  }
-}.
-  {
-  # assign a numerical rank to each possible status so we can order them properly
-  SELECT ?status ?rank WHERE {
-    VALUES (?status ?rank) {
-      (wd:Q3245245 0)
-      (wd:Q56660255 0)
-      (wd:Q211005 1)
-      (wd:Q158862 2)
-      (wd:Q719675 3)
-      (wd:Q278113 4)
-      (wd:Q11394 5)
-      (wd:Q219127 6)
-      (wd:Q239509 7)
-      (wd:Q237350 8)
-    }
-  }
-}.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY DESC(?rank)""" .

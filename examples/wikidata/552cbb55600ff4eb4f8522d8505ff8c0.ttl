@@ -16,6 +16,40 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 select *
+with {
+  SELECT ?item ?weg ?label {
+  SERVICE <http://lov.okfn.org/dataset/lov/sparql> {
+  SERVICE <https://data.pdok.nl/sparql> {
+    select ?weg ?label
+where {
+  ?weg <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://bag.basisregistraties.overheid.nl/def/bag#OpenbareRuimte> .
+  ?weg <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://bag.basisregistraties.overheid.nl/def/bag#Water> .
+  ?weg <http://bag.basisregistraties.overheid.nl/def/bag#status> <http://bag.basisregistraties.overheid.nl/id/begrip/NaamgevingUitgegeven> .
+  MINUS { ?weg <http://bag.basisregistraties.overheid.nl/def/bag#status> <http://bag.basisregistraties.overheid.nl/id/begrip/NaamgevingIngetrokken> } .
+  ?weg <http://www.w3.org/2000/01/rdf-schema#label> ?label .
+  ?weg <http://bag.basisregistraties.overheid.nl/def/bag#bijbehorendeWoonplaats> <http://bag.basisregistraties.overheid.nl/bag/id/woonplaats/2907>
+} 
+  }
+    }
+  }
+} as %bag
+with {
+  SELECT DISTINCT ?item ?label ?baglink WHERE { 
+    ?item rdfs:label ?label .
+    ?item wdt:P131 wd:Q9920 .
+    ?item wdt:P31/wdt:P279* wd:Q355304 .
+    OPTIONAL { ?item wdtn:P5207 ?baglink } . 
+  }
+} as %wd
+where {
+  include %bag .
+  OPTIONAL {include %wd }.
+}""",
+    """PREFIX wdtn: <http://www.wikidata.org/prop/direct-normalized/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+select *
 where {
    {
   SELECT ?item ?weg ?label {
@@ -43,11 +77,7 @@ where {
   }
 }}.
 }""";
-  <http://example.org/bigdata_select> """PREFIX wdtn: <http://www.wikidata.org/prop/direct-normalized/>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-select *
+  <http://example.org/bigdata_select> """select *
 with {
   SELECT ?item ?weg ?label {
   SERVICE <http://lov.okfn.org/dataset/lov/sparql> {

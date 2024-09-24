@@ -11,6 +11,54 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?lang ?langLabel 
+(GROUP_CONCAT(DISTINCT ?territoryLabel; separator=\" // \") AS ?territories) 
+WITH { SELECT ?territory {
+  ?territory wdt:P31 wd:Q13390680 . 
+  }
+  } AS %states
+WITH { SELECT ?lang {
+  ?wikipedia wdt:P31 wd:Q10876391 ;
+             wdt:P407 ?lang .
+  }
+  } AS %wikilangs
+WHERE {
+  INCLUDE %states
+  INCLUDE %wikilangs
+  ?territory wdt:P37 ?lang ;
+             wdt:P17 wd:Q668 ;
+             rdfs:label ?territoryLabel .  
+  FILTER (lang(?territoryLabel) = 'en')
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?lang ?langLabel ?territories""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?lang ?langLabel 
+(GROUP_CONCAT(DISTINCT ?territoryLabel; separator=\" // \") AS ?territories) 
+WHERE {
+   { SELECT ?territory {
+  ?territory wdt:P31 wd:Q13390680 . 
+  }
+  }   { SELECT ?lang {
+  ?wikipedia wdt:P31 wd:Q10876391 ;
+             wdt:P407 ?lang .
+  }
+  }  ?territory wdt:P37 ?lang ;
+             wdt:P17 wd:Q668 ;
+             rdfs:label ?territoryLabel .  
+  FILTER (lang(?territoryLabel) = 'en')
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?lang ?langLabel ?territories""";
   <http://example.org/bigdata_select> """SELECT DISTINCT ?lang ?langLabel 
 (GROUP_CONCAT(DISTINCT ?territoryLabel; separator=\" // \") AS ?territories) 
 WITH { SELECT ?territory {
@@ -25,84 +73,6 @@ WITH { SELECT ?lang {
 WHERE {
   INCLUDE %states
   INCLUDE %wikilangs
-  ?territory wdt:P37 ?lang ;
-             wdt:P17 wd:Q668 ;
-             rdfs:label ?territoryLabel .  
-  FILTER (lang(?territoryLabel) = 'en')
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-GROUP BY ?lang ?langLabel ?territories""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?lang ?langLabel 
-(GROUP_CONCAT(DISTINCT ?territoryLabel; separator=\" // \") AS ?territories) 
-WITH { SELECT ?territory {
-  ?territory wdt:P31 wd:Q13390680 . 
-  }
-  } AS %states
-WITH { SELECT ?lang {
-  ?wikipedia wdt:P31 wd:Q10876391 ;
-             wdt:P407 ?lang .
-  }
-  } AS %wikilangs
-WHERE {
-  INCLUDE %states
-  INCLUDE %wikilangs
-  ?territory wdt:P37 ?lang ;
-             wdt:P17 wd:Q668 ;
-             rdfs:label ?territoryLabel .  
-  FILTER (lang(?territoryLabel) = 'en')
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-GROUP BY ?lang ?langLabel ?territories""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?lang ?langLabel 
-(GROUP_CONCAT(DISTINCT ?territoryLabel; separator=\" // \") AS ?territories) 
-
-WITH { SELECT ?lang {
-  ?wikipedia wdt:P31 wd:Q10876391 ;
-             wdt:P407 ?lang .
-  }
-  } AS %wikilangs
-WHERE {
-  { SELECT ?territory {
-  ?territory wdt:P31 wd:Q13390680 . 
-  }
-  }
-  INCLUDE %wikilangs
-  ?territory wdt:P37 ?lang ;
-             wdt:P17 wd:Q668 ;
-             rdfs:label ?territoryLabel .  
-  FILTER (lang(?territoryLabel) = 'en')
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-GROUP BY ?lang ?langLabel ?territories""";
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?lang ?langLabel 
-(GROUP_CONCAT(DISTINCT ?territoryLabel; separator=\" // \") AS ?territories) 
-
-
-WHERE {
-  { SELECT ?territory {
-  ?territory wdt:P31 wd:Q13390680 . 
-  }
-  }
-  { SELECT ?lang {
-  ?wikipedia wdt:P31 wd:Q10876391 ;
-             wdt:P407 ?lang .
-  }
-  }
   ?territory wdt:P37 ?lang ;
              wdt:P17 wd:Q668 ;
              rdfs:label ?territoryLabel .  

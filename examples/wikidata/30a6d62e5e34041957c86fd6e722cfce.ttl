@@ -14,6 +14,25 @@
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?property ?propertyLabel ?count ?type WITH { 
+  SELECT ?property (count(distinct ?item) as ?count)  ?type WHERE {
+
+  VALUES ?item {wd:Q20906509
+               wd:Q74457662
+               wd:Q20897620 }
+    ?item ?predicate ?value .
+    ?property wikibase:directClaim ?predicate .
+    OPTIONAL{?property wikibase:propertyType ?type}
+  } group by ?property ?type } as %i
+WHERE
+{
+  INCLUDE %i
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+  
+} order by ?type desc(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?property ?propertyLabel ?count ?type WHERE
 {
    { 
@@ -28,10 +47,7 @@ SELECT ?property ?propertyLabel ?count ?type WHERE
   } group by ?property ?type }  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
   
 } order by ?type desc(?count)""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?property ?propertyLabel ?count ?type WITH { 
+  <http://example.org/bigdata_select> """SELECT ?property ?propertyLabel ?count ?type WITH { 
   SELECT ?property (count(distinct ?item) as ?count)  ?type WHERE {
 
   VALUES ?item {wd:Q20906509

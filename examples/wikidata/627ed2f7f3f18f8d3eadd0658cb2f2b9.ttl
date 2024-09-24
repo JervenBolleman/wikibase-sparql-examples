@@ -24,33 +24,6 @@ SELECT
 
   ?example_lexeme ?example_lexemeLabel
   (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)
-
-WHERE {
-  {
-  SELECT 
-    (COUNT(?lexeme) AS ?overlap)
-    ?attestor
-    (SAMPLE(?lexeme) AS ?example_lexeme)
-  WHERE {
-    ?lexeme wdt:P5323 target:, ?attestor .
-    FILTER (?attestor != target:)
-  }
-  GROUP BY ?attestor
-}
-  ?example_lexeme wikibase:lemma ?example_lexemeLabel . 
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-ORDER BY DESC(?overlap)""";
-  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q126810823>
-
-SELECT 
-  ?overlap
-
-  ?attestor ?attestorLabel
-  (CONCAT(\"#lexemeattestor/\", SUBSTR(STR(?attestor), 32)) AS ?attestorUrl)
-
-  ?example_lexeme ?example_lexemeLabel
-  (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)
 WITH {
   SELECT 
     (COUNT(?lexeme) AS ?overlap)
@@ -72,6 +45,31 @@ ORDER BY DESC(?overlap)""",
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX target: <http://www.wikidata.org/entity/Q126810823>
+
+SELECT 
+  ?overlap
+
+  ?attestor ?attestorLabel
+  (CONCAT(\"#lexemeattestor/\", SUBSTR(STR(?attestor), 32)) AS ?attestorUrl)
+
+  ?example_lexeme ?example_lexemeLabel
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)
+WHERE {
+   {
+  SELECT 
+    (COUNT(?lexeme) AS ?overlap)
+    ?attestor
+    (SAMPLE(?lexeme) AS ?example_lexeme)
+  WHERE {
+    ?lexeme wdt:P5323 target:, ?attestor .
+    FILTER (?attestor != target:)
+  }
+  GROUP BY ?attestor
+}  ?example_lexeme wikibase:lemma ?example_lexemeLabel . 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?overlap)""";
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q126810823>
 
 SELECT 
   ?overlap

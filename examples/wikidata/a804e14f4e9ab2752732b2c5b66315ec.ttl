@@ -23,28 +23,6 @@ SELECT ?count ?authornamestring ?sample_pub ?sample_pubLabel
   (CONCAT(
       'https://author-disambiguator.toolforge.org/names_oauth.php?doit=Look+for+author&limit=5000&filter=wdt%3AP6104+wd%3AQ56241615&name=',
       ENCODE_FOR_URI(?authornamestring)) AS ?specific_resolver_url)
-
-WHERE {
-  {
-  SELECT (count(DISTINCT ?work) as ?count) ?authornamestring (SAMPLE(?work) AS ?sample_pub) WHERE {
-    ?work wdt:P6104 wd:Q56241615 .
-    ?work wdt:P2093 ?authornamestring .
-  }
-  GROUP BY ?authornamestring
-  ORDER BY DESC(?count)
-  LIMIT 200
-}
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTOLANG],en\" . } 
-}
-ORDER BY DESC(?count)""";
-  <http://example.org/bigdata_select> """#defaultView:Table
-SELECT ?count ?authornamestring ?sample_pub ?sample_pubLabel
-  (CONCAT(
-      'https://tools.wmflabs.org/author-disambiguator/names_oauth.php?name=',
-      ENCODE_FOR_URI(?authornamestring)) AS ?generic_resolver_url)
-  (CONCAT(
-      'https://author-disambiguator.toolforge.org/names_oauth.php?doit=Look+for+author&limit=5000&filter=wdt%3AP6104+wd%3AQ56241615&name=',
-      ENCODE_FOR_URI(?authornamestring)) AS ?specific_resolver_url)
 WITH {
   SELECT (count(DISTINCT ?work) as ?count) ?authornamestring (SAMPLE(?work) AS ?sample_pub) WHERE {
     ?work wdt:P6104 wd:Q56241615 .
@@ -64,6 +42,26 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Table
+SELECT ?count ?authornamestring ?sample_pub ?sample_pubLabel
+  (CONCAT(
+      'https://tools.wmflabs.org/author-disambiguator/names_oauth.php?name=',
+      ENCODE_FOR_URI(?authornamestring)) AS ?generic_resolver_url)
+  (CONCAT(
+      'https://author-disambiguator.toolforge.org/names_oauth.php?doit=Look+for+author&limit=5000&filter=wdt%3AP6104+wd%3AQ56241615&name=',
+      ENCODE_FOR_URI(?authornamestring)) AS ?specific_resolver_url)
+WHERE {
+   {
+  SELECT (count(DISTINCT ?work) as ?count) ?authornamestring (SAMPLE(?work) AS ?sample_pub) WHERE {
+    ?work wdt:P6104 wd:Q56241615 .
+    ?work wdt:P2093 ?authornamestring .
+  }
+  GROUP BY ?authornamestring
+  ORDER BY DESC(?count)
+  LIMIT 200
+}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTOLANG],en\" . } 
+}
+ORDER BY DESC(?count)""";
+  <http://example.org/bigdata_select> """#defaultView:Table
 SELECT ?count ?authornamestring ?sample_pub ?sample_pubLabel
   (CONCAT(
       'https://tools.wmflabs.org/author-disambiguator/names_oauth.php?name=',

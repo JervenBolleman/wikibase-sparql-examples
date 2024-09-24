@@ -19,6 +19,51 @@ PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?y ?exit ?new
+WITH
+{
+  SELECT DISTINCT ?y WHERE
+  {
+    ?item wdt:P31/wdt:P279? wd:Q3186692 ; wdt:P585 ?d . 
+    BIND(YEAR( ?d) as ?y) FILTER( ?y > 1900 && ?y < 2023 )
+  }
+} as %a
+WITH
+{
+  SELECT DISTINCT ?y (GROUP_CONCAT(DISTINCT ?item2Label; separator=\"; \") as ?exit)
+  {                     
+    ?item2 p:P31 ?st ; wdt:P30 wd:Q46 .
+    ?st ps:P31/wdt:P279* wd:Q6256 .
+    ?item2 wdt:P576 ?d0 .   BIND(YEAR( ?d0) as ?y) FILTER( ?y > 1900 && ?y < 2023 )
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". ?item2 rdfs:label ?item2Label }
+  }
+  GROUP BY ?y
+} as %b
+WITH
+{
+  SELECT DISTINCT ?y (GROUP_CONCAT(DISTINCT ?item0Label; separator=\"; \") as ?new)
+  {                     
+    ?item0 p:P31 ?st ; wdt:P30 wd:Q46 .
+    ?st ps:P31/wdt:P279* wd:Q6256 .
+    ?item0 wdt:P571 ?d0 .   BIND(YEAR( ?d0) as ?y) FILTER( ?y > 1900 && ?y < 2023 )
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". ?item0 rdfs:label ?item0Label }
+  }
+  GROUP BY ?y
+} as %c
+WHERE
+{
+  INCLUDE %a
+  OPTIONAL { INCLUDE %b }
+  OPTIONAL { INCLUDE %c }
+}
+ORDER BY ?y""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?y ?exit ?new
 WHERE
 {
   
@@ -52,14 +97,7 @@ WHERE
 }}
 }
 ORDER BY ?y""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?y ?exit ?new
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?y ?exit ?new
 WITH
 {
   SELECT DISTINCT ?y WHERE

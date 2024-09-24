@@ -14,24 +14,6 @@
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 #defaultView:LineChart
-SELECT ?age (COUNT(?person) AS ?count) 
-WHERE {
-  {
-  SELECT DISTINCT * WHERE {
-    ?person wdt:P31 wd:Q5.
-    ?person wdt:P570 ?dod.
-    ?person wdt:P569 ?dob.
-    FILTER(YEAR(?dod) > 1900)
-    FILTER(?dod > ?dob)
-    }
-  LIMIT 100000
-  }.
-  BIND(YEAR(?dod)-YEAR(?dob) as ?age)
-  FILTER(?age <= 120)
-  }
-GROUP BY ?age
-ORDER BY DESC(?count)""";
-  <http://example.org/bigdata_select> """#defaultView:LineChart
 SELECT ?age (COUNT(?person) AS ?count) WITH
 {
   SELECT DISTINCT * WHERE {
@@ -54,6 +36,14 @@ ORDER BY DESC(?count)""",
     """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 #defaultView:LineChart
+SELECT ?age (COUNT(?person) AS ?count) WHERE {
+  INCLUDE %d.
+  BIND(YEAR(?dod)-YEAR(?dob) as ?age)
+  FILTER(?age <= 120)
+  }
+GROUP BY ?age
+ORDER BY DESC(?count)""";
+  <http://example.org/bigdata_select> """#defaultView:LineChart
 SELECT ?age (COUNT(?person) AS ?count) WITH
 {
   SELECT DISTINCT * WHERE {

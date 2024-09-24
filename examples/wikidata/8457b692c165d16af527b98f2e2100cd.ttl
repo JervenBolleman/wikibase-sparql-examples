@@ -21,6 +21,35 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?item ?item_label ?peakbaggerID ?coordinate (ROUND(AVG(?elevation)) AS ?elev) (0.1*ROUND(10*?isolation) AS ?iso) (ROUND(?prominence) AS ?prom)
 WHERE 
 {
+  hint:Query hint:optimizer \"None\".
+  ?item wdt:P4552+ wd:Q1286.
+  ?item wdt:P31/wdt:P279* wd:Q106589819.
+  ?item p:P2660 ?stmnode.
+  ?stmnode psn:P2660 ?valuenode.                                     # convert foot values to metres
+  ?valuenode wikibase:quantityAmount ?prominence.
+  ?valuenode wikibase:quantityUnit ?unit.
+  FILTER(?prominence > 1500)
+  MINUS { ?item wdt:P610 ?highpoint . }                              # exclude massifs of which the summit has its own item
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\".
+                          ?item rdfs:label ?item_label.
+                         }  
+  OPTIONAL { ?item wdt:P625 ?coordinate . }
+  OPTIONAL { ?item wdt:P2044 ?elevation . }
+  OPTIONAL { ?item wdt:P2659 ?isolation . }
+  OPTIONAL { ?item wdt:P3109 ?peakbaggerID . }
+}
+GROUP BY ?item ?item_label ?continent ?peakbaggerID ?coordinate ?isolation ?prominence
+ORDER BY DESC(?prom)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?item_label ?peakbaggerID ?coordinate (ROUND(AVG(?elevation)) AS ?elev) (0.1*ROUND(10*?isolation) AS ?iso) (ROUND(?prominence) AS ?prom)
+WHERE 
+{
   
   ?item wdt:P4552+ wd:Q1286.
   ?item wdt:P31/wdt:P279* wd:Q106589819.
@@ -40,14 +69,7 @@ WHERE
 }
 GROUP BY ?item ?item_label ?continent ?peakbaggerID ?coordinate ?isolation ?prominence
 ORDER BY DESC(?prom)""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?item ?item_label ?peakbaggerID ?coordinate (ROUND(AVG(?elevation)) AS ?elev) (0.1*ROUND(10*?isolation) AS ?iso) (ROUND(?prominence) AS ?prom)
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?item_label ?peakbaggerID ?coordinate (ROUND(AVG(?elevation)) AS ?elev) (0.1*ROUND(10*?isolation) AS ?iso) (ROUND(?prominence) AS ?prom)
 WHERE 
 {
   hint:Query hint:optimizer \"None\".

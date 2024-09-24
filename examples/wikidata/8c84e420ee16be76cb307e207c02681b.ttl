@@ -22,6 +22,30 @@ SELECT
 WHERE 
 {
   BIND(wd:Q39666 as ?comparewith)
+  hint:Query hint:optimizer \"None\".
+  {  ?comparewith ?wdt ?v.
+     ?p wikibase:directClaim ?wdt; wikibase:propertyType wikibase:ExternalId.
+     FILTER NOT EXISTS { wd:Q4573 ?wdt [] }
+        FILTER NOT EXISTS { ?p wdt:P31 wd:Q66712599 }
+        FILTER NOT EXISTS { ?p wdt:P31 wd:Q27525351 }
+        FILTER NOT EXISTS { ?p wdt:P31 wd:Q66118402 }   
+     OPTIONAL { ?p wdt:P1630 ?f. } BIND(URI(REPLACE(?f, \"\\\\$1\", ?v)) AS ?url)
+  } UNION { BIND( wd:Q4573 as ?p) }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\"}
+}
+GROUP BY ?p ?pLabel ?comparewithLabel
+ORDER BY (?url_comp2)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#TEMPLATE={\"template\":\"Identifiers present on ?comparewith , but not on the item for Sean Connery\",\"variables\":{\"?comparewith\":{\"query\":\"SELECT DISTINCT ?id WHERE { VALUES ?id { wd:Q81520 wd:Q181917 wd:Q4547 wd:Q134333 wd:Q41233 wd:Q205599 wd:Q37459 wd:Q7374 }  } \" } } }
+SELECT
+  ?p ?pLabel ?comparewithLabel
+  (SAMPLE(?url) AS ?url_comp2) 
+WHERE 
+{
+  BIND(wd:Q39666 as ?comparewith)
   
   {  ?comparewith ?wdt ?v.
      ?p wikibase:directClaim ?wdt; wikibase:propertyType wikibase:ExternalId.
@@ -35,11 +59,7 @@ WHERE
 }
 GROUP BY ?p ?pLabel ?comparewithLabel
 ORDER BY (?url_comp2)""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#TEMPLATE={\"template\":\"Identifiers present on ?comparewith , but not on the item for Sean Connery\",\"variables\":{\"?comparewith\":{\"query\":\"SELECT DISTINCT ?id WHERE { VALUES ?id { wd:Q81520 wd:Q181917 wd:Q4547 wd:Q134333 wd:Q41233 wd:Q205599 wd:Q37459 wd:Q7374 }  } \" } } }
+  <http://example.org/bigdata_select> """#TEMPLATE={\"template\":\"Identifiers present on ?comparewith , but not on the item for Sean Connery\",\"variables\":{\"?comparewith\":{\"query\":\"SELECT DISTINCT ?id WHERE { VALUES ?id { wd:Q81520 wd:Q181917 wd:Q4547 wd:Q134333 wd:Q41233 wd:Q205599 wd:Q37459 wd:Q7374 }  } \" } } }
 SELECT
   ?p ?pLabel ?comparewithLabel
   (SAMPLE(?url) AS ?url_comp2) 

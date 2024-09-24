@@ -17,6 +17,34 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel (count(?item2) as ?count) WITH {
+SELECT ?item ?itemLabel WHERE {
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+  {
+    SELECT DISTINCT ?item WHERE {
+      ?item p:P31 ?statement0.
+      ?item wikibase:propertyType wikibase:Url.
+      ?statement0 (ps:P31/(wdt:P279*)) wd:Q84764641.
+      MINUS {
+        ?item p:P31 ?statement1.
+        ?statement1 (ps:P31/(wdt:P279*)) wd:Q19847637.
+      }
+    }
+  }
+  MINUS { ?item wdt:P8966 [] } .
+} } as %i
+WHERE
+{
+  INCLUDE %i
+  ?item2 ?predicate []. 
+  ?item wikibase:claim ?predicate.
+} group by ?item ?itemLabel order by desc(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?item ?itemLabel (count(?item2) as ?count) WHERE
 {
    {
@@ -37,13 +65,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". 
 } }  ?item2 ?predicate []. 
   ?item wikibase:claim ?predicate.
 } group by ?item ?itemLabel order by desc(?count)""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?item ?itemLabel (count(?item2) as ?count) WITH {
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?itemLabel (count(?item2) as ?count) WITH {
 SELECT ?item ?itemLabel WHERE {
 SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
   {

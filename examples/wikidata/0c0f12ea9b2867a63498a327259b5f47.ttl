@@ -23,57 +23,6 @@ PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?year ?item ?shortname (MAX(?number) AS ?passengers)  (SAMPLE(COALESCE(?reference_URL, ?monthly_reference_URL2)) AS ?sample_reference_URL)
-
-WHERE
-{  {    # Get the sum of monthly values within a year
-    SELECT ?item ?year (SUM(?max_numberperperiod) AS ?number) (SAMPLE(?monthly_reference_URL) AS ?monthly_reference_URL2)
-    WHERE
-    {      # Get the maximal value and a sample reference URL for each unique month
-      {        SELECT ?item ?year (MAX(?numberperperiod) AS ?max_numberperperiod) (SAMPLE(?reference_URL) AS ?monthly_reference_URL)
-        WHERE
-        {          {  SELECT ?item ?statement ?date ?year ?timevalue ?numberperperiod ?reference_URL
-  WHERE   {
-    ?item wdt:P238 ?airport_code
-    VALUES ?airport_code
-    { \"CDG\"    }
-    ?item p:P3872 ?statement.
-    ?statement pqv:P585 ?timevalue; ps:P3872 ?numberperperiod.
-    ?timevalue wikibase:timeValue ?date.
-    OPTIONAL { ?statement pq:P518 ?applies. }
-    OPTIONAL { ?statement prov:wasDerivedFrom / (pr:P854|pr:P4656) ?reference_URL. }
-    FILTER (BOUND(?applies)=false || ?applies = wd:Q2165236)
-    MINUS { ?statement wikibase:rank wikibase:DeprecatedRank }
-    BIND (YEAR(?date) AS ?year)
-  }
-}
-          ?timevalue wikibase:timePrecision ?prec.
-          FILTER (?prec > 9)# precision more precise or equal to month
-        }         GROUP BY ?item ?year ?date      }    }    GROUP BY ?item ?year  }
-  UNION
-  {
-    ?timevalue wikibase:timePrecision 9.
-    BIND (?numberperperiod AS ?number)
-    BIND (?reference_URL AS ?sample_reference_URL)
-    {  SELECT ?item ?statement ?date ?year ?timevalue ?numberperperiod ?reference_URL
-  WHERE   {
-    ?item wdt:P238 ?airport_code
-    VALUES ?airport_code
-    { \"CDG\"    }
-    ?item p:P3872 ?statement.
-    ?statement pqv:P585 ?timevalue; ps:P3872 ?numberperperiod.
-    ?timevalue wikibase:timeValue ?date.
-    OPTIONAL { ?statement pq:P518 ?applies. }
-    OPTIONAL { ?statement prov:wasDerivedFrom / (pr:P854|pr:P4656) ?reference_URL. }
-    FILTER (BOUND(?applies)=false || ?applies = wd:Q2165236)
-    MINUS { ?statement wikibase:rank wikibase:DeprecatedRank }
-    BIND (YEAR(?date) AS ?year)
-  }
-}
-   }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,en\". ?item rdfs:label ?itemLabel.}
-BIND(COALESCE(?this,?itemLabel) as ?shortname)
-} GROUP BY ?item ?shortname ?year ORDER BY ?item DESC (?year)""";
-  <http://example.org/bigdata_select> """SELECT ?year ?item ?shortname (MAX(?number) AS ?passengers)  (SAMPLE(COALESCE(?reference_URL, ?monthly_reference_URL2)) AS ?sample_reference_URL)
 WITH
 {  SELECT ?item ?statement ?date ?year ?timevalue ?numberperperiod ?reference_URL
   WHERE   {
@@ -123,6 +72,56 @@ PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?year ?item ?shortname (MAX(?number) AS ?passengers)  (SAMPLE(COALESCE(?reference_URL, ?monthly_reference_URL2)) AS ?sample_reference_URL)
+WHERE
+{  {    # Get the sum of monthly values within a year
+    SELECT ?item ?year (SUM(?max_numberperperiod) AS ?number) (SAMPLE(?monthly_reference_URL) AS ?monthly_reference_URL2)
+    WHERE
+    {      # Get the maximal value and a sample reference URL for each unique month
+      {        SELECT ?item ?year (MAX(?numberperperiod) AS ?max_numberperperiod) (SAMPLE(?reference_URL) AS ?monthly_reference_URL)
+        WHERE
+        {          
+{  SELECT ?item ?statement ?date ?year ?timevalue ?numberperperiod ?reference_URL
+  WHERE   {
+    ?item wdt:P238 ?airport_code
+    VALUES ?airport_code
+    { \"CDG\"    }
+    ?item p:P3872 ?statement.
+    ?statement pqv:P585 ?timevalue; ps:P3872 ?numberperperiod.
+    ?timevalue wikibase:timeValue ?date.
+    OPTIONAL { ?statement pq:P518 ?applies. }
+    OPTIONAL { ?statement prov:wasDerivedFrom / (pr:P854|pr:P4656) ?reference_URL. }
+    FILTER (BOUND(?applies)=false || ?applies = wd:Q2165236)
+    MINUS { ?statement wikibase:rank wikibase:DeprecatedRank }
+    BIND (YEAR(?date) AS ?year)
+  }
+}          ?timevalue wikibase:timePrecision ?prec.
+          FILTER (?prec > 9)# precision more precise or equal to month
+        }         GROUP BY ?item ?year ?date      }    }    GROUP BY ?item ?year  }
+  UNION
+  {
+    ?timevalue wikibase:timePrecision 9.
+    BIND (?numberperperiod AS ?number)
+    BIND (?reference_URL AS ?sample_reference_URL)
+    
+{  SELECT ?item ?statement ?date ?year ?timevalue ?numberperperiod ?reference_URL
+  WHERE   {
+    ?item wdt:P238 ?airport_code
+    VALUES ?airport_code
+    { \"CDG\"    }
+    ?item p:P3872 ?statement.
+    ?statement pqv:P585 ?timevalue; ps:P3872 ?numberperperiod.
+    ?timevalue wikibase:timeValue ?date.
+    OPTIONAL { ?statement pq:P518 ?applies. }
+    OPTIONAL { ?statement prov:wasDerivedFrom / (pr:P854|pr:P4656) ?reference_URL. }
+    FILTER (BOUND(?applies)=false || ?applies = wd:Q2165236)
+    MINUS { ?statement wikibase:rank wikibase:DeprecatedRank }
+    BIND (YEAR(?date) AS ?year)
+  }
+}   }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,en\". ?item rdfs:label ?itemLabel.}
+BIND(COALESCE(?this,?itemLabel) as ?shortname)
+} GROUP BY ?item ?shortname ?year ORDER BY ?item DESC (?year)""";
+  <http://example.org/bigdata_select> """SELECT ?year ?item ?shortname (MAX(?number) AS ?passengers)  (SAMPLE(COALESCE(?reference_URL, ?monthly_reference_URL2)) AS ?sample_reference_URL)
 WITH
 {  SELECT ?item ?statement ?date ?year ?timevalue ?numberperperiod ?reference_URL
   WHERE   {

@@ -17,7 +17,68 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Map{\"hide\": [\"?coord\"]}
 SELECT DISTINCT ?subj ?subjLabel ?place ?placeLabel ?layer ?coord 
-dt:P20|wdt:P1321|wdt:P937)/(wdt:P131*)) wd:Q11943.
+WITH {
+  SELECT DISTINCT ?subj WHERE {
+  ?subj ((wdt:P19|wdt:P551|wdt:P20|wdt:P1321|wdt:P937)/(wdt:P131*)) wd:Q11943.
+  }
+} as %person # re-use results
+WHERE {
+  {
+    INCLUDE %person
+    ?subj  wdt:P19 ?place.
+    ?place wdt:P625 ?coord.
+    BIND(\"Geburtsort\" AS ?layer)
+  } UNION {
+    INCLUDE %person
+    ?subj wdt:P20 ?place.
+    ?place wdt:P625 ?coord.
+    BIND(\"Sterbeort\" AS ?layer)
+  } UNION {
+    INCLUDE %person
+    ?subj wdt:P551 ?place.
+    ?place wdt:P625 ?coord.
+    BIND(\"Wohnsitz\" AS ?layer)
+  } UNION {
+    INCLUDE %person
+    ?subj wdt:P937 ?place.
+    ?place wdt:P625 ?coord.
+    BIND(\"Wirkungsort\" AS ?layer)
+  } UNION {
+    INCLUDE %person
+    ?subj wdt:P1321 ?place.
+    ?place wdt:P625 ?coord.
+    BIND(\"Bürgerort\" AS ?layer)
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map{\"hide\": [\"?coord\"]}
+SELECT DISTINCT ?subj ?subjLabel ?place ?placeLabel ?layer ?coord 
+# re-use results
+WHERE {
+  {
+     {
+  SELECT DISTINCT ?subj WHERE {
+  ?subj ((wdt:P19|wdt:P551|wdt:P20|wdt:P1321|wdt:P937)/(wdt:P131*)) wd:Q11943.
+  }
+}    ?subj  wdt:P19 ?place.
+    ?place wdt:P625 ?coord.
+    BIND(\"Geburtsort\" AS ?layer)
+  } UNION {
+     {
+  SELECT DISTINCT ?subj WHERE {
+  ?subj ((wdt:P19|wdt:P551|wdt:P20|wdt:P1321|wdt:P937)/(wdt:P131*)) wd:Q11943.
+  }
+}    ?subj wdt:P20 ?place.
+    ?place wdt:P625 ?coord.
+    BIND(\"Sterbeort\" AS ?layer)
+  } UNION {
+     {
+  SELECT DISTINCT ?subj WHERE {
+  ?subj ((wdt:P19|wdt:P551|wdt:P20|wdt:P1321|wdt:P937)/(wdt:P131*)) wd:Q11943.
   }
 }    ?subj wdt:P551 ?place.
     ?place wdt:P625 ?coord.
@@ -41,11 +102,7 @@ dt:P20|wdt:P1321|wdt:P937)/(wdt:P131*)) wd:Q11943.
   }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#defaultView:Map{\"hide\": [\"?coord\"]}
+  <http://example.org/bigdata_select> """#defaultView:Map{\"hide\": [\"?coord\"]}
 SELECT DISTINCT ?subj ?subjLabel ?place ?placeLabel ?layer ?coord 
 WITH {
   SELECT DISTINCT ?subj WHERE {

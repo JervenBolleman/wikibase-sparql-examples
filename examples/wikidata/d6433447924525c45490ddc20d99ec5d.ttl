@@ -15,6 +15,27 @@
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?property ?propertyLabel ?count WITH { 
+  SELECT ?property (count(distinct ?item) as ?count)  WHERE {
+    SERVICE bd:slice {
+        ?item wdt:P31 wd:Q5.
+    bd:serviceParam bd:slice.offset 0 . # Start at item number (not to be confused with QID)
+    bd:serviceParam bd:slice.limit 80000 . # List this many items
+  }
+    hint:Prior hint:runFirst true .
+    ?item ?predicate ?value .
+    ?property wikibase:directClaim ?predicate .
+  } group by ?property  } as %i
+WHERE
+{
+  INCLUDE %i
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+  
+} order by desc(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?property ?propertyLabel ?count WHERE
 {
    { 
@@ -30,11 +51,7 @@ SELECT ?property ?propertyLabel ?count WHERE
   } group by ?property  }  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
   
 } order by desc(?count)""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?property ?propertyLabel ?count WITH { 
+  <http://example.org/bigdata_select> """SELECT ?property ?propertyLabel ?count WITH { 
   SELECT ?property (count(distinct ?item) as ?count)  WHERE {
     SERVICE bd:slice {
         ?item wdt:P31 wd:Q5.

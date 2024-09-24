@@ -16,35 +16,6 @@ PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?title_en ?sitelink_en ?item
-WHERE
-{
-  
-{
-  SELECT ?title_en ?sitelink_en ?item
-  WHERE
-  {
-    
-{
-  SELECT ?title_en ?sitelink_en
-  WHERE
-  {
-    INCLUDE %get_titles_en
-    ?sitelink_en schema:name ?title_en.
-  }
-}    ?sitelink_en schema:isPartOf <https://en.wikipedia.org/>.
-    ?sitelink_en schema:about ?item.
-  }
-}  MINUS
-  {
-    [] schema:about ?item;
-       schema:isPartOf <https://uk.wikipedia.org/>.
-  }
-}""";
-  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX schema: <http://schema.org/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?title_en ?sitelink_en ?item
 WITH
 {
   SELECT ?title_en
@@ -70,6 +41,30 @@ WITH
     ?sitelink_en schema:name ?title_en.
   }
 } AS %get_sitelinks_en
+WITH
+{
+  SELECT ?title_en ?sitelink_en ?item
+  WHERE
+  {
+    INCLUDE %get_sitelinks_en
+    ?sitelink_en schema:isPartOf <https://en.wikipedia.org/>.
+    ?sitelink_en schema:about ?item.
+  }
+} AS %get_items_en
+WHERE
+{
+  INCLUDE %get_items_en
+  MINUS
+  {
+    [] schema:about ?item;
+       schema:isPartOf <https://uk.wikipedia.org/>.
+  }
+}""",
+    """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?title_en ?sitelink_en ?item
 WHERE
 {
   
@@ -82,6 +77,51 @@ WHERE
     ?sitelink_en schema:about ?item.
   }
 }  MINUS
+  {
+    [] schema:about ?item;
+       schema:isPartOf <https://uk.wikipedia.org/>.
+  }
+}""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?title_en ?sitelink_en ?item
+WITH
+{
+  SELECT ?title_en
+  WHERE
+  {
+    SERVICE wikibase:mwapi
+    {
+      bd:serviceParam wikibase:api \"Search\" .
+      bd:serviceParam wikibase:endpoint \"en.wikipedia.org\" .
+      bd:serviceParam mwapi:srnamespace \"0\" .
+      bd:serviceParam mwapi:srsearch 'deepcat:Felids' .
+      ?title wikibase:apiOutput mwapi:title .
+    }
+    BIND (STRLANG(?title, \"en\") AS ?title_en)
+  }
+} AS %get_titles_en
+WITH
+{
+  SELECT ?title_en ?sitelink_en
+  WHERE
+  {
+    INCLUDE %get_titles_en
+    ?sitelink_en schema:name ?title_en.
+  }
+} AS %get_sitelinks_en
+WITH
+{
+  SELECT ?title_en ?sitelink_en ?item
+  WHERE
+  {
+    INCLUDE %get_sitelinks_en
+    ?sitelink_en schema:isPartOf <https://en.wikipedia.org/>.
+    ?sitelink_en schema:about ?item.
+  }
+} AS %get_items_en
+WHERE
+{
+  INCLUDE %get_items_en
+  MINUS
   {
     [] schema:about ?item;
        schema:isPartOf <https://uk.wikipedia.org/>.

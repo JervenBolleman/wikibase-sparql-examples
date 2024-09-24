@@ -20,36 +20,6 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Table
 SELECT DISTINCT ?item ?itemLabel ?sitelinks ?coord
-
-WHERE
-{
-  {
-  SELECT ?item 
-  WHERE 
-  {
-    ?item wdt:P131/wdt:P131 wd:Q22 . #} hint:Prior hint:runFirst true.
-    ?item wdt:P31/wdt:P279* wd:Q12280.
-  
-    filter not exists { ?item wdt:P177 [] }  
-  }
-}
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
-  ?item wikibase:sitelinks ?sitelinks.
-  ?item wdt:P625 ?coord .
-  
-  FILTER EXISTS
-  {
-    { ?item rdfs:label ?text }
-    UNION
-    { ?item schema:description ?text }
-    UNION
-    { ?item skos:altLabel ?text }
-    FILTER CONTAINS(?text, \"railway\")
-  }
-}
-ORDER BY DESC(?sitelinks) ?itemLabel""";
-  <http://example.org/bigdata_select> """#defaultView:Table
-SELECT DISTINCT ?item ?itemLabel ?sitelinks ?coord
 WITH
 {
   SELECT ?item 
@@ -79,7 +49,9 @@ WHERE
   }
 }
 ORDER BY DESC(?sitelinks) ?itemLabel""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
+    """WHERE
+{
+  PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
@@ -87,6 +59,33 @@ PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Table
+SELECT DISTINCT ?item ?itemLabel ?sitelinks ?coord
+WITH
+{
+  SELECT ?item 
+  WHERE 
+  {
+    ?item wdt:P131/wdt:P131 wd:Q22 . #} hint:Prior hint:runFirst true.
+    ?item wdt:P31/wdt:P279* wd:Q12280.
+  
+    filter not exists { ?item wdt:P177 [] }  
+  }
+}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+  ?item wikibase:sitelinks ?sitelinks.
+  ?item wdt:P625 ?coord .
+  
+  FILTER EXISTS
+  {
+    { ?item rdfs:label ?text }
+    UNION
+    { ?item schema:description ?text }
+    UNION
+    { ?item skos:altLabel ?text }
+    FILTER CONTAINS(?text, \"railway\")
+  }
+}
+ORDER BY DESC(?sitelinks) ?itemLabel""";
+  <http://example.org/bigdata_select> """#defaultView:Table
 SELECT DISTINCT ?item ?itemLabel ?sitelinks ?coord
 WITH
 {

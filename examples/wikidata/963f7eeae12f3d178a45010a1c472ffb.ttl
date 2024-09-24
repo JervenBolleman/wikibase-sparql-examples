@@ -11,6 +11,134 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Note : this query uses the NamedSubquery feature, see https://wiki.blazegraph.com/wiki/index.php/NamedSubquery
+
+#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
+SELECT ?coordinates ?line ?station ?itemLabel ?connectLabel ?image ?opening ?rgb
+
+# subquery that selects all stations of the amsterdam metro
+WITH {
+  # There may be several images and several coordinates for a station, so we use a « group by » to ensure we have only one line per station in the results
+  SELECT ?station (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) ?opening WHERE {
+    ?station wdt:P31/wdt:P279* wd:Q55488 ; # we get train stations
+             wdt:P361 wd:Q260870 ;         # … that are part of the amsterdam metro
+             wdt:P625 ?coordinates  .      # … their coordinate
+    OPTIONAL { ?station wdt:P1619 ?opening }          # … and their opening date
+  } GROUP BY ?station ?opening
+} AS %stations
+     
+#subquery that selects all the lines of the amsterdam metro
+WITH {
+  SELECT ?line ?connect ?rgb WHERE {
+    # we reuse the stations computed by the other named query
+    INCLUDE %stations .
+    
+    ?station p:P197 [ ps:P197 ?nextstation ;           # … we get all the neighbourstation(s) of one station
+                      pq:P81  ?connect ] .  
+    ?connect wdt:P361 wd:Q260870 ;                     # … who have a transport line that is a part of the amsterdam metro
+             wdt:P465 ?rgb                             # … also get the standard colour for the connecting line
+  
+    FILTER(STR(?station) < STR(?nextstation)) . # making sure we draw only one line for each pair of neighbour station, 
+                                             # (as P197 (neighboor station) is symmetric, we could have two results for each line :
+                                             # 1) ?item = Qaaa and ?nextstation = Qbbb 
+                                             # 2) ?item = Qbbb and ?nextstation = Qaaa
+                                             # so we choose to keep only (arbitrarily) the first one to draw only one line
+  
+    ?station     p:P625 / psv:P625 [ wikibase:geoLatitude ?lat1 ;  wikibase:geoLongitude ?lon1 ].      # the coordinates of one end of the line
+    ?nextstation p:P625 / psv:P625 [ wikibase:geoLatitude ?lat2 ; wikibase:geoLongitude ?lon2 ].       #               … of one the other end of the line
+  
+    # Building the « LINESTRING » instruction that will ask the view to draw a line frome one station to another, 
+    BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
+    # with the appropriate datatype for the line to be interpreted as such by the map engine 
+    # (thanks to strdt : https://www.w3.org/TR/sparql11-query/#func-strdt )
+    BIND(STRDT(?str, geo:wktLiteral) AS ?line)
+  }
+} AS %lines
+
+WHERE {
+  # using an union of the two result sets in there so that each metro station and each metro line has its own unique result line in the final result set. 
+  # (In \"metro stations\" result set, the \"?line\" variable will be always unbound, 
+  #  and conversely in the \"metro lines\" result set, only the \"?line\" variable will have a value)
+  { INCLUDE %stations } UNION { INCLUDE %lines } .
+  # (more naive approach where lines and stations are mixed-up in the same result set lines make some station dots bigger than others)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Note : this query uses the NamedSubquery feature, see https://wiki.blazegraph.com/wiki/index.php/NamedSubquery
+
+#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
+SELECT ?coordinates ?line ?station ?itemLabel ?connectLabel ?image ?opening ?rgb
+
+# subquery that selects all stations of the amsterdam metro
+     
+#subquery that selects all the lines of the amsterdam metro
+
+WHERE {
+  # using an union of the two result sets in there so that each metro station and each metro line has its own unique result line in the final result set. 
+  # (In \"metro stations\" result set, the \"?line\" variable will be always unbound, 
+  #  and conversely in the \"metro lines\" result set, only the \"?line\" variable will have a value)
+  {  {
+  # There may be several images and several coordinates for a station, so we use a « group by » to ensure we have only one line per station in the results
+  SELECT ?station (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) ?opening WHERE {
+    ?station wdt:P31/wdt:P279* wd:Q55488 ; # we get train stations
+             wdt:P361 wd:Q260870 ;         # … that are part of the amsterdam metro
+             wdt:P625 ?coordinates  .      # … their coordinate
+    OPTIONAL { ?station wdt:P1619 ?opening }          # … and their opening date
+  } GROUP BY ?station ?opening
+}} UNION {  {
+  SELECT ?line ?connect ?rgb WHERE {
+    # we reuse the stations computed by the other named query
+     {
+  # There may be several images and several coordinates for a station, so we use a « group by » to ensure we have only one line per station in the results
+  SELECT ?station (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) ?opening WHERE {
+    ?station wdt:P31/wdt:P279* wd:Q55488 ; # we get train stations
+             wdt:P361 wd:Q260870 ;         # … that are part of the amsterdam metro
+             wdt:P625 ?coordinates  .      # … their coordinate
+    OPTIONAL { ?station wdt:P1619 ?opening }          # … and their opening date
+  } GROUP BY ?station ?opening
+}.
+    
+    ?station p:P197 [ ps:P197 ?nextstation ;           # … we get all the neighbourstation(s) of one station
+                      pq:P81  ?connect ] .  
+    ?connect wdt:P361 wd:Q260870 ;                     # … who have a transport line that is a part of the amsterdam metro
+             wdt:P465 ?rgb                             # … also get the standard colour for the connecting line
+  
+    FILTER(STR(?station) < STR(?nextstation)) . # making sure we draw only one line for each pair of neighbour station, 
+                                             # (as P197 (neighboor station) is symmetric, we could have two results for each line :
+                                             # 1) ?item = Qaaa and ?nextstation = Qbbb 
+                                             # 2) ?item = Qbbb and ?nextstation = Qaaa
+                                             # so we choose to keep only (arbitrarily) the first one to draw only one line
+  
+    ?station     p:P625 / psv:P625 [ wikibase:geoLatitude ?lat1 ;  wikibase:geoLongitude ?lon1 ].      # the coordinates of one end of the line
+    ?nextstation p:P625 / psv:P625 [ wikibase:geoLatitude ?lat2 ; wikibase:geoLongitude ?lon2 ].       #               … of one the other end of the line
+  
+    # Building the « LINESTRING » instruction that will ask the view to draw a line frome one station to another, 
+    BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
+    # with the appropriate datatype for the line to be interpreted as such by the map engine 
+    # (thanks to strdt : https://www.w3.org/TR/sparql11-query/#func-strdt )
+    BIND(STRDT(?str, geo:wktLiteral) AS ?line)
+  }
+}} .
+  # (more naive approach where lines and stations are mixed-up in the same result set lines make some station dots bigger than others)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
   <http://example.org/bigdata_select> """# Note : this query uses the NamedSubquery feature, see https://wiki.blazegraph.com/wiki/index.php/NamedSubquery
 
 #defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
@@ -60,205 +188,6 @@ WHERE {
   # (In \"metro stations\" result set, the \"?line\" variable will be always unbound, 
   #  and conversely in the \"metro lines\" result set, only the \"?line\" variable will have a value)
   { INCLUDE %stations } UNION { INCLUDE %lines } .
-  # (more naive approach where lines and stations are mixed-up in the same result set lines make some station dots bigger than others)
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX geo: <http://www.opengis.net/ont/geosparql#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-# Note : this query uses the NamedSubquery feature, see https://wiki.blazegraph.com/wiki/index.php/NamedSubquery
-
-#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
-SELECT ?coordinates ?line ?station ?itemLabel ?connectLabel ?image ?opening ?rgb
-
-# subquery that selects all stations of the amsterdam metro
-WITH {
-  # There may be several images and several coordinates for a station, so we use a « group by » to ensure we have only one line per station in the results
-  SELECT ?station (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) ?opening WHERE {
-    ?station wdt:P31/wdt:P279* wd:Q55488 ; # we get train stations
-             wdt:P361 wd:Q260870 ;         # … that are part of the amsterdam metro
-             wdt:P625 ?coordinates  .      # … their coordinate
-    OPTIONAL { ?station wdt:P1619 ?opening }          # … and their opening date
-  } GROUP BY ?station ?opening
-} AS %stations
-     
-#subquery that selects all the lines of the amsterdam metro
-WITH {
-  SELECT ?line ?connect ?rgb WHERE {
-    # we reuse the stations computed by the other named query
-    INCLUDE %stations .
-    
-    ?station p:P197 [ ps:P197 ?nextstation ;           # … we get all the neighbourstation(s) of one station
-                      pq:P81  ?connect ] .  
-    ?connect wdt:P361 wd:Q260870 ;                     # … who have a transport line that is a part of the amsterdam metro
-             wdt:P465 ?rgb                             # … also get the standard colour for the connecting line
-  
-    FILTER(STR(?station) < STR(?nextstation)) . # making sure we draw only one line for each pair of neighbour station, 
-                                             # (as P197 (neighboor station) is symmetric, we could have two results for each line :
-                                             # 1) ?item = Qaaa and ?nextstation = Qbbb 
-                                             # 2) ?item = Qbbb and ?nextstation = Qaaa
-                                             # so we choose to keep only (arbitrarily) the first one to draw only one line
-  
-    ?station     p:P625 / psv:P625 [ wikibase:geoLatitude ?lat1 ;  wikibase:geoLongitude ?lon1 ].      # the coordinates of one end of the line
-    ?nextstation p:P625 / psv:P625 [ wikibase:geoLatitude ?lat2 ; wikibase:geoLongitude ?lon2 ].       #               … of one the other end of the line
-  
-    # Building the « LINESTRING » instruction that will ask the view to draw a line frome one station to another, 
-    BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
-    # with the appropriate datatype for the line to be interpreted as such by the map engine 
-    # (thanks to strdt : https://www.w3.org/TR/sparql11-query/#func-strdt )
-    BIND(STRDT(?str, geo:wktLiteral) AS ?line)
-  }
-} AS %lines
-
-WHERE {
-  # using an union of the two result sets in there so that each metro station and each metro line has its own unique result line in the final result set. 
-  # (In \"metro stations\" result set, the \"?line\" variable will be always unbound, 
-  #  and conversely in the \"metro lines\" result set, only the \"?line\" variable will have a value)
-  { INCLUDE %stations } UNION { INCLUDE %lines } .
-  # (more naive approach where lines and stations are mixed-up in the same result set lines make some station dots bigger than others)
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX geo: <http://www.opengis.net/ont/geosparql#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-# Note : this query uses the NamedSubquery feature, see https://wiki.blazegraph.com/wiki/index.php/NamedSubquery
-
-#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
-SELECT ?coordinates ?line ?station ?itemLabel ?connectLabel ?image ?opening ?rgb
-
-# subquery that selects all stations of the amsterdam metro
-
-     
-#subquery that selects all the lines of the amsterdam metro
-WITH {
-  SELECT ?line ?connect ?rgb WHERE {
-    # we reuse the stations computed by the other named query
-    {
-  # There may be several images and several coordinates for a station, so we use a « group by » to ensure we have only one line per station in the results
-  SELECT ?station (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) ?opening WHERE {
-    ?station wdt:P31/wdt:P279* wd:Q55488 ; # we get train stations
-             wdt:P361 wd:Q260870 ;         # … that are part of the amsterdam metro
-             wdt:P625 ?coordinates  .      # … their coordinate
-    OPTIONAL { ?station wdt:P1619 ?opening }          # … and their opening date
-  } GROUP BY ?station ?opening
-} .
-    
-    ?station p:P197 [ ps:P197 ?nextstation ;           # … we get all the neighbourstation(s) of one station
-                      pq:P81  ?connect ] .  
-    ?connect wdt:P361 wd:Q260870 ;                     # … who have a transport line that is a part of the amsterdam metro
-             wdt:P465 ?rgb                             # … also get the standard colour for the connecting line
-  
-    FILTER(STR(?station) < STR(?nextstation)) . # making sure we draw only one line for each pair of neighbour station, 
-                                             # (as P197 (neighboor station) is symmetric, we could have two results for each line :
-                                             # 1) ?item = Qaaa and ?nextstation = Qbbb 
-                                             # 2) ?item = Qbbb and ?nextstation = Qaaa
-                                             # so we choose to keep only (arbitrarily) the first one to draw only one line
-  
-    ?station     p:P625 / psv:P625 [ wikibase:geoLatitude ?lat1 ;  wikibase:geoLongitude ?lon1 ].      # the coordinates of one end of the line
-    ?nextstation p:P625 / psv:P625 [ wikibase:geoLatitude ?lat2 ; wikibase:geoLongitude ?lon2 ].       #               … of one the other end of the line
-  
-    # Building the « LINESTRING » instruction that will ask the view to draw a line frome one station to another, 
-    BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
-    # with the appropriate datatype for the line to be interpreted as such by the map engine 
-    # (thanks to strdt : https://www.w3.org/TR/sparql11-query/#func-strdt )
-    BIND(STRDT(?str, geo:wktLiteral) AS ?line)
-  }
-} AS %lines
-
-WHERE {
-  # using an union of the two result sets in there so that each metro station and each metro line has its own unique result line in the final result set. 
-  # (In \"metro stations\" result set, the \"?line\" variable will be always unbound, 
-  #  and conversely in the \"metro lines\" result set, only the \"?line\" variable will have a value)
-  { {
-  # There may be several images and several coordinates for a station, so we use a « group by » to ensure we have only one line per station in the results
-  SELECT ?station (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) ?opening WHERE {
-    ?station wdt:P31/wdt:P279* wd:Q55488 ; # we get train stations
-             wdt:P361 wd:Q260870 ;         # … that are part of the amsterdam metro
-             wdt:P625 ?coordinates  .      # … their coordinate
-    OPTIONAL { ?station wdt:P1619 ?opening }          # … and their opening date
-  } GROUP BY ?station ?opening
-} } UNION { INCLUDE %lines } .
-  # (more naive approach where lines and stations are mixed-up in the same result set lines make some station dots bigger than others)
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""";
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX geo: <http://www.opengis.net/ont/geosparql#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-# Note : this query uses the NamedSubquery feature, see https://wiki.blazegraph.com/wiki/index.php/NamedSubquery
-
-#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
-SELECT ?coordinates ?line ?station ?itemLabel ?connectLabel ?image ?opening ?rgb
-
-# subquery that selects all stations of the amsterdam metro
-
-     
-#subquery that selects all the lines of the amsterdam metro
-
-
-WHERE {
-  # using an union of the two result sets in there so that each metro station and each metro line has its own unique result line in the final result set. 
-  # (In \"metro stations\" result set, the \"?line\" variable will be always unbound, 
-  #  and conversely in the \"metro lines\" result set, only the \"?line\" variable will have a value)
-  { {
-  # There may be several images and several coordinates for a station, so we use a « group by » to ensure we have only one line per station in the results
-  SELECT ?station (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) ?opening WHERE {
-    ?station wdt:P31/wdt:P279* wd:Q55488 ; # we get train stations
-             wdt:P361 wd:Q260870 ;         # … that are part of the amsterdam metro
-             wdt:P625 ?coordinates  .      # … their coordinate
-    OPTIONAL { ?station wdt:P1619 ?opening }          # … and their opening date
-  } GROUP BY ?station ?opening
-} } UNION { {
-  SELECT ?line ?connect ?rgb WHERE {
-    # we reuse the stations computed by the other named query
-    {
-  # There may be several images and several coordinates for a station, so we use a « group by » to ensure we have only one line per station in the results
-  SELECT ?station (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) ?opening WHERE {
-    ?station wdt:P31/wdt:P279* wd:Q55488 ; # we get train stations
-             wdt:P361 wd:Q260870 ;         # … that are part of the amsterdam metro
-             wdt:P625 ?coordinates  .      # … their coordinate
-    OPTIONAL { ?station wdt:P1619 ?opening }          # … and their opening date
-  } GROUP BY ?station ?opening
-} .
-    
-    ?station p:P197 [ ps:P197 ?nextstation ;           # … we get all the neighbourstation(s) of one station
-                      pq:P81  ?connect ] .  
-    ?connect wdt:P361 wd:Q260870 ;                     # … who have a transport line that is a part of the amsterdam metro
-             wdt:P465 ?rgb                             # … also get the standard colour for the connecting line
-  
-    FILTER(STR(?station) < STR(?nextstation)) . # making sure we draw only one line for each pair of neighbour station, 
-                                             # (as P197 (neighboor station) is symmetric, we could have two results for each line :
-                                             # 1) ?item = Qaaa and ?nextstation = Qbbb 
-                                             # 2) ?item = Qbbb and ?nextstation = Qaaa
-                                             # so we choose to keep only (arbitrarily) the first one to draw only one line
-  
-    ?station     p:P625 / psv:P625 [ wikibase:geoLatitude ?lat1 ;  wikibase:geoLongitude ?lon1 ].      # the coordinates of one end of the line
-    ?nextstation p:P625 / psv:P625 [ wikibase:geoLatitude ?lat2 ; wikibase:geoLongitude ?lon2 ].       #               … of one the other end of the line
-  
-    # Building the « LINESTRING » instruction that will ask the view to draw a line frome one station to another, 
-    BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
-    # with the appropriate datatype for the line to be interpreted as such by the map engine 
-    # (thanks to strdt : https://www.w3.org/TR/sparql11-query/#func-strdt )
-    BIND(STRDT(?str, geo:wktLiteral) AS ?line)
-  }
-} } .
   # (more naive approach where lines and stations are mixed-up in the same result set lines make some station dots bigger than others)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""" .

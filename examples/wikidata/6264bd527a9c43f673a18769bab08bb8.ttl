@@ -18,6 +18,26 @@ PREFIX schema: <http://schema.org/>
 PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?SL ?sl_article ?birth ?precision with {select ?item ?itemLabel ?SL ?sl_article ?precision (count(?birth) as ?count) where
+{
+  ?item wdt:P31 wd:Q5.
+  ?SL schema:about ?item;                       # item has a sitelink
+  schema:isPartOf <https://sl.wikisource.org/>;   # the sitelink points to sl.wikisource 
+  schema:name ?sl_article.                     # and has an article name
+  ?item p:P569/psv:P569 [wikibase:timePrecision ?precision; wikibase:timeValue ?birth]. #has a DoB with a stated precision
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } . #this bit gets labels for Qid values
+} group by ?item ?itemLabel ?SL ?sl_article ?precision } as %i
+where
+{include %i
+         filter(?count>1)
+         }""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?SL ?sl_article ?birth ?precision where
 { {select ?item ?itemLabel ?SL ?sl_article ?precision (count(?birth) as ?count) where
 {
@@ -29,14 +49,7 @@ SELECT ?item ?itemLabel ?SL ?sl_article ?birth ?precision where
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } . #this bit gets labels for Qid values
 } group by ?item ?itemLabel ?SL ?sl_article ?precision }         filter(?count>1)
          }""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?SL ?sl_article ?birth ?precision with {select ?item ?itemLabel ?SL ?sl_article ?precision (count(?birth) as ?count) where
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?SL ?sl_article ?birth ?precision with {select ?item ?itemLabel ?SL ?sl_article ?precision (count(?birth) as ?count) where
 {
   ?item wdt:P31 wd:Q5.
   ?SL schema:about ?item;                       # item has a sitelink

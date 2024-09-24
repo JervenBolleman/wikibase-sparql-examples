@@ -23,30 +23,6 @@ SELECT
   ?publisher ?publisherLabel
   (CONCAT(\"#publisher/\", SUBSTR(STR(?publisher), 32)) AS ?publisherUrl) 
   ?publisherDescription
-
-WHERE {
-  {
-  SELECT
-    (COUNT(?work) AS ?works)
-    ?publisher
-  WHERE {
-    ?work wdt:P123 ?publisher ;
-          wdt:P407 target: .
-  }
-  GROUP BY ?publisher
-}
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-} 
-ORDER BY DESC(?works)""";
-  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q9035>
-
-SELECT
-  ?works
-  (CONCAT(\"#language/\", SUBSTR(STR(target:), 32), \"/publisher/\", SUBSTR(STR(?publisher), 32)) AS ?worksUrl) 
- 
-  ?publisher ?publisherLabel
-  (CONCAT(\"#publisher/\", SUBSTR(STR(?publisher), 32)) AS ?publisherUrl) 
-  ?publisherDescription
 WITH {
   SELECT
     (COUNT(?work) AS ?works)
@@ -66,6 +42,28 @@ ORDER BY DESC(?works)""",
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX target: <http://www.wikidata.org/entity/Q9035>
+
+SELECT
+  ?works
+  (CONCAT(\"#language/\", SUBSTR(STR(target:), 32), \"/publisher/\", SUBSTR(STR(?publisher), 32)) AS ?worksUrl) 
+ 
+  ?publisher ?publisherLabel
+  (CONCAT(\"#publisher/\", SUBSTR(STR(?publisher), 32)) AS ?publisherUrl) 
+  ?publisherDescription
+WHERE {
+   {
+  SELECT
+    (COUNT(?work) AS ?works)
+    ?publisher
+  WHERE {
+    ?work wdt:P123 ?publisher ;
+          wdt:P407 target: .
+  }
+  GROUP BY ?publisher
+}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} 
+ORDER BY DESC(?works)""";
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q9035>
 
 SELECT
   ?works

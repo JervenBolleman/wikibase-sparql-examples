@@ -23,69 +23,6 @@ SELECT
   ?researcher ?researcherLabel
   (CONCAT(\"#author/\", SUBSTR(STR(?researcher), 32)) AS ?researcherUrl)
   ?researcherDescription
-
-WHERE {
-  {
-  SELECT 
-    (SUM(?score_) AS ?score)
-    (GROUP_CONCAT(DISTINCT ?role; separator=\", \") AS ?roles)
-    ?researcher 
-  WHERE {
-    { 
-      BIND(\"supervisor\" AS ?role)
-      BIND(15 AS ?score_)
-      target: wdt:P184 ?researcher .
-    }
-    UNION
-    { 
-      BIND(\"student\" AS ?role)
-      BIND(10 AS ?score_)
-      target: wdt:P185 ?researcher .
-    }
-    UNION
-    { 
-      BIND(\"co-author\" AS ?role)
-      BIND(5 AS ?score_)
-      [] wdt:P50 target:, ?researcher
-    }
-    UNION
-    {
-      BIND(\"cited author\" AS ?role)
-      BIND(2 AS ?score_)
-      [] wdt:P50 target: ;
-         wdt:P2860 / wdt:P50 ?researcher .
-    }
-    UNION
-    {
-      BIND(\"citing author\" AS ?role)
-      BIND(1 AS ?score_)
-      [] wdt:P50 target: ;
-         ^wdt:P2860 / wdt:P50 ?researcher .
-    }
-    UNION
-    {
-      BIND(\"coeditor\" AS ?role)
-      BIND(5 AS ?score_)
-      [] wdt:P98 target: , ?researcher .
-    }
-  }
-  GROUP BY ?researcher 
-  ORDER BY DESC(?score)
-  LIMIT 200
-}
-  FILTER (target: != ?researcher)
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-ORDER BY DESC(?score)""";
-  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q18618629>
-
-SELECT
-  ?score
-  ?roles
-
-  ?researcher ?researcherLabel
-  (CONCAT(\"#author/\", SUBSTR(STR(?researcher), 32)) AS ?researcherUrl)
-  ?researcherDescription
 WITH {
   SELECT 
     (SUM(?score_) AS ?score)
@@ -144,6 +81,67 @@ ORDER BY DESC(?score)""",
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX target: <http://www.wikidata.org/entity/Q18618629>
+
+SELECT
+  ?score
+  ?roles
+
+  ?researcher ?researcherLabel
+  (CONCAT(\"#author/\", SUBSTR(STR(?researcher), 32)) AS ?researcherUrl)
+  ?researcherDescription
+WHERE {
+   {
+  SELECT 
+    (SUM(?score_) AS ?score)
+    (GROUP_CONCAT(DISTINCT ?role; separator=\", \") AS ?roles)
+    ?researcher 
+  WHERE {
+    { 
+      BIND(\"supervisor\" AS ?role)
+      BIND(15 AS ?score_)
+      target: wdt:P184 ?researcher .
+    }
+    UNION
+    { 
+      BIND(\"student\" AS ?role)
+      BIND(10 AS ?score_)
+      target: wdt:P185 ?researcher .
+    }
+    UNION
+    { 
+      BIND(\"co-author\" AS ?role)
+      BIND(5 AS ?score_)
+      [] wdt:P50 target:, ?researcher
+    }
+    UNION
+    {
+      BIND(\"cited author\" AS ?role)
+      BIND(2 AS ?score_)
+      [] wdt:P50 target: ;
+         wdt:P2860 / wdt:P50 ?researcher .
+    }
+    UNION
+    {
+      BIND(\"citing author\" AS ?role)
+      BIND(1 AS ?score_)
+      [] wdt:P50 target: ;
+         ^wdt:P2860 / wdt:P50 ?researcher .
+    }
+    UNION
+    {
+      BIND(\"coeditor\" AS ?role)
+      BIND(5 AS ?score_)
+      [] wdt:P98 target: , ?researcher .
+    }
+  }
+  GROUP BY ?researcher 
+  ORDER BY DESC(?score)
+  LIMIT 200
+}  FILTER (target: != ?researcher)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?score)""";
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q18618629>
 
 SELECT
   ?score

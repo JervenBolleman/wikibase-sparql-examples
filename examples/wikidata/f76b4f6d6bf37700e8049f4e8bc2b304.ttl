@@ -16,6 +16,24 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?collection ?collectionLabel ?total_objects ?proplabel (round(100*COUNT(DISTINCT ?i)/?total_objects) AS ?percentage) 
+WITH { SELECT ?collection (COUNT(?j) AS ?total_objects) WHERE 
+              {?j wdt:P195 ?collection. ?collection wdt:P361 wd:Q63160499 }
+      GROUP BY ?collection } as %totals
+WHERE {
+  INCLUDE %totals.
+?i wdt:P195 ?collection. # in Khalili Collections
+  {?i wdt:P186 ?value. BIND(\"Material\" as ?proplabel)}
+  UNION {?i wdt:P571 ?value. BIND(\"Inception\" as ?proplabel)}
+  UNION {?i wdt:P495 ?value. BIND(\"Country of origin\" as ?proplabel)}
+  UNION {?i wdt:P1071 ?value. BIND(\"Location of creation\" as ?proplabel)}
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+} GROUP BY ?collection ?collectionLabel ?proplabel ?total_objects
+ORDER BY DESC(?total_objects) ?collectionLabel ?proplabel""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?collection ?collectionLabel ?total_objects ?proplabel (round(100*COUNT(DISTINCT ?i)/?total_objects) AS ?percentage) 
 WHERE {
   INCLUDE %totals.
 ?i wdt:P195 ?collection. # in Khalili Collections
@@ -26,11 +44,7 @@ WHERE {
 SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
 } GROUP BY ?collection ?collectionLabel ?proplabel ?total_objects
 ORDER BY DESC(?total_objects) ?collectionLabel ?proplabel""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?collection ?collectionLabel ?total_objects ?proplabel (round(100*COUNT(DISTINCT ?i)/?total_objects) AS ?percentage) 
+  <http://example.org/bigdata_select> """SELECT ?collection ?collectionLabel ?total_objects ?proplabel (round(100*COUNT(DISTINCT ?i)/?total_objects) AS ?percentage) 
 WITH { SELECT ?collection (COUNT(?j) AS ?total_objects) WHERE 
               {?j wdt:P195 ?collection. ?collection wdt:P361 wd:Q63160499 }
       GROUP BY ?collection } as %totals

@@ -17,8 +17,32 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?pop 
+SELECT ?item ?itemLabel ?pop with 
+{ SELECT DISTINCT ?item ?pop WHERE 
+  {
+    ?item wdt:P31/wdt:P279* wd:Q571.
+    hint:Prior hint:gearing \"forward\".
+    ?item wdt:P577 ?published.
+    hint:Prior hint:rangeSafe true.
+    FILTER(\"1990-00-00\"^^xsd:dateTime <= ?published &&
+           ?published < \"1999-12-31\"^^xsd:dateTime)  }  
+} as %i
 where
+{
+  include %i
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\",\"he\" . }
+  filter not exists {?article schema:about ?item ;
+          schema:isPartOf <https://he.wikipedia.org/> .} 
+  ?article1 schema:about ?item ;
+          schema:isPartOf <https://en.wikipedia.org/> .
+} order by ?itemLabel""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?pop where
 {
   
 { SELECT DISTINCT ?item ?pop WHERE 
@@ -29,20 +53,13 @@ where
     
     FILTER(\"1990-00-00\"^^xsd:dateTime <= ?published &&
            ?published < \"1999-12-31\"^^xsd:dateTime)  }  
-}
-  SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\",\"he\" . }
+}  SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\",\"he\" . }
   filter not exists {?article schema:about ?item ;
           schema:isPartOf <https://he.wikipedia.org/> .} 
   ?article1 schema:about ?item ;
           schema:isPartOf <https://en.wikipedia.org/> .
 } order by ?itemLabel""";
-  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?pop with 
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?pop with 
 { SELECT DISTINCT ?item ?pop WHERE 
   {
     ?item wdt:P31/wdt:P279* wd:Q571.

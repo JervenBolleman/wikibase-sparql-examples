@@ -11,6 +11,58 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#title:Identifier coverage for Booker authors (winners and nominees)
+SELECT ?idLabel ?idDescription (round(COUNT(DISTINCT ?item)*1000/?total)/10 AS ?percent)
+WITH {
+  SELECT DISTINCT ?item WHERE {
+    VALUES ?award{wd:Q160082 wd:Q2052291}
+?item wdt:P166|wdt:P1411 ?award.
+    ?item wdt:P31 wd:Q5.
+  }
+} AS %subquery
+WITH { SELECT (COUNT(?item) AS ?total) WHERE {
+  INCLUDE %subquery }
+  } AS %total
+  WHERE {
+  INCLUDE %subquery .
+  INCLUDE %total .
+  ?id wikibase:propertyType wikibase:ExternalId; wikibase:claim ?p; wikibase:statementProperty ?ps; wdt:P31/wdt:P279* wd:Q19595382.
+  ?item ?p [ ?ps ?value ] .
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} GROUP BY ?total ?idLabel ?idDescription
+ORDER BY DESC(?percent)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#title:Identifier coverage for Booker authors (winners and nominees)
+SELECT ?idLabel ?idDescription (round(COUNT(DISTINCT ?item)*1000/?total)/10 AS ?percent)
+  WHERE {
+   {
+  SELECT DISTINCT ?item WHERE {
+    VALUES ?award{wd:Q160082 wd:Q2052291}
+?item wdt:P166|wdt:P1411 ?award.
+    ?item wdt:P31 wd:Q5.
+  }
+}.
+   { SELECT (COUNT(?item) AS ?total) WHERE {
+   {
+  SELECT DISTINCT ?item WHERE {
+    VALUES ?award{wd:Q160082 wd:Q2052291}
+?item wdt:P166|wdt:P1411 ?award.
+    ?item wdt:P31 wd:Q5.
+  }
+}}
+  }.
+  ?id wikibase:propertyType wikibase:ExternalId; wikibase:claim ?p; wikibase:statementProperty ?ps; wdt:P31/wdt:P279* wd:Q19595382.
+  ?item ?p [ ?ps ?value ] .
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} GROUP BY ?total ?idLabel ?idDescription
+ORDER BY DESC(?percent)""";
   <http://example.org/bigdata_select> """#title:Identifier coverage for Booker authors (winners and nominees)
 SELECT ?idLabel ?idDescription (round(COUNT(DISTINCT ?item)*1000/?total)/10 AS ?percent)
 WITH {
@@ -26,90 +78,6 @@ WITH { SELECT (COUNT(?item) AS ?total) WHERE {
   WHERE {
   INCLUDE %subquery .
   INCLUDE %total .
-  ?id wikibase:propertyType wikibase:ExternalId; wikibase:claim ?p; wikibase:statementProperty ?ps; wdt:P31/wdt:P279* wd:Q19595382.
-  ?item ?p [ ?ps ?value ] .
-   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-} GROUP BY ?total ?idLabel ?idDescription
-ORDER BY DESC(?percent)""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#title:Identifier coverage for Booker authors (winners and nominees)
-SELECT ?idLabel ?idDescription (round(COUNT(DISTINCT ?item)*1000/?total)/10 AS ?percent)
-WITH {
-  SELECT DISTINCT ?item WHERE {
-    VALUES ?award{wd:Q160082 wd:Q2052291}
-?item wdt:P166|wdt:P1411 ?award.
-    ?item wdt:P31 wd:Q5.
-  }
-} AS %subquery
-WITH { SELECT (COUNT(?item) AS ?total) WHERE {
-  INCLUDE %subquery }
-  } AS %total
-  WHERE {
-  INCLUDE %subquery .
-  INCLUDE %total .
-  ?id wikibase:propertyType wikibase:ExternalId; wikibase:claim ?p; wikibase:statementProperty ?ps; wdt:P31/wdt:P279* wd:Q19595382.
-  ?item ?p [ ?ps ?value ] .
-   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-} GROUP BY ?total ?idLabel ?idDescription
-ORDER BY DESC(?percent)""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#title:Identifier coverage for Booker authors (winners and nominees)
-SELECT ?idLabel ?idDescription (round(COUNT(DISTINCT ?item)*1000/?total)/10 AS ?percent)
-
-WITH { SELECT (COUNT(?item) AS ?total) WHERE {
-  {
-  SELECT DISTINCT ?item WHERE {
-    VALUES ?award{wd:Q160082 wd:Q2052291}
-?item wdt:P166|wdt:P1411 ?award.
-    ?item wdt:P31 wd:Q5.
-  }
-} }
-  } AS %total
-  WHERE {
-  {
-  SELECT DISTINCT ?item WHERE {
-    VALUES ?award{wd:Q160082 wd:Q2052291}
-?item wdt:P166|wdt:P1411 ?award.
-    ?item wdt:P31 wd:Q5.
-  }
-} .
-  INCLUDE %total .
-  ?id wikibase:propertyType wikibase:ExternalId; wikibase:claim ?p; wikibase:statementProperty ?ps; wdt:P31/wdt:P279* wd:Q19595382.
-  ?item ?p [ ?ps ?value ] .
-   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-} GROUP BY ?total ?idLabel ?idDescription
-ORDER BY DESC(?percent)""";
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#title:Identifier coverage for Booker authors (winners and nominees)
-SELECT ?idLabel ?idDescription (round(COUNT(DISTINCT ?item)*1000/?total)/10 AS ?percent)
-
-
-  WHERE {
-  {
-  SELECT DISTINCT ?item WHERE {
-    VALUES ?award{wd:Q160082 wd:Q2052291}
-?item wdt:P166|wdt:P1411 ?award.
-    ?item wdt:P31 wd:Q5.
-  }
-} .
-  { SELECT (COUNT(?item) AS ?total) WHERE {
-  {
-  SELECT DISTINCT ?item WHERE {
-    VALUES ?award{wd:Q160082 wd:Q2052291}
-?item wdt:P166|wdt:P1411 ?award.
-    ?item wdt:P31 wd:Q5.
-  }
-} }
-  } .
   ?id wikibase:propertyType wikibase:ExternalId; wikibase:claim ?p; wikibase:statementProperty ?ps; wdt:P31/wdt:P279* wd:Q19595382.
   ?item ?p [ ?ps ?value ] .
    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }

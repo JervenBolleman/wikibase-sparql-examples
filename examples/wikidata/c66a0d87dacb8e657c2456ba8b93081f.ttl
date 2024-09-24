@@ -39,14 +39,41 @@ WHERE {
   }
   # We need to turn off the optimizer so that we get distinct results from the subquery,
   # otherwise the optimizer will try to do a join with duplicated values.
-  ?item (wdt:P26|wdt:P451|wdt:P22|wdt:P25|wdt:P40) ?linkTo. 
+  ?item (wdt:P26|wdt:P451|wdt:P22|wdt:P25|wdt:P40) ?linkTo. hint:Group hint:optimizer \"None\".
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
-}""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 # Six degrees of Bush, portable but slow version.
+#defaultView:Graph
+SELECT ?item ?itemLabel ?linkTo
+WHERE {
+  {
+    SELECT DISTINCT ?item WHERE {
+      VALUES ?source { wd:Q207 }
+      { ?source ( wdt:P26| wdt:P451 | wdt:P22 | wdt:P25 | wdt:P40)/
+        ( wdt:P26 | wdt:P451 | wdt:P22 | wdt:P25 | wdt:P40)?/
+        ( wdt:P26 | wdt:P451 | wdt:P22 | wdt:P25 | wdt:P40)?/
+        ( wdt:P26 | wdt:P451 | wdt:P22 | wdt:P25 | wdt:P40)?/
+        ( wdt:P26 | wdt:P451 | wdt:P22 | wdt:P25 | wdt:P40)?/
+        ( wdt:P26 | wdt:P451 | wdt:P22 | wdt:P25 | wdt:P40)? ?item. }
+      UNION
+      { ?item ( wdt:P26 | wdt:P451 | wdt:P22 | wdt:P25 | wdt:P40)/
+        ( wdt:P26 | wdt:P451 | wdt:P22 | wdt:P25 | wdt:P40)?/
+        ( wdt:P26 | wdt:P451 | wdt:P22 | wdt:P25 | wdt:P40)?/
+        ( wdt:P26 | wdt:P451 | wdt:P22 | wdt:P25 | wdt:P40)?/
+        ( wdt:P26 | wdt:P451 | wdt:P22 | wdt:P25 | wdt:P40)?/
+        ( wdt:P26 | wdt:P451 | wdt:P22 | wdt:P25 | wdt:P40)? ?source. }
+    }
+  }
+  # We need to turn off the optimizer so that we get distinct results from the subquery,
+  # otherwise the optimizer will try to do a join with duplicated values.
+  ?item (wdt:P26|wdt:P451|wdt:P22|wdt:P25|wdt:P40) ?linkTo. 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}""";
+  <http://example.org/bigdata_select> """# Six degrees of Bush, portable but slow version.
 #defaultView:Graph
 SELECT ?item ?itemLabel ?linkTo
 WHERE {

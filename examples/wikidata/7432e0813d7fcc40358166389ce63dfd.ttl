@@ -11,13 +11,48 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """
-where {
-  PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 select ?bound (count(?country) as ?count)
 
-# sovereign states, I don’t know if it’s the right item
+with {
+
+  select ?country {
+     ?country wdt:P31/wdt:P279* wd:Q3624078 # sovereign states, I don’t know if it’s the right item
+  } 
+}as %countries
+with
+{
+  select distinct ?bound {
+    ?country (wdt:P571|wdt:P576) ?bound. 
+    include %countries .
+    filter (year(?bound) > 1800)
+   }
+} as %bounds
+
+where {
+  include %bounds .
+  include %countries .
+  ?country wdt:P571 ?creation .
+  optional { ?country wdt:P576 ?dest_maybe . }
+  bind (coalesce(?dest_maybe, now()) as ?destruction)
+  
+  filter ( ?creation <= ?bound  && ?destruction > ?bound )
+} group by ?bound order by ?bound""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+select ?bound (count(?country) as ?count)
+
+
+where {
+  
+{
+  select distinct ?bound {
+    ?country (wdt:P571|wdt:P576) ?bound. 
+     {
+
+  select ?country {
+     ?country wdt:P31/wdt:P279* wd:Q3624078 # sovereign states, I don’t know if it’s the right item
   } 
 }.
     filter (year(?bound) > 1800)
@@ -35,9 +70,7 @@ select ?bound (count(?country) as ?count)
   
   filter ( ?creation <= ?bound  && ?destruction > ?bound )
 } group by ?bound order by ?bound""";
-  <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-select ?bound (count(?country) as ?count)
+  <http://example.org/bigdata_select> """select ?bound (count(?country) as ?count)
 
 with {
 

@@ -16,27 +16,6 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 SELECT (COUNT(DISTINCT ?image) AS ?images) (COUNT(DISTINCT ?file) AS ?files)
-
-WHERE
-{
-  {
-  SELECT ?item ?image ?filename ?contentUrl
-  WHERE
-  {
-    SERVICE <https://query.wikidata.org/sparql>
-    {
-      ?item wdt:P31 wd:Q5153359 .
-      ?item wdt:P18 ?image .
-    }
-    BIND (REPLACE(wikibase:decodeUri(SUBSTR(STR(?image), 52)), \" \", \"_\") AS ?filename)
-    BIND (REPLACE(SUBSTR(STR(?image), 52), \"%20\", \"_\") AS ?filenameUnencoded)
-    BIND (MD5(?filename) AS ?MD5)
-    BIND (URI(CONCAT(\"https://upload.wikimedia.org/wikipedia/commons/\", SUBSTR(?MD5, 1, 1), \"/\", SUBSTR(?MD5, 1, 2), \"/\", ?filenameUnencoded)) As ?contentUrl)
-  }
-}
-  OPTIONAL { ?file schema:contentUrl ?contentUrl . }
-}""";
-  <http://example.org/bigdata_select> """SELECT (COUNT(DISTINCT ?image) AS ?images) (COUNT(DISTINCT ?file) AS ?files)
 WITH
 {
   SELECT ?item ?image ?filename ?contentUrl
@@ -63,6 +42,26 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 SELECT (COUNT(DISTINCT ?image) AS ?images) (COUNT(DISTINCT ?file) AS ?files)
+WHERE
+{
+  
+{
+  SELECT ?item ?image ?filename ?contentUrl
+  WHERE
+  {
+    SERVICE <https://query.wikidata.org/sparql>
+    {
+      ?item wdt:P31 wd:Q5153359 .
+      ?item wdt:P18 ?image .
+    }
+    BIND (REPLACE(wikibase:decodeUri(SUBSTR(STR(?image), 52)), \" \", \"_\") AS ?filename)
+    BIND (REPLACE(SUBSTR(STR(?image), 52), \"%20\", \"_\") AS ?filenameUnencoded)
+    BIND (MD5(?filename) AS ?MD5)
+    BIND (URI(CONCAT(\"https://upload.wikimedia.org/wikipedia/commons/\", SUBSTR(?MD5, 1, 1), \"/\", SUBSTR(?MD5, 1, 2), \"/\", ?filenameUnencoded)) As ?contentUrl)
+  }
+}  OPTIONAL { ?file schema:contentUrl ?contentUrl . }
+}""";
+  <http://example.org/bigdata_select> """SELECT (COUNT(DISTINCT ?image) AS ?images) (COUNT(DISTINCT ?file) AS ?files)
 WITH
 {
   SELECT ?item ?image ?filename ?contentUrl

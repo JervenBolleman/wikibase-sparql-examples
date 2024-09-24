@@ -19,64 +19,6 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
-SELECT distinct ?item ?image ?label ?description ?latitude ?longitude ?nazev_obce ?nazev_okresu ?nazev_kraje ?username (group_concat(DISTINCT ?llabel; separator=\", \") as ?licencni_ujednani) WHERE
-{
-  
-{
-  SELECT distinct ?item ?file ?image ?coord1 ?municipality1
-  WHERE
-  {
-    
-{
-  SELECT distinct ?item ?image ?filename (sample(?coord) as ?coord1)  (sample(?municipality) as ?municipality1) ?contentUrl WHERE
-  {
-    SERVICE <https://query.wikidata.org/sparql>
-    {
-
-      ?item wdt:P31/wdt:P279* wd:Q1746392 .
-     # works if limited only to eg. instance of: wd:Q11741382. ?item wdt:P31 wd:Q11741382. 
-      ?item wdt:P17 wd:Q213 .
-      ?item p:P625 ?coord . ?coord wikibase:rank ?rank filter(?rank != wikibase:DeprecatedRank) .
-      ?item wdt:P18 ?image. 
-      minus {?item wdt:P6736 [] .}
-      ?item wdt:P131* ?municipality . ?municipality wdt:P31 wd:Q5153359 .
-      
-    }
-    BIND (REPLACE(wikibase:decodeUri(SUBSTR(STR(?image), 52)), \" \", \"_\") AS ?filename)
-    BIND (REPLACE(SUBSTR(STR(?image), 52), \"%20\", \"_\") AS ?filenameUnencoded)
-    BIND (MD5(?filename) AS ?MD5)
-    BIND (URI(CONCAT(\"https://upload.wikimedia.org/wikipedia/commons/\", SUBSTR(?MD5, 1, 1), \"/\", SUBSTR(?MD5, 1, 2), \"/\", ?filenameUnencoded)) As ?contentUrl)
-  } group by ?item ?image ?filename ?contentUrl
-}    ?file schema:contentUrl ?contentUrl .
-  }
-}  ?file p:P170 / pq:P4174 ?username .
-  ?file wdt:P275 ?licence .
-  SERVICE <https://query.wikidata.org/sparql>
-          {
-          ?licence rdfs:label ?llabel filter(lang(?llabel)=\"en\") .
-          ?item rdfs:label ?label filter(lang(?label)=\"cs\") .  
-          ?item schema:description ?description filter(lang(?description)=\"cs\") .     
-
-          ?municipality1 rdfs:label ?nazev_obce filter(lang(?nazev_obce)=\"cs\") .  
-          ?municipality1 wdt:P131* ?okres . ?okres wdt:P31 wd:Q548611 .
-                      ?okres rdfs:label ?nazev_okresu filter(lang(?nazev_okresu)=\"cs\") .  
-          ?municipality1 wdt:P131* ?kraj . ?kraj wdt:P31 wd:Q38911 .
-                      ?kraj rdfs:label ?nazev_kraje filter(lang(?nazev_kraje)=\"cs\") .             
-            
-          ?coord1 psv:P625 [  
-                      wikibase:geoLatitude ?latitude ;
-                      wikibase:geoLongitude ?longitude ] .    
-           
-          }
-} group by ?item ?image ?username ?nazev_obce ?nazev_okresu ?nazev_kraje ?label ?description ?latitude ?longitude""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
 SELECT distinct ?item ?image ?label ?description ?latitude ?longitude ?nazev_obce ?nazev_okresu ?nazev_kraje ?username (group_concat(DISTINCT ?llabel; separator=\", \") as ?licencni_ujednani) WITH
 {
   SELECT distinct ?item ?image ?filename (sample(?coord) as ?coord1)  (sample(?municipality) as ?municipality1) ?contentUrl WHERE
@@ -99,7 +41,47 @@ SELECT distinct ?item ?image ?label ?description ?latitude ?longitude ?nazev_obc
     BIND (URI(CONCAT(\"https://upload.wikimedia.org/wikipedia/commons/\", SUBSTR(?MD5, 1, 1), \"/\", SUBSTR(?MD5, 1, 2), \"/\", ?filenameUnencoded)) As ?contentUrl)
   } group by ?item ?image ?filename ?contentUrl
 } AS %get_items
+WITH
+{
+  SELECT distinct ?item ?file ?image ?coord1 ?municipality1
+  WHERE
+  {
+    INCLUDE %get_items
+    ?file schema:contentUrl ?contentUrl .
+  }
+} AS %get_files
 WHERE
+{
+  INCLUDE %get_files
+  ?file p:P170 / pq:P4174 ?username .
+  ?file wdt:P275 ?licence .
+  SERVICE <https://query.wikidata.org/sparql>
+          {
+          ?licence rdfs:label ?llabel filter(lang(?llabel)=\"en\") .
+          ?item rdfs:label ?label filter(lang(?label)=\"cs\") .  
+          ?item schema:description ?description filter(lang(?description)=\"cs\") .     
+
+          ?municipality1 rdfs:label ?nazev_obce filter(lang(?nazev_obce)=\"cs\") .  
+          ?municipality1 wdt:P131* ?okres . ?okres wdt:P31 wd:Q548611 .
+                      ?okres rdfs:label ?nazev_okresu filter(lang(?nazev_okresu)=\"cs\") .  
+          ?municipality1 wdt:P131* ?kraj . ?kraj wdt:P31 wd:Q38911 .
+                      ?kraj rdfs:label ?nazev_kraje filter(lang(?nazev_kraje)=\"cs\") .             
+            
+          ?coord1 psv:P625 [  
+                      wikibase:geoLatitude ?latitude ;
+                      wikibase:geoLongitude ?longitude ] .    
+           
+          }
+} group by ?item ?image ?username ?nazev_obce ?nazev_okresu ?nazev_kraje ?label ?description ?latitude ?longitude""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT distinct ?item ?image ?label ?description ?latitude ?longitude ?nazev_obce ?nazev_okresu ?nazev_kraje ?username (group_concat(DISTINCT ?llabel; separator=\", \") as ?licencni_ujednani) WHERE
 {
   
 {
@@ -110,6 +92,60 @@ WHERE
     ?file schema:contentUrl ?contentUrl .
   }
 }  ?file p:P170 / pq:P4174 ?username .
+  ?file wdt:P275 ?licence .
+  SERVICE <https://query.wikidata.org/sparql>
+          {
+          ?licence rdfs:label ?llabel filter(lang(?llabel)=\"en\") .
+          ?item rdfs:label ?label filter(lang(?label)=\"cs\") .  
+          ?item schema:description ?description filter(lang(?description)=\"cs\") .     
+
+          ?municipality1 rdfs:label ?nazev_obce filter(lang(?nazev_obce)=\"cs\") .  
+          ?municipality1 wdt:P131* ?okres . ?okres wdt:P31 wd:Q548611 .
+                      ?okres rdfs:label ?nazev_okresu filter(lang(?nazev_okresu)=\"cs\") .  
+          ?municipality1 wdt:P131* ?kraj . ?kraj wdt:P31 wd:Q38911 .
+                      ?kraj rdfs:label ?nazev_kraje filter(lang(?nazev_kraje)=\"cs\") .             
+            
+          ?coord1 psv:P625 [  
+                      wikibase:geoLatitude ?latitude ;
+                      wikibase:geoLongitude ?longitude ] .    
+           
+          }
+} group by ?item ?image ?username ?nazev_obce ?nazev_okresu ?nazev_kraje ?label ?description ?latitude ?longitude""";
+  <http://example.org/bigdata_select> """SELECT distinct ?item ?image ?label ?description ?latitude ?longitude ?nazev_obce ?nazev_okresu ?nazev_kraje ?username (group_concat(DISTINCT ?llabel; separator=\", \") as ?licencni_ujednani) WITH
+{
+  SELECT distinct ?item ?image ?filename (sample(?coord) as ?coord1)  (sample(?municipality) as ?municipality1) ?contentUrl WHERE
+  {
+    SERVICE <https://query.wikidata.org/sparql>
+    {
+
+      ?item wdt:P31/wdt:P279* wd:Q1746392 .
+     # works if limited only to eg. instance of: wd:Q11741382. ?item wdt:P31 wd:Q11741382. 
+      ?item wdt:P17 wd:Q213 .
+      ?item p:P625 ?coord . ?coord wikibase:rank ?rank filter(?rank != wikibase:DeprecatedRank) .
+      ?item wdt:P18 ?image. 
+      minus {?item wdt:P6736 [] .}
+      ?item wdt:P131* ?municipality . ?municipality wdt:P31 wd:Q5153359 .
+      
+    }
+    BIND (REPLACE(wikibase:decodeUri(SUBSTR(STR(?image), 52)), \" \", \"_\") AS ?filename)
+    BIND (REPLACE(SUBSTR(STR(?image), 52), \"%20\", \"_\") AS ?filenameUnencoded)
+    BIND (MD5(?filename) AS ?MD5)
+    BIND (URI(CONCAT(\"https://upload.wikimedia.org/wikipedia/commons/\", SUBSTR(?MD5, 1, 1), \"/\", SUBSTR(?MD5, 1, 2), \"/\", ?filenameUnencoded)) As ?contentUrl)
+  } group by ?item ?image ?filename ?contentUrl
+} AS %get_items
+WITH
+{
+  SELECT distinct ?item ?file ?image ?coord1 ?municipality1
+  WHERE
+  {
+    INCLUDE %get_items
+    ?file schema:contentUrl ?contentUrl .
+  }
+} AS %get_files
+WHERE
+{
+  INCLUDE %get_files
+  ?file p:P170 / pq:P4174 ?username .
   ?file wdt:P275 ?licence .
   SERVICE <https://query.wikidata.org/sparql>
           {

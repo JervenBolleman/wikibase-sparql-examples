@@ -22,34 +22,6 @@ PREFIX aat: <http://vocab.getty.edu/aat/>
 SELECT
 ?item ?ulanID
 # ?itemLabel ?wdValueLabel ?ulanHuman
-  
-
-  # now see what ULAN says to those statements
-  WHERE { { SELECT ?item ?ulanID ?wdValue
-  WHERE {
-    ?item wdt:P245 ?ulanID .
-    ?item wdt:P21 ?wdValue .
-  } ORDER BY ?item LIMIT 5000 OFFSET 55000 }
-  BIND(URI(CONCAT(\"http://vocab.getty.edu/ulan/\", ?ulanID)) AS ?ulanURI)
-#  BIND(URI(CONCAT(\"http://vocab.getty.edu/page/ulan/\", ?ulanID)) AS ?ulanHuman)
-  SERVICE <http://vocab.getty.edu/sparql.json> {
-    ?ulanURI foaf:focus ?ulanAgent .
-    ?ulanAgent gvp:biographyPreferred ?ulanBio.
-    ?ulanBio schema:gender ?ulanValue .
-    # translate: aat:300189557 (female) -> wd:Q6581072, aat:300189559 (male) -> wd:Q6581097
-    # don't use aat:300400512 (unavailable; 61321 (2018-06-10)), aat:300400513 (other; 2 (2018-06-10))
-    BIND(IF(?ulanValue = aat:300189559, wd:Q6581097, IF(?ulanValue = aat:300189557, wd:Q6581072, wd:Q1)) AS ?wdValueFromGetty)
-  }
-  FILTER((?wdValueFromGetty IN (aat:300189557, aat:300189559)) && (?wdValue != ?wdValueFromGetty))
-#  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".}
-}
-LIMIT 500""";
-  <http://example.org/bigdata_select> """PREFIX gvp: <http://vocab.getty.edu/ontology#>
-PREFIX aat: <http://vocab.getty.edu/aat/>
-
-SELECT
-?item ?ulanID
-# ?itemLabel ?wdValueLabel ?ulanHuman
   WITH { SELECT ?item ?ulanID ?wdValue
   WHERE {
     ?item wdt:P245 ?ulanID .
@@ -78,6 +50,32 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX gvp: <http://vocab.getty.edu/ontology#>
+PREFIX aat: <http://vocab.getty.edu/aat/>
+
+SELECT
+?item ?ulanID
+# ?itemLabel ?wdValueLabel ?ulanHuman
+  
+  # now see what ULAN says to those statements
+  WHERE {  { SELECT ?item ?ulanID ?wdValue
+  WHERE {
+    ?item wdt:P245 ?ulanID .
+    ?item wdt:P21 ?wdValue .
+  } ORDER BY ?item LIMIT 5000 OFFSET 55000 }  BIND(URI(CONCAT(\"http://vocab.getty.edu/ulan/\", ?ulanID)) AS ?ulanURI)
+#  BIND(URI(CONCAT(\"http://vocab.getty.edu/page/ulan/\", ?ulanID)) AS ?ulanHuman)
+  SERVICE <http://vocab.getty.edu/sparql.json> {
+    ?ulanURI foaf:focus ?ulanAgent .
+    ?ulanAgent gvp:biographyPreferred ?ulanBio.
+    ?ulanBio schema:gender ?ulanValue .
+    # translate: aat:300189557 (female) -> wd:Q6581072, aat:300189559 (male) -> wd:Q6581097
+    # don't use aat:300400512 (unavailable; 61321 (2018-06-10)), aat:300400513 (other; 2 (2018-06-10))
+    BIND(IF(?ulanValue = aat:300189559, wd:Q6581097, IF(?ulanValue = aat:300189557, wd:Q6581072, wd:Q1)) AS ?wdValueFromGetty)
+  }
+  FILTER((?wdValueFromGetty IN (aat:300189557, aat:300189559)) && (?wdValue != ?wdValueFromGetty))
+#  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".}
+}
+LIMIT 500""";
+  <http://example.org/bigdata_select> """PREFIX gvp: <http://vocab.getty.edu/ontology#>
 PREFIX aat: <http://vocab.getty.edu/aat/>
 
 SELECT

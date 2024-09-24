@@ -30,6 +30,37 @@ WHERE
   ?child1 p:P569 ?birth1_statement.
   ?birth1_statement psv:P569 ?birth1_value.
   ?birth1_value wikibase:timePrecision 11 . # Use values with precision day only.
+  ?birth1_value wikibase:timeValue ?birth1. hint:Prior hint:rangeSafe true.
+
+  ?child2 p:P569 ?birth2_statement.
+  ?birth2_statement psv:P569 ?birth2_value.
+  ?birth2_value wikibase:timePrecision 11 . # Use values with precision day only.
+  ?birth2_value wikibase:timeValue ?birth2. hint:Prior hint:rangeSafe true.
+
+  FILTER (?birth1 < ?birth2 &&              # Eliminate twins born same say and select each sibling pair only once
+          ?birth2 - ?birth1 < 365)          # They must be born less than a year apart
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+LIMIT 10""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?child1 ?child1Label ?birth1 ?child2 ?child2Label ?birth2
+WHERE
+{
+  # Find 2 siblings
+  ?parent wdt:P31 wd:Q5.
+  ?parent wdt:P21 wd:Q6581097. # Parent is male, could also have been wd:Q6581072 (female)
+  ?parent wdt:P40 ?child1.
+  ?parent wdt:P40 ?child2.
+  FILTER (?child1 != ?child2)
+
+  ?child1 p:P569 ?birth1_statement.
+  ?birth1_statement psv:P569 ?birth1_value.
+  ?birth1_value wikibase:timePrecision 11 . # Use values with precision day only.
   ?birth1_value wikibase:timeValue ?birth1. 
 
   ?child2 p:P569 ?birth2_statement.
@@ -42,13 +73,7 @@ WHERE
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 LIMIT 10""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?child1 ?child1Label ?birth1 ?child2 ?child2Label ?birth2
+  <http://example.org/bigdata_select> """SELECT ?child1 ?child1Label ?birth1 ?child2 ?child2Label ?birth2
 WHERE
 {
   # Find 2 siblings

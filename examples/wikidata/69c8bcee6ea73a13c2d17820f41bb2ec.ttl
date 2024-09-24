@@ -16,15 +16,42 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?database ?databaseLabel ?links ?linksLabel
+WITH {
+  SELECT DISTINCT ?property
+  WHERE {
+    VALUES ?type {
+      wikibase:ExternalId
+      wikibase:Url
+    }
+    ?property wikibase:propertyType ?type;
+      (wdt:P31/(wdt:P279*)) wd:Q28147643.
+  }
+} AS %properties
+WITH {
+  SELECT DISTINCT ?database ?links
+  WHERE {
+    INCLUDE %properties.
+    ?property wdt:P1629 ?database.
+    MINUS { ?database wdt:P31 wd:Q11266439 }
+    OPTIONAL {
+      ?database wdt:P10568 ?links.
+      }
+  }
+} AS %databases
 WHERE {
   INCLUDE %databases.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
- }""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+ }""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?database ?databaseLabel ?links ?linksLabel
+WHERE {
+  INCLUDE %databases.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+ }""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?database ?databaseLabel ?links ?linksLabel
 WITH {
   SELECT DISTINCT ?property
   WHERE {

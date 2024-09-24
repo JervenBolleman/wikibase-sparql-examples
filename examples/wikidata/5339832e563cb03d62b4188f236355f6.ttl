@@ -12,14 +12,7 @@
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
-SELECT ?diff (COUNT(*) AS ?cnt)  WHERE {
-  {
-  SELECT ?any WHERE { ?property wikibase:propertyType wikibase:Quantity; wikibase:statementValue|wikibase:qualifierValue|wikibase:referenceValue ?any }
-} .
-  [] ?any [ wikibase:quantityLowerBound ?lower; wikibase:quantityUpperBound ?upper ] .
-  BIND((?upper - ?lower) / 2 as ?diff) .
-} GROUP BY ?diff ORDER BY DESC(?cnt)""";
-  <http://example.org/bigdata_select> """SELECT ?diff (COUNT(*) AS ?cnt) WITH {
+SELECT ?diff (COUNT(*) AS ?cnt) WITH {
   SELECT ?any WHERE { ?property wikibase:propertyType wikibase:Quantity; wikibase:statementValue|wikibase:qualifierValue|wikibase:referenceValue ?any }
 } AS %subquery WHERE {
   INCLUDE %subquery .
@@ -27,7 +20,14 @@ SELECT ?diff (COUNT(*) AS ?cnt)  WHERE {
   BIND((?upper - ?lower) / 2 as ?diff) .
 } GROUP BY ?diff ORDER BY DESC(?cnt)""",
     """PREFIX wikibase: <http://wikiba.se/ontology#>
-SELECT ?diff (COUNT(*) AS ?cnt) WITH {
+SELECT ?diff (COUNT(*) AS ?cnt) WHERE {
+   {
+  SELECT ?any WHERE { ?property wikibase:propertyType wikibase:Quantity; wikibase:statementValue|wikibase:qualifierValue|wikibase:referenceValue ?any }
+}.
+  [] ?any [ wikibase:quantityLowerBound ?lower; wikibase:quantityUpperBound ?upper ] .
+  BIND((?upper - ?lower) / 2 as ?diff) .
+} GROUP BY ?diff ORDER BY DESC(?cnt)""";
+  <http://example.org/bigdata_select> """SELECT ?diff (COUNT(*) AS ?cnt) WITH {
   SELECT ?any WHERE { ?property wikibase:propertyType wikibase:Quantity; wikibase:statementValue|wikibase:qualifierValue|wikibase:referenceValue ?any }
 } AS %subquery WHERE {
   INCLUDE %subquery .

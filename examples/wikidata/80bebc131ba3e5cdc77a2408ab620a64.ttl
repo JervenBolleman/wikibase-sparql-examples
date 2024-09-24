@@ -18,6 +18,35 @@ PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 select ?person ?personLabel 
+with { 
+  select ?person {
+    ?person wdt:P31 wd:Q5 
+            ; p:P569/psv:P569 ?birth 
+            ; p:P570/psv:P570 ?death 
+            .
+    ?birth wikibase:timePrecision ?bprec 
+           ; wikibase:timeValue ?bval 
+           filter (?bprec >= 11)
+          .
+  ?death wikibase:timePrecision ?dprec 
+         ; wikibase:timeValue ?dval 
+          filter (?dprec >= 11)
+        .
+                                   
+   filter (day(?bval) = day(?dval) && month(?bval) = month(?dval)) .
+  } limit 4000
+} as %dataset
+where {
+  include %dataset .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+select ?person ?personLabel 
 where {
    { 
   select ?person {
@@ -39,13 +68,7 @@ where {
 }.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-select ?person ?personLabel 
+  <http://example.org/bigdata_select> """select ?person ?personLabel 
 with { 
   select ?person {
     ?person wdt:P31 wd:Q5 

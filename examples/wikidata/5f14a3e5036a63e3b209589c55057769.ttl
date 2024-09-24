@@ -27,6 +27,44 @@ SELECT ?id
    as ?title)
 WHERE {
   { ?id p:P31/ps:P31/wdt:P279* wd:Q2198484 .
+  #  hint:Prior hint:gearing 'forward' 
+}
+  UNION
+  { ?id p:P31/ps:P31/wdt:P279* wd:Q13626398 . 
+  #  hint:Prior hint:gearing 'forward' 
+}  
+  UNION
+  { ?id p:P31/ps:P31/wdt:P279* wd:Q4057820 . 
+  #  hint:Prior hint:gearing 'forward' 
+}  
+  ?id p:P131 ?locst .
+  ?locst ps:P131/wdt:P131* wd:Q5400.
+  hint:Prior hint:gearing 'forward' 
+  MINUS { ?locst pq:P582 [] }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language 'en' .
+    ?id rdfs:label ?idLabel .
+  }
+  OPTIONAL {?link schema:about ?id .
+  ?link schema:isPartOf <https://en.wikipedia.org/> . }
+} 
+GROUP BY ?id ?link ?idLabel""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?id
+  (if(BOUND(?link),
+      concat('[[', substr(str(?link),31,500),  '|', ?idLabel, ']]'),
+      ?idLabel)
+   as ?title)
+WHERE {
+  { ?id p:P31/ps:P31/wdt:P279* wd:Q2198484 .
   #   
   #   
   #  
@@ -38,16 +76,7 @@ WHERE {
   ?link schema:isPartOf <https://en.wikipedia.org/> . }
 } 
 GROUP BY ?id ?link ?idLabel""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?id
+  <http://example.org/bigdata_select> """SELECT ?id
   (if(BOUND(?link),
       concat('[[', substr(str(?link),31,500),  '|', ?idLabel, ']]'),
       ?idLabel)

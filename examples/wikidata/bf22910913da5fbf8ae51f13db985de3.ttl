@@ -32,15 +32,7 @@ SELECT
 
   ?example_work ?example_workLabel
   (CONCAT(\"#work/\", SUBSTR(STR(?example_work), 32)) AS ?example_workUrl)
- 
-WHERE {
-   {
-  SELECT
-    (COUNT(?work) AS ?number_of_publications)
-    ?roles
-    ?person (SAMPLE(?work) AS ?example_work)
-  WHERE {
-     {
+WITH {
   SELECT
     (GROUP_CONCAT(DISTINCT ?role; separator=\", \") AS ?roles) ?person
   WHERE {
@@ -93,15 +85,25 @@ WHERE {
     }
   }
   GROUP BY ?person
-}.
+} AS %people  
+WITH {
+  SELECT
+    (COUNT(?work) AS ?number_of_publications)
+    ?roles
+    ?person (SAMPLE(?work) AS ?example_work)
+  WHERE {
+    INCLUDE %people .
     ?person wdt:P31 wd:Q5.
     OPTIONAL { ?work wdt:P50 ?person . }
   }
   GROUP BY ?roles ?person
-}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} AS %results
+WHERE {
+  INCLUDE %results
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
-ORDER BY DESC(?number_of_publications)""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+ORDER BY DESC(?number_of_publications)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -110,6 +112,35 @@ PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX target: <http://www.wikidata.org/entity/Q117023205>
+
+SELECT
+  (?number_of_publications AS ?works)
+
+  ?person ?personLabel
+  (CONCAT(\"#author/\", SUBSTR(STR(?person), 32)) AS ?personUrl)
+  ?personDescription
+
+  ?roles
+
+  ?example_work ?example_workLabel
+  (CONCAT(\"#work/\", SUBSTR(STR(?example_work), 32)) AS ?example_workUrl)
+ 
+WHERE {
+   {
+  SELECT
+    (COUNT(?work) AS ?number_of_publications)
+    ?roles
+    ?person (SAMPLE(?work) AS ?example_work)
+  WHERE {
+    INCLUDE %people .
+    ?person wdt:P31 wd:Q5.
+    OPTIONAL { ?work wdt:P50 ?person . }
+  }
+  GROUP BY ?roles ?person
+}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?number_of_publications)""";
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q117023205>
 
 SELECT
   (?number_of_publications AS ?works)
@@ -176,8 +207,7 @@ WITH {
   }
   GROUP BY ?person
 } AS %people  
-WHERE {
-   {
+WITH {
   SELECT
     (COUNT(?work) AS ?number_of_publications)
     ?roles
@@ -188,6 +218,9 @@ WHERE {
     OPTIONAL { ?work wdt:P50 ?person . }
   }
   GROUP BY ?roles ?person
-}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} AS %results
+WHERE {
+  INCLUDE %results
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY DESC(?number_of_publications)""" .

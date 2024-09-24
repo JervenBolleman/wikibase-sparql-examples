@@ -18,6 +18,33 @@ PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel (SAMPLE(?new) as ?address) WHERE {
+  hint:Query hint:optimizer \"None\" .
+  ?item wdt:P17 wd:Q38 .
+  ?item wdt:P2186 ?wlmid .
+  ?item p:P969 ?old_statement .
+  ?old_statement ps:P969 ?old .
+  MINUS {
+   ?old_statement ?pq_qual ?pq_obj .
+   ?qual wikibase:qualifier ?pq_qual .
+  }
+  ?item p:P6375 ?new_statement .
+  ?new_statement ps:P6375 ?new .
+  MINUS {
+   ?new_statement ?pq_qual_n ?pq_obj_n .
+   ?qual_n wikibase:qualifier ?pq_qual_n .
+  }
+  FILTER(LANG(?new) = 'it')
+  FILTER(?old = STR(?new))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"it\" . }
+} GROUP BY ?item ?itemLabel
+HAVING (COUNT(?old) = 1 && COUNT(?new) = 1)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel (SAMPLE(?new) as ?address) WHERE {
   
   ?item wdt:P17 wd:Q38 .
   ?item wdt:P2186 ?wlmid .
@@ -38,13 +65,7 @@ SELECT ?item ?itemLabel (SAMPLE(?new) as ?address) WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"it\" . }
 } GROUP BY ?item ?itemLabel
 HAVING (COUNT(?old) = 1 && COUNT(?new) = 1)""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel (SAMPLE(?new) as ?address) WHERE {
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel (SAMPLE(?new) as ?address) WHERE {
   hint:Query hint:optimizer \"None\" .
   ?item wdt:P17 wd:Q38 .
   ?item wdt:P2186 ?wlmid .

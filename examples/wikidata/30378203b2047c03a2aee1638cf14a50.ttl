@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-30378203b2047c03a2aee1638cf14a50> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stefan_K%C3%BChn/HASC>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#-----------------------------------------------------
+# HASC Data to SQL-Command
+#-----------------------------------------------------
+#defaultView:Table
+SELECT ?hasc ?item ?itemLabel ?itemDescription ?countryLabel ?osm
+(CONCAT(\"update hasc set wikidata='\",?item_str,\"' where hasc_code='\", ?hasc,\"';\") as ?sql_cmd)
+WHERE
+{
+    BIND( STRAFTER(str(?item), 'http://www.wikidata.org/entity/') AS ?item_str) . # QID in Text umgewandeln
+    ?item wdt:P8119 ?hasc .                     # hasc
+    FILTER(REGEX(STR(?hasc), \"^US.[A-Z]{2}$\",\"i\")) 
+    #OPTIONAL { ?item wdt:P625 ?coordinate. }    # coordinate
+    OPTIONAL { ?item wdt:P17  ?country. }        # country
+    OPTIONAL { ?item wdt:P402 ?osm. }            # osm
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+}
+order by ?hasc""" .

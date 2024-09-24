@@ -33,16 +33,37 @@ WHERE
     }
     GROUP BY ?person
   }
-  OPTIONAL { ?person wdt:P106/wdt:P279* wd:Q82955 .  BIND(\"y\" as ?politics) }
-  OPTIONAL { ?person wdt:P106/wdt:P279* wd:Q43845 .  BIND(\"y\" as ?business) }
+  OPTIONAL { ?person wdt:P106/wdt:P279* wd:Q82955 . hint:Prior hint:gearing \"forward\" . BIND(\"y\" as ?politics) }
+  OPTIONAL { ?person wdt:P106/wdt:P279* wd:Q43845 . hint:Prior hint:gearing \"forward\" . BIND(\"y\" as ?business) }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],sv,fi,en\". }
-}""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT 
+    ?person ?personLabel ?personDescription 
+    ?occupations
+    ?politics  ?business
+WHERE
+{
+  {
+    SELECT
+      ?person (GROUP_CONCAT(DISTINCT ?p106label;SEPARATOR=\", \") AS ?occupations)
+    WHERE
+    {
+      ?person wdt:P172 wd:Q726673.
+      OPTIONAL { ?person wdt:P106 ?p106 . ?p106 rdfs:label ?p106label . FILTER(lang(?p106label)='sv') }
+      ?person wdt:P31 wd:Q5.
+    }
+    GROUP BY ?person
+  }
+  OPTIONAL { ?person wdt:P106/wdt:P279* wd:Q82955 .  BIND(\"y\" as ?politics) }
+  OPTIONAL { ?person wdt:P106/wdt:P279* wd:Q43845 .  BIND(\"y\" as ?business) }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],sv,fi,en\". }
+}""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT 
     ?person ?personLabel ?personDescription 
     ?occupations
     ?politics  ?business

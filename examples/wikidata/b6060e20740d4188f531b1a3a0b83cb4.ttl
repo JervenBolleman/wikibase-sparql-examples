@@ -22,6 +22,43 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:ImageGrid
 
 SELECT ?file ?image ?stype ?stypeLabel ?collec ?collecLabel ?role ?roleLabel ?de ?deLabel
+with {
+  select ?stype ?stypeLabel ?collec ?collecLabel ?role ?de ?roleLabel ?deLabel {
+   service <https://query.wikidata.org/sparql> {
+     select ?stype ?stypeLabel ?collec ?collecLabel ?role ?de ?roleLabel ?deLabel { 
+       ?stype wdt:P31/wdt:P279* wd:Q51255340 
+       SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+       optional {
+         ?stype wdt:P195 ?collec .
+       }
+       ?stype p:P2868 [ps:P2868 ?role ; pq:P642 ?de] .
+       values ?collec {
+        wd:Q16949336 # Auckland Institute and Museum 
+        wd:Q915603 # Museum of New Zealand Te Papa Tongarewa
+       }
+     }
+   }
+  }
+} as %types
+WHERE {
+  ?file wdt:P180 ?stype ; schema:contentUrl ?url .
+  
+  bind(iri(concat(\"http://commons.wikimedia.org/wiki/Special:FilePath/\", replace(substr(str(?url),53),\"_\",\"%20\"))) AS ?image) .
+  
+  #?file wdt:P180  wd:Q105607273  .
+  include %types
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:ImageGrid
+
+SELECT ?file ?image ?stype ?stypeLabel ?collec ?collecLabel ?role ?roleLabel ?de ?deLabel
 WHERE {
   ?file wdt:P180 ?stype ; schema:contentUrl ?url .
   
@@ -46,15 +83,7 @@ WHERE {
    }
   }
 }}""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#defaultView:ImageGrid
+  <http://example.org/bigdata_select> """#defaultView:ImageGrid
 
 SELECT ?file ?image ?stype ?stypeLabel ?collec ?collecLabel ?role ?roleLabel ?de ?deLabel
 with {

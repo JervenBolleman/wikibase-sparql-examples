@@ -17,6 +17,32 @@ PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX prov: <http://www.w3.org/ns/prov#>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?statement ?prop ?pattern ?value WITH {
+  SELECT * {
+    ?prop wikibase:statementProperty ?pred;
+          #wikibase:qualifier ?pred;
+          #wikibase:reference ?pred;
+          wikibase:propertyType wikibase:ExternalId;
+          p:P2302 [ ps:P2302 wd:Q21502404; a wikibase:BestRank; pq:P1793 ?regex ] .
+    FILTER( ?prop NOT IN ( wd:P494, wd:P782, wd:P1238, wd:P1388, wd:P1821, wd:P1947, wd:P1997, wd:P2186, wd:P3054, wd:P3628, wd:P3668, wd:P3682, wd:P3799, wd:P3959, wd:P4415, wd:P5404, wd:P7775 ) ) .
+    # qualifier FILTER( ?prop != wd:P6552 ) .  # somevalue
+    # reference FILTER( ?prop NOT IN ( wd:P2037, wd:P2249, wd:P3668 ) ) .
+
+    FILTER( !REGEX( ?regex, '\\\\\\\\[1-9]' ) ) .  # TODO: back-references
+    BIND( CONCAT( '^(', ?regex, ')$' ) AS ?pattern ) .
+  }
+} AS %subq WHERE {
+  INCLUDE %subq .
+  ?statement ?pred ?value; a wikibase:BestRank .
+  #?statement prov:wasDerivedFrom [ ?pred ?value ]; a wikibase:BestRank .
+  FILTER( !REGEX( IF( wikibase:isSomeValue( ?value ), '', STR( ?value ) ), ?pattern ) ) .
+} LIMIT 1000""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
 SELECT ?statement ?prop ?pattern ?value WHERE {
    {
   SELECT * {
@@ -37,13 +63,7 @@ SELECT ?statement ?prop ?pattern ?value WHERE {
   #?statement prov:wasDerivedFrom [ ?pred ?value ]; a wikibase:BestRank .
   FILTER( !REGEX( IF( wikibase:isSomeValue( ?value ), '', STR( ?value ) ), ?pattern ) ) .
 } LIMIT 1000""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX prov: <http://www.w3.org/ns/prov#>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-SELECT ?statement ?prop ?pattern ?value WITH {
+  <http://example.org/bigdata_select> """SELECT ?statement ?prop ?pattern ?value WITH {
   SELECT * {
     ?prop wikibase:statementProperty ?pred;
           #wikibase:qualifier ?pred;

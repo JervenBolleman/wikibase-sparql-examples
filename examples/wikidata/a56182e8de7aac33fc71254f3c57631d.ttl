@@ -18,6 +18,27 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT distinct ?errata ?errataLabel ?itemLabel ?item (count(?item) as ?count)
 WHERE 
 {
+  hint:Query hint:optimizer \"None\" .
+  ?errata wdt:P31 wd:Q1348305 .                  # ?errata is an errata
+  filter not exists {?itemZ wdt:P2507 ?errata . } # there's no ?item pointing to the errata.
+  ?errata rdfs:label ?errataLabel . filter(lang(?errataLabel)=\"en\")
+  filter(strstarts(?errataLabel,\"Erratum:\"))
+  bind(replace(?errataLabel,\"Erratum: \",\"\") as ?itemLabel) .
+  ?item rdfs:label ?itemLabel.
+  filter(strlen(?itemLabel)>20)
+  ?errata wdt:P1433 ?PI .
+  ?item wdt:P1433 ?PI .
+ # ?errata wdt:P50 ?nn .
+ # ?item wdt:P50 ?nn .
+ # ?errata wdt:P2093 ?nn2 .
+ # ?item wdt:P2093 ?nn2 . 
+} group by ?errata ?errataLabel ?itemLabel ?item having (?count=1)""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT distinct ?errata ?errataLabel ?itemLabel ?item (count(?item) as ?count)
+WHERE 
+{
   
   ?errata wdt:P31 wd:Q1348305 .                  # ?errata is an errata
   filter not exists {?itemZ wdt:P2507 ?errata . } # there's no ?item pointing to the errata.
@@ -33,10 +54,7 @@ WHERE
  # ?errata wdt:P2093 ?nn2 .
  # ?item wdt:P2093 ?nn2 . 
 } group by ?errata ?errataLabel ?itemLabel ?item having (?count=1)""";
-  <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT distinct ?errata ?errataLabel ?itemLabel ?item (count(?item) as ?count)
+  <http://example.org/bigdata_select> """SELECT distinct ?errata ?errataLabel ?itemLabel ?item (count(?item) as ?count)
 WHERE 
 {
   hint:Query hint:optimizer \"None\" .

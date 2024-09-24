@@ -17,6 +17,41 @@ PREFIX schema: <http://schema.org/>
 # Obra literaria perdida, wd:Q1585442 
 # Artículo cronológico de Wikimedia, wd:Q18340514)
 SELECT ?item ?clases (count(?propC2_direct) as ?n_propsC2)
+WITH {
+# Primero seleccionamos los items de las clases con articulo Wikipedia
+  SELECT distinct ?item ?clases WHERE
+{
+  VALUES ?clases { wd:Q1585442 wd:Q18340514 }  
+  # ?propC2, 18 propiedades más relevantes del cluster secundario
+  
+  ?item wdt:P31 ?clases .
+  ?article schema:about ?item .
+  FILTER (CONTAINS(str(?article),'wikipedia'))
+  
+}
+
+               } as %results
+WHERE {
+# Ahora seleccionamos las propiedades relevantes para obra literaria
+# P50 Autor; P1476 título; P136 género; P577 fecha de publicación; P7937 forma artística; P6216 estatus de los derechos de autor; P747 edición o traducción; P123 editorial; P4969 obra derivada; P921 tema principal de la obra
+# P179 serie ; P1922 íncipit; P3132 éxcipit; P1433 publicado en
+# Propiedades narrativa-ficción: lugar de la narración (P840); personajes (P674); 
+  
+  Include %results.
+  VALUES ?propC2_direct { <http://www.wikidata.org/prop/direct/P50> <http://www.wikidata.org/prop/direct/P1476> <http://www.wikidata.org/prop/direct/P136> <http://www.wikidata.org/prop/direct/P577> 
+                           <http://www.wikidata.org/prop/direct/P7937> <http://www.wikidata.org/prop/direct/P6216> <http://www.wikidata.org/prop/direct/P747> <http://www.wikidata.org/prop/direct/P123> 
+                           <http://www.wikidata.org/prop/direct/P4969> <http://www.wikidata.org/prop/direct/P840> <http://www.wikidata.org/prop/direct/P674> <http://www.wikidata.org/prop/direct/P921>
+                           <http://www.wikidata.org/prop/direct/P179> <http://www.wikidata.org/prop/direct/P1922> <http://www.wikidata.org/prop/direct/P1433> <http://www.wikidata.org/prop/direct/P3132> }
+  ?item ?propC2_direct ?cosa .
+}
+group by ?item ?clases
+order by DESC(?n_propsC2)""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+# Obra literaria perdida, wd:Q1585442 
+# Artículo cronológico de Wikimedia, wd:Q18340514)
+SELECT ?item ?clases (count(?propC2_direct) as ?n_propsC2)
 WHERE {
 # Ahora seleccionamos las propiedades relevantes para obra literaria
 # P50 Autor; P1476 título; P136 género; P577 fecha de publicación; P7937 forma artística; P6216 estatus de los derechos de autor; P747 edición o traducción; P123 editorial; P4969 obra derivada; P921 tema principal de la obra
@@ -32,10 +67,7 @@ WHERE {
 }
 group by ?item ?clases
 order by DESC(?n_propsC2)""";
-  <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-# Obra literaria perdida, wd:Q1585442 
+  <http://example.org/bigdata_select> """# Obra literaria perdida, wd:Q1585442 
 # Artículo cronológico de Wikimedia, wd:Q18340514)
 SELECT ?item ?clases (count(?propC2_direct) as ?n_propsC2)
 WITH {

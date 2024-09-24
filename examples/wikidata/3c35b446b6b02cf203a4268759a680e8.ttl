@@ -23,18 +23,46 @@ SELECT
   ?autor
   ?autorLabel
   (COUNT(*) AS ?count)
+WITH {
+  SELECT DISTINCT ?autor {
+    {?autor wdt:P27 wd:Q419}
+    UNION
+    {?autor wdt:P19/wdt:P131* wd:Q419}
+    UNION
+    {?autor wdt:P1532 wd:Q419}
+  }
+} AS %0
+WITH {
+  SELECT DISTINCT ?autor ?obra {
+    INCLUDE %0.
+    ?obra wdt:P50 ?autor.
+
+    [] schema:about ?obra;
+       schema:isPartOf <https://es.wikipedia.org/>.
+  }
+} AS %1
+{
+  INCLUDE %1.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+GROUP BY ?autor ?autorLabel
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
+  ?autor
+  ?autorLabel
+  (COUNT(*) AS ?count)
 {
   INCLUDE %1.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 }
 GROUP BY ?autor ?autorLabel
 ORDER BY DESC(?count)""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT
+  <http://example.org/bigdata_select> """SELECT
   ?autor
   ?autorLabel
   (COUNT(*) AS ?count)

@@ -15,6 +15,34 @@
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?property ?propertyLabel ?count
+WITH {
+  SELECT DISTINCT ?item WHERE {
+    VALUES ?topic { wd:Q82069695 wd:Q84263196 wd:Q81068910 }
+    ?item ?claim ?topic . 
+    ?property wikibase:directClaim ?claim.
+  }
+  LIMIT 200000
+  } AS %items 
+WITH {
+  SELECT DISTINCT ?property (COUNT(*) AS ?count) WHERE {
+  INCLUDE %items.
+    ?item ?p [ ] .
+    ?property a wikibase:Property;
+                wikibase:claim ?p.
+  }
+  GROUP BY ?property 
+  LIMIT 100
+  } AS %results 
+WHERE {
+  INCLUDE %results.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY DESC(?count)
+LIMIT 100""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?property ?propertyLabel ?count
 
 
 WHERE {
@@ -23,10 +51,7 @@ WHERE {
 }
 ORDER BY DESC(?count)
 LIMIT 100""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?property ?propertyLabel ?count
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?property ?propertyLabel ?count
 WITH {
   SELECT DISTINCT ?item WHERE {
     VALUES ?topic { wd:Q82069695 wd:Q84263196 wd:Q81068910 }

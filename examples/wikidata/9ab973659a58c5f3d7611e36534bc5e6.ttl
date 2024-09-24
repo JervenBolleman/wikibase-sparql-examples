@@ -37,31 +37,6 @@ SELECT
 (GROUP_CONCAT( DISTINCT ?STERBEDATUM_; separator=\";\")        as ?STERBEDATUM)
 (GROUP_CONCAT( DISTINCT ?STERBEORT_; separator=\";\")          as ?STERBEORT)
 ?article
-
-{
-  { SELECT ?item ?article { ?article schema:about ?item ; schema:isPartOf <https://de.wikipedia.org/> . ?item wdt:P31 wd:Q5 . } LIMIT 200 } .
-  OPTIONAL { ?item skos:altLabel ?ALTERNATIVNAMEN_ . FILTER(lang(?ALTERNATIVNAMEN_)=\"de\")  }.
-  OPTIONAL { ?item schema:description ?KURZBESCHREIBUNG_ . FILTER(lang(?KURZBESCHREIBUNG_)=\"de\") } . 
-  OPTIONAL { ?item wdt:P569 ?GEBURTSDATUM_ }	.
-  OPTIONAL { ?item wdt:P19 ?pob } .
-  OPTIONAL { ?item wdt:P570 ?STERBEDATUM_ } .
-  OPTIONAL { ?item wdt:P20 ?pod } .
-  SERVICE wikibase:label {bd:serviceParam wikibase:language \"de\" .
-                          ?item rdfs:label ?NAME .
-                          ?pob rdfs:label ?GEBURTSORT_ .
-                          ?pod rdfs:label ?STERBEORT_  }
-}
-GROUP BY ?item ?NAME ?article""";
-  <http://example.org/bigdata_select> """SELECT
-?item
-?NAME
-(GROUP_CONCAT( DISTINCT ?ALTERNATIVNAMEN_; separator=\";\")    as ?ALTERNATIVNAMEN)
-(SAMPLE ( ?KURZBESCHREIBUNG_)                                as ?KURZBESCHREIBUNG)
-(GROUP_CONCAT( DISTINCT ?GEBURTSDATUM_; separator=\";\")       as ?GEBURTSDATUM)
-(GROUP_CONCAT( DISTINCT ?GEBURTSORT_; separator=\";\")         as ?GEBURTSORT)
-(GROUP_CONCAT( DISTINCT ?STERBEDATUM_; separator=\";\")        as ?STERBEDATUM)
-(GROUP_CONCAT( DISTINCT ?STERBEORT_; separator=\";\")          as ?STERBEORT)
-?article
 WITH { SELECT ?item ?article { ?article schema:about ?item ; schema:isPartOf <https://de.wikipedia.org/> . ?item wdt:P31 wd:Q5 . } LIMIT 200 } AS %SUBQUERY
 {
   INCLUDE %SUBQUERY .
@@ -85,6 +60,30 @@ PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT
+?item
+?NAME
+(GROUP_CONCAT( DISTINCT ?ALTERNATIVNAMEN_; separator=\";\")    as ?ALTERNATIVNAMEN)
+(SAMPLE ( ?KURZBESCHREIBUNG_)                                as ?KURZBESCHREIBUNG)
+(GROUP_CONCAT( DISTINCT ?GEBURTSDATUM_; separator=\";\")       as ?GEBURTSDATUM)
+(GROUP_CONCAT( DISTINCT ?GEBURTSORT_; separator=\";\")         as ?GEBURTSORT)
+(GROUP_CONCAT( DISTINCT ?STERBEDATUM_; separator=\";\")        as ?STERBEDATUM)
+(GROUP_CONCAT( DISTINCT ?STERBEORT_; separator=\";\")          as ?STERBEORT)
+?article
+{
+   { SELECT ?item ?article { ?article schema:about ?item ; schema:isPartOf <https://de.wikipedia.org/> . ?item wdt:P31 wd:Q5 . } LIMIT 200 }.
+  OPTIONAL { ?item skos:altLabel ?ALTERNATIVNAMEN_ . FILTER(lang(?ALTERNATIVNAMEN_)=\"de\")  }.
+  OPTIONAL { ?item schema:description ?KURZBESCHREIBUNG_ . FILTER(lang(?KURZBESCHREIBUNG_)=\"de\") } . 
+  OPTIONAL { ?item wdt:P569 ?GEBURTSDATUM_ }	.
+  OPTIONAL { ?item wdt:P19 ?pob } .
+  OPTIONAL { ?item wdt:P570 ?STERBEDATUM_ } .
+  OPTIONAL { ?item wdt:P20 ?pod } .
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"de\" .
+                          ?item rdfs:label ?NAME .
+                          ?pob rdfs:label ?GEBURTSORT_ .
+                          ?pod rdfs:label ?STERBEORT_  }
+}
+GROUP BY ?item ?NAME ?article""";
+  <http://example.org/bigdata_select> """SELECT
 ?item
 ?NAME
 (GROUP_CONCAT( DISTINCT ?ALTERNATIVNAMEN_; separator=\";\")    as ?ALTERNATIVNAMEN)

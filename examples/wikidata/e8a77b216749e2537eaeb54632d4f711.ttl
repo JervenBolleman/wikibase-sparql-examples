@@ -19,11 +19,7 @@ SELECT
   ?count
   (CONCAT('https://scholia.toolforge.org/taxon/', ENCODE_FOR_URI(REPLACE(STR(?topic), \".*Q\", \"Q\")), '/curation') AS ?taxon_curation) 
 
-
-WHERE {
-   {
-  SELECT DISTINCT ?topic ?speciesname ?count WHERE {
-     {
+WITH {
   SELECT DISTINCT ?topic 
   (COUNT(?paper) AS ?count)
   WHERE {
@@ -31,7 +27,40 @@ WHERE {
          wdt:P921 ?topic .
   }  
   GROUP BY ?topic ?count
-}  ?topic wdt:P225 ?speciesname ;
+} AS %papers
+WITH {
+  SELECT DISTINCT ?topic ?speciesname ?count WHERE {
+    INCLUDE %papers
+  ?topic wdt:P225 ?speciesname ;
+         wdt:P105 wd:Q7432 .
+
+  }
+  GROUP BY ?topic ?speciesname ?count
+  
+} AS %species
+
+WHERE {
+  INCLUDE %species
+  ?topic wdt:P171* ?class .
+  ?class wdt:P105 wd:Q37517;
+         wdt:P225 ?classname .
+}
+GROUP BY ?topic ?speciesname ?classname ?count ?taxon_curation
+ORDER BY DESC(?count)""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT 
+  DISTINCT 
+  ?topic ?speciesname ?classname 
+  ?count
+  (CONCAT('https://scholia.toolforge.org/taxon/', ENCODE_FOR_URI(REPLACE(STR(?topic), \".*Q\", \"Q\")), '/curation') AS ?taxon_curation) 
+
+
+WHERE {
+   {
+  SELECT DISTINCT ?topic ?speciesname ?count WHERE {
+    INCLUDE %papers
+  ?topic wdt:P225 ?speciesname ;
          wdt:P105 wd:Q7432 .
 
   }
@@ -43,9 +72,7 @@ WHERE {
 }
 GROUP BY ?topic ?speciesname ?classname ?count ?taxon_curation
 ORDER BY DESC(?count)""";
-  <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-SELECT 
+  <http://example.org/bigdata_select> """SELECT 
   DISTINCT 
   ?topic ?speciesname ?classname 
   ?count
@@ -60,9 +87,7 @@ WITH {
   }  
   GROUP BY ?topic ?count
 } AS %papers
-
-WHERE {
-   {
+WITH {
   SELECT DISTINCT ?topic ?speciesname ?count WHERE {
     INCLUDE %papers
   ?topic wdt:P225 ?speciesname ;
@@ -71,7 +96,11 @@ WHERE {
   }
   GROUP BY ?topic ?speciesname ?count
   
-}  ?topic wdt:P171* ?class .
+} AS %species
+
+WHERE {
+  INCLUDE %species
+  ?topic wdt:P171* ?class .
   ?class wdt:P105 wd:Q37517;
          wdt:P225 ?classname .
 }

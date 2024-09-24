@@ -16,27 +16,6 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?occupation ?occupationLabel ?count ?males ?females
-
-WHERE
-{
-  {
-  SELECT ?occupation (COUNT(?item) AS ?count) (SUM(?male) AS ?males) (SUM(?female) AS ?females)
-  WHERE
-  {
-    ?item wdt:P31 wd:Q5. # item is human
-    ?item wdt:P106 ?occupation.
-    ?occupation wdt:P279* wd:Q901. # occupation is subclass of scientist
-    OPTIONAL { ?item wdt:P570 ?date_of_death. }
-    FILTER (! BOUND(?date_of_death)) # No date of death meaning only living people
-    OPTIONAL { ?item wdt:P21 ?gender. }
-    BIND (IF (?gender = wd:Q6581097, 1, 0) AS ?male)
-    BIND (IF (?gender = wd:Q6581072, 1, 0) AS ?female)
-  }
-  GROUP BY ?occupation
-}
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""";
-  <http://example.org/bigdata_select> """SELECT ?occupation ?occupationLabel ?count ?males ?females
 WITH
 {
   SELECT ?occupation (COUNT(?item) AS ?count) (SUM(?male) AS ?males) (SUM(?female) AS ?females)
@@ -63,6 +42,26 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?occupation ?occupationLabel ?count ?males ?females
+WHERE
+{
+  
+{
+  SELECT ?occupation (COUNT(?item) AS ?count) (SUM(?male) AS ?males) (SUM(?female) AS ?females)
+  WHERE
+  {
+    ?item wdt:P31 wd:Q5. # item is human
+    ?item wdt:P106 ?occupation.
+    ?occupation wdt:P279* wd:Q901. # occupation is subclass of scientist
+    OPTIONAL { ?item wdt:P570 ?date_of_death. }
+    FILTER (! BOUND(?date_of_death)) # No date of death meaning only living people
+    OPTIONAL { ?item wdt:P21 ?gender. }
+    BIND (IF (?gender = wd:Q6581097, 1, 0) AS ?male)
+    BIND (IF (?gender = wd:Q6581072, 1, 0) AS ?female)
+  }
+  GROUP BY ?occupation
+}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <http://example.org/bigdata_select> """SELECT ?occupation ?occupationLabel ?count ?males ?females
 WITH
 {
   SELECT ?occupation (COUNT(?item) AS ?count) (SUM(?male) AS ?males) (SUM(?female) AS ?females)

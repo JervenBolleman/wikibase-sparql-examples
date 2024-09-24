@@ -17,26 +17,6 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 # movie production companies by number of future movies
-SELECT ?company ?companyLabel (COUNT(?movie) AS ?count) (GROUP_CONCAT(?movieLabel; separator = \"; \") AS ?movies)  WHERE {
-  {
-  SELECT ?movie ?company (MIN(?publicationDate) AS ?publicationDate) WHERE {
-    ?movie wdt:P31/wdt:P279* wd:Q11424;
-           wdt:P272 ?company;
-           wdt:P577 ?publicationDate.
-  }
-  GROUP BY ?movie ?company
-  HAVING(?publicationDate > NOW())
-}.
-  SERVICE wikibase:label {
-    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
-    ?company rdfs:label ?companyLabel.
-    ?movie rdfs:label ?movieLabel.
-  }
-}
-GROUP BY ?company ?companyLabel
-HAVING(?count > 1)
-ORDER BY DESC(?count) DESC(MAX(?publicationDate))""";
-  <http://example.org/bigdata_select> """# movie production companies by number of future movies
 SELECT ?company ?companyLabel (COUNT(?movie) AS ?count) (GROUP_CONCAT(?movieLabel; separator = \"; \") AS ?movies) WITH {
   SELECT ?movie ?company (MIN(?publicationDate) AS ?publicationDate) WHERE {
     ?movie wdt:P31/wdt:P279* wd:Q11424;
@@ -62,6 +42,18 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 # movie production companies by number of future movies
+SELECT ?company ?companyLabel (COUNT(?movie) AS ?count) (GROUP_CONCAT(?movieLabel; separator = \"; \") AS ?movies) WHERE {
+  INCLUDE %futureMovies.
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?company rdfs:label ?companyLabel.
+    ?movie rdfs:label ?movieLabel.
+  }
+}
+GROUP BY ?company ?companyLabel
+HAVING(?count > 1)
+ORDER BY DESC(?count) DESC(MAX(?publicationDate))""";
+  <http://example.org/bigdata_select> """# movie production companies by number of future movies
 SELECT ?company ?companyLabel (COUNT(?movie) AS ?count) (GROUP_CONCAT(?movieLabel; separator = \"; \") AS ?movies) WITH {
   SELECT ?movie ?company (MIN(?publicationDate) AS ?publicationDate) WHERE {
     ?movie wdt:P31/wdt:P279* wd:Q11424;

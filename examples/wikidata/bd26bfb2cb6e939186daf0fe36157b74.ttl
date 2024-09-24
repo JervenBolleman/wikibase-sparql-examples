@@ -11,6 +11,68 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX schema: <http://schema.org/>
+SELECT ?first_letter  (COUNT(?first_letter) as ?count) (?count/?total*100 AS ?pct)
+WITH
+{
+  SELECT ?first_letter
+  WHERE
+  {
+    ?article schema:name ?title.
+    ?article schema:isPartOf <https://ca.wikipedia.org/>.
+    BIND (SUBSTR(?title, 1, 1) AS ?first_letter)
+    FILTER (! STRSTARTS(?title, \"Categoria:\"))
+    FILTER (! STRSTARTS(?title, \"Plantilla:\"))    
+  }
+} AS %get_letters
+WITH
+{ 
+  SELECT (COUNT(?first_letter) AS ?total)
+  WHERE
+  {
+    INCLUDE %get_letters
+  }
+} AS %total
+WHERE
+{
+  INCLUDE %get_letters
+  INCLUDE %total
+}
+GROUP BY ?first_letter ?total""",
+    """PREFIX schema: <http://schema.org/>
+SELECT ?first_letter  (COUNT(?first_letter) as ?count) (?count/?total*100 AS ?pct)
+WHERE
+{
+  
+{
+  SELECT ?first_letter
+  WHERE
+  {
+    ?article schema:name ?title.
+    ?article schema:isPartOf <https://ca.wikipedia.org/>.
+    BIND (SUBSTR(?title, 1, 1) AS ?first_letter)
+    FILTER (! STRSTARTS(?title, \"Categoria:\"))
+    FILTER (! STRSTARTS(?title, \"Plantilla:\"))    
+  }
+}  
+{ 
+  SELECT (COUNT(?first_letter) AS ?total)
+  WHERE
+  {
+    
+{
+  SELECT ?first_letter
+  WHERE
+  {
+    ?article schema:name ?title.
+    ?article schema:isPartOf <https://ca.wikipedia.org/>.
+    BIND (SUBSTR(?title, 1, 1) AS ?first_letter)
+    FILTER (! STRSTARTS(?title, \"Categoria:\"))
+    FILTER (! STRSTARTS(?title, \"Plantilla:\"))    
+  }
+}  }
+}}
+GROUP BY ?first_letter ?total""";
   <http://example.org/bigdata_select> """SELECT ?first_letter  (COUNT(?first_letter) as ?count) (?count/?total*100 AS ?pct)
 WITH
 {
@@ -36,106 +98,5 @@ WHERE
 {
   INCLUDE %get_letters
   INCLUDE %total
-}
-GROUP BY ?first_letter ?total""",
-    """PREFIX schema: <http://schema.org/>
-SELECT ?first_letter  (COUNT(?first_letter) as ?count) (?count/?total*100 AS ?pct)
-WITH
-{
-  SELECT ?first_letter
-  WHERE
-  {
-    ?article schema:name ?title.
-    ?article schema:isPartOf <https://ca.wikipedia.org/>.
-    BIND (SUBSTR(?title, 1, 1) AS ?first_letter)
-    FILTER (! STRSTARTS(?title, \"Categoria:\"))
-    FILTER (! STRSTARTS(?title, \"Plantilla:\"))    
-  }
-} AS %get_letters
-WITH
-{ 
-  SELECT (COUNT(?first_letter) AS ?total)
-  WHERE
-  {
-    INCLUDE %get_letters
-  }
-} AS %total
-WHERE
-{
-  INCLUDE %get_letters
-  INCLUDE %total
-}
-GROUP BY ?first_letter ?total""",
-    """PREFIX schema: <http://schema.org/>
-SELECT ?first_letter  (COUNT(?first_letter) as ?count) (?count/?total*100 AS ?pct)
-
-WITH
-{ 
-  SELECT (COUNT(?first_letter) AS ?total)
-  WHERE
-  {
-    {
-  SELECT ?first_letter
-  WHERE
-  {
-    ?article schema:name ?title.
-    ?article schema:isPartOf <https://ca.wikipedia.org/>.
-    BIND (SUBSTR(?title, 1, 1) AS ?first_letter)
-    FILTER (! STRSTARTS(?title, \"Categoria:\"))
-    FILTER (! STRSTARTS(?title, \"Plantilla:\"))    
-  }
-}
-  }
-} AS %total
-WHERE
-{
-  {
-  SELECT ?first_letter
-  WHERE
-  {
-    ?article schema:name ?title.
-    ?article schema:isPartOf <https://ca.wikipedia.org/>.
-    BIND (SUBSTR(?title, 1, 1) AS ?first_letter)
-    FILTER (! STRSTARTS(?title, \"Categoria:\"))
-    FILTER (! STRSTARTS(?title, \"Plantilla:\"))    
-  }
-}
-  INCLUDE %total
-}
-GROUP BY ?first_letter ?total""";
-  sh:select """PREFIX schema: <http://schema.org/>
-SELECT ?first_letter  (COUNT(?first_letter) as ?count) (?count/?total*100 AS ?pct)
-
-
-WHERE
-{
-  {
-  SELECT ?first_letter
-  WHERE
-  {
-    ?article schema:name ?title.
-    ?article schema:isPartOf <https://ca.wikipedia.org/>.
-    BIND (SUBSTR(?title, 1, 1) AS ?first_letter)
-    FILTER (! STRSTARTS(?title, \"Categoria:\"))
-    FILTER (! STRSTARTS(?title, \"Plantilla:\"))    
-  }
-}
-  { 
-  SELECT (COUNT(?first_letter) AS ?total)
-  WHERE
-  {
-    {
-  SELECT ?first_letter
-  WHERE
-  {
-    ?article schema:name ?title.
-    ?article schema:isPartOf <https://ca.wikipedia.org/>.
-    BIND (SUBSTR(?title, 1, 1) AS ?first_letter)
-    FILTER (! STRSTARTS(?title, \"Categoria:\"))
-    FILTER (! STRSTARTS(?title, \"Plantilla:\"))    
-  }
-}
-  }
-}
 }
 GROUP BY ?first_letter ?total""" .

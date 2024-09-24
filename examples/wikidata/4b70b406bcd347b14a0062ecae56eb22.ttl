@@ -30,6 +30,33 @@ WHERE
       MINUS
       {
         ?type_of_work wdt:P279* wd:Q47461344 . # Exclude written works
+        hint:Prior hint:gearing \"forward\" .
+      }
+    }
+    GROUP BY ?type_of_work
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?type_of_work ?type_of_workLabel ?count
+WHERE
+{
+  {
+    SELECT ?type_of_work (COUNT(*) as ?count)
+    WHERE
+    {
+      ?work wdt:P50 ?p .
+      ?p wikibase:sitelinks 1 .
+      [] schema:about ?p ; schema:isPartOf / wikibase:wikiGroup \"wikisource\" .
+      ?work wdt:P31 ?type_of_work .
+      MINUS
+      {
+        ?type_of_work wdt:P279* wd:Q47461344 . # Exclude written works
         
       }
     }
@@ -38,12 +65,7 @@ WHERE
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
 }
 ORDER BY DESC(?count)""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?type_of_work ?type_of_workLabel ?count
+  <http://example.org/bigdata_select> """SELECT ?type_of_work ?type_of_workLabel ?count
 WHERE
 {
   {

@@ -27,17 +27,31 @@ SELECT DISTINCT ?item (YEAR(?dop) as ?year) WHERE {
                 wikibase:timePrecision \"9\"^^xsd:integer ;
                 wikibase:timeValue ?dop ;
   ] .
-  
+  hint:Prior hint:rangeSafe true .
   FILTER (?dop < \"1925-00-00T00:00:00\"^^xsd:dateTime)
   FILTER NOT EXISTS { ?item wdt:P6216 [] }   # item does not have P6216 yet
-} limit 20000""";
-  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+} limit 20000""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
 PREFIX p: <http://www.wikidata.org/prop/>
 SELECT DISTINCT ?item (YEAR(?dop) as ?year) WHERE {
+  # look for items of type \"work\" or \"data\" (or children)
+  ?item wdt:P31/wdt:P279* ?pq . 
+  VALUES ?pq { wd:Q386724  wd:Q42848 } 
+  # get year of publication 
+  ?item p:P577 ?statement .
+  ?statement psv:P577 [
+                wikibase:timePrecision \"9\"^^xsd:integer ;
+                wikibase:timeValue ?dop ;
+  ] .
+  
+  FILTER (?dop < \"1925-00-00T00:00:00\"^^xsd:dateTime)
+  FILTER NOT EXISTS { ?item wdt:P6216 [] }   # item does not have P6216 yet
+} limit 20000""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item (YEAR(?dop) as ?year) WHERE {
   # look for items of type \"work\" or \"data\" (or children)
   ?item wdt:P31/wdt:P279* ?pq . 
   VALUES ?pq { wd:Q386724  wd:Q42848 } 

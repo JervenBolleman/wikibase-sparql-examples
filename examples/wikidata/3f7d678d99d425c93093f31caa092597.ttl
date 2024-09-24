@@ -16,6 +16,40 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?itemLabel ?hasc
+WITH
+{
+  # Subquery to get all values of hasc in Germany  
+  SELECT ?region ?hasc
+  WHERE
+  {
+    ?region wdt:P8119 ?hasc .
+    FILTER(REGEX(STR(?hasc), \"^DE.[A-Z]{2}.[A-Z]{2}$\",\"i\")) 
+    ?region wdt:P17 wd:Q183 . # country is Germany
+  }
+  #ORDER BY ?hasc
+  #OFFSET 0
+  #LIMIT 50
+} AS %hasc
+WHERE
+{
+  INCLUDE %hasc
+  ?item wdt:P131 * ?region .
+  #?item wdt:P31 / wdt:P279 * wd:Q486972 . # ?item is a subclass of human settlement
+  VALUES ?instance_of { 
+    wd:Q253019      # Ortsteil
+    wd:Q486972      # Siedlung
+    wd:Q262166      # Gemeinde in Deutschland
+    wd:Q123705      # Stadtviertel
+  } 
+  ?item wdt:P31 ?instance_of .  
+  #hint:Prior hint:gearing \"forward\" . 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?itemLabel ?hasc
 WHERE
 {
   
@@ -43,11 +77,7 @@ WHERE
   #hint:Prior hint:gearing \"forward\" . 
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de\". }
 }""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?itemLabel ?hasc
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?itemLabel ?hasc
 WITH
 {
   # Subquery to get all values of hasc in Germany  

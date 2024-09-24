@@ -18,6 +18,28 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?item ?title
 WHERE {
+  hint:Query hint:optimizer \"None\".
+{  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"tuberculosis -mycobacterium haswbstatement:P31=Q13442814\".
+    ?page_title wikibase:apiOutput mwapi:title.
+  }
+  }
+  BIND(IRI(CONCAT(STR(wd:), ?page_title)) AS ?item)
+  FILTER NOT EXISTS { ?item wdt:P921 wd:Q12204. }
+  
+  ?item wdt:P31 wd:Q13442814;
+        wdt:P1476 ?title.
+  FILTER CONTAINS(LCASE(?title), \"tuberculosis\").
+}""",
+    """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?title
+WHERE {
   
 {  SERVICE wikibase:mwapi {
     bd:serviceParam wikibase:api \"Search\";
@@ -33,12 +55,7 @@ WHERE {
         wdt:P1476 ?title.
   FILTER CONTAINS(LCASE(?title), \"tuberculosis\").
 }""";
-  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?item ?title
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?title
 WHERE {
   hint:Query hint:optimizer \"None\".
 {  SERVICE wikibase:mwapi {

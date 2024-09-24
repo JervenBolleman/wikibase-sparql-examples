@@ -19,29 +19,6 @@ SELECT
   ?language ?languageLabel
   (CONCAT(\"#language/\", SUBSTR(STR(?language), 32)) AS ?languageUrl)
   ?languageDescription
-
-WHERE {
-  {
-  SELECT
-    (COUNT(*) AS ?works)
-    ?language
-  WHERE {
-    [] wdt:P407 ?language .
-  }
-  GROUP BY ?language
-}
-  
-  # This is to get rid of a language number of unknown values
-  FILTER EXISTS { ?language ?p [] }
-
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-ORDER BY DESC(?works)""";
-  <http://example.org/bigdata_select> """SELECT
-  ?works
-  ?language ?languageLabel
-  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32)) AS ?languageUrl)
-  ?languageDescription
 WITH {
   SELECT
     (COUNT(*) AS ?works)
@@ -64,6 +41,27 @@ ORDER BY DESC(?works)""",
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT
+  ?works
+  ?language ?languageLabel
+  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32)) AS ?languageUrl)
+  ?languageDescription
+WHERE {
+   {
+  SELECT
+    (COUNT(*) AS ?works)
+    ?language
+  WHERE {
+    [] wdt:P407 ?language .
+  }
+  GROUP BY ?language
+}  
+  # This is to get rid of a language number of unknown values
+  FILTER EXISTS { ?language ?p [] }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?works)""";
+  <http://example.org/bigdata_select> """SELECT
   ?works
   ?language ?languageLabel
   (CONCAT(\"#language/\", SUBSTR(STR(?language), 32)) AS ?languageUrl)

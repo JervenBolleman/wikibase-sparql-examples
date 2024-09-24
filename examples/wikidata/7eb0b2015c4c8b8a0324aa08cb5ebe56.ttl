@@ -19,6 +19,66 @@ PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?commune ?communeLabel ?start ?lp 
+WITH {                                 # items that have licence plates
+  SELECT ?item (MAX(?start_) as ?start)
+  WHERE
+  {
+    ?item wdt:P31 wd:Q747074.
+    OPTIONAL { ?item p:P131 ?stat .
+    ?stat ps:P131 ?commune . 
+    OPTIONAL { ?stat pq:P580 ?start_ . }
+    OPTIONAL { ?commune wdt:P395 ?lp . } }
+    BIND(IF(!BOUND(?start_),now(),?start_) as ?start_)
+    FILTER(BOUND(?lp))
+} GROUP BY ?item  } as %i
+
+WITH {                                  # items that do not have licence plates
+    SELECT ?item (MAX(?start_) as ?start)
+  WHERE
+  {
+    ?item wdt:P31 wd:Q747074.
+    OPTIONAL { ?item p:P131 ?stat .
+    ?stat ps:P131 ?commune . 
+    OPTIONAL { ?stat pq:P580 ?start_ . }
+    OPTIONAL { ?commune wdt:P395 ?lp . } }
+    BIND(IF(!BOUND(?start_),now(),?start_) as ?start_)
+    FILTER(!BOUND(?lp))
+    MINUS                               # items that have licence plates
+    { 
+     SELECT ?item (MAX(?start_) as ?start)
+     WHERE
+     {
+       ?item wdt:P31 wd:Q747074.
+       OPTIONAL { ?item p:P131 ?stat .
+       ?stat ps:P131 ?commune . 
+       OPTIONAL { ?stat pq:P580 ?start_ . }
+       OPTIONAL { ?commune wdt:P395 ?lp . } }
+       BIND(IF(!BOUND(?start_),now(),?start_) as ?start_)
+       FILTER(BOUND(?lp))
+       } GROUP BY ?item 
+     }
+} GROUP BY ?item  } as %j 
+WHERE
+{                                    #select the commune and numberplate based on ?start match
+  {INCLUDE %i} UNION {INCLUDE %j}
+  ?item wdt:P31 wd:Q747074.
+  OPTIONAL { ?item p:P131 ?stat .
+  ?stat ps:P131 ?commune . 
+  OPTIONAL { ?stat pq:P580 ?start_ . }
+  OPTIONAL { ?commune wdt:P395 ?lp_ . } }
+  BIND(IF(!BOUND(?start_),now(),?start_) as ?start_)
+  BIND(IF(!BOUND(?lp_),\"NaN\",?lp_) as ?lp)
+  FILTER(?start = ?start_)            
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }  
+  }""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?commune ?communeLabel ?start ?lp 
 
 
 WHERE
@@ -34,14 +94,7 @@ WHERE
   FILTER(?start = ?start_)            
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }  
   }""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?commune ?communeLabel ?start ?lp 
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?commune ?communeLabel ?start ?lp 
 WITH {                                 # items that have licence plates
   SELECT ?item (MAX(?start_) as ?start)
   WHERE

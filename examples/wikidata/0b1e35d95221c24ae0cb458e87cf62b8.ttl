@@ -19,6 +19,28 @@ PREFIX pr: <http://www.wikidata.org/prop/reference/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?item ?itemLabel ?property ?ref
 WHERE {
+  hint:Query hint:optimizer \"None\".
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"jeugdliteratuur\".
+    ?title wikibase:apiOutput mwapi:title.
+  }
+  BIND(IRI(CONCAT(STR(wd:), ?title)) AS ?item)
+  ?item ?property ?statement.
+  ?statement prov:wasDerivedFrom ?statement2. 
+  ?statement2 pr:P854 ?ref.
+  filter(contains(str(?ref), \"jeugdliteratuur.org\"))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?property ?ref
+WHERE {
   
   SERVICE wikibase:mwapi {
     bd:serviceParam wikibase:api \"Search\";
@@ -33,13 +55,7 @@ WHERE {
   filter(contains(str(?ref), \"jeugdliteratuur.org\"))
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX prov: <http://www.w3.org/ns/prov#>
-PREFIX pr: <http://www.wikidata.org/prop/reference/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?item ?itemLabel ?property ?ref
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?itemLabel ?property ?ref
 WHERE {
   hint:Query hint:optimizer \"None\".
   SERVICE wikibase:mwapi {

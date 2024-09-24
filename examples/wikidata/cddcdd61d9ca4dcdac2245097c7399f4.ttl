@@ -11,36 +11,10 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
-PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?item_location ?distance 
-WHERE {
-  {
-SELECT ?what_is_thing ?coords_of_thing ?target_distance WHERE {
-  VALUES ?thing { wd:Q111529510 } 
-  VALUES ?target_distance { 100 }
-  ?thing wdt:P31 ?what_is_thing .
-  # if there are no coordinates on the item then get them from the location statement
-  OPTIONAL { ?thing wdt:P625 ?coords_of_thing }
-  OPTIONAL { ?thing wdt:P276 ?location_of_thing . ?location_of_thing wdt:P625 ?coords_of_location_of_thing  }
-  BIND(IF(BOUND(?coords_of_thing), ?coords_of_thing, ?coords_of_location_of_thing) AS ?coords_of_thing)
-} }
-   ?item wdt:P31* ?what_is_thing .
-  # if there are no coordinates on the item then get them from the location statement
-    OPTIONAL { ?item wdt:P625 ?item_location }
-    OPTIONAL { ?item wdt:P276 [ wdt:P625 ?loc1 ]  }
-    BIND(IF(BOUND(?item_location), ?item_location, ?loc1) AS ?item_location)  
-  #
-    BIND(geof:distance(?coords_of_thing, ?item_location) as ?distance) 
-    FILTER (?distance <= ?target_distance )
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
- }""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?item_location ?distance WITH {
 SELECT ?what_is_thing ?coords_of_thing ?target_distance WHERE {
@@ -64,12 +38,32 @@ WHERE {
     FILTER (?distance <= ?target_distance )
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
  }""",
-    """PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
-PREFIX wikibase: <http://wikiba.se/ontology#>
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?item_location ?distance WITH {
+SELECT ?item ?itemLabel ?item_location ?distance WHERE {
+   {
+SELECT ?what_is_thing ?coords_of_thing ?target_distance WHERE {
+  VALUES ?thing { wd:Q111529510 } 
+  VALUES ?target_distance { 100 }
+  ?thing wdt:P31 ?what_is_thing .
+  # if there are no coordinates on the item then get them from the location statement
+  OPTIONAL { ?thing wdt:P625 ?coords_of_thing }
+  OPTIONAL { ?thing wdt:P276 ?location_of_thing . ?location_of_thing wdt:P625 ?coords_of_location_of_thing  }
+  BIND(IF(BOUND(?coords_of_thing), ?coords_of_thing, ?coords_of_location_of_thing) AS ?coords_of_thing)
+} }   ?item wdt:P31* ?what_is_thing .
+  # if there are no coordinates on the item then get them from the location statement
+    OPTIONAL { ?item wdt:P625 ?item_location }
+    OPTIONAL { ?item wdt:P276 [ wdt:P625 ?loc1 ]  }
+    BIND(IF(BOUND(?item_location), ?item_location, ?loc1) AS ?item_location)  
+  #
+    BIND(geof:distance(?coords_of_thing, ?item_location) as ?distance) 
+    FILTER (?distance <= ?target_distance )
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+ }""";
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?item_location ?distance WITH {
 SELECT ?what_is_thing ?coords_of_thing ?target_distance WHERE {
   VALUES ?thing { wd:Q111529510 } 
   VALUES ?target_distance { 100 }

@@ -17,6 +17,23 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?sitelinks ?itemLabel WHERE {
+  ?item wikibase:sitelinks ?sitelinks. hint:Prior hint:rangeSafe true. # https://wiki.blazegraph.com/wiki/index.php/QueryHints
+  FILTER(?sitelinks >= 75) # arbitrary limit to optimize the query by removing most items (assuming that the desired results will have more statements than this)
+  MINUS {
+    ?article schema:isPartOf <https://ru.wikipedia.org/>;
+             schema:about ?item.
+  }
+  MINUS { ?item wdt:P31/wdt:P279* wd:Q17442446. } # remove templates etc.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"ru,[AUTO_LANGUAGE],en\". } 
+}
+ORDER BY DESC(?sitelinks)
+LIMIT 30""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?sitelinks ?itemLabel WHERE {
   ?item wikibase:sitelinks ?sitelinks.  # https://wiki.blazegraph.com/wiki/index.php/QueryHints
   FILTER(?sitelinks >= 75) # arbitrary limit to optimize the query by removing most items (assuming that the desired results will have more statements than this)
   MINUS {
@@ -28,12 +45,7 @@ SELECT ?item ?sitelinks ?itemLabel WHERE {
 }
 ORDER BY DESC(?sitelinks)
 LIMIT 30""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?sitelinks ?itemLabel WHERE {
+  <http://example.org/bigdata_select> """SELECT ?item ?sitelinks ?itemLabel WHERE {
   ?item wikibase:sitelinks ?sitelinks. hint:Prior hint:rangeSafe true. # https://wiki.blazegraph.com/wiki/index.php/QueryHints
   FILTER(?sitelinks >= 75) # arbitrary limit to optimize the query by removing most items (assuming that the desired results will have more statements than this)
   MINUS {

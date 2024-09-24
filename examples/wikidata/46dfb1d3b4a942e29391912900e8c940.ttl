@@ -13,6 +13,19 @@
   schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 SELECT ?institution (MIN(?total) AS ?_) (COUNT(*) AS ?row_number)
+ WITH {
+  SELECT ?institution  (COUNT(?item) AS ?total) {
+    ?item wdt:P485 ?institution .
+    OPTIONAL {?institution wdt:P17 ?pays .}
+  }
+  GROUP BY ?institution HAVING (?total > 20) 
+} AS %query {
+   {SELECT * { INCLUDE %query } }
+   {SELECT (?institution AS ?institution_) (?total AS ?total_) { INCLUDE %query } }
+    FILTER (?total < ?total_  || ?total = ?total_  && str(?institution) <= str(?institution_) )
+} GROUP BY ?institution ORDER BY ?row_number""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+SELECT ?institution (MIN(?total) AS ?_) (COUNT(*) AS ?row_number)
  {
    {SELECT * {  {
   SELECT ?institution  (COUNT(?item) AS ?total) {
@@ -30,8 +43,7 @@ SELECT ?institution (MIN(?total) AS ?_) (COUNT(*) AS ?row_number)
 }} }
     FILTER (?total < ?total_  || ?total = ?total_  && str(?institution) <= str(?institution_) )
 } GROUP BY ?institution ORDER BY ?row_number""";
-  <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-SELECT ?institution (MIN(?total) AS ?_) (COUNT(*) AS ?row_number)
+  <http://example.org/bigdata_select> """SELECT ?institution (MIN(?total) AS ?_) (COUNT(*) AS ?row_number)
  WITH {
   SELECT ?institution  (COUNT(?item) AS ?total) {
     ?item wdt:P485 ?institution .

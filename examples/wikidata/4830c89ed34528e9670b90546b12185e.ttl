@@ -19,33 +19,7 @@ PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?epicenter ?time (SUM(?population) AS ?total_population) (SAMPLE(?place) AS ?sample_place)  WHERE {
-  {
-  SELECT * {
-    ?item wdt:P31 wd:Q7944;
-          wdt:P625 ?epicenter;
-          wdt:P585 ?time;
-          wdt:P2527 ?moment .
-    FILTER( ?moment >= 7 ) .
-    SERVICE wikibase:around {
-      ?place wdt:P625 ?location .
-      bd:serviceParam wikibase:center ?epicenter .
-      bd:serviceParam wikibase:radius 50 .
-    } .
-  }
-} .
-  ?place p:P1082 [ ps:P1082 ?population; pq:P585 ?date ] .
-  FILTER( ?time >= ?date ) .
-  MINUS {
-    ?place p:P1082/pq:P585 ?date2 .
-    FILTER( ?time >= ?date2 && ?date2 > ?date ) .
-  } .
-  SERVICE wikibase:label {
-    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" .
-    ?item rdfs:label ?itemLabel .
-  } .
-} GROUP BY ?item ?itemLabel ?epicenter ?time""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?epicenter ?time (SUM(?population) AS ?total_population) (SAMPLE(?place) AS ?sample_place) WITH {
+SELECT ?item ?itemLabel ?epicenter ?time (SUM(?population) AS ?total_population) (SAMPLE(?place) AS ?sample_place) WITH {
   SELECT * {
     ?item wdt:P31 wd:Q7944;
           wdt:P625 ?epicenter;
@@ -79,7 +53,33 @@ PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?epicenter ?time (SUM(?population) AS ?total_population) (SAMPLE(?place) AS ?sample_place) WITH {
+SELECT ?item ?itemLabel ?epicenter ?time (SUM(?population) AS ?total_population) (SAMPLE(?place) AS ?sample_place) WHERE {
+   {
+  SELECT * {
+    ?item wdt:P31 wd:Q7944;
+          wdt:P625 ?epicenter;
+          wdt:P585 ?time;
+          wdt:P2527 ?moment .
+    FILTER( ?moment >= 7 ) .
+    SERVICE wikibase:around {
+      ?place wdt:P625 ?location .
+      bd:serviceParam wikibase:center ?epicenter .
+      bd:serviceParam wikibase:radius 50 .
+    } .
+  }
+}.
+  ?place p:P1082 [ ps:P1082 ?population; pq:P585 ?date ] .
+  FILTER( ?time >= ?date ) .
+  MINUS {
+    ?place p:P1082/pq:P585 ?date2 .
+    FILTER( ?time >= ?date2 && ?date2 > ?date ) .
+  } .
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" .
+    ?item rdfs:label ?itemLabel .
+  } .
+} GROUP BY ?item ?itemLabel ?epicenter ?time""";
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?epicenter ?time (SUM(?population) AS ?total_population) (SAMPLE(?place) AS ?sample_place) WITH {
   SELECT * {
     ?item wdt:P31 wd:Q7944;
           wdt:P625 ?epicenter;

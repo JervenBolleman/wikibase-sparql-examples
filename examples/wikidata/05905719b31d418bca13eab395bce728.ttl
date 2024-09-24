@@ -22,6 +22,55 @@ SELECT
   ?year
   ?works
   ?topic ?topicLabel
+WITH {
+  SELECT 
+    ?work
+  WHERE {
+    ?work wdt:P1433 target: .
+  }
+} AS %works
+WITH {
+  SELECT
+    (COUNT(?work) AS ?count)
+    ?topic
+  WHERE {
+    INCLUDE %works
+    ?work wdt:P921 ?topic .
+  }
+  GROUP BY ?topic
+  ORDER BY DESC(?count)
+  LIMIT 5
+} AS %topics
+WITH {
+  SELECT
+    ?year 
+    (COUNT(?work) AS ?works)
+    ?topic
+  WHERE {
+    INCLUDE %works
+    INCLUDE %topics
+    ?work wdt:P921 ?topic ;
+          wdt:P577 ?publication_datetime .
+    BIND(STR(YEAR(?publication_datetime)) AS ?year)
+  }
+  GROUP BY ?year ?topic
+} AS %result
+WHERE {
+  INCLUDE %result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?year""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Topics through time
+
+PREFIX target: <http://www.wikidata.org/entity/Q3067819>
+
+SELECT
+  ?year
+  ?works
+  ?topic ?topicLabel
 WHERE {
    {
   SELECT
@@ -29,29 +78,9 @@ WHERE {
     (COUNT(?work) AS ?works)
     ?topic
   WHERE {
-     {
-  SELECT 
-    ?work
-  WHERE {
-    ?work wdt:P1433 target: .
-  }
-}     {
-  SELECT
-    (COUNT(?work) AS ?count)
-    ?topic
-  WHERE {
-     {
-  SELECT 
-    ?work
-  WHERE {
-    ?work wdt:P1433 target: .
-  }
-}    ?work wdt:P921 ?topic .
-  }
-  GROUP BY ?topic
-  ORDER BY DESC(?count)
-  LIMIT 5
-}    ?work wdt:P921 ?topic ;
+    INCLUDE %works
+    INCLUDE %topics
+    ?work wdt:P921 ?topic ;
           wdt:P577 ?publication_datetime .
     BIND(STR(YEAR(?publication_datetime)) AS ?year)
   }
@@ -59,10 +88,7 @@ WHERE {
 }  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY ?year""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-# Topics through time
+  <http://example.org/bigdata_select> """# Topics through time
 
 PREFIX target: <http://www.wikidata.org/entity/Q3067819>
 
@@ -89,8 +115,7 @@ WITH {
   ORDER BY DESC(?count)
   LIMIT 5
 } AS %topics
-WHERE {
-   {
+WITH {
   SELECT
     ?year 
     (COUNT(?work) AS ?works)
@@ -103,6 +128,9 @@ WHERE {
     BIND(STR(YEAR(?publication_datetime)) AS ?year)
   }
   GROUP BY ?year ?topic
-}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} AS %result
+WHERE {
+  INCLUDE %result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY ?year""" .

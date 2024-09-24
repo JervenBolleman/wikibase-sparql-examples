@@ -17,6 +17,23 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?item ?itemLabel ?cap
 WHERE {
+  hint:Query hint:optimizer \"None\".
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"Grade\".
+    ?item wikibase:apiOutputItem mwapi:title .
+  }
+  ?item rdfs:label ?itemLabel.
+  BIND(IF(str(?itemLabel) =\"grade\",\"lower\",IF(str(?itemLabel) =\"Grade\",\"upper\",\"\")) as ?cap)
+  FILTER (lcase(str(?itemLabel)) =\"grade\")
+}""",
+    """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?cap
+WHERE {
   
   SERVICE wikibase:mwapi {
     bd:serviceParam wikibase:api \"Search\";
@@ -28,11 +45,7 @@ WHERE {
   BIND(IF(str(?itemLabel) =\"grade\",\"lower\",IF(str(?itemLabel) =\"Grade\",\"upper\",\"\")) as ?cap)
   FILTER (lcase(str(?itemLabel)) =\"grade\")
 }""";
-  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?item ?itemLabel ?cap
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?itemLabel ?cap
 WHERE {
   hint:Query hint:optimizer \"None\".
   SERVICE wikibase:mwapi {

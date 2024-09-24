@@ -18,15 +18,47 @@ SELECT
   ?item
   ?itemLabel
   ?itemDescription
+WITH {
+  SELECT DISTINCT ?item {
+    []
+    schema:about ?item;
+    schema:isPartOf <https://qu.wikipedia.org/>.
+  }
+  LIMIT 10000
+} AS %0
+WITH {
+  SELECT ?item (COUNT(*) AS ?count) {
+    INCLUDE %0.
+    []
+      schema:about ?item;
+      schema:isPartOf/wikibase:wikiGroup \"wikipedia\".
+  }
+  GROUP BY ?item
+} AS %1
+WITH {
+  SELECT ?item {
+    INCLUDE %1.
+    FILTER(?count = 1)
+  }
+} AS %2
+{
+  INCLUDE %2.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"qu,es,en\"}.
+}
+ORDER BY ASC(LCASE(?itemLabel))""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
+  ?item
+  ?itemLabel
+  ?itemDescription
 {
   INCLUDE %2.
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"qu,es,en\"}.
 }
 ORDER BY ASC(LCASE(?itemLabel))""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX schema: <http://schema.org/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT
+  <http://example.org/bigdata_select> """SELECT
   ?item
   ?itemLabel
   ?itemDescription

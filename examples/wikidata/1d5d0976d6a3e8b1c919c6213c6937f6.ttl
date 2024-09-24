@@ -12,11 +12,11 @@
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
-PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
 PREFIX geo: <http://www.opengis.net/ont/geosparql#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultview:map
@@ -71,15 +71,55 @@ WITH
   }
 } AS %get_files
 
-NCLUDE %get_files .
+WITH {
+  SELECT ?cat ?file ?coords_stmt WHERE {
+     INCLUDE %get_files .
      ?file p:P9149 ?coords_stmt  . 
   }
-}.
+} AS %coords_stmts
+
+WITH {
+  SELECT ?cat (AVG(?lat) AS ?avg_lat)  (AVG(?lon) AS ?avg_lon) WHERE {
+    INCLUDE %coords_stmts .
     ?coords_stmt psv:P9149 ?obj .
     ?obj wikibase:geoLatitude ?lat .
     ?obj wikibase:geoLongitude ?lon . 
   } GROUP BY ?cat
 } AS %avg_coords
+
+WITH {
+  SELECT ?cat ?avg_lat ?avg_lon ?point WHERE {
+    INCLUDE %avg_coords .
+    BIND(strdt(CONCAT(\"Point(\", str(?avg_lon), ' ', str(?avg_lat), ')'), geo:wktLiteral) AS ?point) .
+  }
+} AS %avg_points 
+
+WHERE {
+  INCLUDE %avg_points . 
+  INCLUDE %coords_stmts .
+  ?coords_stmt ps:P9149 ?coords .
+  BIND(geof:distance(?point, ?coords) as ?dist) .
+  BIND((?dist * ?dist) AS ?d2) .
+} GROUP BY ?cat ?avg_lat ?avg_lon ?point
+ORDER BY ?cat""",
+    """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultview:map
+#title: Average coordinates of depicted place (P9149) positions for some Commons categories
+#defaultView:Map
+#title: Average coordinates of depicted place (P9149) positions for some Commons categories
+#SELECT ?cat  (COUNT(?file) AS ?no_of_files) ?avg_lat ?avg_lon ?point (MAX(?dist) AS ?max_distance) (AVG(?d2) AS ?variance)
+SELECT (IRI(CONCAT('https://commons.wikimedia.org/wiki/',?cat)) AS ?category) (COUNT(?file) AS ?no_of_files) ?point (MAX(?dist) AS ?max_distance) (AVG(?d2) AS ?variance)
+
+
+
+
 
 
 
@@ -101,15 +141,7 @@ WHERE {
   BIND((?dist * ?dist) AS ?d2) .
 } GROUP BY ?cat ?avg_lat ?avg_lon ?point
 ORDER BY ?cat""";
-  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
-PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX geo: <http://www.opengis.net/ont/geosparql#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#defaultview:map
+  <http://example.org/bigdata_select> """#defaultview:map
 #title: Average coordinates of depicted place (P9149) positions for some Commons categories
 #defaultView:Map
 #title: Average coordinates of depicted place (P9149) positions for some Commons categories

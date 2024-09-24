@@ -16,6 +16,27 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT  ?item ?label ?w ?linkcount (count(?article) as ?lw_count) WHERE{
+  ?item wikibase:sitelinks ?linkcount . hint:Prior hint:runFirst true.
+  values ?linkcount {90 91 92 93 94 95 96}
+  ?item rdfs:label ?label. 
+  FILTER(lang(?label)=\"en\")
+  FILTER(!strstarts(?label, \"Category:\"))
+  FILTER(!strstarts(?label, \"Wikipedia:\"))
+  FILTER(!strstarts(?label, \"Template:\"))
+  FILTER(!strstarts(?label, \"Module:\"))
+  FILTER NOT EXISTS{?sc schema:about ?item; schema:isPartOf <https://ja.wikipedia.org/> . }
+    
+  ?article schema:about ?item ;
+           schema:isPartOf ?site . 
+  ?site wikibase:wikiGroup \"wikipedia\" .
+  
+  OPTIONAL{?item wdt:P31 ?what.?what rdfs:label ?w. FILTER(lang(?w)=\"en\")}
+} group by ?item ?label ?w ?linkcount""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT  ?item ?label ?w ?linkcount (count(?article) as ?lw_count) WHERE{
   ?item wikibase:sitelinks ?linkcount . 
   values ?linkcount {90 91 92 93 94 95 96}
   ?item rdfs:label ?label. 
@@ -32,11 +53,7 @@ SELECT  ?item ?label ?w ?linkcount (count(?article) as ?lw_count) WHERE{
   
   OPTIONAL{?item wdt:P31 ?what.?what rdfs:label ?w. FILTER(lang(?w)=\"en\")}
 } group by ?item ?label ?w ?linkcount""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX schema: <http://schema.org/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT  ?item ?label ?w ?linkcount (count(?article) as ?lw_count) WHERE{
+  <http://example.org/bigdata_select> """SELECT  ?item ?label ?w ?linkcount (count(?article) as ?lw_count) WHERE{
   ?item wikibase:sitelinks ?linkcount . hint:Prior hint:runFirst true.
   values ?linkcount {90 91 92 93 94 95 96}
   ?item rdfs:label ?label. 

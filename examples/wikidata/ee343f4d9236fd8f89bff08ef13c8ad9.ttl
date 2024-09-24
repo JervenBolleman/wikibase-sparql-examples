@@ -20,6 +20,63 @@ SELECT DISTINCT ?item ?start ?end
       (GROUP_CONCAT(DISTINCT ?propertylist; SEPARATOR = \", \") AS ?properties)
       (SAMPLE (DISTINCT ?thumbs) as ?thumb) 
       (SAMPLE (?positions) as ?position)
+WITH {
+  SELECT ?item ?instancelist ?thumbs WHERE 
+  {
+    ?item wdt:P17 wd:Q145 .
+    ?item wdt:P31/wdt:P279* wd:Q1785071 . 
+    BIND(\"fort\" as ?instancelist)
+    BIND(\"fort.png\" AS ?thumbs)
+  } } as %i
+WITH {
+  SELECT ?item ?instancelist ?thumbs WHERE 
+  {
+    ?item wdt:P17 wd:Q145 .
+    { ?item wdt:P31/wdt:P279* wd:Q56344492 . }
+    UNION { ?item wdt:P31/wdt:P279* wd:Q90754 . } 
+    UNION { ?item wdt:P31/wdt:P279* wd:Q947103 . } 
+    BIND(\"tower\" as ?instancelist)
+    BIND(\"tower.png\" AS ?thumbs)
+  } } as %j
+WITH {
+  SELECT ?item ?instancelist ?thumbs WHERE 
+  {
+    ?item wdt:P17 wd:Q145 .
+    ?item wdt:P31 wd:Q2772772 . 
+    BIND(\"museum\" as ?instancelist)
+    BIND(\"museum.png\" AS ?thumbs)
+  } } as %k
+WHERE
+{
+  {INCLUDE %i} UNION {INCLUDE %j} UNION {INCLUDE %k} 
+  OPTIONAL {?item wdt:P3134 ?tripadvisor. BIND(CONCAT(\"[https://www.tripadvisor.com/\",?tripadvisor,\" tripadvisor]\") AS ?propertylist)}
+  OPTIONAL {?item wdt:P625 ?position1}
+  OPTIONAL {?item wdt:P276 ?locations. ?locations wdt:P625 ?position2}
+  BIND(COALESCE(?position1,?position2) AS ?positions)
+
+  OPTIONAL {?item wdt:P729 ?serviceentry}
+  OPTIONAL {?item wdt:P571 ?inception}
+  OPTIONAL {?item wdt:P585 ?pointintime}
+  OPTIONAL {?item wdt:P580 ?starttime}
+      
+  BIND(IF(?instancelist != \"region\",COALESCE(?awarded,?serviceentry,?inception,?pointintime,?starttime),\"\") as ?start)
+     
+  OPTIONAL {?item wdt:P730 ?serviceretirement}
+  OPTIONAL {?item wdt:P576 ?abolished}
+  OPTIONAL {?item wdt:P582 ?endtime}
+  BIND(COALESCE(?serviceretirement,?abolished,?pointintime,?endtime) as ?end)
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+} GROUP by ?item ?start ?end""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?start ?end
+      (GROUP_CONCAT(DISTINCT ?instancelist; SEPARATOR = \", \") AS ?instances)
+      (GROUP_CONCAT(DISTINCT ?propertylist; SEPARATOR = \", \") AS ?properties)
+      (SAMPLE (DISTINCT ?thumbs) as ?thumb) 
+      (SAMPLE (?positions) as ?position)
 WHERE
 {
   {INCLUDE %i} UNION {INCLUDE %j} UNION {INCLUDE %k} 
@@ -42,11 +99,7 @@ WHERE
   
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
 } GROUP by ?item ?start ?end""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?item ?start ?end
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?start ?end
       (GROUP_CONCAT(DISTINCT ?instancelist; SEPARATOR = \", \") AS ?instances)
       (GROUP_CONCAT(DISTINCT ?propertylist; SEPARATOR = \", \") AS ?properties)
       (SAMPLE (DISTINCT ?thumbs) as ?thumb) 

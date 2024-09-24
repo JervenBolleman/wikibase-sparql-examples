@@ -25,6 +25,52 @@ select ?property ?propertyLabel ?propertyDescription
                            \"(\", str(round(?effectif / sum(?effectif) * 100)), \"%\",\")\") ; separator=\" - \") as ?sexes) 
        (sum(?effectif) as ?total)
 
+with {
+
+select ?property ?sexe (count(?person) as ?effectif)
+{
+    ?property rdf:type wikibase:Property ;
+              wdt:P31/wdt:P279* wd:Q55452870 ;
+              wikibase:directClaim ?propertyMainValue .
+  
+    ?person ?propertyMainValue [] ;
+            wdt:P31 wd:Q5 .
+    optional {
+       ?person wdt:P21 ?sexe2 .
+       bind(if(isBlank(?sexe2), \"inconnu\", ?sexe2) as ?sexe3) 
+    }
+    bind(if(!bound(?sexe3), \"non specifié\", ?sexe3) as ?sexe)
+    
+ 
+} group by ?property ?sexe
+  order by ?property ?sexe
+} as %dataset
+
+where {
+  {
+    select ?property ?propertyLabel ?propertyDescription ?sexe ?sexe_label_final ?effectif{
+      include %dataset .
+      optional { ?sexe rdfs:label ?label_sexe filter langmatches(lang(?label_sexe), \"fr\") }
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+      bind (if(bound(?label_sexe), ?label_sexe, ?sexe) as ?sexe_label_final)
+    }
+  }
+  bind( (?effectif / ?total )  as ?pourcent)
+} group by ?property ?propertyLabel ?propertyDescription""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#Évaluer le contenu de genre masculin et féminin d'encyclopédies diverses (TIMEOUT)
+select ?property ?propertyLabel ?propertyDescription 
+       (group_concat(concat(str(?sexe_label_final), 
+                           \": \", 
+                           str(?effectif), \" \",
+                           \"(\", str(round(?effectif / sum(?effectif) * 100)), \"%\",\")\") ; separator=\" - \") as ?sexes) 
+       (sum(?effectif) as ?total)
+
 
 where {
   {
@@ -56,13 +102,7 @@ select ?property ?sexe (count(?person) as ?effectif)
   }
   bind( (?effectif / ?total )  as ?pourcent)
 } group by ?property ?propertyLabel ?propertyDescription""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#Évaluer le contenu de genre masculin et féminin d'encyclopédies diverses (TIMEOUT)
+  <http://example.org/bigdata_select> """#Évaluer le contenu de genre masculin et féminin d'encyclopédies diverses (TIMEOUT)
 select ?property ?propertyLabel ?propertyDescription 
        (group_concat(concat(str(?sexe_label_final), 
                            \": \", 

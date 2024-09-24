@@ -18,14 +18,34 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Graph
 SELECT ?level ?item ?relation ?linkTo ?itemLabel ?pic
 {
-  en\"}
+  hint:Query hint:optimizer \"None\"
+  { BIND(0 AS ?level) BIND(wd:Q560197 AS ?item) } UNION
+  {
+    VALUES ?relation { wdt:P22 wdt:P25 } 
+    { BIND(1 AS ?level) BIND(wd:Q560197 AS ?linkTo) }
+    UNION
+    { BIND(2 AS ?level) ?linkTo wdt:P22|wdt:P25 wd:Q560197 }
+    UNION
+    { BIND(3 AS ?level) ?linkTo (wdt:P22|wdt:P25)/(wdt:P22|wdt:P25) wd:Q560197 }
+    UNION
+    { BIND(4 AS ?level) ?linkTo (wdt:P22|wdt:P25)/(wdt:P22|wdt:P25)/(wdt:P22|wdt:P25) wd:Q560197 }
+    ?item ?relation ?linkTo
+  }
+  OPTIONAL { ?item wdt:P18 ?pic }
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\"}
 }
-ORDER BY ?level""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+ORDER BY ?level""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Graph
+SELECT ?level ?item ?relation ?linkTo ?itemLabel ?pic
+{
+  en\"}
+}
+ORDER BY ?level""";
+  <http://example.org/bigdata_select> """#defaultView:Graph
 SELECT ?level ?item ?relation ?linkTo ?itemLabel ?pic
 {
   hint:Query hint:optimizer \"None\"

@@ -17,6 +17,30 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?item ?itemLabel ?country ?countryLabel ?population
+WITH {SELECT DISTINCT ?item ?country  (MAX(?pop) as ?population)
+WHERE 
+{
+  ?item wdt:P31/wdt:P279* wd:Q515.
+  ?item wdt:P1082 ?pop.
+  filter (?pop > 300000)
+  } GROUP BY ?item  ?country  } as %i
+WHERE
+{
+  INCLUDE %i
+  FILTER NOT EXISTS {
+  ?article schema:about ?item ;
+  schema:isPartOf <https://he.wikivoyage.org/> . }
+
+  OPTIONAL {?item wdt:P17 ?country . 
+           ?country wdt:P463 wd:Q1065 .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],he,en\". }
+} ORDER BY ?countryLabel ?itemLabel""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?country ?countryLabel ?population
 WHERE
 {
    {SELECT DISTINCT ?item ?country  (MAX(?pop) as ?population)
@@ -33,12 +57,7 @@ WHERE
            ?country wdt:P463 wd:Q1065 .}
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],he,en\". }
 } ORDER BY ?countryLabel ?itemLabel""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?item ?itemLabel ?country ?countryLabel ?population
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?itemLabel ?country ?countryLabel ?population
 WITH {SELECT DISTINCT ?item ?country  (MAX(?pop) as ?population)
 WHERE 
 {

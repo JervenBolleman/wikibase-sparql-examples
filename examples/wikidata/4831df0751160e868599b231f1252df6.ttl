@@ -21,6 +21,61 @@ PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT distinct ?election ?electionLabel ?members ?veterans ?held_at_dissolution
 
+WITH {
+   SELECT DISTINCT ?item ?membership ?election ?electiondate ?membership2 ?positionStatement2 WHERE {
+     
+     # find all general elections and their date
+     ?election wdt:P31 wd:Q15283424 . ?election wdt:P585 ?electiondate . 
+     filter (?electiondate >= \"1990-01-01T00:00:00Z\"^^xsd:dateTime) .  # throttle to post-1990
+  
+     # item holds a term which began with the election
+     ?item p:P39 ?positionStatement . ?positionStatement ps:P39 ?membership . 
+     ?membership wdt:P2715 ?election . ?positionStatement pq:P2715 ?election . 
+ 
+     OPTIONAL {
+         # find other positions held
+         ?item p:P39 ?positionStatement2 .
+         ?positionStatement2 ps:P39 ?membership2 .
+       
+         # ... where the term which preceded that one
+         FILTER EXISTS {?membership2 ^wdt:P155 ?membership} .
+     }
+   }
+} AS %members
+
+WHERE {
+  
+  { SELECT ?election (count(distinct ?item) as ?members) where 
+    { INCLUDE %members .
+    } group by ?election
+  } 
+
+  { SELECT ?election (count(distinct ?item) as ?veterans) where 
+    { INCLUDE %members .
+      FILTER (BOUND (?membership2)) .
+    } group by ?election
+  }
+  
+  # people who served up to dissolution of the previous term
+  { SELECT ?election (count(distinct ?item) as ?held_at_dissolution) where 
+    { INCLUDE %members .
+      FILTER (BOUND (?positionStatement2)) .
+#      ?positionStatement2 pq:P1534 wd:Q741182 .
+    } group by ?election
+  } 
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+} order by desc(?electiondate)""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT distinct ?election ?electionLabel ?members ?veterans ?held_at_dissolution
+
 
 WHERE {
   
@@ -105,15 +160,7 @@ WHERE {
   
   SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
 } order by desc(?electiondate)""";
-  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT distinct ?election ?electionLabel ?members ?veterans ?held_at_dissolution
+  <http://example.org/bigdata_select> """SELECT distinct ?election ?electionLabel ?members ?veterans ?held_at_dissolution
 
 WITH {
    SELECT DISTINCT ?item ?membership ?election ?electiondate ?membership2 ?positionStatement2 WHERE {

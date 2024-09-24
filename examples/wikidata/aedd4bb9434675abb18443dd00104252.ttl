@@ -24,6 +24,89 @@ SELECT
   ?mesEtiqueta
   ?conteo
 # Subconsulta para obtener todos los peruanes que existen en Wikidata
+WITH {
+  SELECT DISTINCT
+    ?peruane
+  {
+    {?peruane wdt:P27 wd:Q419 }
+    UNION
+    {?peruane wdt:P19/wdt:P131* wd:Q419 }
+    UNION
+    {?peruane wdt:P1532 wd:Q419}
+  }
+} AS %peruane
+# Subconsulta para obtener el conteo de nacimientos de peruanos por
+# mes
+WITH {
+  SELECT
+    ?mes
+    (COUNT(?mes) AS ?conteo)
+  {
+    INCLUDE %peruane.
+    # Usando p:P569 y psv:P569, podemos saber que fechas de nacimiento
+    # especifican el mes. Recuerde que cuando la fecha no tiene mes ni
+    # dia, entonces la fecha se considera como Enero 1. Mayor
+    # información sobre este comportamiento puede ser encontrada en
+    # https://phabricator.wikimedia.org/T159160
+    #
+    # Especificando la precisión, nos podemos asegurar que la fecha de
+    # nacimiento tenga, al menos, mes.
+    #
+    # Mayor información sobre fechas y precisiones puede ser
+    # encontrada en
+    # https://en.wikibooks.org/wiki/SPARQL/WIKIDATA_Precision,_Units_and_Coordinates
+    VALUES ?precisión {10 11}.
+
+    ?peruane p:P569 [
+      psv:P569 [
+        wikibase:timeValue ?fechaDeNacimiento;
+        wikibase:timePrecision ?precisión
+      ]
+    ].
+
+    LET(?mes := MONTH(?fechaDeNacimiento)).
+  }
+  GROUP BY ?mes
+} AS %conteo
+# Subconsulta para convertir el número de un més a su versión
+# escrita. Por ejemplo, «1» a «Enero» o «2» a «Febrero».
+WITH {
+  SELECT
+    ?mes
+    ?mesEtiqueta
+  {
+    INCLUDE %conteo.
+    LET(?mesEtiqueta := COALESCE(
+      IF(?mes = 1, \"Enero\", 1/0),
+      IF(?mes = 2, \"Febrero\", 1/0),
+      IF(?mes = 3, \"Marzo\", 1/0),
+      IF(?mes = 4, \"Abril\", 1/0),
+      IF(?mes = 5, \"Mayo\", 1/0),
+      IF(?mes = 6, \"Junio\", 1/0),
+      IF(?mes = 7, \"Julio\", 1/0),
+      IF(?mes = 8, \"Agosto\", 1/0),
+      IF(?mes = 9, \"Septiembre\", 1/0),
+      IF(?mes = 10, \"Octubre\", 1/0),
+      IF(?mes = 11, \"Noviembre\", 1/0),
+      IF(?mes = 12, \"Diciembre\", 1/0)
+    ))
+  }
+}
+AS %mesEtiqueta
+{
+  INCLUDE %mesEtiqueta.
+  INCLUDE %conteo.
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+#defaultView:BarChart
+SELECT
+  ?mesEtiqueta
+  ?conteo
+# Subconsulta para obtener todos los peruanes que existen en Wikidata
 # Subconsulta para obtener el conteo de nacimientos de peruanos por
 # mes
 # Subconsulta para convertir el número de un més a su versión
@@ -32,12 +115,7 @@ SELECT
   INCLUDE %mesEtiqueta.
   INCLUDE %conteo.
 }""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
-PREFIX p: <http://www.wikidata.org/prop/>
-#defaultView:BarChart
+  <http://example.org/bigdata_select> """#defaultView:BarChart
 SELECT
   ?mesEtiqueta
   ?conteo

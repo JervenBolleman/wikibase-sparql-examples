@@ -24,16 +24,17 @@ SELECT
   ?researcher ?researcherLabel
   (CONCAT(\"#author/\", SUBSTR(STR(?researcher), 32)) AS ?researcherUrl)
   ?researcherDescription
-WHERE {
-   {
-  SELECT
-    (COUNT(?work) AS ?number_of_works_) ?researcher
-  WHERE {
-     {
+WITH {
   SELECT DISTINCT ?researcher WHERE {
     ?researcher ( wdt:P108| wdt:P463 | wdt:P1416 ) / wdt:P361* target: .
   } 
-}
+} AS %researchers
+WITH {
+  SELECT
+    (COUNT(?work) AS ?number_of_works_) ?researcher
+  WHERE {
+    INCLUDE %researchers
+
     # No biological pathways; they skew the statistics too much 
     MINUS { ?work wdt:P31 wd:Q4915012 } 
 
@@ -42,11 +43,14 @@ WHERE {
     OPTIONAL { ?work wdt:P50 ?researcher . }
   } 
   GROUP BY ?researcher
-}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,nl,no,ru,sv,zh\" . } 
+} AS %researchers_and_number_of_works
+WHERE {
+  INCLUDE %researchers_and_number_of_works
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,nl,no,ru,sv,zh\" . } 
 }
 GROUP BY ?researcher ?researcherLabel ?researcherDescription 
-ORDER BY DESC(?works)""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+ORDER BY DESC(?works)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
@@ -59,11 +63,6 @@ SELECT
   ?researcher ?researcherLabel
   (CONCAT(\"#author/\", SUBSTR(STR(?researcher), 32)) AS ?researcherUrl)
   ?researcherDescription
-WITH {
-  SELECT DISTINCT ?researcher WHERE {
-    ?researcher ( wdt:P108| wdt:P463 | wdt:P1416 ) / wdt:P361* target: .
-  } 
-} AS %researchers
 WHERE {
    {
   SELECT
@@ -80,6 +79,41 @@ WHERE {
   } 
   GROUP BY ?researcher
 }  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,nl,no,ru,sv,zh\" . } 
+}
+GROUP BY ?researcher ?researcherLabel ?researcherDescription 
+ORDER BY DESC(?works)""";
+  <http://example.org/bigdata_select> """# title: Employees and affiliated with a specified organization
+
+PREFIX target: <http://www.wikidata.org/entity/Q24283660>
+
+SELECT
+  (SAMPLE(?number_of_works_) AS ?works)
+  ?researcher ?researcherLabel
+  (CONCAT(\"#author/\", SUBSTR(STR(?researcher), 32)) AS ?researcherUrl)
+  ?researcherDescription
+WITH {
+  SELECT DISTINCT ?researcher WHERE {
+    ?researcher ( wdt:P108| wdt:P463 | wdt:P1416 ) / wdt:P361* target: .
+  } 
+} AS %researchers
+WITH {
+  SELECT
+    (COUNT(?work) AS ?number_of_works_) ?researcher
+  WHERE {
+    INCLUDE %researchers
+
+    # No biological pathways; they skew the statistics too much 
+    MINUS { ?work wdt:P31 wd:Q4915012 } 
+
+    # This OPTIONAL query should be after the MINUS query, otherwise
+    # researchers might not show if they do not have any papers.
+    OPTIONAL { ?work wdt:P50 ?researcher . }
+  } 
+  GROUP BY ?researcher
+} AS %researchers_and_number_of_works
+WHERE {
+  INCLUDE %researchers_and_number_of_works
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,nl,no,ru,sv,zh\" . } 
 }
 GROUP BY ?researcher ?researcherLabel ?researcherDescription 
 ORDER BY DESC(?works)""" .

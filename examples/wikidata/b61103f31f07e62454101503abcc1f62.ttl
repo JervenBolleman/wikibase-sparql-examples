@@ -19,6 +19,26 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?country ?countryLabel ?capital ?capitalLabel ?image ?continent
 WHERE
 {
+  ?country wdt:P31 wd:Q3624078 .hint:Prior hint:runFirst true.
+  #not a former country
+  FILTER NOT EXISTS {?country wdt:P31 wd:Q3024240}
+  #and no an ancient civilisation (needed to exclude ancient Egypt)
+  FILTER NOT EXISTS {?country wdt:P31 wd:Q28171280}
+  OPTIONAL { ?country wdt:P36 ?capital  .
+  OPTIONAL { ?capital wdt:P18 ?image .} 
+  OPTIONAL { ?capital wdt:P30 ?continent .} } 
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es\" }
+}
+ORDER BY ?countryLabel""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#List of present-day countries and capital(s)
+SELECT DISTINCT ?country ?countryLabel ?capital ?capitalLabel ?image ?continent
+WHERE
+{
   ?country wdt:P31 wd:Q3624078 .
   #not a former country
   FILTER NOT EXISTS {?country wdt:P31 wd:Q3024240}
@@ -31,11 +51,7 @@ WHERE
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"es\" }
 }
 ORDER BY ?countryLabel""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#List of present-day countries and capital(s)
+  <http://example.org/bigdata_select> """#List of present-day countries and capital(s)
 SELECT DISTINCT ?country ?countryLabel ?capital ?capitalLabel ?image ?continent
 WHERE
 {

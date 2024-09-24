@@ -20,6 +20,32 @@ SELECT ?prop ?propLabel ?count WHERE {
     {
         SELECT ?prop (COUNT(DISTINCT ?item) AS ?count) WHERE {
            
+           hint:Query hint:optimizer \"None\" .
+           ?item wdt:P4200 [] .
+           ?item ?p ?id .
+           ?prop wikibase:directClaim ?p .
+           {?prop wdt:P31/wdt:P279* wd:Q19847637}  # Wikidata property representing a unique identifier 
+             UNION
+           {?prop wdt:P31/wdt:P279* wd:Q18614948}  # Wikidata property for authority control
+           
+          
+        }  GROUP BY ?prop
+    }
+           
+    SERVICE wikibase:label {
+        bd:serviceParam wikibase:language \"en\" .
+    }
+
+} ORDER BY DESC (?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#Hints (JHeald)
+SELECT ?prop ?propLabel ?count WHERE {
+    {
+        SELECT ?prop (COUNT(DISTINCT ?item) AS ?count) WHERE {
+           
            
            ?item wdt:P4200 [] .
            ?item ?p ?id .
@@ -37,11 +63,7 @@ SELECT ?prop ?propLabel ?count WHERE {
     }
 
 } ORDER BY DESC (?count)""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#Hints (JHeald)
+  <http://example.org/bigdata_select> """#Hints (JHeald)
 SELECT ?prop ?propLabel ?count WHERE {
     {
         SELECT ?prop (COUNT(DISTINCT ?item) AS ?count) WHERE {

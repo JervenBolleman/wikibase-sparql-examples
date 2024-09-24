@@ -19,6 +19,32 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 # Berühmte Personen (meisten Verlinkungen) mit Bezug zu Dresden
 #------------------------------------------------------------
 select ?item ?itemLabel ?itemDescription ?number ?image
+with { # select all the numbers of sitelinks
+  select ?number (count(*) as ?total) { # we don't use ?total but without it the query times out, so we'll just ignore it
+    [] wikibase:sitelinks ?number .
+  } group by ?number
+} as %numbers
+where {
+  include %numbers .
+  filter (?number > 25) .
+  ?item wikibase:sitelinks ?number .
+  ?item wdt:P31 wd:Q5.
+  {?item wdt:P19 wd:Q1731}     # geboren in Dresden
+  union
+  {?item wdt:P20 wd:Q1731}     # gestorben in Dresden
+  union 
+  {?item wdt:P937 wd:Q1731}    # Wirkungsort in Dresden
+  OPTIONAL { ?item wdt:P18 ?image. }        # Bild
+  service wikibase:label { bd:serviceParam wikibase:language \"de,en\" }
+} order by desc(?number)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#------------------------------------------------------------
+# Berühmte Personen (meisten Verlinkungen) mit Bezug zu Dresden
+#------------------------------------------------------------
+select ?item ?itemLabel ?itemDescription ?number ?image
 where {
    { # select all the numbers of sitelinks
   select ?number (count(*) as ?total) { # we don't use ?total but without it the query times out, so we'll just ignore it
@@ -36,11 +62,7 @@ where {
   OPTIONAL { ?item wdt:P18 ?image. }        # Bild
   service wikibase:label { bd:serviceParam wikibase:language \"de,en\" }
 } order by desc(?number)""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#------------------------------------------------------------
+  <http://example.org/bigdata_select> """#------------------------------------------------------------
 # Berühmte Personen (meisten Verlinkungen) mit Bezug zu Dresden
 #------------------------------------------------------------
 select ?item ?itemLabel ?itemDescription ?number ?image

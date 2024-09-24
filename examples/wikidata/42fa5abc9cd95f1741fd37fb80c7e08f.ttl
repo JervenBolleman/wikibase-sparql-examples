@@ -17,6 +17,43 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?pbLabel ?cat ?coord ?img (IF(BOUND(?img), ?usage, \"\") AS ?usg)
+WITH {
+  SELECT ?item (SAMPLE(?cat) AS ?cat) (SAMPLE(?coord) AS ?coord) (SAMPLE(?img) AS ?img)
+               WHERE {
+                 wd:Q75849591 wdt:P527 [ wdt:P527 ?item; wdt:P361 ?pb ].
+                 ?pb wdt:P31 wd:Q76598130.
+                 ?item wdt:P625 ?coord.
+                 OPTIONAL { ?item wdt:P373 ?cat. }
+                 OPTIONAL { ?item wdt:P18 ?img. }
+               } GROUP BY ?item
+} as %items
+WHERE {
+  INCLUDE %items .
+
+  BIND(STRAFTER(wikibase:decodeUri(STR(?img)), \"http://commons.wikimedia.org/wiki/Special:FilePath/\") AS ?fileTitle)
+
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\";
+                    wikibase:api \"Generator\";
+                    wikibase:limit \"once\";
+                    mwapi:generator \"allpages\";
+                    mwapi:gapfrom ?fileTitle;
+                    mwapi:gapnamespace 6; # NS_FILE
+                    mwapi:gaplimit \"1\";
+                    mwapi:prop \"imageinfo\";
+                    mwapi:iiprop \"extmetadata\" ;
+                    mwapi:iiextmetadatafilter \"UsageTerms\" .
+
+    ?usage wikibase:apiOutput \"imageinfo/ii/extmetadata/UsageTerms/@value\".
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+}""",
+    """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?pbLabel ?cat ?coord ?img (IF(BOUND(?img), ?usage, \"\") AS ?usg)
 WHERE {
    {
   SELECT ?item (SAMPLE(?cat) AS ?cat) (SAMPLE(?coord) AS ?coord) (SAMPLE(?img) AS ?img)
@@ -47,12 +84,7 @@ WHERE {
   }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
 }""";
-  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?pbLabel ?cat ?coord ?img (IF(BOUND(?img), ?usage, \"\") AS ?usg)
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?pbLabel ?cat ?coord ?img (IF(BOUND(?img), ?usage, \"\") AS ?usg)
 WITH {
   SELECT ?item (SAMPLE(?cat) AS ?cat) (SAMPLE(?coord) AS ?coord) (SAMPLE(?img) AS ?img)
                WHERE {

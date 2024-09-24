@@ -16,11 +16,8 @@ PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?lad_article ?lad_title ?found_in
-
-WHERE
+WITH
 {
-  
-  {
   SELECT 
     ?item
     (GROUP_CONCAT(?endpoint; SEPARATOR=\", \") AS ?found_in)
@@ -48,7 +45,11 @@ WHERE
     FILTER BOUND (?item)
   }
   GROUP BY ?item
-}
+} AS %get_items
+WHERE
+{
+  hint:Query hint:optimizer \"None\" .
+  INCLUDE %get_items
   OPTIONAL
   {
     ?lad_article schema:about ?item .
@@ -56,17 +57,17 @@ WHERE
     ?lad_article schema:name ?lad_title .
   }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""";
-  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
+}""",
+    """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?lad_article ?lad_title ?found_in
-
 WHERE
 {
-  hint:Query hint:optimizer \"None\" .
-  {
+  
+  
+{
   SELECT 
     ?item
     (GROUP_CONCAT(?endpoint; SEPARATOR=\", \") AS ?found_in)
@@ -94,7 +95,49 @@ WHERE
     FILTER BOUND (?item)
   }
   GROUP BY ?item
-}
+}  OPTIONAL
+  {
+    ?lad_article schema:about ?item .
+    ?lad_article schema:isPartOf <https://lad.wikipedia.org/> .
+    ?lad_article schema:name ?lad_title .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?lad_article ?lad_title ?found_in
+WITH
+{
+  SELECT 
+    ?item
+    (GROUP_CONCAT(?endpoint; SEPARATOR=\", \") AS ?found_in)
+  WHERE
+  {
+    ?category schema:name \"Categoría:Judíos de Uruguay\"@es .
+    ?category schema:isPartOf <https://es.wikipedia.org/> .
+    ?category schema:about ?category_item .
+    ?other_cat schema:about ?category_item .
+    ?other_cat schema:isPartOf ?wikimedia_site .
+    ?other_cat schema:name ?category_title .
+    BIND (STRBEFORE(STRAFTER(STR(?wikimedia_site), \"https://\"), \"/\") AS ?endpoint)
+    OPTIONAL
+    {
+      SERVICE wikibase:mwapi
+      {
+        bd:serviceParam wikibase:endpoint ?endpoint .
+        bd:serviceParam wikibase:api \"Generator\" .
+        bd:serviceParam mwapi:generator \"categorymembers\" .
+        bd:serviceParam mwapi:gcmtitle ?category_title .
+        bd:serviceParam mwapi:gcmlimit \"max\" .
+        ?item wikibase:apiOutputItem mwapi:item .
+      }
+    }
+    FILTER BOUND (?item)
+  }
+  GROUP BY ?item
+} AS %get_items
+WHERE
+{
+  hint:Query hint:optimizer \"None\" .
+  INCLUDE %get_items
   OPTIONAL
   {
     ?lad_article schema:about ?item .

@@ -33,7 +33,58 @@ WITH {
   }
 } AS %items
 
-L { 
+WITH {
+  SELECT (COUNT(DISTINCT(?item1)) AS ?seq) ?item ?person WHERE {
+    INCLUDE %items .
+    {
+      SELECT (?item AS ?item1) ?person WHERE{
+        INCLUDE %items .
+      } 
+    } FILTER (str(?item1) <= str(?item)) 
+  } GROUP BY ?item ?person 
+} AS %items_with_seq
+ 
+WHERE {
+  INCLUDE %items_with_seq
+  
+  OPTIONAL { 
+    INCLUDE %items_with_seq
+
+    FILTER (?seq > 1) .
+    ?person wdt:P18 ?img  .
+    BIND( IRI('http://commons.wikimedia.org/wiki/Special:FilePath/Arrow slim right.svg') AS ?image_ ) .
+  }
+  
+  OPTIONAL { ?person wdt:P18 ?image_} .
+             
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+} GROUP BY ?item ?itemLabel ?person ?personLabel ?seq
+ORDER BY xsd:integer(STRAFTER(str(?person), 'Q')) ?item""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:ImageGrid
+SELECT DISTINCT ?item ?itemLabel ?seq ?person ?personLabel (SAMPLE(?image_) AS ?image) 
+
+
+ 
+WHERE {
+   {
+  SELECT (COUNT(DISTINCT(?item1)) AS ?seq) ?item ?person WHERE {
+    INCLUDE %items .
+    {
+      SELECT (?item AS ?item1) ?person WHERE{
+        INCLUDE %items .
+      } 
+    } FILTER (str(?item1) <= str(?item)) 
+  } GROUP BY ?item ?person 
+}  
+  OPTIONAL { 
      {
   SELECT (COUNT(DISTINCT(?item1)) AS ?seq) ?item ?person WHERE {
     INCLUDE %items .
@@ -54,15 +105,7 @@ L {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
 } GROUP BY ?item ?itemLabel ?person ?personLabel ?seq
 ORDER BY xsd:integer(STRAFTER(str(?person), 'Q')) ?item""";
-  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#defaultView:ImageGrid
+  <http://example.org/bigdata_select> """#defaultView:ImageGrid
 SELECT DISTINCT ?item ?itemLabel ?seq ?person ?personLabel (SAMPLE(?image_) AS ?image) 
 
 WITH {

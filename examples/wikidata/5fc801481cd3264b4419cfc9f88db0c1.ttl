@@ -16,15 +16,35 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?wiag ?value ?valueLabel ?propertyLabel ?kinship ?kinshipLabel 
+SELECT ?item ?itemLabel ?wiag ?value ?valueLabel ?propertyLabel ?kinship ?kinshipLabel WITH { SELECT ?property
+WHERE 
+{
+  ?property wdt:P1647* wd:P1038 .
+  } } as %i
 WHERE
+{
+  INCLUDE %i
+ # ?item wdt:P31 wd:Q5. 
+  ?item wdt:P9441 ?wiag. hint:Prior hint:runFirst true.
+  ?item ?predicate ?stat . 
+  ?stat ?predicate2 ?value .
+  ?property wikibase:claim ?predicate .
+  ?property wikibase:statementProperty ?predicate2 .
+  OPTIONAL {?stat pq:P1039 ?kinship.}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+} order by ?item ?value""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?wiag ?value ?valueLabel ?propertyLabel ?kinship ?kinshipLabel WHERE
 {
    { SELECT ?property
 WHERE 
 {
   ?property wdt:P1647* wd:P1038 .
-  } }
- # ?item wdt:P31 wd:Q5. 
+  } } # ?item wdt:P31 wd:Q5. 
   ?item wdt:P9441 ?wiag. 
   ?item ?predicate ?stat . 
   ?stat ?predicate2 ?value .
@@ -33,12 +53,7 @@ WHERE
   OPTIONAL {?stat pq:P1039 ?kinship.}
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
 } order by ?item ?value""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?wiag ?value ?valueLabel ?propertyLabel ?kinship ?kinshipLabel WITH { SELECT ?property
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?wiag ?value ?valueLabel ?propertyLabel ?kinship ?kinshipLabel WITH { SELECT ?property
 WHERE 
 {
   ?property wdt:P1647* wd:P1038 .

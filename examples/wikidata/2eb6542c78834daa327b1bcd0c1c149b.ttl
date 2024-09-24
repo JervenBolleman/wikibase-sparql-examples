@@ -24,31 +24,6 @@ SELECT
   ?languageDescription  
 
   ?example_sense
-
-WHERE {
-  {
-  SELECT 
-    (COUNT(?sense) AS ?senses)
-    ?language
-    (SAMPLE(?sense) AS ?example_sense)
-  WHERE {
-    [] dct:language ?language ;
-       ontolex:sense ?sense .
-  }
-  GROUP BY ?language
-}
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-ORDER BY DESC(?senses)""";
-  <http://example.org/bigdata_select> """SELECT 
-  ?senses
-  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32), \"/lexemesense\") AS ?sensesUrl)
-
-  ?language ?languageLabel
-  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32)) AS ?languageUrl)
-  ?languageDescription  
-
-  ?example_sense
 WITH {
   SELECT 
     (COUNT(?sense) AS ?senses)
@@ -70,6 +45,29 @@ PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
 PREFIX dct: <http://purl.org/dc/terms/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT 
+  ?senses
+  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32), \"/lexemesense\") AS ?sensesUrl)
+
+  ?language ?languageLabel
+  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32)) AS ?languageUrl)
+  ?languageDescription  
+
+  ?example_sense
+WHERE {
+   {
+  SELECT 
+    (COUNT(?sense) AS ?senses)
+    ?language
+    (SAMPLE(?sense) AS ?example_sense)
+  WHERE {
+    [] dct:language ?language ;
+       ontolex:sense ?sense .
+  }
+  GROUP BY ?language
+}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?senses)""";
+  <http://example.org/bigdata_select> """SELECT 
   ?senses
   (CONCAT(\"#language/\", SUBSTR(STR(?language), 32), \"/lexemesense\") AS ?sensesUrl)
 

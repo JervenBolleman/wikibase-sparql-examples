@@ -19,6 +19,25 @@ SELECT ?item ?itemLabel (str(?date_) as ?date) ?sitelink ?ku_description ?ku_lat
 WHERE 
 {
   ?item schema:dateModified ?date_ .
+  hint:Prior hint:rangeSafe true.
+  FILTER(\"2023-12-24\"^^xsd:dateTime <= ?date_)
+  
+  ?article schema:about ?item ;
+  schema:isPartOf <https://ku.wikipedia.org/> ; 
+  schema:name ?sitelink .
+  OPTIONAL {?item schema:description ?ku_description . filter(lang(?ku_description)=\"ku\")}
+  OPTIONAL {?item schema:description ?ku_latn_description . filter(lang(?ku_latn_description)=\"ku\")} 
+  FILTER(BOUND(?ku_description) || BOUND(?ku__latn_description) )
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+} order by ?date""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel (str(?date_) as ?date) ?sitelink ?ku_description ?ku_latn_description
+WHERE 
+{
+  ?item schema:dateModified ?date_ .
   
   FILTER(\"2023-12-24\"^^xsd:dateTime <= ?date_)
   
@@ -30,11 +49,7 @@ WHERE
   FILTER(BOUND(?ku_description) || BOUND(?ku__latn_description) )
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
 } order by ?date""";
-  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX schema: <http://schema.org/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel (str(?date_) as ?date) ?sitelink ?ku_description ?ku_latn_description
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel (str(?date_) as ?date) ?sitelink ?ku_description ?ku_latn_description
 WHERE 
 {
   ?item schema:dateModified ?date_ .

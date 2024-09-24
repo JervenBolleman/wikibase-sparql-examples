@@ -14,6 +14,34 @@
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 #title:Completamento elementi tipograf* con Id Edit16
 SELECT ?type (COUNT(DISTINCT ?item) AS ?count) WHERE {
+  hint:Query hint:optimizer \"Runtime\".
+  ?item wdt:P5493 ?edit16. 
+  OPTIONAL { ?item wdt:P106 ?occup . }
+  OPTIONAL { ?item wdt:P2031 ?inizio }
+  OPTIONAL { ?item wdt:P2032 ?fine . }
+  OPTIONAL { ?item wdt:P937  ?luogo . }
+  BIND(IF(BOUND(?occup) && BOUND(?inizio) && BOUND(?fine) && BOUND(?luogo),\"all\",
+       IF(BOUND(?occup) && BOUND(?inizio)&& BOUND(?fine),\"senza luogo\",
+       IF(BOUND(?occup) && BOUND(?inizio)&& BOUND(?luogo),\"senza fine\",
+       IF(BOUND(?occup) && BOUND(?fine)&& BOUND(?luogo),\"senza inizio\",   
+       IF(BOUND(?inizio) && BOUND(?fine)&& BOUND(?luogo),\"senza occup\",     
+       IF(BOUND(?occup) && BOUND(?fine),\"senza luogo e inizio\",
+       IF(BOUND(?inizio) && BOUND(?luogo),\"senza occup e fine\",
+       IF(BOUND(?occup) && BOUND(?inizio),\"senza fine e luogo\",
+       IF(BOUND(?occup) && BOUND(?luogo),\"senza fine e inizio\",
+       IF(BOUND(?inizio) && BOUND(?fine),\"senza occup e luogo\",   
+       IF(BOUND(?luogo) && BOUND(?fine),\"senza occup e inizio\",    
+       IF(BOUND(?occup),\"solo occup\",
+       IF(BOUND(?inizio),\"solo inizio\",
+       IF(BOUND(?fine),\"solo fine\",
+       IF(BOUND(?luogo),\"solo luogo\",
+       \"none\"))))))))))))))) AS ?type)
+}
+GROUP BY ?type
+ORDER BY DESC (?count)""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+#title:Completamento elementi tipograf* con Id Edit16
+SELECT ?type (COUNT(DISTINCT ?item) AS ?count) WHERE {
   
   ?item wdt:P5493 ?edit16. 
   OPTIONAL { ?item wdt:P106 ?occup . }
@@ -39,8 +67,7 @@ SELECT ?type (COUNT(DISTINCT ?item) AS ?count) WHERE {
 }
 GROUP BY ?type
 ORDER BY DESC (?count)""";
-  <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-#title:Completamento elementi tipograf* con Id Edit16
+  <http://example.org/bigdata_select> """#title:Completamento elementi tipograf* con Id Edit16
 SELECT ?type (COUNT(DISTINCT ?item) AS ?count) WHERE {
   hint:Query hint:optimizer \"Runtime\".
   ?item wdt:P5493 ?edit16. 

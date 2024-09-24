@@ -22,6 +22,38 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 # -> MINUS those that do NOT have a qualifier \"end time\" on the Q70208 statement 
 # -> SHOULD be empty
 SELECT * 
+WITH 
+{
+    # select all Q685309 that have a qualifier
+    SELECT ?item WHERE {
+         hint:Query hint:optimizer \"None\" .
+         ?item wdt:P31 wd:Q70208 .
+         ?item p:P31 ?statement .
+         ## I need to filter this only to statements that apply to \"current municipality\" 
+         ?statement ps:P31 wd:Q70208 .
+         ?statement pq:P582 ?end_time  .
+         ?statement ?pq_qual ?pq_obj . 
+         ?qual wikibase:qualifier ?pq_qual . 
+    } 
+} as %muni
+WHERE
+{
+   ?item wdt:P31 wd:Q685309 .
+   ?item wdt:P31 wd:Q70208 .
+   MINUS { include %muni } # subtract those with qualifier from all Q685309
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de\"  }  
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# All municipalities in Switzerland that have both statements Q685309 AND Q70208
+# -> MINUS those that do NOT have a qualifier \"end time\" on the Q70208 statement 
+# -> SHOULD be empty
+SELECT * 
 WHERE
 {
    ?item wdt:P31 wd:Q685309 .
@@ -42,14 +74,7 @@ WHERE
 }} # subtract those with qualifier from all Q685309
    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de\"  }  
 }""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-# All municipalities in Switzerland that have both statements Q685309 AND Q70208
+  <http://example.org/bigdata_select> """# All municipalities in Switzerland that have both statements Q685309 AND Q70208
 # -> MINUS those that do NOT have a qualifier \"end time\" on the Q70208 statement 
 # -> SHOULD be empty
 SELECT * 

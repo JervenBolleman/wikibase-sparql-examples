@@ -16,8 +16,26 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #title:count of statements by property for instances
-SELECT ?property ?propertyLabel ?count 
+SELECT ?property ?propertyLabel ?count WITH {
+  SELECT ?property (count(distinct ?property) as ?count)
+WHERE 
+{
+  ?item wdt:P31 wd:Q3918.
+  hint:Prior hint:runFirst true.
+  ?item ?predicate [].
+  ?property wikibase:directClaim ?predicate .
+} group by ?property ?propertyLabel } as %props
 WHERE
+{
+  INCLUDE %props
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#title:count of statements by property for instances
+SELECT ?property ?propertyLabel ?count WHERE
 {
    {
   SELECT ?property (count(distinct ?property) as ?count)
@@ -27,14 +45,9 @@ WHERE
   
   ?item ?predicate [].
   ?property wikibase:directClaim ?predicate .
-} group by ?property ?propertyLabel }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} group by ?property ?propertyLabel }  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 } ORDER BY DESC(?count)""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#title:count of statements by property for instances
+  <http://example.org/bigdata_select> """#title:count of statements by property for instances
 SELECT ?property ?propertyLabel ?count WITH {
   SELECT ?property (count(distinct ?property) as ?count)
 WHERE 

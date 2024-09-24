@@ -26,6 +26,35 @@ SELECT ?id
       ?idLabel)
    as ?title)
 WHERE {
+  hint:Query hint:optimizer \"None\" .
+  ?_ wdt:P131* wd:Q7948 .
+  ?locst ps:P131 ?_ .
+  ?id p:P131 ?locst  . 
+  ?__ wdt:P279* wd:Q1849719 .
+  ?id p:P31/ps:P31 ?__ .
+  MINUS { ?locst pq:P582 [] }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language 'en' .
+    ?id rdfs:label ?idLabel .
+  }
+  OPTIONAL {?link schema:about ?id .
+  ?link schema:isPartOf <https://en.wikipedia.org/> . }
+} GROUP BY ?id ?link ?idLabel""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?id
+  (if(BOUND(?link),
+      concat('[[', substr(str(?link),31,500),  '|', ?idLabel, ']]'),
+      ?idLabel)
+   as ?title)
+WHERE {
   
   ?_ wdt:P131* wd:Q7948 .
   ?locst ps:P131 ?_ .
@@ -40,16 +69,7 @@ WHERE {
   OPTIONAL {?link schema:about ?id .
   ?link schema:isPartOf <https://en.wikipedia.org/> . }
 } GROUP BY ?id ?link ?idLabel""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?id
+  <http://example.org/bigdata_select> """SELECT ?id
   (if(BOUND(?link),
       concat('[[', substr(str(?link),31,500),  '|', ?idLabel, ']]'),
       ?idLabel)

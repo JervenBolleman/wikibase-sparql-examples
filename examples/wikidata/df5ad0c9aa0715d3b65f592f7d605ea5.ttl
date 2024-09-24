@@ -17,112 +17,6 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 # Most frequent n-grams from a random set of 1000 publications on a given topic
 SELECT DISTINCT ?Ngram ?N ?Count ?Length ?Dashes ?Score ?ExamplePub ?ExamplePubTitle
 
-
-
-
-
-WHERE {
-  
-{ # Applying the regexes to the titles to extract ngrams (for n <= 8), and counting occurrences of the ngrams across titles
-  SELECT 
-    DISTINCT ?Ngram 
-    ?N
-    (COUNT(DISTINCT ?Title) AS ?Count)
-    ?Length
-    ?Dashes
-    (( ?Count * ?Length * ( (?Dashes +1) / ?N) 
-     ) AS ?Score)
-    (SAMPLE(DISTINCT ?Publication) AS ?ExamplePub)
-      { 
-        
-{ # Generating a list of regexes to look for the NumericValue-th word in a string     
-  # Based on https://w.wiki/KG$ by Jura1
-  SELECT ?Regex1 ?Regex2 ?Regex3 ?Regex4 ?NumericValue 
-    { 
-      ?NumberItem wdt:P5176 []; wdt:P1181 ?NumericValue . 
-      FILTER( ?NumericValue > 0 ) 
-      FILTER( ?NumericValue < 151)
-      BIND(\"^([^ ]+ ){\" AS ?RegexStart)
-      BIND(\"}([^ ]+) .*\" AS ?RegexEnd)
-      BIND( CONCAT( ?RegexStart , STR( ?NumericValue - 1 ), ?RegexEnd ) AS ?Regex1)
-      BIND( CONCAT( ?RegexStart , STR( ?NumericValue + 1 ), ?RegexEnd ) AS ?Regex2) 
-      BIND( CONCAT( ?RegexStart , STR( ?NumericValue + 3 ), ?RegexEnd ) AS ?Regex3) 
-      BIND( CONCAT( ?RegexStart , STR( ?NumericValue + 5 ), ?RegexEnd ) AS ?Regex4) 
-    }
-}        
-{ # Preprocessing the titles
-  SELECT ?Title ?Publication ?Seeds ?ClearTitleLength
-   { 
-      INCLUDE %items
-      ?Publication wdt:P1476 ?Title.
-      BIND (REPLACE(STR(?Title),\"[\\\\.:,;\\\\[\\\\]\\\\?()$]\",\"\") AS ?ClearTitle) # remove some frequent special characters, including colons and semicolons
-      BIND(STRLEN(?ClearTitle) AS ?ClearTitleLength) 
-      FILTER(LANG(?Title)=\"en\") 
-      # Basic processing of the titles
-      BIND (\"::: ::: ::: ::: ::: ::: ::: ::: \" AS ?StartCodon)
-      BIND (\" ;;; ;;; ;;; ;;; ;;; ;;; ;;; ;;;\" AS ?StopCodon)
-      BIND (LCASE(CONCAT(?StartCodon , # add start codon of colons to assist with processing of n-grams at beginning of title
-                            ?ClearTitle, 
-                            ?StopCodon)) # add stop codon of semicolons to assist with processing of n-grams at end of title
-                     AS ?Seeds )
-   }
-}        BIND( 
-          (CONCAT(
-            REPLACE(?Seeds, ?Regex1, \"$1\"), \" \", 
-            REPLACE(?Seeds, ?Regex1, \"$2\"), \" \", 
-            REPLACE(?Seeds, ?Regex2, \"$1\"), \" \", 
-            REPLACE(?Seeds, ?Regex2, \"$2\"), \" \", 
-            REPLACE(?Seeds, ?Regex3, \"$1\"), \" \", 
-            REPLACE(?Seeds, ?Regex3, \"$2\"), \" \", 
-            REPLACE(?Seeds, ?Regex4, \"$1\"), \" \", 
-            REPLACE(?Seeds, ?Regex4, \"$2\")
-          )
-        ) AS ?NgramCandidate) 
-                            
-        BIND( 
-          (REPLACE
-           (REPLACE
-            (REPLACE
-             (REPLACE
-              (STR(?NgramCandidate),\"([;:])\",\"\"),
-              \"(^\\\\s+)\",\"\"),
-             \"(\\\\s+$)\",\"\"),
-            \"([ ]{2,})\",\" \")
-          ) AS ?Ngram) 
-
-        BIND(STRLEN(?Ngram) AS ?Length) 
-        FILTER (?Length > 3 )  
-        FILTER (?Length <= ?ClearTitleLength )  
-
-        BIND(STRLEN(REPLACE(?Ngram, \"\\\\S\", \"\")) + 1 as ?N)
-        BIND((STRLEN(?Ngram) - STRLEN(REPLACE(?Ngram, \"-\", \"\")))  as ?Dashes)
-      }
-  GROUP BY ?Ngram ?N ?Count ?Length ?Dashes ?Score ?ExamplePub
-  HAVING(?Count > 1)
-}
-  # Exclude Ngrams starting or ending with any of a set of blacklisted words
-  BIND(\"(a|and|between|during|for|from|in|of|on|or|the|to|with)\" AS ?blacklist)
-  BIND( CONCAT( \"(^\", ?blacklist ,\")+( )+\") AS ?RegexBlackStart)
-  BIND( CONCAT( \"( )+(\", ?blacklist ,\")+$\") AS ?RegexBlackEnd)
-  FILTER (!REGEX(?Ngram, ?RegexBlackStart))
-  FILTER (!REGEX(?Ngram, ?RegexBlackEnd))
-
-#   # Exclude Ngrams too similar to the target
-#   FILTER (!CONTAINS(?Ngram, \"climate\"))
-#   FILTER (!CONTAINS(?Ngram, \"change\"))
-          
-  ?ExamplePub wdt:P1476 ?ExamplePubTitle.
-  FILTER(LANG(?ExamplePubTitle)=\"en\") 
-}
-GROUP BY ?Ngram ?N ?Count ?Length ?Dashes ?Score ?ExamplePub ?ExamplePubTitle
-ORDER BY DESC(?Score) DESC(?Count) DESC(?Length)
-LIMIT 200""";
-  <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-# Most frequent n-grams from a random set of 1000 publications on a given topic
-SELECT DISTINCT ?Ngram ?N ?Count ?Length ?Dashes ?Score ?ExamplePub ?ExamplePubTitle
-
 WITH
 { # Generating a list of entities to be analyzed
   SELECT ?Publication
@@ -164,6 +58,82 @@ WITH
       BIND( CONCAT( ?RegexStart , STR( ?NumericValue + 5 ), ?RegexEnd ) AS ?Regex4) 
     }
 } AS %regexes 
+WITH
+{ # Applying the regexes to the titles to extract ngrams (for n <= 8), and counting occurrences of the ngrams across titles
+  SELECT 
+    DISTINCT ?Ngram 
+    ?N
+    (COUNT(DISTINCT ?Title) AS ?Count)
+    ?Length
+    ?Dashes
+    (( ?Count * ?Length * ( (?Dashes +1) / ?N) 
+     ) AS ?Score)
+    (SAMPLE(DISTINCT ?Publication) AS ?ExamplePub)
+      { 
+        INCLUDE %regexes
+        INCLUDE %titles
+        BIND( 
+          (CONCAT(
+            REPLACE(?Seeds, ?Regex1, \"$1\"), \" \", 
+            REPLACE(?Seeds, ?Regex1, \"$2\"), \" \", 
+            REPLACE(?Seeds, ?Regex2, \"$1\"), \" \", 
+            REPLACE(?Seeds, ?Regex2, \"$2\"), \" \", 
+            REPLACE(?Seeds, ?Regex3, \"$1\"), \" \", 
+            REPLACE(?Seeds, ?Regex3, \"$2\"), \" \", 
+            REPLACE(?Seeds, ?Regex4, \"$1\"), \" \", 
+            REPLACE(?Seeds, ?Regex4, \"$2\")
+          )
+        ) AS ?NgramCandidate) 
+                            
+        BIND( 
+          (REPLACE
+           (REPLACE
+            (REPLACE
+             (REPLACE
+              (STR(?NgramCandidate),\"([;:])\",\"\"),
+              \"(^\\\\s+)\",\"\"),
+             \"(\\\\s+$)\",\"\"),
+            \"([ ]{2,})\",\" \")
+          ) AS ?Ngram) 
+
+        BIND(STRLEN(?Ngram) AS ?Length) 
+        FILTER (?Length > 3 )  
+        FILTER (?Length <= ?ClearTitleLength )  
+
+        BIND(STRLEN(REPLACE(?Ngram, \"\\\\S\", \"\")) + 1 as ?N)
+        BIND((STRLEN(?Ngram) - STRLEN(REPLACE(?Ngram, \"-\", \"\")))  as ?Dashes)
+      }
+  GROUP BY ?Ngram ?N ?Count ?Length ?Dashes ?Score ?ExamplePub
+  HAVING(?Count > 1)
+} AS %ngrams 
+WHERE {
+  INCLUDE %ngrams 
+  # Exclude Ngrams starting or ending with any of a set of blacklisted words
+  BIND(\"(a|and|between|during|for|from|in|of|on|or|the|to|with)\" AS ?blacklist)
+  BIND( CONCAT( \"(^\", ?blacklist ,\")+( )+\") AS ?RegexBlackStart)
+  BIND( CONCAT( \"( )+(\", ?blacklist ,\")+$\") AS ?RegexBlackEnd)
+  FILTER (!REGEX(?Ngram, ?RegexBlackStart))
+  FILTER (!REGEX(?Ngram, ?RegexBlackEnd))
+
+#   # Exclude Ngrams too similar to the target
+#   FILTER (!CONTAINS(?Ngram, \"climate\"))
+#   FILTER (!CONTAINS(?Ngram, \"change\"))
+          
+  ?ExamplePub wdt:P1476 ?ExamplePubTitle.
+  FILTER(LANG(?ExamplePubTitle)=\"en\") 
+}
+GROUP BY ?Ngram ?N ?Count ?Length ?Dashes ?Score ?ExamplePub ?ExamplePubTitle
+ORDER BY DESC(?Score) DESC(?Count) DESC(?Length)
+LIMIT 200""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Most frequent n-grams from a random set of 1000 publications on a given topic
+SELECT DISTINCT ?Ngram ?N ?Count ?Length ?Dashes ?Score ?ExamplePub ?ExamplePubTitle
+
+
+
+
 
 WHERE {
   
@@ -214,6 +184,117 @@ WHERE {
   GROUP BY ?Ngram ?N ?Count ?Length ?Dashes ?Score ?ExamplePub
   HAVING(?Count > 1)
 }
+  # Exclude Ngrams starting or ending with any of a set of blacklisted words
+  BIND(\"(a|and|between|during|for|from|in|of|on|or|the|to|with)\" AS ?blacklist)
+  BIND( CONCAT( \"(^\", ?blacklist ,\")+( )+\") AS ?RegexBlackStart)
+  BIND( CONCAT( \"( )+(\", ?blacklist ,\")+$\") AS ?RegexBlackEnd)
+  FILTER (!REGEX(?Ngram, ?RegexBlackStart))
+  FILTER (!REGEX(?Ngram, ?RegexBlackEnd))
+
+#   # Exclude Ngrams too similar to the target
+#   FILTER (!CONTAINS(?Ngram, \"climate\"))
+#   FILTER (!CONTAINS(?Ngram, \"change\"))
+          
+  ?ExamplePub wdt:P1476 ?ExamplePubTitle.
+  FILTER(LANG(?ExamplePubTitle)=\"en\") 
+}
+GROUP BY ?Ngram ?N ?Count ?Length ?Dashes ?Score ?ExamplePub ?ExamplePubTitle
+ORDER BY DESC(?Score) DESC(?Count) DESC(?Length)
+LIMIT 200""";
+  <http://example.org/bigdata_select> """# Most frequent n-grams from a random set of 1000 publications on a given topic
+SELECT DISTINCT ?Ngram ?N ?Count ?Length ?Dashes ?Score ?ExamplePub ?ExamplePubTitle
+
+WITH
+{ # Generating a list of entities to be analyzed
+  SELECT ?Publication
+   { 
+      SERVICE bd:sample { ?Publication wdt:P921 wd:Q116146313 . bd:serviceParam bd:sample.limit 1000 }   
+   }
+} AS %items 
+WITH
+{ # Preprocessing the titles
+  SELECT ?Title ?Publication ?Seeds ?ClearTitleLength
+   { 
+      INCLUDE %items
+      ?Publication wdt:P1476 ?Title.
+      BIND (REPLACE(STR(?Title),\"[\\\\.:,;\\\\[\\\\]\\\\?()$]\",\"\") AS ?ClearTitle) # remove some frequent special characters, including colons and semicolons
+      BIND(STRLEN(?ClearTitle) AS ?ClearTitleLength) 
+      FILTER(LANG(?Title)=\"en\") 
+      # Basic processing of the titles
+      BIND (\"::: ::: ::: ::: ::: ::: ::: ::: \" AS ?StartCodon)
+      BIND (\" ;;; ;;; ;;; ;;; ;;; ;;; ;;; ;;;\" AS ?StopCodon)
+      BIND (LCASE(CONCAT(?StartCodon , # add start codon of colons to assist with processing of n-grams at beginning of title
+                            ?ClearTitle, 
+                            ?StopCodon)) # add stop codon of semicolons to assist with processing of n-grams at end of title
+                     AS ?Seeds )
+   }
+} AS %titles 
+WITH
+{ # Generating a list of regexes to look for the NumericValue-th word in a string     
+  # Based on https://w.wiki/KG$ by Jura1
+  SELECT ?Regex1 ?Regex2 ?Regex3 ?Regex4 ?NumericValue 
+    { 
+      ?NumberItem wdt:P5176 []; wdt:P1181 ?NumericValue . 
+      FILTER( ?NumericValue > 0 ) 
+      FILTER( ?NumericValue < 151)
+      BIND(\"^([^ ]+ ){\" AS ?RegexStart)
+      BIND(\"}([^ ]+) .*\" AS ?RegexEnd)
+      BIND( CONCAT( ?RegexStart , STR( ?NumericValue - 1 ), ?RegexEnd ) AS ?Regex1)
+      BIND( CONCAT( ?RegexStart , STR( ?NumericValue + 1 ), ?RegexEnd ) AS ?Regex2) 
+      BIND( CONCAT( ?RegexStart , STR( ?NumericValue + 3 ), ?RegexEnd ) AS ?Regex3) 
+      BIND( CONCAT( ?RegexStart , STR( ?NumericValue + 5 ), ?RegexEnd ) AS ?Regex4) 
+    }
+} AS %regexes 
+WITH
+{ # Applying the regexes to the titles to extract ngrams (for n <= 8), and counting occurrences of the ngrams across titles
+  SELECT 
+    DISTINCT ?Ngram 
+    ?N
+    (COUNT(DISTINCT ?Title) AS ?Count)
+    ?Length
+    ?Dashes
+    (( ?Count * ?Length * ( (?Dashes +1) / ?N) 
+     ) AS ?Score)
+    (SAMPLE(DISTINCT ?Publication) AS ?ExamplePub)
+      { 
+        INCLUDE %regexes
+        INCLUDE %titles
+        BIND( 
+          (CONCAT(
+            REPLACE(?Seeds, ?Regex1, \"$1\"), \" \", 
+            REPLACE(?Seeds, ?Regex1, \"$2\"), \" \", 
+            REPLACE(?Seeds, ?Regex2, \"$1\"), \" \", 
+            REPLACE(?Seeds, ?Regex2, \"$2\"), \" \", 
+            REPLACE(?Seeds, ?Regex3, \"$1\"), \" \", 
+            REPLACE(?Seeds, ?Regex3, \"$2\"), \" \", 
+            REPLACE(?Seeds, ?Regex4, \"$1\"), \" \", 
+            REPLACE(?Seeds, ?Regex4, \"$2\")
+          )
+        ) AS ?NgramCandidate) 
+                            
+        BIND( 
+          (REPLACE
+           (REPLACE
+            (REPLACE
+             (REPLACE
+              (STR(?NgramCandidate),\"([;:])\",\"\"),
+              \"(^\\\\s+)\",\"\"),
+             \"(\\\\s+$)\",\"\"),
+            \"([ ]{2,})\",\" \")
+          ) AS ?Ngram) 
+
+        BIND(STRLEN(?Ngram) AS ?Length) 
+        FILTER (?Length > 3 )  
+        FILTER (?Length <= ?ClearTitleLength )  
+
+        BIND(STRLEN(REPLACE(?Ngram, \"\\\\S\", \"\")) + 1 as ?N)
+        BIND((STRLEN(?Ngram) - STRLEN(REPLACE(?Ngram, \"-\", \"\")))  as ?Dashes)
+      }
+  GROUP BY ?Ngram ?N ?Count ?Length ?Dashes ?Score ?ExamplePub
+  HAVING(?Count > 1)
+} AS %ngrams 
+WHERE {
+  INCLUDE %ngrams 
   # Exclude Ngrams starting or ending with any of a set of blacklisted words
   BIND(\"(a|and|between|during|for|from|in|of|on|or|the|to|with)\" AS ?blacklist)
   BIND( CONCAT( \"(^\", ?blacklist ,\")+( )+\") AS ?RegexBlackStart)

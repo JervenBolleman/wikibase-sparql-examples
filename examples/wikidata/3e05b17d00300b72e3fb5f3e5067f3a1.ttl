@@ -24,13 +24,7 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
 SELECT DISTINCT ?coordinates ?line ?sa ?saLabel ?connectLabel ?image ?code ?rgb
 
-
-
-
-
- 
-WHERE {
-  { {
+WITH {
   SELECT ?sa (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) (sample(?lat1) as ?lat1) (sample(?lon1) as ?lon1) (sample(?code) as ?code) WHERE {
     {?sa wdt:P31 wd:Q1248784} UNION {?sa wdt:P31 wd:Q644371}
     ?sa wdt:P17 wd:Q668 .
@@ -40,27 +34,21 @@ WHERE {
     OPTIONAL { ?sa wdt:P18 ?image }.
     OPTIONAL { ?sa wdt:P5696 ?code }.
   } GROUP BY ?sa
-} }  UNION {  {
-  SELECT ?line ?connect (\"9B0058\" as ?rgb) WHERE {
-    {
-  SELECT ?sa (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) (sample(?lat1) as ?lat1) (sample(?lon1) as ?lon1) (sample(?code) as ?code) WHERE {
-    {?sa wdt:P31 wd:Q1248784} UNION {?sa wdt:P31 wd:Q644371}
-    ?sa wdt:P17 wd:Q668 .
-    ?sa wdt:P625 ?coordinates  .
-    ?sa p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 .
-    ?sa p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
-    OPTIONAL { ?sa wdt:P18 ?image }.
-    OPTIONAL { ?sa wdt:P5696 ?code }.
-  } GROUP BY ?sa
-} .
-     {
+} AS %sas
+
+WITH {
   SELECT ?da (sample(?lat2) as ?lat2) (sample(?lon2) as ?lon2) WHERE {
     {?da wdt:P31 wd:Q1248784} UNION {?da wdt:P31 wd:Q644371}
     ?sa wdt:P521 ?da.
     ?da p:P625 / psv:P625 / wikibase:geoLatitude ?lat2 .
     ?da p:P625 / psv:P625 / wikibase:geoLongitude ?lon2 .
   } GROUP BY ?da
-}.
+} AS %das
+
+WITH {
+  SELECT ?line ?connect (\"9B0058\" as ?rgb) WHERE {
+    INCLUDE %sas .
+    INCLUDE %das .
     ?sa p:P521 ?dastmt .
     ?dastmt ps:P521 ?da .
     ?dastmt pq:P137 ?connect .
@@ -68,10 +56,13 @@ WHERE {
     BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
     BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
   }
-} } .
+} AS %lines 
+ 
+WHERE {
+  { INCLUDE %sas }  UNION { INCLUDE %lines  } .
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
@@ -86,19 +77,10 @@ SELECT DISTINCT ?coordinates ?line ?sa ?saLabel ?connectLabel ?image ?code ?rgb
 
 
 
-WITH {
-  SELECT ?da (sample(?lat2) as ?lat2) (sample(?lon2) as ?lon2) WHERE {
-    {?da wdt:P31 wd:Q1248784} UNION {?da wdt:P31 wd:Q644371}
-    ?sa wdt:P521 ?da.
-    ?da p:P625 / psv:P625 / wikibase:geoLatitude ?lat2 .
-    ?da p:P625 / psv:P625 / wikibase:geoLongitude ?lon2 .
-  } GROUP BY ?da
-} AS %das
-
 
  
 WHERE {
-  { {
+  {  {
   SELECT ?sa (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) (sample(?lat1) as ?lat1) (sample(?lon1) as ?lon1) (sample(?code) as ?code) WHERE {
     {?sa wdt:P31 wd:Q1248784} UNION {?sa wdt:P31 wd:Q644371}
     ?sa wdt:P17 wd:Q668 .
@@ -108,9 +90,9 @@ WHERE {
     OPTIONAL { ?sa wdt:P18 ?image }.
     OPTIONAL { ?sa wdt:P5696 ?code }.
   } GROUP BY ?sa
-} }  UNION {  {
+}}  UNION {  {
   SELECT ?line ?connect (\"9B0058\" as ?rgb) WHERE {
-    {
+     {
   SELECT ?sa (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) (sample(?lat1) as ?lat1) (sample(?lon1) as ?lon1) (sample(?code) as ?code) WHERE {
     {?sa wdt:P31 wd:Q1248784} UNION {?sa wdt:P31 wd:Q644371}
     ?sa wdt:P17 wd:Q668 .
@@ -120,7 +102,7 @@ WHERE {
     OPTIONAL { ?sa wdt:P18 ?image }.
     OPTIONAL { ?sa wdt:P5696 ?code }.
   } GROUP BY ?sa
-} .
+}.
     INCLUDE %das .
     ?sa p:P521 ?dastmt .
     ?dastmt ps:P521 ?da .
@@ -130,5 +112,47 @@ WHERE {
     BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
   }
 } } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <http://example.org/bigdata_select> """# Credit: User:Mahir256
+#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
+SELECT DISTINCT ?coordinates ?line ?sa ?saLabel ?connectLabel ?image ?code ?rgb
+
+WITH {
+  SELECT ?sa (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) (sample(?lat1) as ?lat1) (sample(?lon1) as ?lon1) (sample(?code) as ?code) WHERE {
+    {?sa wdt:P31 wd:Q1248784} UNION {?sa wdt:P31 wd:Q644371}
+    ?sa wdt:P17 wd:Q668 .
+    ?sa wdt:P625 ?coordinates  .
+    ?sa p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 .
+    ?sa p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
+    OPTIONAL { ?sa wdt:P18 ?image }.
+    OPTIONAL { ?sa wdt:P5696 ?code }.
+  } GROUP BY ?sa
+} AS %sas
+
+WITH {
+  SELECT ?da (sample(?lat2) as ?lat2) (sample(?lon2) as ?lon2) WHERE {
+    {?da wdt:P31 wd:Q1248784} UNION {?da wdt:P31 wd:Q644371}
+    ?sa wdt:P521 ?da.
+    ?da p:P625 / psv:P625 / wikibase:geoLatitude ?lat2 .
+    ?da p:P625 / psv:P625 / wikibase:geoLongitude ?lon2 .
+  } GROUP BY ?da
+} AS %das
+
+WITH {
+  SELECT ?line ?connect (\"9B0058\" as ?rgb) WHERE {
+    INCLUDE %sas .
+    INCLUDE %das .
+    ?sa p:P521 ?dastmt .
+    ?dastmt ps:P521 ?da .
+    ?dastmt pq:P137 ?connect .
+#    FILTER(STR(?sa) < STR(?da)) .
+    BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
+    BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
+  }
+} AS %lines 
+ 
+WHERE {
+  { INCLUDE %sas }  UNION { INCLUDE %lines  } .
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""" .

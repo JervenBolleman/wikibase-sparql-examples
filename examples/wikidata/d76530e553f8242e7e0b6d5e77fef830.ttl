@@ -21,6 +21,38 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 # All former municipalities of Switzerland *should* have a qualifier statement 
 # (e.g. start date when they became \"former\")
 SELECT * 
+WITH 
+{
+    # select all ?item P31 Q685309 that have a qualifier pq582
+    SELECT ?item WHERE {
+         hint:Query hint:optimizer \"None\" .
+         ?item wdt:P31 wd:Q685309 .
+         ?item p:P31 ?statement .
+         ## I need to filter this only to statements that apply to wd:Q685309 (not any in P31) and those that are P582
+         ?statement ps:P31 wd:Q70208 .
+         ?statement pq:P582 ?end_time  .
+      
+         # Filter to qualifiers
+         ?statement ?pq_qual ?pq_obj . 
+         ?qual wikibase:qualifier ?pq_qual . 
+    } 
+} as %muni
+WHERE
+{
+   ?item wdt:P31 wd:Q685309 .
+   MINUS { include %muni } # subtract those with qualifier from all Q685309
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de\"  }  
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# All former municipalities of Switzerland *should* have a qualifier statement 
+# (e.g. start date when they became \"former\")
+SELECT * 
 WHERE
 {
    ?item wdt:P31 wd:Q685309 .
@@ -42,14 +74,7 @@ WHERE
 }} # subtract those with qualifier from all Q685309
    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de\"  }  
 }""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-# All former municipalities of Switzerland *should* have a qualifier statement 
+  <http://example.org/bigdata_select> """# All former municipalities of Switzerland *should* have a qualifier statement 
 # (e.g. start date when they became \"former\")
 SELECT * 
 WITH 

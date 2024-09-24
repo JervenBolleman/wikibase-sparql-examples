@@ -18,17 +18,50 @@ PREFIX schema: <http://schema.org/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 SELECT DISTINCT ?item ?linkcount ?lambiekurl
+with {
+  select ?occ WHERE {
+    ?list wdt:P31 wd:Q65181907 .                     # find the WD item for the list
+    ?article schema:name ?sitelink_list ; schema:about ?list ; schema:isPartOf <https://en.wikipedia.org/> .
+    filter(str(?sitelink_list)=\"Wikipedia:WikiProject Women in Red/Missing articles by occupation/Cartoonists\")
+    ?list p:P360 [ pq:P106 ?occ1 ].                    # get its occupations
+    ?occ wdt:P279* ?occ1 .
+  }
+} as %i
+with { SELECT ?item ?linkcount { 
+  include %i.
+    {?item wdt:P106 ?occ .}                            # item has this occupation
+  MINUS { ?item wdt:P5035 ?lambiek } # those in the Comiclopedia omitted here, since it will be returned in the other subquery
+  MINUS {?wen schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> . } # has no en.wikipedia sitelink
+  ?item wdt:P21 wd:Q6581072 .                      # gender is female
+  ?item wdt:P31 wd:Q5 .                            # instance is human
+  ?item wikibase:sitelinks ?linkcount .            # number of sitelinks for the item
+  }
+} as %a
+with { SELECT ?item ?linkcount ?lambiekurl { 
+  include %i.
+  ?item wdt:P5035 ?lambiek.  BIND ((CONCAT (\"[https://www.lambiek.net/artists/\", ?lambiek, \".htm entry]\")) as ?lambiekurl) . # is in the Lambiek Comiclopedia
+  MINUS {?wen schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> . } # has no en.wikipedia sitelink
+  ?item wdt:P21 wd:Q6581072 .                      # gender is female
+  ?item wdt:P31 wd:Q5 .                            # instance is human
+  ?item wikibase:sitelinks ?linkcount .            # number of sitelinks for the item
+  }
+} as %b
 where
 {
   {include %a} UNION {include %b}
-}""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 SELECT DISTINCT ?item ?linkcount ?lambiekurl
+where
+{
+  {include %a} UNION {include %b}
+}""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?linkcount ?lambiekurl
 with {
   select ?occ WHERE {
     ?list wdt:P31 wd:Q65181907 .                     # find the WD item for the list

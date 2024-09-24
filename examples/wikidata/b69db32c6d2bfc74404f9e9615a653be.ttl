@@ -11,6 +11,60 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+#defaultView:BubbleChart
+SELECT ?label (COUNT(*) AS ?number) WITH {
+  SELECT DISTINCT ?wdt ?label {
+    ?property wikibase:propertyType wikibase:ExternalId;
+              wikibase:directClaim ?wdt;
+              rdfs:label ?label .
+    FILTER( LANG( ?label ) = 'en' ) .
+    FILTER( ?property != wd:P691 ) .
+  }
+} AS %properties WITH {
+  SELECT DISTINCT ?item {
+    ?item wdt:P691 [] .
+    ?item wdt:P31 wd:Q5 .
+    #BIND( MD5(CONCAT(STR(?item), STR(RAND()))) AS ?hash ) .
+  }
+  #ORDER BY ?hash
+  LIMIT 100
+} AS %samples WHERE {
+  INCLUDE %properties .
+  INCLUDE %samples .
+  ?item ?wdt [] .
+} 
+GROUP BY ?wdt ?label""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+#defaultView:BubbleChart
+SELECT ?label (COUNT(*) AS ?number) WHERE {
+   {
+  SELECT DISTINCT ?wdt ?label {
+    ?property wikibase:propertyType wikibase:ExternalId;
+              wikibase:directClaim ?wdt;
+              rdfs:label ?label .
+    FILTER( LANG( ?label ) = 'en' ) .
+    FILTER( ?property != wd:P691 ) .
+  }
+}.
+   {
+  SELECT DISTINCT ?item {
+    ?item wdt:P691 [] .
+    ?item wdt:P31 wd:Q5 .
+    #BIND( MD5(CONCAT(STR(?item), STR(RAND()))) AS ?hash ) .
+  }
+  #ORDER BY ?hash
+  LIMIT 100
+}.
+  ?item ?wdt [] .
+} 
+GROUP BY ?wdt ?label""";
   <http://example.org/bigdata_select> """#defaultView:BubbleChart
 SELECT ?label (COUNT(*) AS ?number) WITH {
   SELECT DISTINCT ?wdt ?label {
@@ -31,87 +85,6 @@ SELECT ?label (COUNT(*) AS ?number) WITH {
 } AS %samples WHERE {
   INCLUDE %properties .
   INCLUDE %samples .
-  ?item ?wdt [] .
-} 
-GROUP BY ?wdt ?label""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-#defaultView:BubbleChart
-SELECT ?label (COUNT(*) AS ?number) WITH {
-  SELECT DISTINCT ?wdt ?label {
-    ?property wikibase:propertyType wikibase:ExternalId;
-              wikibase:directClaim ?wdt;
-              rdfs:label ?label .
-    FILTER( LANG( ?label ) = 'en' ) .
-    FILTER( ?property != wd:P691 ) .
-  }
-} AS %properties WITH {
-  SELECT DISTINCT ?item {
-    ?item wdt:P691 [] .
-    ?item wdt:P31 wd:Q5 .
-    #BIND( MD5(CONCAT(STR(?item), STR(RAND()))) AS ?hash ) .
-  }
-  #ORDER BY ?hash
-  LIMIT 100
-} AS %samples WHERE {
-  INCLUDE %properties .
-  INCLUDE %samples .
-  ?item ?wdt [] .
-} 
-GROUP BY ?wdt ?label""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-#defaultView:BubbleChart
-SELECT ?label (COUNT(*) AS ?number)  WITH {
-  SELECT DISTINCT ?item {
-    ?item wdt:P691 [] .
-    ?item wdt:P31 wd:Q5 .
-    #BIND( MD5(CONCAT(STR(?item), STR(RAND()))) AS ?hash ) .
-  }
-  #ORDER BY ?hash
-  LIMIT 100
-} AS %samples WHERE {
-  {
-  SELECT DISTINCT ?wdt ?label {
-    ?property wikibase:propertyType wikibase:ExternalId;
-              wikibase:directClaim ?wdt;
-              rdfs:label ?label .
-    FILTER( LANG( ?label ) = 'en' ) .
-    FILTER( ?property != wd:P691 ) .
-  }
-} .
-  INCLUDE %samples .
-  ?item ?wdt [] .
-} 
-GROUP BY ?wdt ?label""";
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-#defaultView:BubbleChart
-SELECT ?label (COUNT(*) AS ?number)   WHERE {
-  {
-  SELECT DISTINCT ?wdt ?label {
-    ?property wikibase:propertyType wikibase:ExternalId;
-              wikibase:directClaim ?wdt;
-              rdfs:label ?label .
-    FILTER( LANG( ?label ) = 'en' ) .
-    FILTER( ?property != wd:P691 ) .
-  }
-} .
-  {
-  SELECT DISTINCT ?item {
-    ?item wdt:P691 [] .
-    ?item wdt:P31 wd:Q5 .
-    #BIND( MD5(CONCAT(STR(?item), STR(RAND()))) AS ?hash ) .
-  }
-  #ORDER BY ?hash
-  LIMIT 100
-} .
   ?item ?wdt [] .
 } 
 GROUP BY ?wdt ?label""" .

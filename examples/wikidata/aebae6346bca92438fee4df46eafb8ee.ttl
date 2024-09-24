@@ -18,15 +18,53 @@ SELECT
   ?property
   ?propertyLabel
   ?count
+WITH {
+  SELECT ?property ?rank {
+    ?property
+      a wikibase:Property;
+      p:P2302 [
+        ?qualifier [];
+        wikibase:rank ?rank
+       ].
+     [] wikibase:qualifier ?qualifier.
+  }
+} AS %0
+WITH {
+  SELECT ?property {
+    INCLUDE %0.
+    VALUES ?rank {
+      wikibase:PreferredRank
+      wikibase:NormalRank
+    }
+  }
+} AS %1
+WITH {
+  SELECT
+    ?property
+    (COUNT(*) AS ?count)
+  {
+    INCLUDE %1.
+  }
+  GROUP BY ?property
+} AS %2
+{
+  INCLUDE %2.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\"}.
+}
+ORDER BY DESC(?count)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
+  ?property
+  ?propertyLabel
+  ?count
 {
   INCLUDE %2.
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\"}.
 }
 ORDER BY DESC(?count)""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT
+  <http://example.org/bigdata_select> """SELECT
   ?property
   ?propertyLabel
   ?count

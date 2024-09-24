@@ -12,13 +12,41 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
-PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?pic ?count ?coor ?dist (ROUND(?dist/10) as ?layer)
+WITH
+{
+  SELECT ?item (COUNT(DISTINCT ?down) as ?count)
+  {  ?item wdt:P177 wd:Q19686 ; wdt:P2674* ?down } 
+  GROUP BY ?item
+  ORDER BY DESC(?count) ?item
+} as %ct
+WHERE 
+{
+  INCLUDE %ct
+  ?item wdt:P177 wd:Q19686 .
+  OPTIONAL { ?item wdt:P18 ?pic }
+  wd:Q19686 p:P625 [ ps:P625 ?coor_orig ; pq:P518 wd:Q7376362 ] .
+  OPTIONAL { ?item wdt:P625 ?coor }
+  FILTER ( ?item != wd:Q1868889 )
+  BIND(ROUND(geof:distance(?coor_orig, ?coor)) as ?dist)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?count) DESC(?dist) ?item""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?pic ?count ?coor ?dist (ROUND(?dist/10) as ?layer)
 WHERE 
@@ -38,15 +66,7 @@ WHERE
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY DESC(?count) DESC(?dist) ?item""";
-  <http://example.org/bigdata_select> """PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?pic ?count ?coor ?dist (ROUND(?dist/10) as ?layer)
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?pic ?count ?coor ?dist (ROUND(?dist/10) as ?layer)
 WITH
 {
   SELECT ?item (COUNT(DISTINCT ?down) as ?count)

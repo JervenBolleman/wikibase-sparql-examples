@@ -19,6 +19,33 @@ PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 # Version 1 - using a named subquery
 select ?item ?itemLabel ?pit ?value 
+with                                 # here's the start of the named subquery
+{ 
+  SELECT ?item (max(?pit) as ?pit)
+  WHERE 
+  {
+    values ?item {wd:Q84}
+    ?item p:P1082 ?statement.
+    ?statement pq:P585 ?pit.
+  } group by ?item 
+} as %i                            # end of named subquery - it finds the max ?pit
+
+where                              # here is the main query
+{
+  include %i                       # it uses the ?item and ?pit values supplied by the named subquery 
+  ?item p:P1082 ?statement.
+  ?statement ps:P1082 ?value.      # and finds the associated ?value
+  ?statement pq:P585 ?pit.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Version 1 - using a named subquery
+select ?item ?itemLabel ?pit ?value 
                            # end of named subquery - it finds the max ?pit
 
 where                              # here is the main query
@@ -38,13 +65,7 @@ where                              # here is the main query
   ?statement pq:P585 ?pit.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-# Version 1 - using a named subquery
+  <http://example.org/bigdata_select> """# Version 1 - using a named subquery
 select ?item ?itemLabel ?pit ?value 
 with                                 # here's the start of the named subquery
 { 

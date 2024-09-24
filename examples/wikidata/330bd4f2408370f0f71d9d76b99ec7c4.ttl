@@ -26,12 +26,28 @@ select * where {
   # why slow? theory: bad selectivity in first and only BGP making the query IO bound.
   # somehow the optimizer doesn't rewrite and consider only one part of the BGP known and not two.
   # results in initial cardinality of 29.5M instead of 16824.
+  hint:Query hint:optimizer \"Runtime\" .
+  ?item wdt:P921 ?o . filter (?o in (wd:Q202864, wd:Q8071861))
+}""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+# Equivalent queries and performance gotchas.
+select * where {
+  # Query 1: 8475 rows (756 ms)
+  #{ ?item wdt:P921 wd:Q202864 . } UNION { ?item wdt:P921 wd:Q8071861 . }
+  
+  # Query 2: 8475 rows (796 ms)
+  #values ?o { wd:Q202864 wd:Q8071861 } 
+  #?item wdt:P921 ?o .
+
+  # Query 3: 8475 rows (41529 ms)
+  # why slow? theory: bad selectivity in first and only BGP making the query IO bound.
+  # somehow the optimizer doesn't rewrite and consider only one part of the BGP known and not two.
+  # results in initial cardinality of 29.5M instead of 16824.
   
   ?item wdt:P921 ?o . filter (?o in (wd:Q202864, wd:Q8071861))
 }""";
-  <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-# Equivalent queries and performance gotchas.
+  <http://example.org/bigdata_select> """# Equivalent queries and performance gotchas.
 select * where {
   # Query 1: 8475 rows (756 ms)
   #{ ?item wdt:P921 wd:Q202864 . } UNION { ?item wdt:P921 wd:Q8071861 . }

@@ -16,6 +16,34 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+select  DISTINCT ?item  ?collectie (sample (?filename) as ?urlsample)  with {
+  select * {
+    service <https://query.wikidata.org/sparql> {
+      ?item wdt:P31 wd:Q5 . 
+   {?item wdt:P106/wdt:P279* wd:Q33231} #fotograaf
+   #{?item wdt:P106/wdt:P279* wd:Q3391743} #beeldend kunstenaar
+#      FILTER NOT EXISTS { ?item wdt:P7763 [].} 
+    }
+  }
+} as %works where {
+  include %works.
+  ?image wdt:P170 ?item.
+
+  
+      ?image wdt:P195 ?collectie.
+  
+      ?image schema:contentUrl ?url .
+#      ?image rdfs:label ?filename .
+  
+      bind(replace(wikibase:decodeUri(substr(str(?url),53)), \"_\", \" \")  AS ?filename)
+      FILTER NOT EXISTS { ?item wdt:P6379 ?collectie.} 
+}
+group by ?item ?collectie""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 select  DISTINCT ?item  ?collectie (sample (?filename) as ?urlsample)  where {
   include %works.
   ?image wdt:P170 ?item.
@@ -30,12 +58,7 @@ select  DISTINCT ?item  ?collectie (sample (?filename) as ?urlsample)  where {
       FILTER NOT EXISTS { ?item wdt:P6379 ?collectie.} 
 }
 group by ?item ?collectie""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-select  DISTINCT ?item  ?collectie (sample (?filename) as ?urlsample)  with {
+  <http://example.org/bigdata_select> """select  DISTINCT ?item  ?collectie (sample (?filename) as ?urlsample)  with {
   select * {
     service <https://query.wikidata.org/sparql> {
       ?item wdt:P31 wd:Q5 . 

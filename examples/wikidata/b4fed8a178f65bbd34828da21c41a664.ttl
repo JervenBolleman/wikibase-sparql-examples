@@ -18,16 +18,15 @@ PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:ScatterChart
-select * where {
-
-   {
-  select distinct ?sport ((avg(?height)) as ?avg_height) ((avg(?weight)) as ?avg_weight) where {
-   {
+select * with {
     select distinct * where 
      {
     ?item wdt:P1447 [] .
      } 
-  }  ?item wdt:P641 ?sport .
+  } as %sportspeople with {
+  select distinct ?sport ((avg(?height)) as ?avg_height) ((avg(?weight)) as ?avg_weight) where {
+  include %sportspeople
+  ?item wdt:P641 ?sport .
   ?item p:P2048/psv:P2048 [
     wikibase:quantityAmount ?baseHeight;
     wikibase:quantityUnit [
@@ -49,22 +48,20 @@ select * where {
     ]
   ].     
   BIND(?baseWeight * ?unitWeight AS ?weight).
-  } group by ?sport }  #SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  } group by ?sport } as %results where {
+
+  include %results
+  #SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
   
-}""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:ScatterChart
-select * with {
-    select distinct * where 
-     {
-    ?item wdt:P1447 [] .
-     } 
-  } as %sportspeople where {
+select * where {
 
    {
   select distinct ?sport ((avg(?height)) as ?avg_height) ((avg(?weight)) as ?avg_weight) where {
@@ -92,5 +89,42 @@ select * with {
   ].     
   BIND(?baseWeight * ?unitWeight AS ?weight).
   } group by ?sport }  #SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  
+}""";
+  <http://example.org/bigdata_select> """#defaultView:ScatterChart
+select * with {
+    select distinct * where 
+     {
+    ?item wdt:P1447 [] .
+     } 
+  } as %sportspeople with {
+  select distinct ?sport ((avg(?height)) as ?avg_height) ((avg(?weight)) as ?avg_weight) where {
+  include %sportspeople
+  ?item wdt:P641 ?sport .
+  ?item p:P2048/psv:P2048 [
+    wikibase:quantityAmount ?baseHeight;
+    wikibase:quantityUnit [
+      p:P2370/psv:P2370 [
+        wikibase:quantityAmount ?unitHeight;
+        wikibase:quantityUnit wd:Q11573
+      ]
+    ]
+  ].     
+  BIND(?baseHeight * ?unitHeight AS ?height).
+  
+  ?item p:P2067/psv:P2067 [
+  wikibase:quantityAmount ?baseWeight;
+  wikibase:quantityUnit [
+      p:P2370/psv:P2370 [
+        wikibase:quantityAmount ?unitWeight;
+        wikibase:quantityUnit wd:Q11570
+      ]
+    ]
+  ].     
+  BIND(?baseWeight * ?unitWeight AS ?weight).
+  } group by ?sport } as %results where {
+
+  include %results
+  #SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
   
 }""" .

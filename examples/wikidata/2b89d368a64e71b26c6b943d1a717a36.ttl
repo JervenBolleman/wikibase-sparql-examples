@@ -26,31 +26,16 @@ SELECT
   ?linkTo
   ?linkToLabel
   ?edgeLabel
-
-
-{
-  { {
+WITH {
   # Get all the instances of the talks
   SELECT DISTINCT ?item {
     ?item wdt:P31 wd:Q110886488.
   }
-} }
-  UNION
-  {INCLUDE %3}
-  UNION
-  {INCLUDE %5}
-
-  # This OPTIONAL makes all talks to be shown regardless whether they
-  # are pointed or point another entity using P155 and P156.
-  OPTIONAL{ {
+} AS %0
+WITH {
   # Get talks with a given color
   SELECT (\"00ff00\" AS ?rgb) ?item ?linkTo (?propertyLabel AS ?edgeLabel) {
-    {
-  # Get all the instances of the talks
-  SELECT DISTINCT ?item {
-    ?item wdt:P31 wd:Q110886488.
-  }
-}.
+    INCLUDE %0.
     {?item p:P155 [ps:P155 ?linkTo; ?ps []].}
     UNION
     {?item p:P156 [ps:P156 ?linkTo; ?ps []].}
@@ -64,11 +49,43 @@ SELECT
 
     FILTER(LANG(?propertyLabel) = \"en\").
   }
-} }.
+} AS %1
+WITH {
+  SELECT ?speaker {
+    INCLUDE %0
+    ?item wdt:P823 ?speaker.
+  }
+} AS %2
+WITH {
+  SELECT (\"0000ff\" AS ?rgb) (?speaker AS ?item) {
+    INCLUDE %2.
+  }
+} AS %3
+WITH {
+  SELECT ?mainSubject {
+    INCLUDE %0
+    ?item wdt:P921 ?mainSubject.
+  }
+} AS %4
+WITH {
+  SELECT (\"ff0000\" AS ?rgb) (?mainSubject AS ?item) {
+    INCLUDE %4.
+  }
+} AS %5
+{
+  {INCLUDE %0}
+  UNION
+  {INCLUDE %3}
+  UNION
+  {INCLUDE %5}
+
+  # This OPTIONAL makes all talks to be shown regardless whether they
+  # are pointed or point another entity using P155 and P156.
+  OPTIONAL{INCLUDE %1}.
 
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
-}""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -83,47 +100,8 @@ SELECT
   ?linkTo
   ?linkToLabel
   ?edgeLabel
-
-
-WITH {
-  SELECT ?speaker {
-    {
-  # Get all the instances of the talks
-  SELECT DISTINCT ?item {
-    ?item wdt:P31 wd:Q110886488.
-  }
-}
-    ?item wdt:P823 ?speaker.
-  }
-} AS %2
-WITH {
-  SELECT (\"0000ff\" AS ?rgb) (?speaker AS ?item) {
-    INCLUDE %2.
-  }
-} AS %3
-WITH {
-  SELECT ?mainSubject {
-    {
-  # Get all the instances of the talks
-  SELECT DISTINCT ?item {
-    ?item wdt:P31 wd:Q110886488.
-  }
-}
-    ?item wdt:P921 ?mainSubject.
-  }
-} AS %4
-WITH {
-  SELECT (\"ff0000\" AS ?rgb) (?mainSubject AS ?item) {
-    INCLUDE %4.
-  }
-} AS %5
 {
-  { {
-  # Get all the instances of the talks
-  SELECT DISTINCT ?item {
-    ?item wdt:P31 wd:Q110886488.
-  }
-} }
+  {INCLUDE %0}
   UNION
   {INCLUDE %3}
   UNION
@@ -131,15 +109,28 @@ WITH {
 
   # This OPTIONAL makes all talks to be shown regardless whether they
   # are pointed or point another entity using P155 and P156.
-  OPTIONAL{ {
-  # Get talks with a given color
-  SELECT (\"00ff00\" AS ?rgb) ?item ?linkTo (?propertyLabel AS ?edgeLabel) {
-    {
+  OPTIONAL{INCLUDE %1}.
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}""";
+  <http://example.org/bigdata_select> """#defaultView:Graph
+SELECT
+  ?item
+  ?itemLabel
+  ?rgb
+  ?linkTo
+  ?linkToLabel
+  ?edgeLabel
+WITH {
   # Get all the instances of the talks
   SELECT DISTINCT ?item {
     ?item wdt:P31 wd:Q110886488.
   }
-}.
+} AS %0
+WITH {
+  # Get talks with a given color
+  SELECT (\"00ff00\" AS ?rgb) ?item ?linkTo (?propertyLabel AS ?edgeLabel) {
+    INCLUDE %0.
     {?item p:P155 [ps:P155 ?linkTo; ?ps []].}
     UNION
     {?item p:P156 [ps:P156 ?linkTo; ?ps []].}
@@ -153,7 +144,39 @@ WITH {
 
     FILTER(LANG(?propertyLabel) = \"en\").
   }
-} }.
+} AS %1
+WITH {
+  SELECT ?speaker {
+    INCLUDE %0
+    ?item wdt:P823 ?speaker.
+  }
+} AS %2
+WITH {
+  SELECT (\"0000ff\" AS ?rgb) (?speaker AS ?item) {
+    INCLUDE %2.
+  }
+} AS %3
+WITH {
+  SELECT ?mainSubject {
+    INCLUDE %0
+    ?item wdt:P921 ?mainSubject.
+  }
+} AS %4
+WITH {
+  SELECT (\"ff0000\" AS ?rgb) (?mainSubject AS ?item) {
+    INCLUDE %4.
+  }
+} AS %5
+{
+  {INCLUDE %0}
+  UNION
+  {INCLUDE %3}
+  UNION
+  {INCLUDE %5}
+
+  # This OPTIONAL makes all talks to be shown regardless whether they
+  # are pointed or point another entity using P155 and P156.
+  OPTIONAL{INCLUDE %1}.
 
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 }""" .

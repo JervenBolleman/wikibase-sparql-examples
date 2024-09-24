@@ -20,44 +20,6 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel (SAMPLE(?p19label) AS ?birthplace)
        (GROUP_CONCAT(?p106label;SEPARATOR=', ') AS ?occupations)
        (?fame AS ?wikipedialinks)
-
-
-WHERE
-{
-  
-{
-  SELECT ?item (COUNT(?wikipedialink) AS ?fame)
-  WHERE
-  {
-    
-{
-  SELECT ?item
-  WHERE
-  {
-    ?item wdt:P31 wd:Q5 .
-    ?item wdt:P27 wd:Q30 .
-    ?item wikibase:sitelinks ?fame1 . FILTER(?fame1 > 55)
-  }
-}    ?wikipedialink schema:isPartOf [ wikibase:wikiGroup \"wikipedia\" ]; schema:about ?item .
-  }
-  GROUP BY ?item
-  HAVING (?fame > 55)
-}  ?item wdt:P106 ?p106 . ?p106 rdfs:label ?p106label . FILTER(LANG(?p106label)='en')
-  ?item wdt:P19 ?p19 . ?p19 rdfs:label ?p19label . FILTER(LANG(?p19label)='en')
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-GROUP BY ?item ?itemLabel ?fame
-ORDER BY DESC(?wikipedialinks) ?itemLabel
-LIMIT 1000""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel (SAMPLE(?p19label) AS ?birthplace)
-       (GROUP_CONCAT(?p106label;SEPARATOR=', ') AS ?occupations)
-       (?fame AS ?wikipedialinks)
 WITH
 {
   SELECT ?item
@@ -68,6 +30,38 @@ WITH
     ?item wikibase:sitelinks ?fame1 . FILTER(?fame1 > 55)
   }
 } AS %i1
+
+WITH
+{
+  SELECT ?item (COUNT(?wikipedialink) AS ?fame)
+  WHERE
+  {
+    INCLUDE %i1
+    ?wikipedialink schema:isPartOf [ wikibase:wikiGroup \"wikipedia\" ]; schema:about ?item .
+  }
+  GROUP BY ?item
+  HAVING (?fame > 55)
+} AS %i2
+
+WHERE
+{
+  INCLUDE %i2
+  ?item wdt:P106 ?p106 . ?p106 rdfs:label ?p106label . FILTER(LANG(?p106label)='en')
+  ?item wdt:P19 ?p19 . ?p19 rdfs:label ?p19label . FILTER(LANG(?p19label)='en')
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?item ?itemLabel ?fame
+ORDER BY DESC(?wikipedialinks) ?itemLabel
+LIMIT 1000""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel (SAMPLE(?p19label) AS ?birthplace)
+       (GROUP_CONCAT(?p106label;SEPARATOR=', ') AS ?occupations)
+       (?fame AS ?wikipedialinks)
 
 
 WHERE
@@ -83,6 +77,42 @@ WHERE
   GROUP BY ?item
   HAVING (?fame > 55)
 }  ?item wdt:P106 ?p106 . ?p106 rdfs:label ?p106label . FILTER(LANG(?p106label)='en')
+  ?item wdt:P19 ?p19 . ?p19 rdfs:label ?p19label . FILTER(LANG(?p19label)='en')
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?item ?itemLabel ?fame
+ORDER BY DESC(?wikipedialinks) ?itemLabel
+LIMIT 1000""";
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel (SAMPLE(?p19label) AS ?birthplace)
+       (GROUP_CONCAT(?p106label;SEPARATOR=', ') AS ?occupations)
+       (?fame AS ?wikipedialinks)
+WITH
+{
+  SELECT ?item
+  WHERE
+  {
+    ?item wdt:P31 wd:Q5 .
+    ?item wdt:P27 wd:Q30 .
+    ?item wikibase:sitelinks ?fame1 . FILTER(?fame1 > 55)
+  }
+} AS %i1
+
+WITH
+{
+  SELECT ?item (COUNT(?wikipedialink) AS ?fame)
+  WHERE
+  {
+    INCLUDE %i1
+    ?wikipedialink schema:isPartOf [ wikibase:wikiGroup \"wikipedia\" ]; schema:about ?item .
+  }
+  GROUP BY ?item
+  HAVING (?fame > 55)
+} AS %i2
+
+WHERE
+{
+  INCLUDE %i2
+  ?item wdt:P106 ?p106 . ?p106 rdfs:label ?p106label . FILTER(LANG(?p106label)='en')
   ?item wdt:P19 ?p19 . ?p19 rdfs:label ?p19label . FILTER(LANG(?p19label)='en')
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }

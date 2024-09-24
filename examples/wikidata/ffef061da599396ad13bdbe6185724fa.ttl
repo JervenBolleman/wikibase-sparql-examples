@@ -11,39 +11,8 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+  sh:select """PREFIX gas: <http://wikiba.se/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?calculated_Erdős_number ?stored_Erdős_number
-
-WHERE
-{
-  {
-  SELECT ?item ?depth
-  WHERE
-  {
-    SERVICE gas:service
-    {
-     gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.SSSP\" .
-     gas:program gas:in wd:Q173746 .
-     gas:program gas:out ?item .
-     gas:program gas:out1 ?depth .
-     gas:program gas:linkType wdt:P50 .
-     gas:program gas:traversalDirection \"Undirected\" .
-     gas:program gas:maxIterations 6 .
-    }
-    FILTER (FLOOR(?depth / 2) * 2 = ?depth) # Use only even depths. The odd numbers are the written papers
-  }
-}
-  BIND (xsd:integer(?depth/2) AS ?calculated_Erdős_number)
-  OPTIONAL { ?item wdt:P2021 ?stored_Erdős_number . }
-  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }              
-} 
-ORDER BY ?calculated_Erdős_number""";
-  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -75,13 +44,38 @@ WHERE
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }              
 } 
 ORDER BY ?calculated_Erdős_number""",
-    """PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+    """PREFIX gas: <http://wikiba.se/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?calculated_Erdős_number ?stored_Erdős_number
+WHERE
+{
+  
+{
+  SELECT ?item ?depth
+  WHERE
+  {
+    SERVICE gas:service
+    {
+     gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.SSSP\" .
+     gas:program gas:in wd:Q173746 .
+     gas:program gas:out ?item .
+     gas:program gas:out1 ?depth .
+     gas:program gas:linkType wdt:P50 .
+     gas:program gas:traversalDirection \"Undirected\" .
+     gas:program gas:maxIterations 6 .
+    }
+    FILTER (FLOOR(?depth / 2) * 2 = ?depth) # Use only even depths. The odd numbers are the written papers
+  }
+}  BIND (xsd:integer(?depth/2) AS ?calculated_Erdős_number)
+  OPTIONAL { ?item wdt:P2021 ?stored_Erdős_number . }
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }              
+} 
+ORDER BY ?calculated_Erdős_number""";
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?calculated_Erdős_number ?stored_Erdős_number
 WITH
 {
   SELECT ?item ?depth

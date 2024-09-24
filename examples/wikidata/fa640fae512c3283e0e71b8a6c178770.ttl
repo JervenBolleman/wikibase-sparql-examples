@@ -33,6 +33,37 @@ select ?event ?eventLabel ?date {
       # not in the future, and not more than 31 days ago
       BIND(NOW() - ?date AS ?distance). 
       # optimisation : all values are dates so we inform the query service of this fact
+      hint:Prior hint:rangeSafe true 
+      FILTER(0 <= ?distance && ?distance < 31).
+    }
+  # limit to 100 results so we don't timeout
+  LIMIT 100
+  }
+  # getting the event label in an outer query, to speed up and not getting the label for filtered candidates
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} order by desc(?date) # sorting result by more recent one first""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#Recent events
+#Recent events
+#title: Recent events
+
+select ?event ?eventLabel ?date {
+  {
+    SELECT distinct * 
+    {
+      # find events
+      ?event wdt:P31/wdt:P279* wd:Q1190554.
+      # with a point in time or start date
+      ?event wdt:P585|wdt:P580 ?date 
+      # not including « unknown values » 
+      FILTER(DATATYPE(?date) = xsd:dateTime). 
+      # not in the future, and not more than 31 days ago
+      BIND(NOW() - ?date AS ?distance). 
+      # optimisation : all values are dates so we inform the query service of this fact
       
     }
   # limit to 100 results so we don't timeout
@@ -41,12 +72,7 @@ select ?event ?eventLabel ?date {
   # getting the event label in an outer query, to speed up and not getting the label for filtered candidates
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 } order by desc(?date) # sorting result by more recent one first""";
-  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#Recent events
+  <http://example.org/bigdata_select> """#Recent events
 #Recent events
 #title: Recent events
 

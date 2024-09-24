@@ -18,6 +18,26 @@ PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?partyLabel  with {
+  select DISTINCT ?item (count(?party) as ?partycount) WHERE {
+  ?item p:P39 ?statement.
+  ?statement ps:P39 wd:Q17781726.
+  ?statement pq:P2937 wd:Q30544772 .
+  ?item wdt:P102 ?party.
+  MINUS { ?statement pq:P4100 ?group } .
+} group by ?item having (?partycount=1) } as %items
+where
+{
+  include %items
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?partyLabel  where
 {
    {
@@ -29,14 +49,7 @@ SELECT ?item ?itemLabel ?partyLabel  where
   MINUS { ?statement pq:P4100 ?group } .
 } group by ?item having (?partycount=1) }  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de\". }
 }""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?partyLabel  with {
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?partyLabel  with {
   select DISTINCT ?item (count(?party) as ?partycount) WHERE {
   ?item p:P39 ?statement.
   ?statement ps:P39 wd:Q17781726.

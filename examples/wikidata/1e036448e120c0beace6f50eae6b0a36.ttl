@@ -24,34 +24,6 @@ SELECT
 
   ?example_lexeme ?example_lexemeLabel
   (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)
-
-WHERE {
-  {
-  SELECT
-    (COUNT(DISTINCT ?sense) AS ?number_of_senses)
-    ?lexical_category
-    (SAMPLE(?sense) as ?example_sense)
-  WHERE {
-    [] wikibase:lexicalCategory ?lexical_category ;
-       ontolex:sense ?sense .
-    ?sense wdt:P5974 [] .
-  }
-  GROUP BY ?lexical_category
-}
-  ?example_lexeme ontolex:sense ?example_sense .
-  ?example_lexeme wikibase:lemma ?example_lexemeLabel .
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-ORDER BY DESC(?number_of_senses)""";
-  <http://example.org/bigdata_select> """SELECT
-  ?number_of_senses
-  (CONCAT(\"#lexicalcategory/\", SUBSTR(STR(?lexical_category), 32), \"/antonym\") AS ?number_of_sensesUrl)
-
-  ?lexical_category ?lexical_categoryLabel
-  (CONCAT(\"#lexicalcategory/\", SUBSTR(STR(?lexical_category), 32)) AS ?lexical_categoryUrl)
-
-  ?example_lexeme ?example_lexemeLabel
-  (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)
 WITH {
   SELECT
     (COUNT(DISTINCT ?sense) AS ?number_of_senses)
@@ -76,6 +48,32 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT
+  ?number_of_senses
+  (CONCAT(\"#lexicalcategory/\", SUBSTR(STR(?lexical_category), 32), \"/antonym\") AS ?number_of_sensesUrl)
+
+  ?lexical_category ?lexical_categoryLabel
+  (CONCAT(\"#lexicalcategory/\", SUBSTR(STR(?lexical_category), 32)) AS ?lexical_categoryUrl)
+
+  ?example_lexeme ?example_lexemeLabel
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)
+WHERE {
+   {
+  SELECT
+    (COUNT(DISTINCT ?sense) AS ?number_of_senses)
+    ?lexical_category
+    (SAMPLE(?sense) as ?example_sense)
+  WHERE {
+    [] wikibase:lexicalCategory ?lexical_category ;
+       ontolex:sense ?sense .
+    ?sense wdt:P5974 [] .
+  }
+  GROUP BY ?lexical_category
+}  ?example_lexeme ontolex:sense ?example_sense .
+  ?example_lexeme wikibase:lemma ?example_lexemeLabel .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?number_of_senses)""";
+  <http://example.org/bigdata_select> """SELECT
   ?number_of_senses
   (CONCAT(\"#lexicalcategory/\", SUBSTR(STR(?lexical_category), 32), \"/antonym\") AS ?number_of_sensesUrl)
 

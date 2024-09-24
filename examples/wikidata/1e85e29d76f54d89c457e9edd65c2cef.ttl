@@ -13,6 +13,21 @@
   schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
+SELECT * WITH { SELECT * WHERE 
+{
+  hint:Query hint:optimizer \"None\".
+  SERVICE <http://bnb.data.bl.uk/sparql> {
+     SELECT ?author ?authorWD WHERE {
+       ?author owl:sameAs ?authorWD 
+       filter regex(?authorWD,\"Q42$\")
+         } } } } as %i
+WHERE
+{
+  include %i
+  ?item wdt:P31 ?P31 .          
+}""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
 SELECT * WHERE
 {
    { SELECT * WHERE 
@@ -24,9 +39,7 @@ SELECT * WHERE
        filter regex(?authorWD,\"Q42$\")
          } } } }  ?item wdt:P31 ?P31 .          
 }""";
-  <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-SELECT * WITH { SELECT * WHERE 
+  <http://example.org/bigdata_select> """SELECT * WITH { SELECT * WHERE 
 {
   hint:Query hint:optimizer \"None\".
   SERVICE <http://bnb.data.bl.uk/sparql> {

@@ -24,6 +24,97 @@ PREFIX geo: <http://www.opengis.net/ont/geosparql#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Map{\"hide\":[\"?placeCoords\", \"?line\", \"?rgb\"]}
 SELECT ?item ?itemLabel ?place ?placeLabel ?placeCoords ?layer ?line ?rgb
+WITH {
+  SELECT DISTINCT ?item {
+    ?item wdt:P27 wd:Q419.
+  }
+} AS %0
+WITH {
+  SELECT ?item ?birth ?birthCoords ?birthCoordsLo ?birthCoordsLa ?death ?deathCoords ?deathCoordsLo ?deathCoordsLa {
+    INCLUDE %0.
+    ?item
+      p:P19 [
+        ps:P19 ?birth;
+        wikibase:rank wikibase:NormalRank;
+        ps:P19/p:P625 [
+          ps:P625 ?birthCoords;
+          psv:P625 [
+            wikibase:geoLongitude ?birthCoordsLo;
+            wikibase:geoLatitude ?birthCoordsLa
+          ]
+        ]
+      ];
+      p:P20 [
+        ps:P20 ?death;
+        wikibase:rank wikibase:NormalRank;
+        ps:P20/p:P625 [
+          ps:P625 ?deathCoords;
+          psv:P625 [
+            wikibase:geoLongitude ?deathCoordsLo;
+            wikibase:geoLatitude ?deathCoordsLa
+          ]
+        ]
+      ];
+  }
+} AS %1
+WITH {
+  SELECT ?item ?line {
+    INCLUDE %1.
+    BIND(CONCAT('LINESTRING(', STR(?birthCoordsLo), ' ', STR(?birthCoordsLa), ',', STR(?deathCoordsLo), ' ', STR(?deathCoordsLa), ')') AS ?str).
+    BIND(STRDT(?str, geo:wktLiteral) AS ?line).
+  }
+} AS %2
+WITH {
+  SELECT
+    ?item
+    (?birth AS ?place)
+    (?birthCoords AS ?placeCoords)
+    (?birthCoordsLa AS ?placeCoordsLa)
+    (?birthCoordsLo AS ?placeCoordsLo)
+    (wdt:P19 AS ?p)
+  {
+    INCLUDE %1.
+  }
+} AS %3
+WITH {
+  SELECT
+    ?item
+    (?death AS ?place)
+    (?deathCoords AS ?placeCoords)
+    (?deathCoordsLa AS ?placeCoordsLa)
+    (?deathCoordsLo AS ?placeCoordsLo)
+    (wdt:P20 AS ?p)
+  {
+    INCLUDE %1.
+  }
+} AS %4
+{
+  {INCLUDE %2}
+  UNION
+  {INCLUDE %3}
+  UNION
+  {INCLUDE %4}
+
+  BIND(COALESCE(IF(?p = wdt:P19, \"place of birth\", 1/0),
+                IF(?p = wdt:P20, \"place of death\", 1/0))
+       AS ?layer).
+  
+  BIND(COALESCE(IF(?p = wdt:P19, \"ff0000\", 1/0),
+                IF(?p = wdt:P20, \"000000\", 1/0))
+       AS ?rgb).
+
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\"}.
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map{\"hide\":[\"?placeCoords\", \"?line\", \"?rgb\"]}
+SELECT ?item ?itemLabel ?place ?placeLabel ?placeCoords ?layer ?line ?rgb
 {
   {INCLUDE %2}
   UNION
@@ -41,15 +132,7 @@ SELECT ?item ?itemLabel ?place ?placeLabel ?placeCoords ?layer ?line ?rgb
 
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\"}.
 }""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX geo: <http://www.opengis.net/ont/geosparql#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#defaultView:Map{\"hide\":[\"?placeCoords\", \"?line\", \"?rgb\"]}
+  <http://example.org/bigdata_select> """#defaultView:Map{\"hide\":[\"?placeCoords\", \"?line\", \"?rgb\"]}
 SELECT ?item ?itemLabel ?place ?placeLabel ?placeCoords ?layer ?line ?rgb
 WITH {
   SELECT DISTINCT ?item {

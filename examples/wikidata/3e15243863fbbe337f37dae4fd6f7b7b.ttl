@@ -30,6 +30,33 @@ select ?catQ ?title ?count where {
       }
     } group by ?title
   }
+  hint:Prior hint:runFirst \"true\".
+  OPTIONAL {
+    ?catLink schema:name ?title .
+    ?catLink schema:isPartOf <https://commons.wikimedia.org/> .
+    ?catLink schema:about ?catQ .
+  }
+}
+order by desc(?count)""",
+    """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+select ?catQ ?title ?count where {
+  {
+    select ?title (count(distinct ?file_title) as ?count) where {
+      service wikibase:mwapi {
+         bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+         bd:serviceParam wikibase:api \"Generator\" .
+         bd:serviceParam mwapi:generator \"links\" .
+         bd:serviceParam mwapi:titles \"Commons:British_Library/MC_maps_batch_01_(GB_counties)\" .
+         bd:serviceParam mwapi:gplnamespace 6 .
+         bd:serviceParam mwapi:prop \"categories\" .
+         ?title wikibase:apiOutput \"categories/cl/@title\"  .
+         ?file_title wikibase:apiOutput \"@title\"  .
+      }
+    } group by ?title
+  }
   
   OPTIONAL {
     ?catLink schema:name ?title .
@@ -38,11 +65,7 @@ select ?catQ ?title ?count where {
   }
 }
 order by desc(?count)""";
-  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX schema: <http://schema.org/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-select ?catQ ?title ?count where {
+  <http://example.org/bigdata_select> """select ?catQ ?title ?count where {
   {
     select ?title (count(distinct ?file_title) as ?count) where {
       service wikibase:mwapi {

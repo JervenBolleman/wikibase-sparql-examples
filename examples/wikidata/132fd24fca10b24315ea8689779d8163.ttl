@@ -18,37 +18,35 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?item ?itemLabel ?countryLabel ?itemnativeLabel ?langusedLabel ?langcode
 
-
-
-
-WHERE {
-   {
-  SELECT DISTINCT ?item ?itemnativeLabel ?langused ?langcode WHERE {
-   {
+WITH {
   SELECT DISTINCT ?item WHERE {
   ?item wdt:P31/wdt:P279* wd:Q46831 .
   }
-}.
+} AS %results1 
+
+WITH {
+  SELECT DISTINCT ?item ?itemnativeLabel ?langused ?langcode WHERE {
+  INCLUDE %results1 .
   ?item wdt:P1705 ?itemnativeLabel .
   BIND (LANG(?itemnativeLabel) AS ?langcode)
   ?langused wdt:P424 ?langcode .
   wd:Q34770 ^wdt:P279*/^wdt:P31 ?langused .
   }
-}  BIND(xsd:integer(SUBSTR(STR(?item), 33)) AS ?num)
+} AS %results2
+
+WHERE {
+  INCLUDE %results2
+  BIND(xsd:integer(SUBSTR(STR(?item), 33)) AS ?num)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-  } ORDER BY ?num ?itemLabel ?countryLabel ?langusedLabel ?langcode""";
-  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+  } ORDER BY ?num ?itemLabel ?countryLabel ?langusedLabel ?langcode""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?item ?itemLabel ?countryLabel ?itemnativeLabel ?langusedLabel ?langcode
 
-WITH {
-  SELECT DISTINCT ?item WHERE {
-  ?item wdt:P31/wdt:P279* wd:Q46831 .
-  }
-} AS %results1 
+
 
 
 WHERE {
@@ -61,5 +59,28 @@ WHERE {
   wd:Q34770 ^wdt:P279*/^wdt:P31 ?langused .
   }
 }  BIND(xsd:integer(SUBSTR(STR(?item), 33)) AS ?num)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  } ORDER BY ?num ?itemLabel ?countryLabel ?langusedLabel ?langcode""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?itemLabel ?countryLabel ?itemnativeLabel ?langusedLabel ?langcode
+
+WITH {
+  SELECT DISTINCT ?item WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q46831 .
+  }
+} AS %results1 
+
+WITH {
+  SELECT DISTINCT ?item ?itemnativeLabel ?langused ?langcode WHERE {
+  INCLUDE %results1 .
+  ?item wdt:P1705 ?itemnativeLabel .
+  BIND (LANG(?itemnativeLabel) AS ?langcode)
+  ?langused wdt:P424 ?langcode .
+  wd:Q34770 ^wdt:P279*/^wdt:P31 ?langused .
+  }
+} AS %results2
+
+WHERE {
+  INCLUDE %results2
+  BIND(xsd:integer(SUBSTR(STR(?item), 33)) AS ?num)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
   } ORDER BY ?num ?itemLabel ?countryLabel ?langusedLabel ?langcode""" .

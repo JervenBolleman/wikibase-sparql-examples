@@ -21,6 +21,47 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?pattern
 
 #pattern 1: either more than one statement for P1532
+with {select ?item ?pattern (count(?countryforsport) as ?countryforsportcount) where 
+{
+  ?item wdt:P106 wd:Q10873124.
+  ?item wdt:P1532 ?countryforsport.
+  bind(\"1\" as ?pattern)
+  } group by ?item ?pattern having(?countryforsportcount >1) } as %a
+  
+#pattern 2: or within a single P1532 statement more than one source P248
+with {select ?item ?pattern (count(?statedin) as ?statedincount) where 
+{
+  ?item p:P1532 ?P1532statement. 
+  ?P1532statement prov:wasDerivedFrom ?refnode.
+  ?refnode pr:P248 ?statedin.
+  bind(\"2\" as ?pattern)
+} group by ?item ?pattern having(?statedincount>1) } as %b 
+       
+#pattern 3: or within a single P1532 statement in the source both P248 and P143
+with {select ?item ?pattern (count(?statedin) as ?statedincount) where 
+{
+  ?item p:P1532 ?P1532statement. 
+  ?P1532statement prov:wasDerivedFrom ?refnode.
+  ?P1532statement prov:wasDerivedFrom ?refnode1.  
+  ?refnode pr:P143 ?a . # query for this on its own & it is found, but ...
+  ?refnode1 pr:P248 ?b . # query for both, and no results. Query for this one on its own & it is found.
+  bind(\"3\" as ?pattern)
+} group by ?item ?pattern  } as %c
+
+where {
+{include %a} union {include %b}  union {include %c}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?pattern
+
+#pattern 1: either more than one statement for P1532
   
 #pattern 2: or within a single P1532 statement more than one source P248
 
@@ -31,14 +72,7 @@ where {
 {include %a} union {include %b}  union {include %c}
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX prov: <http://www.w3.org/ns/prov#>
-PREFIX pr: <http://www.wikidata.org/prop/reference/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?pattern
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?pattern
 
 #pattern 1: either more than one statement for P1532
 with {select ?item ?pattern (count(?countryforsport) as ?countryforsportcount) where 

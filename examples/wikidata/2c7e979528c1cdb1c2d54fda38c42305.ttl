@@ -25,6 +25,34 @@ SELECT DISTINCT ?river ?riverLabel ?sea ?seaLabel ?coord WHERE
   
                                                                                              # DESIGN PATTERN
                                                                                              # define a ?sea as a sea by...
+  FILTER NOT EXISTS {?sea wdt:P31/wdt:P279* wd:Q355304 . hint:Prior hint:gearing \"forward\".  # excluding watercourses
+                    FILTER NOT EXISTS {?sea wdt:P31 wd:Q47053. }                               # except when they're an estuary
+                    FILTER NOT EXISTS {?sea wdt:P31 wd:Q1210950. }                             # or a channel
+                                                                                            # by nesting FILTER NOT EXIST clauses 
+                                                                                            # within a FILTER NOT EXIST clause
+                    }
+
+  FILTER NOT EXISTS {?sea wdt:P31/wdt:P279* wd:Q23397 . hint:Prior hint:gearing \"forward\". } # Exclude lakes
+  
+  ?sea ^wdt:P403|^wdt:P201 ?river. # ?sea is at the mouth/outflow of the ?river
+  ?river wdt:P17 wd:Q145.          # ?river is in the UK
+  ?river wdt:P625 ?coord.          # get ?river coordinates
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map
+#title:UK rivers that enter the sea
+SELECT DISTINCT ?river ?riverLabel ?sea ?seaLabel ?coord WHERE 
+{
+  ?another_river wdt:P17 wd:Q145.          # ?another_river is in the UK
+  ?another_river wdt:P403|wdt:P201 ?sea .  # has a mouth of a watercourse or lake outflow 
+                                           # at this point ?sea could still be another watercourse
+  
+                                                                                             # DESIGN PATTERN
+                                                                                             # define a ?sea as a sea by...
   FILTER NOT EXISTS {?sea wdt:P31/wdt:P279* wd:Q355304 .   # excluding watercourses
                     FILTER NOT EXISTS {?sea wdt:P31 wd:Q47053. }                               # except when they're an estuary
                     FILTER NOT EXISTS {?sea wdt:P31 wd:Q1210950. }                             # or a channel
@@ -39,11 +67,7 @@ SELECT DISTINCT ?river ?riverLabel ?sea ?seaLabel ?coord WHERE
   ?river wdt:P625 ?coord.          # get ?river coordinates
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#defaultView:Map
+  <http://example.org/bigdata_select> """#defaultView:Map
 #title:UK rivers that enter the sea
 SELECT DISTINCT ?river ?riverLabel ?sea ?seaLabel ?coord WHERE 
 {

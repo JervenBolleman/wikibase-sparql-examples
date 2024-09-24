@@ -16,6 +16,23 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 select ?item ?itemLabel ?number
+with { # select all the numbers of sitelinks
+  select ?number (count(*) as ?total) { # we don't use ?total but without it the query times out, so we'll just ignore it
+    [] wikibase:sitelinks ?number .
+  } group by ?number
+} as %numbers
+where {
+  include %numbers .
+  filter (?number > 25) .
+  ?item wikibase:sitelinks ?number .
+  ?item wdt:P31 wd:Q5.
+  service wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} order by desc(?number)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+select ?item ?itemLabel ?number
 where {
    { # select all the numbers of sitelinks
   select ?number (count(*) as ?total) { # we don't use ?total but without it the query times out, so we'll just ignore it
@@ -27,11 +44,7 @@ where {
   ?item wdt:P31 wd:Q5.
   service wikibase:label { bd:serviceParam wikibase:language \"en\" }
 } order by desc(?number)""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-select ?item ?itemLabel ?number
+  <http://example.org/bigdata_select> """select ?item ?itemLabel ?number
 with { # select all the numbers of sitelinks
   select ?number (count(*) as ?total) { # we don't use ?total but without it the query times out, so we'll just ignore it
     [] wikibase:sitelinks ?number .

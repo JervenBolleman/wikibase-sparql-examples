@@ -26,17 +26,61 @@ SELECT ?item ?itemLabel ?description (SAMPLE(?image_) as ?image) ?legend ?imageD
 (GROUP_CONCAT(DISTINCT ?sexLabel_;separator=\"; \") as ?sexLabel)  
 (GROUP_CONCAT(DISTINCT ?occupationLabel_;separator=\"; \") as  ?occupationLabel)
 
+?article WITH { 
+  SELECT ?item ?itemLabel ?birthdate WHERE {
+  ?item wdt:P31 wd:Q5;
+    wdt:P569 ?birthdate.
+  hint:Prior hint:rangeSafe \"true\"^^xsd:boolean.
+  FILTER((\"1991-00-00\"^^xsd:dateTime <= ?birthdate) && (?birthdate < \"1992-00-00\"^^xsd:dateTime))
+} } as %i
+WITH { SELECT ?item ?itemLabel ?description ?image ?legend ?imageDate ?birthdate ?deathdate ?nationality ?sex ?occupation ?article
+WHERE {
+  INCLUDE %i
+  OPTIONAL { ?item wdt:P734 ?lastname. }
+  OPTIONAL { ?item wdt:P570 ?deathdate. }
+  OPTIONAL { ?item wdt:P27 ?nationality. }
+  OPTIONAL { ?item wdt:P21 ?sex. }
+  OPTIONAL { ?item wdt:P106 ?occupation. }
+  OPTIONAL {
+    ?item p:P18 ?stat.
+    ?stat ps:P18 ?image_.
+    OPTIONAL { ?stat pq:P2096 ?legend. FILTER (langmatches(lang(?legend), \"en\")) }
+    OPTIONAL { ?stat pq:P585 ?imageDate. }
+  }
+  ?article schema:about ?item;
+      schema:isPartOf <https://en.wikipedia.org/>.
+} } as %j
+WHERE
+{
+  INCLUDE %j
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+                        ?nationality rdfs:label ?nationalityLabel_ . 
+                        ?item rdfs:label ?itemLabel_ . 
+                        ?sex rdfs:label ?sexLabel_ . 
+                        ?occupation rdfs:label ?occupationLabel_ . 
+                        ?item schema:description ?itemDescription .} 
+} GROUP BY ?item ?itemLabel ?description ?legend ?imageDate ?birthdate ?deathdate ?article""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?description (SAMPLE(?image_) as ?image) ?legend ?imageDate ?birthdate ?deathdate
+(GROUP_CONCAT(DISTINCT ?nationalityLabel_;separator=\"; \") as ?nationalityLabel)  
+(GROUP_CONCAT(DISTINCT ?sexLabel_;separator=\"; \") as ?sexLabel)  
+(GROUP_CONCAT(DISTINCT ?occupationLabel_;separator=\"; \") as  ?occupationLabel)
+
 ?article WHERE
 {
    { SELECT ?item ?itemLabel ?description ?image ?legend ?imageDate ?birthdate ?deathdate ?nationality ?sex ?occupation ?article
 WHERE {
-   { 
-  SELECT ?item ?itemLabel ?birthdate WHERE {
-  ?item wdt:P31 wd:Q5;
-    wdt:P569 ?birthdate.
-  
-  FILTER((\"1991-00-00\"^^xsd:dateTime <= ?birthdate) && (?birthdate < \"1992-00-00\"^^xsd:dateTime))
-} }  OPTIONAL { ?item wdt:P734 ?lastname. }
+  INCLUDE %i
+  OPTIONAL { ?item wdt:P734 ?lastname. }
   OPTIONAL { ?item wdt:P570 ?deathdate. }
   OPTIONAL { ?item wdt:P27 ?nationality. }
   OPTIONAL { ?item wdt:P21 ?sex. }
@@ -56,17 +100,7 @@ WHERE {
                         ?occupation rdfs:label ?occupationLabel_ . 
                         ?item schema:description ?itemDescription .} 
 } GROUP BY ?item ?itemLabel ?description ?legend ?imageDate ?birthdate ?deathdate ?article""";
-  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?description (SAMPLE(?image_) as ?image) ?legend ?imageDate ?birthdate ?deathdate
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?description (SAMPLE(?image_) as ?image) ?legend ?imageDate ?birthdate ?deathdate
 (GROUP_CONCAT(DISTINCT ?nationalityLabel_;separator=\"; \") as ?nationalityLabel)  
 (GROUP_CONCAT(DISTINCT ?sexLabel_;separator=\"; \") as ?sexLabel)  
 (GROUP_CONCAT(DISTINCT ?occupationLabel_;separator=\"; \") as  ?occupationLabel)
@@ -78,9 +112,7 @@ SELECT ?item ?itemLabel ?description (SAMPLE(?image_) as ?image) ?legend ?imageD
   hint:Prior hint:rangeSafe \"true\"^^xsd:boolean.
   FILTER((\"1991-00-00\"^^xsd:dateTime <= ?birthdate) && (?birthdate < \"1992-00-00\"^^xsd:dateTime))
 } } as %i
-WHERE
-{
-   { SELECT ?item ?itemLabel ?description ?image ?legend ?imageDate ?birthdate ?deathdate ?nationality ?sex ?occupation ?article
+WITH { SELECT ?item ?itemLabel ?description ?image ?legend ?imageDate ?birthdate ?deathdate ?nationality ?sex ?occupation ?article
 WHERE {
   INCLUDE %i
   OPTIONAL { ?item wdt:P734 ?lastname. }
@@ -96,7 +128,11 @@ WHERE {
   }
   ?article schema:about ?item;
       schema:isPartOf <https://en.wikipedia.org/>.
-} } SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+} } as %j
+WHERE
+{
+  INCLUDE %j
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
                         ?nationality rdfs:label ?nationalityLabel_ . 
                         ?item rdfs:label ?itemLabel_ . 
                         ?sex rdfs:label ?sexLabel_ . 

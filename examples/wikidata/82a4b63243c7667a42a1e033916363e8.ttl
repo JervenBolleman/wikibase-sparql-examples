@@ -16,6 +16,33 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?itemLabel ?item ?commonscat WHERE { 
+  hint:Query hint:optimizer \"None\" 
+    {
+      SELECT ?commonscat (COUNT(?item) AS ?count) WHERE {
+          {
+            SELECT ?commonscat WHERE {
+               ?item wdt:P373 ?commonscat .
+            }    GROUP BY ?commonscat
+            HAVING (COUNT(?item) > 4)
+          }
+          ?item wdt:P373 ?commonscat 
+          FILTER NOT EXISTS {?item wdt:P31 wd:Q4167836} .
+       } GROUP BY ?commonscat
+       HAVING (COUNT(?item) > 10)
+   }    
+         
+   ?item wdt:P373 ?commonscat .
+   FILTER NOT EXISTS {?item wdt:P31 wd:Q4167836} .    
+   FILTER NOT EXISTS {?item wdt:P31 wd:Q13406463} .    
+   #FILTER EXISTS {?item wdt:P1435 wd:Q31948690} . 
+
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+} ORDER BY DESC(?count) ?commonscat""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?itemLabel ?item ?commonscat WHERE { 
   
             }    GROUP BY ?commonscat
             HAVING (COUNT(?item) > 4)
@@ -33,11 +60,7 @@ SELECT ?itemLabel ?item ?commonscat WHERE {
 
    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
 } ORDER BY DESC(?count) ?commonscat""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?itemLabel ?item ?commonscat WHERE { 
+  <http://example.org/bigdata_select> """SELECT ?itemLabel ?item ?commonscat WHERE { 
   hint:Query hint:optimizer \"None\" 
     {
       SELECT ?commonscat (COUNT(?item) AS ?count) WHERE {

@@ -28,6 +28,40 @@ SELECT (IRI(concat(\"https://commons.wikimedia.org/wiki/\", ?creatorTemplate)) a
      bd:serviceParam mwapi:gcmdir \"descending\" .
      ?creatorTemplate wikibase:apiOutput mwapi:title  .
   }
+  hint:Prior hint:runFirst 1 . 
+  SERVICE wikibase:mwapi { # get home category
+     bd:serviceParam wikibase:api \"Categories\" .
+     bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+     bd:serviceParam mwapi:titles ?creatorTemplate .
+     bd:serviceParam mwapi:clshow \"!hidden\" .
+     ?category wikibase:apiOutput mwapi:category  .
+  }
+  BIND(substr(?creatorTemplate,9) as ?creatorName ) .
+  BIND(substr(?category,10)       as ?categoryName) .
+  OPTIONAL { 
+    ?commonsCatItem wdt:P373 ?categoryName . # category is linked from Wikidata
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+  }
+  FILTER ( BOUND(?commonsCatItem) ) .
+  FILTER ( ?commonsCatItem!=wd:Q24731821 ) .
+}""",
+    """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT (IRI(concat(\"https://commons.wikimedia.org/wiki/\", ?creatorTemplate)) as ?creatorLink) ?creatorName ?categoryName ?commonsCatItem ?commonsCatItemLabel {
+  SERVICE wikibase:mwapi { # list of all creator templates without Wikidata link
+     bd:serviceParam wikibase:api \"Generator\" .
+     bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+     bd:serviceParam mwapi:gcmtitle \"Category:Creator templates without Wikidata link\" .
+     bd:serviceParam mwapi:generator \"categorymembers\" .
+     bd:serviceParam mwapi:gcmtype \"page\" .
+     bd:serviceParam mwapi:gcmlimit \"max\" .
+     bd:serviceParam mwapi:gcmsort \"timestamp\" .
+     bd:serviceParam mwapi:gcmdir \"descending\" .
+     ?creatorTemplate wikibase:apiOutput mwapi:title  .
+  }
    
   SERVICE wikibase:mwapi { # get home category
      bd:serviceParam wikibase:api \"Categories\" .
@@ -45,12 +79,7 @@ SELECT (IRI(concat(\"https://commons.wikimedia.org/wiki/\", ?creatorTemplate)) a
   FILTER ( BOUND(?commonsCatItem) ) .
   FILTER ( ?commonsCatItem!=wd:Q24731821 ) .
 }""";
-  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT (IRI(concat(\"https://commons.wikimedia.org/wiki/\", ?creatorTemplate)) as ?creatorLink) ?creatorName ?categoryName ?commonsCatItem ?commonsCatItemLabel {
+  <http://example.org/bigdata_select> """SELECT (IRI(concat(\"https://commons.wikimedia.org/wiki/\", ?creatorTemplate)) as ?creatorLink) ?creatorName ?categoryName ?commonsCatItem ?commonsCatItemLabel {
   SERVICE wikibase:mwapi { # list of all creator templates without Wikidata link
      bd:serviceParam wikibase:api \"Generator\" .
      bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .

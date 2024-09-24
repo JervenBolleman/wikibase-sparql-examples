@@ -17,30 +17,6 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?epicenter ?time (SUM(?population) AS ?total_population) (SAMPLE(?place) AS ?sample_place) (SAMPLE(?placeLabel) AS ?sample_placeLabel)
- WHERE {
-  {
-  SELECT * {
-    ?item wdt:P31 wd:Q7944;
-          wdt:P625 ?epicenter;
-          wdt:P585 ?time .
-    #?item wdt:P2527 ?moment FILTER( ?moment >= 7 ) .
-    FILTER( YEAR( NOW() ) - YEAR( ?time ) <= 200 ) .
-    SERVICE wikibase:around {
-      ?place wdt:P625 ?location .
-      bd:serviceParam wikibase:center ?epicenter .
-      bd:serviceParam wikibase:radius 50 .
-    } .
-  }
-} .
-  ?place wdt:P1082 ?population .
-  MINUS { ?place wdt:P150 [] } .
-  SERVICE wikibase:label {
-    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" .
-    ?item rdfs:label ?itemLabel .
-    ?place rdfs:label ?placeLabel .
-  } .
-} GROUP BY ?item ?itemLabel ?epicenter ?time ORDER BY DESC(?total_population)""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?epicenter ?time (SUM(?population) AS ?total_population) (SAMPLE(?place) AS ?sample_place) (SAMPLE(?placeLabel) AS ?sample_placeLabel)
 WITH {
   SELECT * {
     ?item wdt:P31 wd:Q7944;
@@ -70,6 +46,30 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?itemLabel ?epicenter ?time (SUM(?population) AS ?total_population) (SAMPLE(?place) AS ?sample_place) (SAMPLE(?placeLabel) AS ?sample_placeLabel)
+WHERE {
+   {
+  SELECT * {
+    ?item wdt:P31 wd:Q7944;
+          wdt:P625 ?epicenter;
+          wdt:P585 ?time .
+    #?item wdt:P2527 ?moment FILTER( ?moment >= 7 ) .
+    FILTER( YEAR( NOW() ) - YEAR( ?time ) <= 200 ) .
+    SERVICE wikibase:around {
+      ?place wdt:P625 ?location .
+      bd:serviceParam wikibase:center ?epicenter .
+      bd:serviceParam wikibase:radius 50 .
+    } .
+  }
+}.
+  ?place wdt:P1082 ?population .
+  MINUS { ?place wdt:P150 [] } .
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" .
+    ?item rdfs:label ?itemLabel .
+    ?place rdfs:label ?placeLabel .
+  } .
+} GROUP BY ?item ?itemLabel ?epicenter ?time ORDER BY DESC(?total_population)""";
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?epicenter ?time (SUM(?population) AS ?total_population) (SAMPLE(?place) AS ?sample_place) (SAMPLE(?placeLabel) AS ?sample_placeLabel)
 WITH {
   SELECT * {
     ?item wdt:P31 wd:Q7944;

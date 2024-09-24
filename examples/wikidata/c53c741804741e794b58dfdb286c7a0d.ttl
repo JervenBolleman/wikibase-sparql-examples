@@ -21,40 +21,6 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Map
 SELECT DISTINCT ?item ?itemLabel ?pop ?coords ?rgb (?colour AS ?layer) 
 
-
-
-
-WHERE {  
-  ?item wdt:P31/wdt:P279* wd:Q515 .
-  ?item wdt:P17 wd:Q145.
-  ?item wdt:P1082 ?pop .
-  ?item wdt:P625 ?coords .
-  BIND(xsd:float(floor(?pop / 100000)) AS ?colour) .
-  {
-  SELECT ?colour ?rgb WHERE {
-    VALUES ?sequence {wd:Q105849312} .     # desired colour progression
-    VALUES ?n {3} .                        # desired no of points either side of centre -- in this case 3, to give numbers 1 to 7 
-
-    ?sequence p:P527 ?stmt .
-    ?stmt pq:P1545 ?seq .
-    ?stmt pq:P465 ?rgb .
-
-    ?sequence p:P2670/pq:P1114 ?len .
-    BIND(((?len + 1.0)/2.0) AS ?centre) .
-    BIND (floor((?centre - 1.0) / xsd:float(?n)) AS ?step) .
-    BIND (?n + 1.0 + ((xsd:float(?seq) - ?centre)  / xsd:float(?step)) AS ?colour) .
-  
-    FILTER(?colour = floor(?colour))
-    FILTER(?colour >= 1)
-    FILTER(?colour <= 1 + 2* ?n)
-  } ORDER BY ?colour
-} .
-
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-} ORDER BY ?pop""";
-  <http://example.org/bigdata_select> """#defaultView:Map
-SELECT DISTINCT ?item ?itemLabel ?pop ?coords ?rgb (?colour AS ?layer) 
-
 WITH {
   SELECT ?colour ?rgb WHERE {
     VALUES ?sequence {wd:Q105849312} .     # desired colour progression
@@ -94,6 +60,39 @@ PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Map
+SELECT DISTINCT ?item ?itemLabel ?pop ?coords ?rgb (?colour AS ?layer) 
+
+
+
+WHERE {  
+  ?item wdt:P31/wdt:P279* wd:Q515 .
+  ?item wdt:P17 wd:Q145.
+  ?item wdt:P1082 ?pop .
+  ?item wdt:P625 ?coords .
+  BIND(xsd:float(floor(?pop / 100000)) AS ?colour) .
+   {
+  SELECT ?colour ?rgb WHERE {
+    VALUES ?sequence {wd:Q105849312} .     # desired colour progression
+    VALUES ?n {3} .                        # desired no of points either side of centre -- in this case 3, to give numbers 1 to 7 
+
+    ?sequence p:P527 ?stmt .
+    ?stmt pq:P1545 ?seq .
+    ?stmt pq:P465 ?rgb .
+
+    ?sequence p:P2670/pq:P1114 ?len .
+    BIND(((?len + 1.0)/2.0) AS ?centre) .
+    BIND (floor((?centre - 1.0) / xsd:float(?n)) AS ?step) .
+    BIND (?n + 1.0 + ((xsd:float(?seq) - ?centre)  / xsd:float(?step)) AS ?colour) .
+  
+    FILTER(?colour = floor(?colour))
+    FILTER(?colour >= 1)
+    FILTER(?colour <= 1 + 2* ?n)
+  } ORDER BY ?colour
+}.
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY ?pop""";
+  <http://example.org/bigdata_select> """#defaultView:Map
 SELECT DISTINCT ?item ?itemLabel ?pop ?coords ?rgb (?colour AS ?layer) 
 
 WITH {

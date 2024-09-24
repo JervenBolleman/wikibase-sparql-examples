@@ -21,13 +21,60 @@ PREFIX p: <http://www.wikidata.org/prop/>
 #by CamelCaseNick
 prefix commons:<http://commons.wikimedia.org/wiki/Special:FilePath/>
 
-select (?stolperstein as ?item) ?nameImage ?addressImage ?quarterImage where {
+select (?stolperstein as ?item) ?nameImage ?addressImage ?quarterImage with {
+  select distinct ?stolperstein ?nameImage ?addressImage ?quarterImage where {
+    ?stolperstein wdt:P31 wd:Q26703203;
+                  wdt:P131+ wd:Q1055;
+                  wdt:P18 ?image.
+
+    bind(wikibase:decodeUri(replace(str(?image), str(commons:), \"\")) as ?title)
+
+    values (?nameGroup ?addressGroup ?quarterGroup ?regex) {
+      (\"$1\" \"$2\" \"$3\" \"^((?:[\\\\p{L}\\\\d\\\\.]+[\\\\- ])*[\\\\p{L}\\\\d]+) ?[\\\\-–] ((?:(?:\\\\p{L}+\\\\.?[ \\\\-/])*\\\\p{L}+\\\\.?(?: \\\\d+(?:[a-z]| ?[\\\\-–] ?\\\\d+)?)?)) \\\\(([\\\\p{L}\\\\- \\\\.]+)\\\\)(?:\\\\.| )Stolperstein(e| 20\\\\d{2}|\\\\-\\\\d{4}\\\\-\\\\d{2}\\\\-\\\\d{2})?(\\\\.\\\\d+)?(\\\\.(nnw|(crop\\\\.)?ajb|ccn))?\\\\.jpg$\")
+      (\"$2\" \"$1\" \"$3\" \"^(?:Stolpersteine? )?((?:(?:\\\\p{L}+\\\\.?[ \\\\-/])*\\\\p{L}+\\\\.?(?: ?\\\\d+(?: ?[a-zA-Z]|[\\\\-–]\\\\d+)?)?)) \\\\( *((?:[\\\\p{L}\\\\d]+[\\\\-\\\\.,]? ?)*[\\\\p{L}\\\\d]+) *\\\\)(?: ?[Ii]n)? ([\\\\p{L}\\\\. \\\\-]+?)(?: ?\\\\(\\\\d+\\\\)| ?\\\\d+)?(?: ShiftN)?\\\\.(jpg|JPG)$\")
+    }
+
+    filter(regex(?title, ?regex))
+
+    bind(replace(?title, ?regex, ?nameGroup) as ?nameImage)
+    bind(replace(?title, ?regex, ?addressGroup) as ?addressImage)
+    bind(replace(?title, ?regex, ?quarterGroup) as ?quarterImage)
+  }
+} as %matches with {
+  select ?stolperstein ?nameImage ?addressImage ?quarterImage where {
+    include %matches.
+
+    filter exists {
+      ?stolperstein skos:altLabel|rdfs:label ?alias.
+      filter(lang(?alias) = \"de\")
+      filter(regex(?alias, \"Stolperstein für (?!den|die|das)\"))
+
+      filter(?alias = strlang(concat(\"Stolperstein für \", ?nameImage), \"de\"))
+    }
+
+    filter exists {
+      ?stolperstein p:P6375/ps:P6375 ?address.
+      filter(regex(?address, \"^((\\\\p{L}+\\\\.?[ \\\\-/])*\\\\p{L}+\\\\.?( \\\\d+( [a-z])?(( – |/)\\\\d+( [a-z])?)?)?), \\\\d{5} Hamburg$\"))
+
+      bind(replace(?address, \"^((\\\\p{L}+\\\\.?[ \\\\-/])*\\\\p{L}+\\\\.?( \\\\d+( [a-z])?(( – |/)\\\\d+( [a-z])?)?)?), \\\\d{5} Hamburg$\", \"$1\") as ?addr)
+      filter(?addr = strlang(?addressImage, \"de\"))
+    }
+
+    filter exists {
+      ?stolperstein p:P276/ps:P276 ?quarter.
+      ?quarter wdt:P31 wd:Q15830667;
+               skos:altLabel|rdfs:label ?alias.
+      filter(lang(?alias) = \"de\")
+      filter(?alias = strlang(replace(?quarterImage, \"Hamburg \", \"Hamburg-\"), \"de\"))
+    }
+  }
+} as %perfect where {
   include %matches.
   minus {
     include %perfect.
   }
-}""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
@@ -35,6 +82,15 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX p: <http://www.wikidata.org/prop/>
 #by CamelCaseNick
+prefix commons:<http://commons.wikimedia.org/wiki/Special:FilePath/>
+
+select (?stolperstein as ?item) ?nameImage ?addressImage ?quarterImage where {
+  include %matches.
+  minus {
+    include %perfect.
+  }
+}""";
+  <http://example.org/bigdata_select> """#by CamelCaseNick
 prefix commons:<http://commons.wikimedia.org/wiki/Special:FilePath/>
 
 select (?stolperstein as ?item) ?nameImage ?addressImage ?quarterImage with {

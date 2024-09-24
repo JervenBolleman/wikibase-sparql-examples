@@ -15,6 +15,28 @@
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?property ?propertyLabel ?count WITH {
+  SELECT ?property  (count(?predicate) as ?count) WHERE {
+    SERVICE bd:slice {
+      ?item wdt:P31 ?w.
+      bd:serviceParam bd:slice.offset 0 . # Start at item number (not to be confused with QID)
+      bd:serviceParam bd:slice.limit 50000 . # List this many items
+    }
+  {
+  ?item ?predicate ?object .
+  ?property wikibase:claim ?predicate. }
+  hint:Prior hint:runLast true.
+} group by ?property }  as %i
+WHERE
+{
+  INCLUDE %i
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }           
+  filter not exists {?property rdfs:label ?propertyLabel_cy . filter(lang(?propertyLabel_cy)=\"cy\") }     
+  } ORDER BY DESC(?count) limit 100""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?property ?propertyLabel ?count WHERE
 {
    {
@@ -31,11 +53,7 @@ SELECT ?property ?propertyLabel ?count WHERE
 } group by ?property }  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }           
   filter not exists {?property rdfs:label ?propertyLabel_cy . filter(lang(?propertyLabel_cy)=\"cy\") }     
   } ORDER BY DESC(?count) limit 100""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?property ?propertyLabel ?count WITH {
+  <http://example.org/bigdata_select> """SELECT ?property ?propertyLabel ?count WITH {
   SELECT ?property  (count(?predicate) as ?count) WHERE {
     SERVICE bd:slice {
       ?item wdt:P31 ?w.

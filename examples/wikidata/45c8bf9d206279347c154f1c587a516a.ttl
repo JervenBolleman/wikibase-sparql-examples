@@ -18,6 +18,37 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 # All gamepedia URLs 
 SELECT ?item ?itemLabel (SAMPLE(?typeLabel) as ?nature) ?propertyLabel ?url
+WITH {
+  SELECT ?property WHERE {
+    ?property rdf:type wikibase:Property.
+    ?property wikibase:propertyType wikibase:Url .
+  }
+} AS %properties
+WITH {
+  SELECT ?item ?url ?property WHERE {
+    INCLUDE %properties .
+    ?property wikibase:directClaim ?wdt.
+    ?item ?wdt ?url.
+    FILTER regex (STR(?url), \"gamepedia.com\").
+  }
+} AS %items
+WHERE {
+  INCLUDE %items.
+  ?item wdt:P31 ?type.
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+    ?type rdfs:label ?typeLabel.
+    ?item rdfs:label ?itemLabel.
+    ?property rdfs:label ?propertyLabel.
+  }
+} GROUP BY ?item ?itemLabel ?propertyLabel ?url""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# All gamepedia URLs 
+SELECT ?item ?itemLabel (SAMPLE(?typeLabel) as ?nature) ?propertyLabel ?url
 WHERE {
   INCLUDE %items.
   ?item wdt:P31 ?type.
@@ -28,12 +59,7 @@ WHERE {
     ?property rdfs:label ?propertyLabel.
   }
 } GROUP BY ?item ?itemLabel ?propertyLabel ?url""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-# All gamepedia URLs 
+  <http://example.org/bigdata_select> """# All gamepedia URLs 
 SELECT ?item ?itemLabel (SAMPLE(?typeLabel) as ?nature) ?propertyLabel ?url
 WITH {
   SELECT ?property WHERE {

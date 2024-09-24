@@ -27,17 +27,71 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 
 PREFIX gas: <http://www.bigdata.com/rdf/gas#>
 
-SELECT ?item ?itemLabel ?depth ?cnt_properties ?cnt_direct_properties ?cnt_subclasses ?cnt_direct_subclasses WHERE {
-   {
-  SELECT ?item ?depth ?cnt_properties ?cnt_direct_properties ?cnt_subclasses (COUNT(DISTINCT ?subclass_item) AS ?cnt_direct_subclasses) WHERE {
-     {
+SELECT ?item ?itemLabel ?depth ?cnt_properties ?cnt_direct_properties ?cnt_subclasses ?cnt_direct_subclasses WITH {
+  SELECT DISTINCT ?item (xsd:integer(?depth_float) AS ?depth) WHERE {
+    ?item wdt:P279* wd:Q18616576 .
+    SERVICE gas:service {
+      gas:program gas:gasClass 'com.bigdata.rdf.graph.analytics.SSSP';
+                  gas:in wd:Q18616576;
+                  gas:linkType wdt:P279;
+                  gas:traversalDirection 'Reverse';
+                  gas:maxIterations 8;
+                  gas:out ?item;
+                  gas:out1 ?depth_float .
+    }
+  }
+} AS %subquery1 WITH {
+  SELECT ?item ?depth (COUNT(DISTINCT ?property) AS ?cnt_properties) WHERE {
+    INCLUDE %subquery1 .
+    OPTIONAL {
+      ?property wdt:P31/wdt:P279* ?item; wikibase:propertyType [] .
+    }
+  } GROUP BY ?item ?depth
+} AS %subquery2 WITH {
+  SELECT ?item ?depth ?cnt_properties (COUNT(DISTINCT ?property) AS ?cnt_direct_properties) WHERE {
+    INCLUDE %subquery2 .
+    OPTIONAL {
+      ?property wdt:P31/wdt:P279 ?item; wikibase:propertyType [] .
+    }
+  } GROUP BY ?item ?depth ?cnt_properties
+} AS %subquery3 WITH {
   SELECT ?item ?depth ?cnt_properties ?cnt_direct_properties (COUNT(DISTINCT ?subclass_item) AS ?cnt_subclasses) WHERE {
     INCLUDE %subquery3 .
     OPTIONAL {
       ?subclass_item wdt:P279+ ?item .
     }
   } GROUP BY ?item ?depth ?cnt_properties ?cnt_direct_properties
-}.
+} AS %subquery4 WITH {
+  SELECT ?item ?depth ?cnt_properties ?cnt_direct_properties ?cnt_subclasses (COUNT(DISTINCT ?subclass_item) AS ?cnt_direct_subclasses) WHERE {
+    INCLUDE %subquery4 .
+    OPTIONAL {
+      ?subclass_item wdt:P279 ?item .
+    }
+  } GROUP BY ?item ?depth ?cnt_properties ?cnt_direct_properties ?cnt_subclasses
+} AS %subquery5 WHERE {
+  INCLUDE %subquery5 .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+} ORDER BY ASC(?depth) DESC(?cnt_properties) DESC(?cnt_subclasses)""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# columns:
+# ?item -- Wikidata item that is a direct or indirect subclass of Q18616576 (\"Wikidata property\"); these items are used on property pages via P31
+# ?itemLabel -- English label of said item
+# ?depth -- hierarchy along the P279 tree below Q18616576; e.g. ?depth=2 means \"subclass of an item that is subclass of Q18616576\"
+# ?cnt_properties -- number of property pages that use the item or direct or indirect subclasses of it via P31
+# ?cnt_direct_properties -- number of property pages that use the item via P31 (i.e. no subclass usage)
+# ?cnt_subclasses -- number of subclass items (direct or indirect) to the item
+# ?cnt_direct_subclasses -- number of direct subclass items to the item
+
+PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+
+SELECT ?item ?itemLabel ?depth ?cnt_properties ?cnt_direct_properties ?cnt_subclasses ?cnt_direct_subclasses WHERE {
+   {
+  SELECT ?item ?depth ?cnt_properties ?cnt_direct_properties ?cnt_subclasses (COUNT(DISTINCT ?subclass_item) AS ?cnt_direct_subclasses) WHERE {
+    INCLUDE %subquery4 .
     OPTIONAL {
       ?subclass_item wdt:P279 ?item .
     }
@@ -45,12 +99,7 @@ SELECT ?item ?itemLabel ?depth ?cnt_properties ?cnt_direct_properties ?cnt_subcl
 }.
   SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
 } ORDER BY ASC(?depth) DESC(?cnt_properties) DESC(?cnt_subclasses)""";
-  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-# columns:
+  <http://example.org/bigdata_select> """# columns:
 # ?item -- Wikidata item that is a direct or indirect subclass of Q18616576 (\"Wikidata property\"); these items are used on property pages via P31
 # ?itemLabel -- English label of said item
 # ?depth -- hierarchy along the P279 tree below Q18616576; e.g. ?depth=2 means \"subclass of an item that is subclass of Q18616576\"
@@ -95,14 +144,14 @@ SELECT ?item ?itemLabel ?depth ?cnt_properties ?cnt_direct_properties ?cnt_subcl
       ?subclass_item wdt:P279+ ?item .
     }
   } GROUP BY ?item ?depth ?cnt_properties ?cnt_direct_properties
-} AS %subquery4 WHERE {
-   {
+} AS %subquery4 WITH {
   SELECT ?item ?depth ?cnt_properties ?cnt_direct_properties ?cnt_subclasses (COUNT(DISTINCT ?subclass_item) AS ?cnt_direct_subclasses) WHERE {
     INCLUDE %subquery4 .
     OPTIONAL {
       ?subclass_item wdt:P279 ?item .
     }
   } GROUP BY ?item ?depth ?cnt_properties ?cnt_direct_properties ?cnt_subclasses
-}.
+} AS %subquery5 WHERE {
+  INCLUDE %subquery5 .
   SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
 } ORDER BY ASC(?depth) DESC(?cnt_properties) DESC(?cnt_subclasses)""" .

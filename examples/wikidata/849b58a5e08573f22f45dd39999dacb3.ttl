@@ -11,10 +11,54 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
-PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?place ?placeLabel ((ROUND (100 * ?dist) / 100) AS ?distance)  ?placeDescription ?coord ?image
+WITH {SELECT DISTINCT ?place (SAMPLE(?coords) as ?coord) (SAMPLE(?image_) AS ?image)
+
+          WHERE {
+              SERVICE wikibase:around {
+                ?place wdt:P625 ?coords.
+                                bd:serviceParam wikibase:center 'Point(-3.2485 37.5873)'^^geo:wktLiteral.
+                bd:serviceParam wikibase:radius '70'. }
+              { ?place (wdt:P31/(wdt:P279*)) wd:Q386426. }
+              UNION
+              { ?place (wdt:P31/(wdt:P279*)) wd:Q20671979. }
+              UNION
+              {
+                VALUES ?prop { wdt:P677 wdt:P757 wdt:P809 wdt:P1732 wdt:P1848 wdt:P2467
+	            wdt:P2516 wdt:P2520 wdt:P2525 wdt:P2584 wdt:P2621 wdt:P2763
+	              wdt:P3009 wdt:P3296 wdt:P3327 wdt:P3401 wdt:P3412 wdt:P3425
+	              wdt:P3498 wdt:P3515 wdt:P3516 wdt:P3609 wdt:P3613 wdt:P3810
+	              wdt:P3974 wdt:P4001 wdt:P4029 wdt:P4083 wdt:P4154 wdt:P4171
+	              wdt:P4170 wdt:P4172 wdt:P4182 wdt:P4190 wdt:P4762 wdt:P4800
+	              wdt:P4977 wdt:P5965 wdt:P6070 wdt:P6230 wdt:P6280 wdt:P6478
+	              wdt:P6560 wdt:P6602 wdt:P6659 wdt:P6700 wdt:P7129 wdt:P7308
+	              wdt:P8114 wdt:P9516 wdt:P9552 wdt:P9755 wdt:P10015 wdt:P10392 wdt:P10513 wdt:P10514 }
+                ?place ?prop ?natural.
+              }
+            OPTIONAL { ?place wdt:P18 ?image_. }
+            OPTIONAL { ?place wdt:P17 ?country. }
+
+            FILTER NOT EXISTS {?place wdt:P582 ?bar.}
+            FILTER NOT EXISTS {?place wdt:P576 ?bar.}
+            }
+            GROUP BY ?place 
+} as %i
+WHERE
+{
+  INCLUDE %i
+  BIND(geof:distance(\"Point(-3.2485 37.5873 )\"^^geo:wktLiteral, ?coord) AS ?dist)
+  SERVICE wikibase:label {  bd:serviceParam wikibase:language 'es,en'.}
+  } ORDER BY ?dist""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
 PREFIX geo: <http://www.opengis.net/ont/geosparql#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT DISTINCT ?place ?placeLabel ((ROUND (100 * ?dist) / 100) AS ?distance)  ?placeDescription ?coord ?image
@@ -53,13 +97,7 @@ WHERE
 }  BIND(geof:distance(\"Point(-3.2485 37.5873 )\"^^geo:wktLiteral, ?coord) AS ?dist)
   SERVICE wikibase:label {  bd:serviceParam wikibase:language 'es,en'.}
   } ORDER BY ?dist""";
-  <http://example.org/bigdata_select> """PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX geo: <http://www.opengis.net/ont/geosparql#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?place ?placeLabel ((ROUND (100 * ?dist) / 100) AS ?distance)  ?placeDescription ?coord ?image
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?place ?placeLabel ((ROUND (100 * ?dist) / 100) AS ?distance)  ?placeDescription ?coord ?image
 WITH {SELECT DISTINCT ?place (SAMPLE(?coords) as ?coord) (SAMPLE(?image_) AS ?image)
 
           WHERE {

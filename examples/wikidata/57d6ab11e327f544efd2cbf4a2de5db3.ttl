@@ -28,40 +28,6 @@ SELECT DISTINCT
 
   ?example_work ?example_workLabel
   (CONCAT(\"#work/\", SUBSTR(STR(?example_work), 32)) AS ?example_workUrl)
-
-WHERE {
-  {
-  SELECT
-    (COUNT(DISTINCT ?work) AS ?collaborations)
-    ?author1
-    (SAMPLE(?author2) AS ?example_author2)
-    (SAMPLE(?work) AS ?example_work)
-  WHERE {
-    ?author1 (wdt:P1416| wdt:P108) target1: .
-    ?author2 (wdt:P1416 | wdt:P108) target2: .
-    ?work wdt:P50 ?author1, ?author2 .
-    FILTER (STR(?author1) < STR(?author2))
-  }
-  GROUP BY ?author1
-}
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
-}
-ORDER BY DESC(?collaborations)
-LIMIT 500""";
-  <http://example.org/bigdata_select> """PREFIX target1: <http://www.wikidata.org/entity/Q1269766>
-PREFIX target2: <http://www.wikidata.org/entity/Q193196>
-
-SELECT DISTINCT
-  ?collaborations
-
-  ?author1 ?author1Label
-  (CONCAT(\"#author/\", SUBSTR(STR(?author1), 32)) AS ?author1Url)
-
-  ?example_author2 ?example_author2Label
-  (CONCAT(\"#author/\", SUBSTR(STR(?example_author2), 32)) AS ?example_author2Url)
-
-  ?example_work ?example_workLabel
-  (CONCAT(\"#work/\", SUBSTR(STR(?example_work), 32)) AS ?example_workUrl)
 WITH {
   SELECT
     (COUNT(DISTINCT ?work) AS ?collaborations)
@@ -86,6 +52,38 @@ LIMIT 500""",
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX target1: <http://www.wikidata.org/entity/Q1269766>
+PREFIX target2: <http://www.wikidata.org/entity/Q193196>
+
+SELECT DISTINCT
+  ?collaborations
+
+  ?author1 ?author1Label
+  (CONCAT(\"#author/\", SUBSTR(STR(?author1), 32)) AS ?author1Url)
+
+  ?example_author2 ?example_author2Label
+  (CONCAT(\"#author/\", SUBSTR(STR(?example_author2), 32)) AS ?example_author2Url)
+
+  ?example_work ?example_workLabel
+  (CONCAT(\"#work/\", SUBSTR(STR(?example_work), 32)) AS ?example_workUrl)
+WHERE {
+   {
+  SELECT
+    (COUNT(DISTINCT ?work) AS ?collaborations)
+    ?author1
+    (SAMPLE(?author2) AS ?example_author2)
+    (SAMPLE(?work) AS ?example_work)
+  WHERE {
+    ?author1 (wdt:P1416| wdt:P108) target1: .
+    ?author2 (wdt:P1416 | wdt:P108) target2: .
+    ?work wdt:P50 ?author1, ?author2 .
+    FILTER (STR(?author1) < STR(?author2))
+  }
+  GROUP BY ?author1
+}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY DESC(?collaborations)
+LIMIT 500""";
+  <http://example.org/bigdata_select> """PREFIX target1: <http://www.wikidata.org/entity/Q1269766>
 PREFIX target2: <http://www.wikidata.org/entity/Q193196>
 
 SELECT DISTINCT

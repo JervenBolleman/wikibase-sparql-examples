@@ -11,7 +11,7 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -101,8 +101,8 @@ SELECT ?item ?itemLabel ?publishedIn ?year ?month ?month_int ?day  ?authorLabel 
   INCLUDE %j
   INCLUDE %k
   BIND((?countP50 + ?countP2093) AS ?authors)
-}""";
-  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+}""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -112,7 +112,10 @@ PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
-emLabel ?publishedIn ?year ?month ?month_int ?day ?authorLabel ?author2Label WHERE 
+SELECT ?item ?itemLabel ?publishedIn ?year ?month ?month_int ?day  ?authorLabel ?author2Label ?authors WHERE
+{
+   { 
+  SELECT ?item ?itemLabel ?publishedIn ?year ?month ?month_int ?day ?authorLabel ?author2Label WHERE 
   {
     ?item wdt:P921 wd:Q30 .
     ?item wdt:P31 wd:Q13442814 .
@@ -173,5 +176,222 @@ emLabel ?publishedIn ?year ?month ?month_int ?day ?authorLabel ?author2Label WHE
               ?month_ rdfs:label ?month . filter(lang(?month)=\"en\")  
               }
   } 
+}   { 
+  SELECT ?item (COUNT(?authorP50) as ?countP50) WHERE 
+  {
+     { 
+  SELECT ?item ?itemLabel ?publishedIn ?year ?month ?month_int ?day ?authorLabel ?author2Label WHERE 
+  {
+    ?item wdt:P921 wd:Q30 .
+    ?item wdt:P31 wd:Q13442814 .
+    filter not exists {?item schema:description ?desc_en . filter(lang(?desc_en)=\"en\")}                 
+  
+    OPTIONAL {?item p:P50 ?stat . 
+      ?stat ps:P50 ?author. 
+      ?stat pq:P1545 \"1\"^^xsd:string . 
+      ?author rdfs:label ?authorLabel . filter(lang(?authorLabel)=\"en\")  
+    }
+  
+    OPTIONAL {?item p:P2093 ?stat2 . 
+      ?stat2 ps:P2093 ?authorLabel. 
+      ?stat2 pq:P1545 \"1\"^^xsd:string .
+    }
+    
+    OPTIONAL {?item p:P50 ?stat3 . 
+      ?stat3 ps:P50 ?author2. 
+      ?stat3 pq:P1545 \"2\"^^xsd:string . 
+      ?author2 rdfs:label ?author2Label . filter(lang(?author2Label)=\"en\")  
+    }
+  
+    OPTIONAL {?item p:P2093 ?stat4 . 
+      ?stat4 ps:P2093 ?author2Label. 
+      ?stat4 pq:P1545 \"2\"^^xsd:string .
+    }
+  
+    OPTIONAL {?item rdfs:label ?itemLabel . filter(lang(?itemLabel)=\"en\") }
+    OPTIONAL {?item wdt:P1433/rdfs:label ?publishedIn . filter(lang(?publishedIn)=\"en\") }
+ 
+    OPTIONAL {?item p:P577/psv:P577 ?pub_date_node .
+             ?pub_date_node wikibase:timePrecision \"9\"^^xsd:integer .
+             ?pub_date_node wikibase:timeValue ?date9 . 
+             BIND(YEAR(?date9) as ?year) }
+
+    OPTIONAL {?item p:P577/psv:P577 ?pub_date_node2 .
+             ?pub_date_node2 wikibase:timePrecision \"10\"^^xsd:integer .
+             ?pub_date_node2 wikibase:timeValue ?date10 . 
+             BIND(YEAR(?date10) as ?year) 
+             BIND(MONTH(?date10) as ?month_int_) 
+             ?month_ p:P279 ?month_stat . 
+             ?month_stat ps:P279 wd:Q18602249.
+             BIND(xsd:string(?month_int_) as ?month_int)
+             ?month_stat pq:P1545 ?month_int .
+             ?month_ rdfs:label ?month . filter(lang(?month)=\"en\")  
+              }
+
+    OPTIONAL {?item p:P577/psv:P577 ?pub_date_node3 .
+              ?pub_date_node3 wikibase:timePrecision \"11\"^^xsd:integer .
+              ?pub_date_node3 wikibase:timeValue ?date11 . 
+              BIND(YEAR(?date11) as ?year) 
+              BIND(MONTH(?date11) as ?month_int_) 
+              BIND(DAY(?date11) as ?day)
+              ?month_ p:P279 ?month_stat . 
+              ?month_stat ps:P279 wd:Q18602249.
+              BIND(xsd:string(?month_int_) as ?month_int)
+              ?month_stat pq:P1545 ?month_int .
+              ?month_ rdfs:label ?month . filter(lang(?month)=\"en\")  
+              }
+  } 
+}       
+    OPTIONAL {?item wdt:P50 ?authorP50 . }
+  } group by ?item 
+}   { 
+  SELECT ?item (COUNT(?authorP2093) as ?countP2093) WHERE 
+  {
+     { 
+  SELECT ?item ?itemLabel ?publishedIn ?year ?month ?month_int ?day ?authorLabel ?author2Label WHERE 
+  {
+    ?item wdt:P921 wd:Q30 .
+    ?item wdt:P31 wd:Q13442814 .
+    filter not exists {?item schema:description ?desc_en . filter(lang(?desc_en)=\"en\")}                 
+  
+    OPTIONAL {?item p:P50 ?stat . 
+      ?stat ps:P50 ?author. 
+      ?stat pq:P1545 \"1\"^^xsd:string . 
+      ?author rdfs:label ?authorLabel . filter(lang(?authorLabel)=\"en\")  
+    }
+  
+    OPTIONAL {?item p:P2093 ?stat2 . 
+      ?stat2 ps:P2093 ?authorLabel. 
+      ?stat2 pq:P1545 \"1\"^^xsd:string .
+    }
+    
+    OPTIONAL {?item p:P50 ?stat3 . 
+      ?stat3 ps:P50 ?author2. 
+      ?stat3 pq:P1545 \"2\"^^xsd:string . 
+      ?author2 rdfs:label ?author2Label . filter(lang(?author2Label)=\"en\")  
+    }
+  
+    OPTIONAL {?item p:P2093 ?stat4 . 
+      ?stat4 ps:P2093 ?author2Label. 
+      ?stat4 pq:P1545 \"2\"^^xsd:string .
+    }
+  
+    OPTIONAL {?item rdfs:label ?itemLabel . filter(lang(?itemLabel)=\"en\") }
+    OPTIONAL {?item wdt:P1433/rdfs:label ?publishedIn . filter(lang(?publishedIn)=\"en\") }
+ 
+    OPTIONAL {?item p:P577/psv:P577 ?pub_date_node .
+             ?pub_date_node wikibase:timePrecision \"9\"^^xsd:integer .
+             ?pub_date_node wikibase:timeValue ?date9 . 
+             BIND(YEAR(?date9) as ?year) }
+
+    OPTIONAL {?item p:P577/psv:P577 ?pub_date_node2 .
+             ?pub_date_node2 wikibase:timePrecision \"10\"^^xsd:integer .
+             ?pub_date_node2 wikibase:timeValue ?date10 . 
+             BIND(YEAR(?date10) as ?year) 
+             BIND(MONTH(?date10) as ?month_int_) 
+             ?month_ p:P279 ?month_stat . 
+             ?month_stat ps:P279 wd:Q18602249.
+             BIND(xsd:string(?month_int_) as ?month_int)
+             ?month_stat pq:P1545 ?month_int .
+             ?month_ rdfs:label ?month . filter(lang(?month)=\"en\")  
+              }
+
+    OPTIONAL {?item p:P577/psv:P577 ?pub_date_node3 .
+              ?pub_date_node3 wikibase:timePrecision \"11\"^^xsd:integer .
+              ?pub_date_node3 wikibase:timeValue ?date11 . 
+              BIND(YEAR(?date11) as ?year) 
+              BIND(MONTH(?date11) as ?month_int_) 
+              BIND(DAY(?date11) as ?day)
+              ?month_ p:P279 ?month_stat . 
+              ?month_stat ps:P279 wd:Q18602249.
+              BIND(xsd:string(?month_int_) as ?month_int)
+              ?month_stat pq:P1545 ?month_int .
+              ?month_ rdfs:label ?month . filter(lang(?month)=\"en\")  
+              }
+  } 
+}       
+    OPTIONAL {?item wdt:P2093 ?authorP2093 . }
+  } group by ?item 
 }  BIND((?countP50 + ?countP2093) AS ?authors)
+}""";
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?publishedIn ?year ?month ?month_int ?day  ?authorLabel ?author2Label ?authors WITH { 
+  SELECT ?item ?itemLabel ?publishedIn ?year ?month ?month_int ?day ?authorLabel ?author2Label WHERE 
+  {
+    ?item wdt:P921 wd:Q30 .
+    ?item wdt:P31 wd:Q13442814 .
+    filter not exists {?item schema:description ?desc_en . filter(lang(?desc_en)=\"en\")}                 
+  
+    OPTIONAL {?item p:P50 ?stat . 
+      ?stat ps:P50 ?author. 
+      ?stat pq:P1545 \"1\"^^xsd:string . 
+      ?author rdfs:label ?authorLabel . filter(lang(?authorLabel)=\"en\")  
+    }
+  
+    OPTIONAL {?item p:P2093 ?stat2 . 
+      ?stat2 ps:P2093 ?authorLabel. 
+      ?stat2 pq:P1545 \"1\"^^xsd:string .
+    }
+    
+    OPTIONAL {?item p:P50 ?stat3 . 
+      ?stat3 ps:P50 ?author2. 
+      ?stat3 pq:P1545 \"2\"^^xsd:string . 
+      ?author2 rdfs:label ?author2Label . filter(lang(?author2Label)=\"en\")  
+    }
+  
+    OPTIONAL {?item p:P2093 ?stat4 . 
+      ?stat4 ps:P2093 ?author2Label. 
+      ?stat4 pq:P1545 \"2\"^^xsd:string .
+    }
+  
+    OPTIONAL {?item rdfs:label ?itemLabel . filter(lang(?itemLabel)=\"en\") }
+    OPTIONAL {?item wdt:P1433/rdfs:label ?publishedIn . filter(lang(?publishedIn)=\"en\") }
+ 
+    OPTIONAL {?item p:P577/psv:P577 ?pub_date_node .
+             ?pub_date_node wikibase:timePrecision \"9\"^^xsd:integer .
+             ?pub_date_node wikibase:timeValue ?date9 . 
+             BIND(YEAR(?date9) as ?year) }
+
+    OPTIONAL {?item p:P577/psv:P577 ?pub_date_node2 .
+             ?pub_date_node2 wikibase:timePrecision \"10\"^^xsd:integer .
+             ?pub_date_node2 wikibase:timeValue ?date10 . 
+             BIND(YEAR(?date10) as ?year) 
+             BIND(MONTH(?date10) as ?month_int_) 
+             ?month_ p:P279 ?month_stat . 
+             ?month_stat ps:P279 wd:Q18602249.
+             BIND(xsd:string(?month_int_) as ?month_int)
+             ?month_stat pq:P1545 ?month_int .
+             ?month_ rdfs:label ?month . filter(lang(?month)=\"en\")  
+              }
+
+    OPTIONAL {?item p:P577/psv:P577 ?pub_date_node3 .
+              ?pub_date_node3 wikibase:timePrecision \"11\"^^xsd:integer .
+              ?pub_date_node3 wikibase:timeValue ?date11 . 
+              BIND(YEAR(?date11) as ?year) 
+              BIND(MONTH(?date11) as ?month_int_) 
+              BIND(DAY(?date11) as ?day)
+              ?month_ p:P279 ?month_stat . 
+              ?month_stat ps:P279 wd:Q18602249.
+              BIND(xsd:string(?month_int_) as ?month_int)
+              ?month_stat pq:P1545 ?month_int .
+              ?month_ rdfs:label ?month . filter(lang(?month)=\"en\")  
+              }
+  } 
+} as %i WITH { 
+  SELECT ?item (COUNT(?authorP50) as ?countP50) WHERE 
+  {
+    include %i        
+    OPTIONAL {?item wdt:P50 ?authorP50 . }
+  } group by ?item 
+} as %j WITH { 
+  SELECT ?item (COUNT(?authorP2093) as ?countP2093) WHERE 
+  {
+    include %i        
+    OPTIONAL {?item wdt:P2093 ?authorP2093 . }
+  } group by ?item 
+} as %k WHERE
+{
+  INCLUDE %i
+  INCLUDE %j
+  INCLUDE %k
+  BIND((?countP50 + ?countP2093) AS ?authors)
 }""" .

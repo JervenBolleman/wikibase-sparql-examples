@@ -1,0 +1,62 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d979b1646a75150776e980aea5b3e148> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment "TODO"@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:ExLibris-Primo>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#New Zealand writers
+SELECT DISTINCT 
+   ?academic 
+   ?academicLabel 
+   ?academicDescription 
+   ?academicAltLabel 
+   (GROUP_CONCAT(DISTINCT ?lccnurl; SEPARATOR = \";\") AS ?LCCN_urls)
+   (GROUP_CONCAT(DISTINCT ?viafurl; SEPARATOR = \";\") AS ?VIAF_urls)
+   (GROUP_CONCAT(DISTINCT ?dob; SEPARATOR = \";\") AS ?DOBs)
+   (GROUP_CONCAT(DISTINCT ?dod; SEPARATOR = \";\") AS ?DODs)
+   (GROUP_CONCAT(DISTINCT ?komurl; SEPARATOR = \";\") AS ?Kōmako_ID_urls)
+   WHERE {
+         
+   ?academic wdt:P31 wd:Q5 . # academic is a person
+   {
+      ?academic wdt:P27 wd:Q664 .  # citizen of New Zealand
+    } UNION {
+      ?academic wdt:P551 wd:Q664 .  # residence of New Zealand
+   } 
+     
+   {
+      ?academic wdt:P106 wd:Q15949613 . #occupation short story writer
+   } UNION {
+      ?academic wdt:P106 wd:Q6625963 . #occupation novelist
+   } UNION {
+      ?academic wdt:P106 wd:Q49757 . #occupation poet
+   } UNION {
+      ?academic wdt:P106 wd:Q36180 . #occupation writer
+   } UNION {
+      VALUES ?type {wd:Q571 wd:Q7725634 wd:Q8261} . # book literary work or novel
+      ?item wdt:P31 ?type .
+      ?item wdt:P50 ?academic .
+   } UNION {
+      ?academic wdt:P12702 ?komid .
+   }
+     
+   OPTIONAL { ?academic wdt:P569 ?dob . } .   
+   OPTIONAL { ?academic wdt:P570 ?dod . } .   
+
+   OPTIONAL { ?academic wdt:P244 ?lccn .  BIND( IRI(CONCAT('https://lccn.loc.gov/', STR(?lccn)))  AS ?lccnurl ) .   } . 
+   OPTIONAL { ?academic wdt:P214 ?viaf .  BIND( IRI(CONCAT('https://viaf.org/viaf/', STR(?viaf)))  AS ?viafurl ) . } . 
+   OPTIONAL { ?academic wdt:P12702 ?komid .  BIND( IRI(CONCAT('https://www.komako.org.nz/person/', STR(?komid)))  AS ?komurl ) . } . 
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\" }
+}
+GROUP BY ?academic  ?academicLabel   ?academicDescription   ?academicAltLabel""" .

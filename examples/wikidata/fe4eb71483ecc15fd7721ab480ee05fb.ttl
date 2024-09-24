@@ -20,25 +20,29 @@ DISTINCT
 (REPLACE(STR(?item), \".*Q\", \"Q\") AS ?qid) 
 (\"P6104\" AS ?property)
 (\"Q56241615\" AS ?WikiProjectQID)
-WHERE {
-   {
-  SELECT DISTINCT ?item ?title {
-     {
+WITH {
   SELECT DISTINCT ?taxon {
     SERVICE bd:sample { ?taxon wdt:P6104 wd:Q56241615 . bd:serviceParam bd:sample.limit 20000 }
     ?taxon wdt:P105 wd:Q7432 .
   }
-}    ?taxon wdt:P225 ?taxonname .
+} AS %taxa
+WITH {
+  SELECT DISTINCT ?item ?title {
+    INCLUDE %taxa
+    ?taxon wdt:P225 ?taxonname .
     ?item wdt:P921 ?taxon ;
           wdt:P1476 ?title .
     MINUS {?item wdt:P6104 wd:Q56241615 }
     FILTER REGEX(LCASE(?title), LCASE(?taxonname)).
   }
-}  FILTER REGEX(LCASE(?title), \"\\\\b(invasive|non(.?)native|invasion|exotic\\\\b|introduced)\").
+} AS %papers
+WHERE {
+  INCLUDE %papers
+  FILTER REGEX(LCASE(?title), \"\\\\b(invasive|non(.?)native|invasion|exotic\\\\b|introduced)\").
   FILTER REGEX(LCASE(?title), \"(idae|ceae)\\\\b\").
   FILTER (!REGEX(LCASE(?title), \"(\\\\b(minimally|disease|cancer|patho|escherichia|coli|medic|clinic|epidem|infectio|virus|protein|cell|non-invasive|mutant)|cell)\")).
-}""";
-  <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+}""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT 
@@ -47,12 +51,6 @@ DISTINCT
 (REPLACE(STR(?item), \".*Q\", \"Q\") AS ?qid) 
 (\"P6104\" AS ?property)
 (\"Q56241615\" AS ?WikiProjectQID)
-WITH {
-  SELECT DISTINCT ?taxon {
-    SERVICE bd:sample { ?taxon wdt:P6104 wd:Q56241615 . bd:serviceParam bd:sample.limit 20000 }
-    ?taxon wdt:P105 wd:Q7432 .
-  }
-} AS %taxa
 WHERE {
    {
   SELECT DISTINCT ?item ?title {
@@ -64,6 +62,34 @@ WHERE {
     FILTER REGEX(LCASE(?title), LCASE(?taxonname)).
   }
 }  FILTER REGEX(LCASE(?title), \"\\\\b(invasive|non(.?)native|invasion|exotic\\\\b|introduced)\").
+  FILTER REGEX(LCASE(?title), \"(idae|ceae)\\\\b\").
+  FILTER (!REGEX(LCASE(?title), \"(\\\\b(minimally|disease|cancer|patho|escherichia|coli|medic|clinic|epidem|infectio|virus|protein|cell|non-invasive|mutant)|cell)\")).
+}""";
+  <http://example.org/bigdata_select> """SELECT 
+DISTINCT
+?item ?title
+(REPLACE(STR(?item), \".*Q\", \"Q\") AS ?qid) 
+(\"P6104\" AS ?property)
+(\"Q56241615\" AS ?WikiProjectQID)
+WITH {
+  SELECT DISTINCT ?taxon {
+    SERVICE bd:sample { ?taxon wdt:P6104 wd:Q56241615 . bd:serviceParam bd:sample.limit 20000 }
+    ?taxon wdt:P105 wd:Q7432 .
+  }
+} AS %taxa
+WITH {
+  SELECT DISTINCT ?item ?title {
+    INCLUDE %taxa
+    ?taxon wdt:P225 ?taxonname .
+    ?item wdt:P921 ?taxon ;
+          wdt:P1476 ?title .
+    MINUS {?item wdt:P6104 wd:Q56241615 }
+    FILTER REGEX(LCASE(?title), LCASE(?taxonname)).
+  }
+} AS %papers
+WHERE {
+  INCLUDE %papers
+  FILTER REGEX(LCASE(?title), \"\\\\b(invasive|non(.?)native|invasion|exotic\\\\b|introduced)\").
   FILTER REGEX(LCASE(?title), \"(idae|ceae)\\\\b\").
   FILTER (!REGEX(LCASE(?title), \"(\\\\b(minimally|disease|cancer|patho|escherichia|coli|medic|clinic|epidem|infectio|virus|protein|cell|non-invasive|mutant)|cell)\")).
 }""" .

@@ -19,6 +19,32 @@ SELECT ?item ?itemLabel ?instance_of ?instance_ofLabel
 WHERE
 {
   BIND ( \"10.1023/A\" as ?search_string )
+  hint:Query hint:optimizer \"None\".  
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam mwapi:generator \"search\" .
+    bd:serviceParam mwapi:gsrsearch ?search_string .
+    bd:serviceParam mwapi:gsrlimit \"max\" .    
+    bd:serviceParam mwapi:gsrnamespace \"0\" .    
+    ?item wikibase:apiOutputItem mwapi:title  .
+  }
+  FILTER( BOUND(?item) )
+  ?item wdt:P356 ?doi 
+  FILTER ( CONTAINS(?doi, ?search_string) )
+  FILTER NOT EXISTS { ?item wdt:P1476 [] }   
+  OPTIONAL { ?item wdt:P31 ?instance_of }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}""",
+    """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?instance_of ?instance_ofLabel
+WHERE
+{
+  BIND ( \"10.1023/A\" as ?search_string )
     
   SERVICE wikibase:mwapi
   {
@@ -37,11 +63,7 @@ WHERE
   OPTIONAL { ?item wdt:P31 ?instance_of }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
 }""";
-  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?instance_of ?instance_ofLabel
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?instance_of ?instance_ofLabel
 WHERE
 {
   BIND ( \"10.1023/A\" as ?search_string )

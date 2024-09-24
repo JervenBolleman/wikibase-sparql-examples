@@ -19,11 +19,7 @@ SELECT
   ?count
   (CONCAT('https://scholia.toolforge.org/taxon/', ENCODE_FOR_URI(REPLACE(STR(?topic), \".*Q\", \"Q\")), '/curation') AS ?taxon_curation) 
 
-
-WHERE {
-   {
-  SELECT DISTINCT ?topic ?speciesname ?count WHERE {
-     {
+WITH {
   SELECT DISTINCT ?topic 
   (COUNT(?paper) AS ?count)
   WHERE {
@@ -31,7 +27,41 @@ WHERE {
          wdt:P921 ?topic .
   }  
   GROUP BY ?topic ?count
-}  ?topic wdt:P225 ?speciesname ;
+} AS %papers
+WITH {
+  SELECT DISTINCT ?topic ?speciesname ?count WHERE {
+    INCLUDE %papers
+  ?topic wdt:P225 ?speciesname ;
+         wdt:P105 wd:Q7432 .
+
+  }
+  GROUP BY ?topic ?speciesname ?count
+#  HAVING (?count > 25)
+  
+} AS %species
+
+WHERE {
+  INCLUDE %species
+  ?topic wdt:P171* ?kingdom .
+  ?kingdom wdt:P105 wd:Q36732;
+         wdt:P225 ?kingdomname .
+}
+GROUP BY ?topic ?kingdomname ?speciesname ?count ?taxon_curation
+ORDER BY ASC(?kingdomname) DESC(?count)""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT 
+  DISTINCT 
+  ?topic ?kingdomname ?speciesname
+  ?count
+  (CONCAT('https://scholia.toolforge.org/taxon/', ENCODE_FOR_URI(REPLACE(STR(?topic), \".*Q\", \"Q\")), '/curation') AS ?taxon_curation) 
+
+
+WHERE {
+   {
+  SELECT DISTINCT ?topic ?speciesname ?count WHERE {
+    INCLUDE %papers
+  ?topic wdt:P225 ?speciesname ;
          wdt:P105 wd:Q7432 .
 
   }
@@ -44,9 +74,7 @@ WHERE {
 }
 GROUP BY ?topic ?kingdomname ?speciesname ?count ?taxon_curation
 ORDER BY ASC(?kingdomname) DESC(?count)""";
-  <http://example.org/bigdata_select> """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-SELECT 
+  <http://example.org/bigdata_select> """SELECT 
   DISTINCT 
   ?topic ?kingdomname ?speciesname
   ?count
@@ -61,9 +89,7 @@ WITH {
   }  
   GROUP BY ?topic ?count
 } AS %papers
-
-WHERE {
-   {
+WITH {
   SELECT DISTINCT ?topic ?speciesname ?count WHERE {
     INCLUDE %papers
   ?topic wdt:P225 ?speciesname ;
@@ -73,7 +99,11 @@ WHERE {
   GROUP BY ?topic ?speciesname ?count
 #  HAVING (?count > 25)
   
-}  ?topic wdt:P171* ?kingdom .
+} AS %species
+
+WHERE {
+  INCLUDE %species
+  ?topic wdt:P171* ?kingdom .
   ?kingdom wdt:P105 wd:Q36732;
          wdt:P225 ?kingdomname .
 }

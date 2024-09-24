@@ -11,14 +11,93 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
-  sh:select """PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
-PREFIX wikibase: <http://wikiba.se/ontology#>
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#title:line-map of rivers based on distance to the mouth
+#defaultView:Map
+SELECT ?seq ?item ?itemLabel ?coord2 ?line ?riverLabel (?river AS ?layer)
+
+WITH {
+  SELECT DISTINCT ?river ?mouthlat ?mouthlong ?coord WHERE { 
+      ?river p:P403 ?stat. 
+      ?river wdt:P131/wdt:P131 wd:Q22 .
+      ?stat pq:P625 ?coord .                            # get the coords for the main river  
+      ?stat pqv:P625/wikibase:geoLatitude ?mouthlat. 
+      ?stat pqv:P625/wikibase:geoLongitude ?mouthlong.
+  }
+} AS %rivers
+WITH {
+  SELECT ?river ?item ?lat ?long ?coord2 ?dist WHERE { 
+    {
+      INCLUDE %rivers .
+      ?stat2 ps:P403 ?river.
+      ?item p:P403 ?stat2. 
+      ?stat2 pqv:P625/wikibase:geoLatitude ?lat. 
+      ?stat2 pqv:P625/wikibase:geoLongitude ?long.
+      ?stat2 pq:P625 ?coord2 .                          # get coords for all tributary rivers
+      BIND(geof:distance(?coord, ?coord2) as ?dist)     # distance between tributary mouth and main river mouth
+    }
+    UNION
+    {
+      SELECT ?river (?river AS ?item) (?mouthlat AS ?lat) (?mouthlong AS ?long) (?coord AS ?coord2) (0.0 AS ?dist)
+      WHERE
+      { INCLUDE %rivers }
+    }
+  }
+} AS %points
+
+WITH {                                                  # work out the sequence of mouths based on distance
+  SELECT ?river ?item (COUNT(DISTINCT(?item2)) AS ?seq0) WHERE {
+    INCLUDE %points .
+ 
+    {
+      SELECT ?river (?item AS ?item2) (?dist AS ?dist2) WHERE {
+         INCLUDE %points .
+      }
+    }
+    
+    FILTER (?dist2 <= ?dist) .
+  } GROUP BY ?river ?item 
+} AS %seq
+
+WITH {                                                 # unite the sequence and the coordinate details on a single row
+  SELECT ?river ?seq0 ?item ?dist ?coord2 ?lat ?long  WHERE {
+       INCLUDE %points .
+       INCLUDE %seq .
+    }
+} AS %points_seq     
+
+WHERE {                                               # construct lines from mouth to mouth
+  {
+    SELECT ?river (?seq0 AS ?seq) ?item ?elev ?coord2 ?lat ?long  WHERE {
+       INCLUDE %points_seq .
+    }
+  }
+  {
+    SELECT ?river ((?seq0-1) AS ?seq) (?lat AS ?lat2) (?long AS ?long2) WHERE {
+       INCLUDE %points_seq .
+    }
+  }
+  BIND(CONCAT('LINESTRING (', STR(?long), ' ', STR(?lat), ',', STR(?long2), ' ', STR(?lat2), ')') AS ?str) .
+  BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY ?seq""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
 PREFIX geo: <http://www.opengis.net/ont/geosparql#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #title:line-map of rivers based on distance to the mouth
@@ -54,17 +133,7 @@ WHERE {                                               # construct lines from mou
   BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 } ORDER BY ?seq""";
-  <http://example.org/bigdata_select> """PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX geo: <http://www.opengis.net/ont/geosparql#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#title:line-map of rivers based on distance to the mouth
+  <http://example.org/bigdata_select> """#title:line-map of rivers based on distance to the mouth
 #defaultView:Map
 SELECT ?seq ?item ?itemLabel ?coord2 ?line ?riverLabel (?river AS ?layer)
 

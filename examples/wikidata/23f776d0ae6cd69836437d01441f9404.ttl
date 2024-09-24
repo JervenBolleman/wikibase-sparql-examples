@@ -18,39 +18,6 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 # tool: scholia
 #defaultView:Graph
 SELECT ?author1 ?author1Label ?rgb ?author2 ?author2Label
-WHERE {
-   {
-  # Limit the number of coauthors
-  SELECT DISTINCT ?author2 ?author1  (COUNT(?work) AS ?count2)  WHERE {
-     {
-  # Limit the number of authors
-  SELECT (COUNT(?work) AS ?count1) ?author1 ?work WHERE {
-    ?work wdt:P50 ?author1 .
-    ?author1 wdt:P2037 ?githubuser1 .
-  }
-  GROUP BY ?author1 ?work
-  ORDER BY DESC(?count1)
-  LIMIT 10000
-}    ?work wdt:P50 ?author1 , ?author2 .
-    ?author2 wdt:P2037 ?githubuser2 .
-    FILTER (?author1 != ?author2) 
-  }
-  GROUP BY ?author2 ?author1 
-  ORDER BY DESC(?count2)
-  LIMIT 10000
-}  OPTIONAL { ?author1 wdt:P21 ?gender1 . }
-  BIND( IF(?gender1 = wd:Q6581097, \"3182BD\", \"E6550D\") AS ?rgb)
-  SERVICE wikibase:label {
-    bd:serviceParam wikibase:language \"en,fr,de,ru,es,zh,jp\".
-  }
-}""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-# tool: scholia
-#defaultView:Graph
-SELECT ?author1 ?author1Label ?rgb ?author2 ?author2Label
 WITH {
   # Limit the number of authors
   SELECT (COUNT(?work) AS ?count1) ?author1 ?work WHERE {
@@ -61,6 +28,33 @@ WITH {
   ORDER BY DESC(?count1)
   LIMIT 10000
 } AS %authors1
+WITH {
+  # Limit the number of coauthors
+  SELECT DISTINCT ?author2 ?author1  (COUNT(?work) AS ?count2)  WHERE {
+    INCLUDE %authors1
+    ?work wdt:P50 ?author1 , ?author2 .
+    ?author2 wdt:P2037 ?githubuser2 .
+    FILTER (?author1 != ?author2) 
+  }
+  GROUP BY ?author2 ?author1 
+  ORDER BY DESC(?count2)
+  LIMIT 10000
+} AS %authors2
+WHERE {
+  INCLUDE %authors2
+  OPTIONAL { ?author1 wdt:P21 ?gender1 . }
+  BIND( IF(?gender1 = wd:Q6581097, \"3182BD\", \"E6550D\") AS ?rgb)
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en,fr,de,ru,es,zh,jp\".
+  }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# tool: scholia
+#defaultView:Graph
+SELECT ?author1 ?author1Label ?rgb ?author2 ?author2Label
 WHERE {
    {
   # Limit the number of coauthors
@@ -74,6 +68,39 @@ WHERE {
   ORDER BY DESC(?count2)
   LIMIT 10000
 }  OPTIONAL { ?author1 wdt:P21 ?gender1 . }
+  BIND( IF(?gender1 = wd:Q6581097, \"3182BD\", \"E6550D\") AS ?rgb)
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en,fr,de,ru,es,zh,jp\".
+  }
+}""";
+  <http://example.org/bigdata_select> """# tool: scholia
+#defaultView:Graph
+SELECT ?author1 ?author1Label ?rgb ?author2 ?author2Label
+WITH {
+  # Limit the number of authors
+  SELECT (COUNT(?work) AS ?count1) ?author1 ?work WHERE {
+    ?work wdt:P50 ?author1 .
+    ?author1 wdt:P2037 ?githubuser1 .
+  }
+  GROUP BY ?author1 ?work
+  ORDER BY DESC(?count1)
+  LIMIT 10000
+} AS %authors1
+WITH {
+  # Limit the number of coauthors
+  SELECT DISTINCT ?author2 ?author1  (COUNT(?work) AS ?count2)  WHERE {
+    INCLUDE %authors1
+    ?work wdt:P50 ?author1 , ?author2 .
+    ?author2 wdt:P2037 ?githubuser2 .
+    FILTER (?author1 != ?author2) 
+  }
+  GROUP BY ?author2 ?author1 
+  ORDER BY DESC(?count2)
+  LIMIT 10000
+} AS %authors2
+WHERE {
+  INCLUDE %authors2
+  OPTIONAL { ?author1 wdt:P21 ?gender1 . }
   BIND( IF(?gender1 = wd:Q6581097, \"3182BD\", \"E6550D\") AS ?rgb)
   SERVICE wikibase:label {
     bd:serviceParam wikibase:language \"en,fr,de,ru,es,zh,jp\".

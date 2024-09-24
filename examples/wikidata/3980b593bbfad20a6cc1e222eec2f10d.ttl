@@ -16,49 +16,6 @@ PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?wiki ?wikiLabel ?endpoint ?articles ?users ?activeusers 
-WHERE
-{
-  {
-  # Wikimedia content project subclasses (Wikipedia, Wikisorces, Wiktionary, etc language edition)
-  SELECT ?wikitype WHERE { ?wikitype wdt:P279 wd:Q33120876 . }
-}
-  ?wiki wdt:P31 ?wikitype.
-  ?wiki wdt:P856 ?website.
-  
-  # This triple will remove wikis that don't exist anymore and thus avoid MWAPI errors (\"404 Not Found\") 
-  ?website wikibase:wikiGroup ?wikigroup.
-
-  FILTER (?wikigroup = \"wiktionary\") # Limit to wiktionaries to avoid timeout
-
-  BIND (STRBEFORE(STRAFTER(STR(?website), \"https://\"), \"/\") AS ?endpoint)
-  OPTIONAL
-  {
-    SERVICE wikibase:mwapi
-    {
-      bd:serviceParam wikibase:endpoint ?endpoint .
-      bd:serviceParam wikibase:limitContinuations \"0\".
-
-      # None of the 4 available API services give site statistics, but it is necessary to select one.
-      # Here we do a page list limited to 1 page without retrieving the result.
-      bd:serviceParam wikibase:api \"Generator\" .
-      bd:serviceParam mwapi:generator \"allpages\" .
-      bd:serviceParam mwapi:gaplimit \"1\" .
-
-      # Also add site statistics to the API call:
-      bd:serviceParam mwapi:meta \"siteinfo\" .
-      bd:serviceParam mwapi:siprop \"statistics\" .
-      ?articles wikibase:apiOutput \"//api/query/statistics/@articles\" .
-      ?users wikibase:apiOutput \"//api/query/statistics/@users\" .
-      ?activeusers wikibase:apiOutput \"//api/query/statistics/@activeusers\" .
-    }
-  }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
-}""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?wiki ?wikiLabel ?endpoint ?articles ?users ?activeusers WITH {
   # Wikimedia content project subclasses (Wikipedia, Wikisorces, Wiktionary, etc language edition)
   SELECT ?wikitype WHERE { ?wikitype wdt:P279 wd:Q33120876 . }
@@ -103,7 +60,44 @@ PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?wiki ?wikiLabel ?endpoint ?articles ?users ?activeusers WITH {
+SELECT ?wiki ?wikiLabel ?endpoint ?articles ?users ?activeusers WHERE
+{
+   {
+  # Wikimedia content project subclasses (Wikipedia, Wikisorces, Wiktionary, etc language edition)
+  SELECT ?wikitype WHERE { ?wikitype wdt:P279 wd:Q33120876 . }
+}  ?wiki wdt:P31 ?wikitype.
+  ?wiki wdt:P856 ?website.
+  
+  # This triple will remove wikis that don't exist anymore and thus avoid MWAPI errors (\"404 Not Found\") 
+  ?website wikibase:wikiGroup ?wikigroup.
+
+  FILTER (?wikigroup = \"wiktionary\") # Limit to wiktionaries to avoid timeout
+
+  BIND (STRBEFORE(STRAFTER(STR(?website), \"https://\"), \"/\") AS ?endpoint)
+  OPTIONAL
+  {
+    SERVICE wikibase:mwapi
+    {
+      bd:serviceParam wikibase:endpoint ?endpoint .
+      bd:serviceParam wikibase:limitContinuations \"0\".
+
+      # None of the 4 available API services give site statistics, but it is necessary to select one.
+      # Here we do a page list limited to 1 page without retrieving the result.
+      bd:serviceParam wikibase:api \"Generator\" .
+      bd:serviceParam mwapi:generator \"allpages\" .
+      bd:serviceParam mwapi:gaplimit \"1\" .
+
+      # Also add site statistics to the API call:
+      bd:serviceParam mwapi:meta \"siteinfo\" .
+      bd:serviceParam mwapi:siprop \"statistics\" .
+      ?articles wikibase:apiOutput \"//api/query/statistics/@articles\" .
+      ?users wikibase:apiOutput \"//api/query/statistics/@users\" .
+      ?activeusers wikibase:apiOutput \"//api/query/statistics/@activeusers\" .
+    }
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}""";
+  <http://example.org/bigdata_select> """SELECT ?wiki ?wikiLabel ?endpoint ?articles ?users ?activeusers WITH {
   # Wikimedia content project subclasses (Wikipedia, Wikisorces, Wiktionary, etc language edition)
   SELECT ?wikitype WHERE { ?wikitype wdt:P279 wd:Q33120876 . }
 } AS %wiki_types

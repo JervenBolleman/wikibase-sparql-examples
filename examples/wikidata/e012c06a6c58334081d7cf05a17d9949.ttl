@@ -20,6 +20,50 @@ PREFIX dct: <http://purl.org/dc/terms/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:ImageGrid
 SELECT ?animal ?deLemmas ?frLemmas ?image
+WITH {
+  SELECT ?animal (STRLANG(GROUP_CONCAT(?deLemma; separator = \"/\"), \"de\") AS ?deLemmas) (STRLANG(GROUP_CONCAT(?frLemma; separator = \"/\"), \"fr\") AS ?frLemmas) WHERE {
+    ?de dct:language wd:Q188;
+        wikibase:lexicalCategory wd:Q1084;
+        wikibase:lemma ?deLemma;
+        wdt:P5185 wd:Q1775415;
+        ontolex:sense [ wdt:P5137 ?animal ].
+    ?fr dct:language wd:Q150;
+        wikibase:lexicalCategory wd:Q1084;
+        wikibase:lemma ?frLemma;
+        wdt:P5185 wd:Q499327;
+        ontolex:sense [ wdt:P5137 ?animal ].
+    ?animal wdt:P279+ wd:Q729.
+  }
+  GROUP BY ?animal
+} AS %animals
+WITH {
+  SELECT ?animal ?animalLabel ?deLemmas ?frLemmas WHERE {
+    INCLUDE %animals.
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  }
+} AS %animalsWithLabels
+WHERE {
+  INCLUDE %animalsWithLabels.
+  BIND(CONCAT(\"haswbstatement:P180=\", STRAFTER(STR(?animal), STR(wd:))) AS ?search)
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"commons.wikimedia.org\";
+                    mwapi:srsearch ?search;
+                    mwapi:srnamespace \"6\"; # NS_FILE
+                    mwapi:srlimit \"max\".
+    ?title wikibase:apiOutput mwapi:title.
+  }
+  BIND(IRI(CONCAT(\"http://commons.wikimedia.org/wiki/Special:FilePath/\", STRAFTER(?title, \"File:\"))) AS ?image)
+}""",
+    """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:ImageGrid
+SELECT ?animal ?deLemmas ?frLemmas ?image
 WHERE {
   INCLUDE %animalsWithLabels.
   BIND(CONCAT(\"haswbstatement:P180=\", STRAFTER(STR(?animal), STR(wd:))) AS ?search)
@@ -33,14 +77,7 @@ WHERE {
   }
   BIND(IRI(CONCAT(\"http://commons.wikimedia.org/wiki/Special:FilePath/\", STRAFTER(?title, \"File:\"))) AS ?image)
 }""";
-  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
-PREFIX dct: <http://purl.org/dc/terms/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#defaultView:ImageGrid
+  <http://example.org/bigdata_select> """#defaultView:ImageGrid
 SELECT ?animal ?deLemmas ?frLemmas ?image
 WITH {
   SELECT ?animal (STRLANG(GROUP_CONCAT(?deLemma; separator = \"/\"), \"de\") AS ?deLemmas) (STRLANG(GROUP_CONCAT(?frLemma; separator = \"/\"), \"fr\") AS ?frLemmas) WHERE {

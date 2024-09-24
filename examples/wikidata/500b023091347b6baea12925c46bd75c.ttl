@@ -16,33 +16,7 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?item ?title ?item2 ?item2Label ?journalLabel  
-WHERE {
-  {
-  SELECT DISTINCT ?journal WHERE {
-    ?journal wdt:P31 wd:Q5633421; # scientific journal
-             wdt:P123 wd:Q180419; # published by Nature Portfolio
-             wdt:P1476 ?jtitle.
-    FILTER ( STRSTARTS(?jtitle, \"Nature\") ) . # with name starting with \"Nature\"
-  }
-}
-  FILTER (?journal != wd:Q24908540) . # Short article titles in this journal causing problems
-  ?item wdt:P31 wd:Q1348305;
-        wdt:P1433 ?journal;
-        wdt:P1476 ?title.
-  FILTER (STRSTARTS(?title, 'Author Correction: ')). # also seen: \"Publisher Correction: \", \"Erratum: \"
-  BIND(REPLACE(?title, \"^Author Correction: (.*)$\", \"$1\") AS ?substring) # extract title of original article
-  ?item2 wdt:P1476 ?substring. # title matching (case sensitive!) 
-  FILTER ( NOT EXISTS { ?item2 wdt:P2507 ?item } ) # not already linked as a corrigendum 
-#  ?item2 wdt:P1433 ?journal2.   # Trying to ensure that article is in same journal, as sanity check
-#  FILTER (?journal = ?journal2) # Why does this time out?
-  SERVICE wikibase:label {
-    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
-    ?item2 rdfs:label ?item2Label .
-    ?journal rdfs:label ?journalLabel .
-  }
-}""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?title ?item2 ?item2Label ?journalLabel WITH {
+SELECT DISTINCT ?item ?title ?item2 ?item2Label ?journalLabel WITH {
   SELECT DISTINCT ?journal WHERE {
     ?journal wdt:P31 wd:Q5633421; # scientific journal
              wdt:P123 wd:Q180419; # published by Nature Portfolio
@@ -73,7 +47,32 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?item ?title ?item2 ?item2Label ?journalLabel WITH {
+SELECT DISTINCT ?item ?title ?item2 ?item2Label ?journalLabel 
+WHERE {
+   {
+  SELECT DISTINCT ?journal WHERE {
+    ?journal wdt:P31 wd:Q5633421; # scientific journal
+             wdt:P123 wd:Q180419; # published by Nature Portfolio
+             wdt:P1476 ?jtitle.
+    FILTER ( STRSTARTS(?jtitle, \"Nature\") ) . # with name starting with \"Nature\"
+  }
+}  FILTER (?journal != wd:Q24908540) . # Short article titles in this journal causing problems
+  ?item wdt:P31 wd:Q1348305;
+        wdt:P1433 ?journal;
+        wdt:P1476 ?title.
+  FILTER (STRSTARTS(?title, 'Author Correction: ')). # also seen: \"Publisher Correction: \", \"Erratum: \"
+  BIND(REPLACE(?title, \"^Author Correction: (.*)$\", \"$1\") AS ?substring) # extract title of original article
+  ?item2 wdt:P1476 ?substring. # title matching (case sensitive!) 
+  FILTER ( NOT EXISTS { ?item2 wdt:P2507 ?item } ) # not already linked as a corrigendum 
+#  ?item2 wdt:P1433 ?journal2.   # Trying to ensure that article is in same journal, as sanity check
+#  FILTER (?journal = ?journal2) # Why does this time out?
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+    ?item2 rdfs:label ?item2Label .
+    ?journal rdfs:label ?journalLabel .
+  }
+}""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?title ?item2 ?item2Label ?journalLabel WITH {
   SELECT DISTINCT ?journal WHERE {
     ?journal wdt:P31 wd:Q5633421; # scientific journal
              wdt:P123 wd:Q180419; # published by Nature Portfolio

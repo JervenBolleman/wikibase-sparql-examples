@@ -24,63 +24,6 @@ SELECT
   ?itemNew ?itemNewLabel ?itemNewDescription
   ?geo ?img ?categorie
   (GROUP_CONCAT(?instanceLabel; SEPARATOR = \", \") AS ?instancesof) # a nices String with the labels of the different instances of related to the item
-
-WHERE
-{
-  {
-  SELECT 
-    ?itemNew 
-    (SAMPLE(?geo_) AS ?geo) # The SAMPLE code is needed to inform the GROUP BY code what to do when there are more than one.
-    (SAMPLE(?img_) AS ?img)
-  WHERE
-  {
-    #### Selection based on location ####   
-    SERVICE wikibase:box
-    {
-      ?itemNew wdt:P625 ?geo_.
-      bd:serviceParam wikibase:cornerWest \"Point(2.30 48.87)\"^^geo:wktLiteral. 
-      bd:serviceParam wikibase:cornerEast \"Point(2.32 48.86)\"^^geo:wktLiteral.
-    }
-
-    MINUS { ?itemNew (wdt:P31/(wdt:P279*)) wd:Q376799. } # Remove everything related to roads
-    ?itemNew wdt:P18 ?img_. # Only keep items with pictures
-  }
-  GROUP BY ?itemNew
-}
-
-  #### Categorise items ####
-  BIND(
-    IF(EXISTS {?itemNew (wdt:P31/(wdt:P279*)) wd:Q811979},
-       \"Architectural\",
-       IF(EXISTS {?itemNew (wdt:P31/(wdt:P279*)) wd:Q1656682},
-          \"Event\",
-          \"Other\"
-         )
-      )
-  AS ?categorie)
-  
-  OPTIONAL { ?itemNew wdt:P31 ?instance. } # Get instances
-   
-  #### Wikipedia link ####
-  OPTIONAL {
-    ?article schema:about ?itemNew . # Get wikipedia link
-    ?article schema:isPartOf <https://en.wikipedia.org/>. # Only keep EN language
-  }
-  
-  #### Labels & discription #### 
-  SERVICE wikibase:label { # Get labels
-    bd:serviceParam wikibase:language \"en\". 
-    ?instance rdfs:label ?instanceLabel.      # The specification of the variables to be labeld is needed for grouping the instances of correctly
-    ?itemNew rdfs:label ?itemNewLabel.
-    ?itemNew schema:description ?itemNewDescription.
-  }
-}
-GROUP BY ?itemNew ?itemNewLabel ?itemNewDescription ?geo ?img ?categorie ?article""";
-  <http://example.org/bigdata_select> """#defaultView:ImageGride
-SELECT
-  ?itemNew ?itemNewLabel ?itemNewDescription
-  ?geo ?img ?categorie
-  (GROUP_CONCAT(?instanceLabel; SEPARATOR = \", \") AS ?instancesof) # a nices String with the labels of the different instances of related to the item
 WITH
 {
   SELECT 
@@ -142,6 +85,62 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX geo: <http://www.opengis.net/ont/geosparql#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:ImageGride
+SELECT
+  ?itemNew ?itemNewLabel ?itemNewDescription
+  ?geo ?img ?categorie
+  (GROUP_CONCAT(?instanceLabel; SEPARATOR = \", \") AS ?instancesof) # a nices String with the labels of the different instances of related to the item
+WHERE
+{
+  
+{
+  SELECT 
+    ?itemNew 
+    (SAMPLE(?geo_) AS ?geo) # The SAMPLE code is needed to inform the GROUP BY code what to do when there are more than one.
+    (SAMPLE(?img_) AS ?img)
+  WHERE
+  {
+    #### Selection based on location ####   
+    SERVICE wikibase:box
+    {
+      ?itemNew wdt:P625 ?geo_.
+      bd:serviceParam wikibase:cornerWest \"Point(2.30 48.87)\"^^geo:wktLiteral. 
+      bd:serviceParam wikibase:cornerEast \"Point(2.32 48.86)\"^^geo:wktLiteral.
+    }
+
+    MINUS { ?itemNew (wdt:P31/(wdt:P279*)) wd:Q376799. } # Remove everything related to roads
+    ?itemNew wdt:P18 ?img_. # Only keep items with pictures
+  }
+  GROUP BY ?itemNew
+}
+  #### Categorise items ####
+  BIND(
+    IF(EXISTS {?itemNew (wdt:P31/(wdt:P279*)) wd:Q811979},
+       \"Architectural\",
+       IF(EXISTS {?itemNew (wdt:P31/(wdt:P279*)) wd:Q1656682},
+          \"Event\",
+          \"Other\"
+         )
+      )
+  AS ?categorie)
+  
+  OPTIONAL { ?itemNew wdt:P31 ?instance. } # Get instances
+   
+  #### Wikipedia link ####
+  OPTIONAL {
+    ?article schema:about ?itemNew . # Get wikipedia link
+    ?article schema:isPartOf <https://en.wikipedia.org/>. # Only keep EN language
+  }
+  
+  #### Labels & discription #### 
+  SERVICE wikibase:label { # Get labels
+    bd:serviceParam wikibase:language \"en\". 
+    ?instance rdfs:label ?instanceLabel.      # The specification of the variables to be labeld is needed for grouping the instances of correctly
+    ?itemNew rdfs:label ?itemNewLabel.
+    ?itemNew schema:description ?itemNewDescription.
+  }
+}
+GROUP BY ?itemNew ?itemNewLabel ?itemNewDescription ?geo ?img ?categorie ?article""";
+  <http://example.org/bigdata_select> """#defaultView:ImageGride
 SELECT
   ?itemNew ?itemNewLabel ?itemNewDescription
   ?geo ?img ?categorie

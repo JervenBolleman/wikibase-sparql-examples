@@ -21,14 +21,7 @@ SELECT
   ?lexemes
   ?example_lexeme ?example_lexemeLabel
   (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)
-WHERE {
-   {
-  SELECT 
-    ?senses_per_lexeme
-    (COUNT(?lexeme) AS ?lexemes)
-    (SAMPLE(?lexeme) AS ?example_lexeme)
-  WHERE {
-     {
+WITH {
   SELECT 
     (COUNT(?sense) AS ?senses_per_lexeme)
     ?lexeme
@@ -37,15 +30,46 @@ WHERE {
     OPTIONAL { ?lexeme ontolex:sense ?sense . }
   }
   GROUP BY ?lexeme
-}  }
+} AS %lexemes
+WITH {
+  SELECT 
+    ?senses_per_lexeme
+    (COUNT(?lexeme) AS ?lexemes)
+    (SAMPLE(?lexeme) AS ?example_lexeme)
+  WHERE {
+    INCLUDE %lexemes
+  }
+  GROUP BY ?senses_per_lexeme
+} AS %senses
+WHERE {
+  INCLUDE %senses
+  ?example_lexeme wikibase:lemma ?example_lexemeLabel .
+}
+ORDER BY DESC(?senses_per_lexeme)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX target: <http://www.wikidata.org/entity/Q9035>
+
+SELECT 
+  ?senses_per_lexeme 
+  ?lexemes
+  ?example_lexeme ?example_lexemeLabel
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)
+WHERE {
+   {
+  SELECT 
+    ?senses_per_lexeme
+    (COUNT(?lexeme) AS ?lexemes)
+    (SAMPLE(?lexeme) AS ?example_lexeme)
+  WHERE {
+    INCLUDE %lexemes
+  }
   GROUP BY ?senses_per_lexeme
 }  ?example_lexeme wikibase:lemma ?example_lexemeLabel .
 }
 ORDER BY DESC(?senses_per_lexeme)""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
-PREFIX dct: <http://purl.org/dc/terms/>
-PREFIX target: <http://www.wikidata.org/entity/Q9035>
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q9035>
 
 SELECT 
   ?senses_per_lexeme 
@@ -62,8 +86,7 @@ WITH {
   }
   GROUP BY ?lexeme
 } AS %lexemes
-WHERE {
-   {
+WITH {
   SELECT 
     ?senses_per_lexeme
     (COUNT(?lexeme) AS ?lexemes)
@@ -72,6 +95,9 @@ WHERE {
     INCLUDE %lexemes
   }
   GROUP BY ?senses_per_lexeme
-}  ?example_lexeme wikibase:lemma ?example_lexemeLabel .
+} AS %senses
+WHERE {
+  INCLUDE %senses
+  ?example_lexeme wikibase:lemma ?example_lexemeLabel .
 }
 ORDER BY DESC(?senses_per_lexeme)""" .

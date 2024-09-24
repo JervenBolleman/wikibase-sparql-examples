@@ -11,6 +11,99 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
+SELECT DISTINCT ?coordinates ?line ?item ?itemLabel ?connectLabel ?image ?opening ?rgb
+
+WITH {
+  SELECT ?item (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) ?opening WHERE {
+    ?item wdt:P361 wd:Q260870 .
+    ?item wdt:P31/wdt:P279* wd:Q55488 .
+    ?item wdt:P625 ?coordinates  .
+    OPTIONAL { ?item wdt:P18 ?image }.
+    OPTIONAL {?item wdt:P1619 ?opening } .
+  } GROUP BY ?item ?opening
+} AS %stations
+     
+WITH {
+  SELECT ?line ?connect ?rgb WHERE {
+    INCLUDE %stations .
+    ?item p:P197 ?nextstationstatement .
+    ?nextstationstatement ps:P197 ?nextstation .
+    ?nextstationstatement pq:P81 ?connect . ?connect wdt:P361 wd:Q260870  . 
+    ?connect wdt:P465 ?rgb .
+    FILTER(STR(?item) < STR(?nextstation)) . 
+    ?item p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 .
+    ?item p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
+    ?nextstation p:P625 / psv:P625 / wikibase:geoLatitude ?lat2 .
+    ?nextstation p:P625 / psv:P625 / wikibase:geoLongitude ?lon2 . 
+    BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
+    BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
+  }
+} AS %lines 
+
+WHERE {
+  { INCLUDE %stations } UNION { INCLUDE %lines  } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
+SELECT DISTINCT ?coordinates ?line ?item ?itemLabel ?connectLabel ?image ?opening ?rgb
+
+     
+
+
+WHERE {
+  {  {
+  SELECT ?item (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) ?opening WHERE {
+    ?item wdt:P361 wd:Q260870 .
+    ?item wdt:P31/wdt:P279* wd:Q55488 .
+    ?item wdt:P625 ?coordinates  .
+    OPTIONAL { ?item wdt:P18 ?image }.
+    OPTIONAL {?item wdt:P1619 ?opening } .
+  } GROUP BY ?item ?opening
+}} UNION {  {
+  SELECT ?line ?connect ?rgb WHERE {
+     {
+  SELECT ?item (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) ?opening WHERE {
+    ?item wdt:P361 wd:Q260870 .
+    ?item wdt:P31/wdt:P279* wd:Q55488 .
+    ?item wdt:P625 ?coordinates  .
+    OPTIONAL { ?item wdt:P18 ?image }.
+    OPTIONAL {?item wdt:P1619 ?opening } .
+  } GROUP BY ?item ?opening
+}.
+    ?item p:P197 ?nextstationstatement .
+    ?nextstationstatement ps:P197 ?nextstation .
+    ?nextstationstatement pq:P81 ?connect . ?connect wdt:P361 wd:Q260870  . 
+    ?connect wdt:P465 ?rgb .
+    FILTER(STR(?item) < STR(?nextstation)) . 
+    ?item p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 .
+    ?item p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
+    ?nextstation p:P625 / psv:P625 / wikibase:geoLatitude ?lat2 .
+    ?nextstation p:P625 / psv:P625 / wikibase:geoLongitude ?lon2 . 
+    BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
+    BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
+  }
+} } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
   <http://example.org/bigdata_select> """#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
 SELECT DISTINCT ?coordinates ?line ?item ?itemLabel ?connectLabel ?image ?opening ?rgb
 
@@ -43,150 +136,5 @@ WITH {
 
 WHERE {
   { INCLUDE %stations } UNION { INCLUDE %lines  } .
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX geo: <http://www.opengis.net/ont/geosparql#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
-SELECT DISTINCT ?coordinates ?line ?item ?itemLabel ?connectLabel ?image ?opening ?rgb
-
-WITH {
-  SELECT ?item (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) ?opening WHERE {
-    ?item wdt:P361 wd:Q260870 .
-    ?item wdt:P31/wdt:P279* wd:Q55488 .
-    ?item wdt:P625 ?coordinates  .
-    OPTIONAL { ?item wdt:P18 ?image }.
-    OPTIONAL {?item wdt:P1619 ?opening } .
-  } GROUP BY ?item ?opening
-} AS %stations
-     
-WITH {
-  SELECT ?line ?connect ?rgb WHERE {
-    INCLUDE %stations .
-    ?item p:P197 ?nextstationstatement .
-    ?nextstationstatement ps:P197 ?nextstation .
-    ?nextstationstatement pq:P81 ?connect . ?connect wdt:P361 wd:Q260870  . 
-    ?connect wdt:P465 ?rgb .
-    FILTER(STR(?item) < STR(?nextstation)) . 
-    ?item p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 .
-    ?item p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
-    ?nextstation p:P625 / psv:P625 / wikibase:geoLatitude ?lat2 .
-    ?nextstation p:P625 / psv:P625 / wikibase:geoLongitude ?lon2 . 
-    BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
-    BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
-  }
-} AS %lines 
-
-WHERE {
-  { INCLUDE %stations } UNION { INCLUDE %lines  } .
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""",
-    """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX geo: <http://www.opengis.net/ont/geosparql#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
-SELECT DISTINCT ?coordinates ?line ?item ?itemLabel ?connectLabel ?image ?opening ?rgb
-
-
-     
-WITH {
-  SELECT ?line ?connect ?rgb WHERE {
-    {
-  SELECT ?item (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) ?opening WHERE {
-    ?item wdt:P361 wd:Q260870 .
-    ?item wdt:P31/wdt:P279* wd:Q55488 .
-    ?item wdt:P625 ?coordinates  .
-    OPTIONAL { ?item wdt:P18 ?image }.
-    OPTIONAL {?item wdt:P1619 ?opening } .
-  } GROUP BY ?item ?opening
-} .
-    ?item p:P197 ?nextstationstatement .
-    ?nextstationstatement ps:P197 ?nextstation .
-    ?nextstationstatement pq:P81 ?connect . ?connect wdt:P361 wd:Q260870  . 
-    ?connect wdt:P465 ?rgb .
-    FILTER(STR(?item) < STR(?nextstation)) . 
-    ?item p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 .
-    ?item p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
-    ?nextstation p:P625 / psv:P625 / wikibase:geoLatitude ?lat2 .
-    ?nextstation p:P625 / psv:P625 / wikibase:geoLongitude ?lon2 . 
-    BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
-    BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
-  }
-} AS %lines 
-
-WHERE {
-  { {
-  SELECT ?item (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) ?opening WHERE {
-    ?item wdt:P361 wd:Q260870 .
-    ?item wdt:P31/wdt:P279* wd:Q55488 .
-    ?item wdt:P625 ?coordinates  .
-    OPTIONAL { ?item wdt:P18 ?image }.
-    OPTIONAL {?item wdt:P1619 ?opening } .
-  } GROUP BY ?item ?opening
-} } UNION { INCLUDE %lines  } .
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""";
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX geo: <http://www.opengis.net/ont/geosparql#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
-SELECT DISTINCT ?coordinates ?line ?item ?itemLabel ?connectLabel ?image ?opening ?rgb
-
-
-     
- 
-
-WHERE {
-  { {
-  SELECT ?item (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) ?opening WHERE {
-    ?item wdt:P361 wd:Q260870 .
-    ?item wdt:P31/wdt:P279* wd:Q55488 .
-    ?item wdt:P625 ?coordinates  .
-    OPTIONAL { ?item wdt:P18 ?image }.
-    OPTIONAL {?item wdt:P1619 ?opening } .
-  } GROUP BY ?item ?opening
-} } UNION { {
-  SELECT ?line ?connect ?rgb WHERE {
-    {
-  SELECT ?item (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) ?opening WHERE {
-    ?item wdt:P361 wd:Q260870 .
-    ?item wdt:P31/wdt:P279* wd:Q55488 .
-    ?item wdt:P625 ?coordinates  .
-    OPTIONAL { ?item wdt:P18 ?image }.
-    OPTIONAL {?item wdt:P1619 ?opening } .
-  } GROUP BY ?item ?opening
-} .
-    ?item p:P197 ?nextstationstatement .
-    ?nextstationstatement ps:P197 ?nextstation .
-    ?nextstationstatement pq:P81 ?connect . ?connect wdt:P361 wd:Q260870  . 
-    ?connect wdt:P465 ?rgb .
-    FILTER(STR(?item) < STR(?nextstation)) . 
-    ?item p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 .
-    ?item p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
-    ?nextstation p:P625 / psv:P625 / wikibase:geoLatitude ?lat2 .
-    ?nextstation p:P625 / psv:P625 / wikibase:geoLongitude ?lon2 . 
-    BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
-    BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
-  }
-}  } .
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""" .

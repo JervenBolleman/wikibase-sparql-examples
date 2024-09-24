@@ -17,6 +17,26 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?item ?l ?lang
 {
+  hint:Query hint:optimizer \"None\".
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam mwapi:generator \"search\" .
+    bd:serviceParam mwapi:gsrsearch 'inlabel:or haswbstatement:P31=Q5' .
+    bd:serviceParam mwapi:gsrlimit \"max\" .    
+    bd:serviceParam mwapi:gsrnamespace \"0\" .    
+    ?item wikibase:apiOutputItem mwapi:title  .    
+  }
+  ?item rdfs:label ?l.
+  bind(lang(?l) as ?lang)
+  FILTER(contains(?l, \"(or \") || contains(?l, \" or \")).  
+}""",
+    """PREFIX mwapi: <http://wikiba.se/ontology#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?l ?lang
+{
   
   SERVICE wikibase:mwapi {
     bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
@@ -31,11 +51,7 @@ SELECT ?item ?l ?lang
   bind(lang(?l) as ?lang)
   FILTER(contains(?l, \"(or \") || contains(?l, \" or \")).  
 }""";
-  <http://example.org/bigdata_select> """PREFIX mwapi: <http://wikiba.se/ontology#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?l ?lang
+  <http://example.org/bigdata_select> """SELECT ?item ?l ?lang
 {
   hint:Query hint:optimizer \"None\".
   SERVICE wikibase:mwapi {

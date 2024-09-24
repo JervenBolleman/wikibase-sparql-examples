@@ -11,6 +11,42 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+SELECT
+  ?total
+  ?without
+  ?with
+  ?ratio
+WITH {
+  SELECT (COUNT(*) AS ?with) {
+    [] ontolex:lexicalForm [wdt:P443 []]
+  }
+} AS %0
+WITH {
+  SELECT (COUNT(*) AS ?total) {
+    [] ontolex:lexicalForm [].
+  }
+} AS %1
+{
+  INCLUDE %0.
+  INCLUDE %1.
+  BIND((?total - ?with) AS ?without)
+  BIND(CONCAT(STR((?with/?total)), \" %\") AS ?ratio)
+}""",
+    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+SELECT
+  ?total
+  ?without
+  ?with
+  ?ratio
+{
+  INCLUDE %0.
+  INCLUDE %1.
+  BIND((?total - ?with) AS ?without)
+  BIND(CONCAT(STR((?with/?total)), \" %\") AS ?ratio)
+}""";
   <http://example.org/bigdata_select> """SELECT
   ?total
   ?without
@@ -29,75 +65,6 @@ WITH {
 {
   INCLUDE %0.
   INCLUDE %1.
-  BIND((?total - ?with) AS ?without)
-  BIND(CONCAT(STR((?with/?total)), \" %\") AS ?ratio)
-}""",
-    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
-SELECT
-  ?total
-  ?without
-  ?with
-  ?ratio
-WITH {
-  SELECT (COUNT(*) AS ?with) {
-    [] ontolex:lexicalForm [wdt:P443 []]
-  }
-} AS %0
-WITH {
-  SELECT (COUNT(*) AS ?total) {
-    [] ontolex:lexicalForm [].
-  }
-} AS %1
-{
-  INCLUDE %0.
-  INCLUDE %1.
-  BIND((?total - ?with) AS ?without)
-  BIND(CONCAT(STR((?with/?total)), \" %\") AS ?ratio)
-}""",
-    """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
-SELECT
-  ?total
-  ?without
-  ?with
-  ?ratio
-
-WITH {
-  SELECT (COUNT(*) AS ?total) {
-    [] ontolex:lexicalForm [].
-  }
-} AS %1
-{
-  {
-  SELECT (COUNT(*) AS ?with) {
-    [] ontolex:lexicalForm [wdt:P443 []]
-  }
-}.
-  INCLUDE %1.
-  BIND((?total - ?with) AS ?without)
-  BIND(CONCAT(STR((?with/?total)), \" %\") AS ?ratio)
-}""";
-  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
-SELECT
-  ?total
-  ?without
-  ?with
-  ?ratio
-
-
-{
-  {
-  SELECT (COUNT(*) AS ?with) {
-    [] ontolex:lexicalForm [wdt:P443 []]
-  }
-}.
-  {
-  SELECT (COUNT(*) AS ?total) {
-    [] ontolex:lexicalForm [].
-  }
-}.
   BIND((?total - ?with) AS ?without)
   BIND(CONCAT(STR((?with/?total)), \" %\") AS ?ratio)
 }""" .

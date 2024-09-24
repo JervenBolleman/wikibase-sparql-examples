@@ -33,57 +33,6 @@ SELECT DISTINCT
 # when the given number of images are found. Change the number of
 # LIMIT as needed, but note that the higher the number, the longer
 # the subquery will take to finish.
-
-{
-  {
-  SELECT DISTINCT ?image {
-    ?image p:P180 [];
-           p:P921 [].
-  }
-  LIMIT 10
-}.
-
-  # Get the URL of the image so that a thumbnail is shown per each
-  # image in #defaultView:Tree
-
-  ?image schema:url ?url.
-
-  # Get the properties that will be shown for each image
-
-  {?image p:P921 [ ps:P921 ?value; ?ps [] ]}
-  UNION
-  {?image p:P180 [ ps:P180 ?value; ?ps [] ]}
-
-  # Get the label of the properties and the items
-
-  SERVICE <https://query.wikidata.org/sparql> {
-    ?property wikibase:statementProperty ?ps.
-    {
-      SELECT ?property ?propertyLabel ?value ?valueLabel {
-        SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\"}.
-      }
-    }
-  }
-
-  SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\"}.
-}""";
-  <http://example.org/bigdata_select> """#defaultView:Tree
-SELECT DISTINCT
-  ?image
-  ?imageLabel
-  ?url
-  ?property
-  ?propertyLabel
-  ?value
-  ?valueLabel
-# Subquery for getting images that have a \"depict\" (P180) and a
-# \"main subject\" (P921) statements.
-#
-# A LIMIT is used to avoid searching all images in Wikimedia Commons
-# since that requires a lot of time. The subquery stops searching
-# when the given number of images are found. Change the number of
-# LIMIT as needed, but note that the higher the number, the longer
-# the subquery will take to finish.
 WITH {
   SELECT DISTINCT ?image {
     ?image p:P180 [];
@@ -124,6 +73,50 @@ PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Tree
+SELECT DISTINCT
+  ?image
+  ?imageLabel
+  ?url
+  ?property
+  ?propertyLabel
+  ?value
+  ?valueLabel
+# Subquery for getting images that have a \"depict\" (P180) and a
+# \"main subject\" (P921) statements.
+#
+# A LIMIT is used to avoid searching all images in Wikimedia Commons
+# since that requires a lot of time. The subquery stops searching
+# when the given number of images are found. Change the number of
+# LIMIT as needed, but note that the higher the number, the longer
+# the subquery will take to finish.
+{
+  INCLUDE %0.
+
+  # Get the URL of the image so that a thumbnail is shown per each
+  # image in #defaultView:Tree
+
+  ?image schema:url ?url.
+
+  # Get the properties that will be shown for each image
+
+  {?image p:P921 [ ps:P921 ?value; ?ps [] ]}
+  UNION
+  {?image p:P180 [ ps:P180 ?value; ?ps [] ]}
+
+  # Get the label of the properties and the items
+
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?property wikibase:statementProperty ?ps.
+    {
+      SELECT ?property ?propertyLabel ?value ?valueLabel {
+        SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\"}.
+      }
+    }
+  }
+
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\"}.
+}""";
+  <http://example.org/bigdata_select> """#defaultView:Tree
 SELECT DISTINCT
   ?image
   ?imageLabel

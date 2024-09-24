@@ -17,6 +17,38 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 select ?item ?itemLabel ?number
+with { # select all the numbers of sitelinks
+  select ?number (count(*) as ?total) { # we don't use ?total but without it the query times out, so we'll just ignore it
+    [] wikibase:sitelinks ?number .
+  } group by ?number
+} as %numbers
+where {
+  # include the numbers of sitelinks from above and filter out any numbers lower than 40
+  # the higher the number here, the fewer items there are to check and the faster this query will run
+  include %numbers .
+  filter (?number > 40) .
+
+  # find items where the number of sitelinks is one of the remaining numbers, i.e. greater than 40
+  ?item wikibase:sitelinks ?number .
+  
+  # filter out various uninteresting things
+  minus { ?item wdt:P31/wdt:P279* wd:Q11266439 } # No templates
+  minus { ?item wdt:P31/wdt:P279* wd:Q4167836 } # No categories
+  minus { ?item wdt:P31/wdt:P279* wd:Q17442446 } # No other Wikipedia/Help pages
+  minus { ?item wdt:P31 wd:Q14204246 } # No project pages
+  minus { ?item wdt:P31 wd:Q15184295 } # No modules
+
+  # filter out items which have an frwiki sitelink
+  minus { ?article schema:about ?item ; schema:isPartOf <https://fr.wikipedia.org/> }
+
+  service wikibase:label { bd:serviceParam wikibase:language \"fr\" }
+} order by desc(?number)""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+select ?item ?itemLabel ?number
 where {
   # include the numbers of sitelinks from above and filter out any numbers lower than 40
   # the higher the number here, the fewer items there are to check and the faster this query will run
@@ -42,12 +74,7 @@ where {
 
   service wikibase:label { bd:serviceParam wikibase:language \"fr\" }
 } order by desc(?number)""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-select ?item ?itemLabel ?number
+  <http://example.org/bigdata_select> """select ?item ?itemLabel ?number
 with { # select all the numbers of sitelinks
   select ?number (count(*) as ?total) { # we don't use ?total but without it the query times out, so we'll just ignore it
     [] wikibase:sitelinks ?number .

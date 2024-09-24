@@ -24,6 +24,27 @@ WHERE
   FILTER (?sitelinks >= 20)                  # ... 20 or more wikis (Wikipedias or other)
   ?item wdt:P106/wdt:P279* wd:Q169470.       # they're some sort of physicist
   ?item wdt:P569 ?dateOfBirth.               # they have a date of birth
+  hint:Prior hint:rangeSafe true.            # (go faster, little query; all dates are dates)
+  FILTER(\"1911-00-00\"^^xsd:dateTime <= ?dateOfBirth) # DoB is after 1910
+  FILTER NOT EXISTS {?item wdt:P570 [] .}    # WD doesn't think they're dead - no date of death
+  ?article schema:about ?item ;              # they have a sitelink
+  schema:isPartOf ?wikipedia .               # which is part of ...  
+  ?wikipedia wikibase:wikiGroup \"wikipedia\"  # ... one or other wikipedia
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+} group by ?item ?itemLabel having (?count >19)""",
+    """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel (count(distinct ?wikipedia) as ?count)
+WHERE 
+{
+  ?item wikibase:sitelinks ?sitelinks .      # There are linked to ...
+  FILTER (?sitelinks >= 20)                  # ... 20 or more wikis (Wikipedias or other)
+  ?item wdt:P106/wdt:P279* wd:Q169470.       # they're some sort of physicist
+  ?item wdt:P569 ?dateOfBirth.               # they have a date of birth
               # (go faster, little query; all dates are dates)
   FILTER(\"1911-00-00\"^^xsd:dateTime <= ?dateOfBirth) # DoB is after 1910
   FILTER NOT EXISTS {?item wdt:P570 [] .}    # WD doesn't think they're dead - no date of death
@@ -32,13 +53,7 @@ WHERE
   ?wikipedia wikibase:wikiGroup \"wikipedia\"  # ... one or other wikipedia
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
 } group by ?item ?itemLabel having (?count >19)""";
-  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX schema: <http://schema.org/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel (count(distinct ?wikipedia) as ?count)
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel (count(distinct ?wikipedia) as ?count)
 WHERE 
 {
   ?item wikibase:sitelinks ?sitelinks .      # There are linked to ...

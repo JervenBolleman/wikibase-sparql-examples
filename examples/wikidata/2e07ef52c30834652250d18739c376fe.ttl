@@ -23,13 +23,7 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
 SELECT DISTINCT ?coordinates ?line ?item ?itemLabel ?connectLabel ?rgb #?image
 
-
-
-
-
- 
-WHERE {
-  { {
+WITH {
   SELECT ?item (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?lat1) AS ?lat1) (SAMPLE(?lon1) AS ?lon1) WHERE { #(SAMPLE(?image) AS ?image)
     {?item (wdt:P361|wdt:P16) wd:Q20075} #Underground / OK
       UNION 
@@ -45,26 +39,9 @@ WHERE {
     ?item p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
     OPTIONAL { ?item wdt:P18 ?image }.
   } GROUP BY ?item
-} }  UNION {  {
-  SELECT ?line ?connect ?rgb WHERE {
-    {
-  SELECT ?item (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?lat1) AS ?lat1) (SAMPLE(?lon1) AS ?lon1) WHERE { #(SAMPLE(?image) AS ?image)
-    {?item (wdt:P361|wdt:P16) wd:Q20075} #Underground / OK
-      UNION 
-    {?item (wdt:P361|wdt:P16) wd:Q746021} #London Overground / OK
-      UNION 
-    {?item (wdt:P361|wdt:P16) wd:Q216360} #Dockland Light railway  / OK
-      UNION 
-    {?item (wdt:P361|wdt:P16) wd:Q732649} #Crossrail / OK
-      UNION 
-    {?item (wdt:P361|wdt:P16) wd:Q786032} . #Tramlink / OK    
-    ?item wdt:P625 ?coordinates  .
-    ?item p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 .
-    ?item p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
-    OPTIONAL { ?item wdt:P18 ?image }.
-  } GROUP BY ?item
-} .
-     {
+} AS %stations
+
+WITH {
   SELECT ?nextstation (SAMPLE(?lat2) AS ?lat2) (SAMPLE(?lon2) AS ?lon2) WHERE {
     {?nextstation (wdt:P361|wdt:P16) wd:Q20075} #Underground / OK
       UNION 
@@ -78,7 +55,88 @@ WHERE {
     ?nextstation p:P625 / psv:P625 / wikibase:geoLatitude ?lat2 .
     ?nextstation p:P625 / psv:P625 / wikibase:geoLongitude ?lon2 .
   } GROUP BY ?nextstation
+} AS %nextstations
+
+WITH {
+  SELECT ?line ?connect ?rgb WHERE {
+    INCLUDE %stations .
+    INCLUDE %nextstations .
+    ?item p:P197 ?nextstationstatement .
+    ?nextstationstatement ps:P197 ?nextstation .
+    {?nextstationstatement (pq:P81|pq:P1192) ?connect . ?connect (wdt:P361|wdt:P16) wd:Q20075} #Underground / OK
+      UNION    
+    {?nextstationstatement (pq:P81|pq:P1192) ?connect . ?connect (wdt:P361|wdt:P16) wd:Q746021} #London Overground / OK
+      UNION
+    {?nextstationstatement (pq:P81|pq:P1192) ?connect . ?connect (wdt:P361|wdt:P16) wd:Q216360} #Dockland Light railway / OK
+      UNION
+    {?nextstationstatement (pq:P81|pq:P1192) ?connect . ?connect (wdt:P361|wdt:P16) wd:Q732649} #Crossrail / OK
+      UNION
+    {?nextstationstatement (pq:P81|pq:P1192) ?connect . ?connect (wdt:P361|wdt:P16) wd:Q786032} . #Tramlink / partly OK 
+    #TIMEOUT
+    ?connect wdt:P465 ?rgb .
+    FILTER(STR(?item) < STR(?nextstation)) .    
+    BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
+    BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
+  }
+} AS %lines 
+ 
+WHERE {
+  { INCLUDE %stations }  UNION { INCLUDE %lines  } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
+SELECT DISTINCT ?coordinates ?line ?item ?itemLabel ?connectLabel ?rgb #?image
+
+
+
+
+ 
+WHERE {
+  {  {
+  SELECT ?item (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?lat1) AS ?lat1) (SAMPLE(?lon1) AS ?lon1) WHERE { #(SAMPLE(?image) AS ?image)
+    {?item (wdt:P361|wdt:P16) wd:Q20075} #Underground / OK
+      UNION 
+    {?item (wdt:P361|wdt:P16) wd:Q746021} #London Overground / OK
+      UNION 
+    {?item (wdt:P361|wdt:P16) wd:Q216360} #Dockland Light railway  / OK
+      UNION 
+    {?item (wdt:P361|wdt:P16) wd:Q732649} #Crossrail / OK
+      UNION 
+    {?item (wdt:P361|wdt:P16) wd:Q786032} . #Tramlink / OK    
+    ?item wdt:P625 ?coordinates  .
+    ?item p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 .
+    ?item p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
+    OPTIONAL { ?item wdt:P18 ?image }.
+  } GROUP BY ?item
+}}  UNION {  {
+  SELECT ?line ?connect ?rgb WHERE {
+     {
+  SELECT ?item (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?lat1) AS ?lat1) (SAMPLE(?lon1) AS ?lon1) WHERE { #(SAMPLE(?image) AS ?image)
+    {?item (wdt:P361|wdt:P16) wd:Q20075} #Underground / OK
+      UNION 
+    {?item (wdt:P361|wdt:P16) wd:Q746021} #London Overground / OK
+      UNION 
+    {?item (wdt:P361|wdt:P16) wd:Q216360} #Dockland Light railway  / OK
+      UNION 
+    {?item (wdt:P361|wdt:P16) wd:Q732649} #Crossrail / OK
+      UNION 
+    {?item (wdt:P361|wdt:P16) wd:Q786032} . #Tramlink / OK    
+    ?item wdt:P625 ?coordinates  .
+    ?item p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 .
+    ?item p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
+    OPTIONAL { ?item wdt:P18 ?image }.
+  } GROUP BY ?item
 }.
+    INCLUDE %nextstations .
     ?item p:P197 ?nextstationstatement .
     ?nextstationstatement ps:P197 ?nextstation .
     {?nextstationstatement (pq:P81|pq:P1192) ?connect . ?connect (wdt:P361|wdt:P16) wd:Q20075} #Underground / OK
@@ -99,19 +157,26 @@ WHERE {
 } } .
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX geo: <http://www.opengis.net/ont/geosparql#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
+  <http://example.org/bigdata_select> """#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
 SELECT DISTINCT ?coordinates ?line ?item ?itemLabel ?connectLabel ?rgb #?image
 
-
+WITH {
+  SELECT ?item (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?lat1) AS ?lat1) (SAMPLE(?lon1) AS ?lon1) WHERE { #(SAMPLE(?image) AS ?image)
+    {?item (wdt:P361|wdt:P16) wd:Q20075} #Underground / OK
+      UNION 
+    {?item (wdt:P361|wdt:P16) wd:Q746021} #London Overground / OK
+      UNION 
+    {?item (wdt:P361|wdt:P16) wd:Q216360} #Dockland Light railway  / OK
+      UNION 
+    {?item (wdt:P361|wdt:P16) wd:Q732649} #Crossrail / OK
+      UNION 
+    {?item (wdt:P361|wdt:P16) wd:Q786032} . #Tramlink / OK    
+    ?item wdt:P625 ?coordinates  .
+    ?item p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 .
+    ?item p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
+    OPTIONAL { ?item wdt:P18 ?image }.
+  } GROUP BY ?item
+} AS %stations
 
 WITH {
   SELECT ?nextstation (SAMPLE(?lat2) AS ?lat2) (SAMPLE(?lon2) AS ?lon2) WHERE {
@@ -129,44 +194,9 @@ WITH {
   } GROUP BY ?nextstation
 } AS %nextstations
 
-
- 
-WHERE {
-  { {
-  SELECT ?item (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?lat1) AS ?lat1) (SAMPLE(?lon1) AS ?lon1) WHERE { #(SAMPLE(?image) AS ?image)
-    {?item (wdt:P361|wdt:P16) wd:Q20075} #Underground / OK
-      UNION 
-    {?item (wdt:P361|wdt:P16) wd:Q746021} #London Overground / OK
-      UNION 
-    {?item (wdt:P361|wdt:P16) wd:Q216360} #Dockland Light railway  / OK
-      UNION 
-    {?item (wdt:P361|wdt:P16) wd:Q732649} #Crossrail / OK
-      UNION 
-    {?item (wdt:P361|wdt:P16) wd:Q786032} . #Tramlink / OK    
-    ?item wdt:P625 ?coordinates  .
-    ?item p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 .
-    ?item p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
-    OPTIONAL { ?item wdt:P18 ?image }.
-  } GROUP BY ?item
-} }  UNION {  {
+WITH {
   SELECT ?line ?connect ?rgb WHERE {
-    {
-  SELECT ?item (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?lat1) AS ?lat1) (SAMPLE(?lon1) AS ?lon1) WHERE { #(SAMPLE(?image) AS ?image)
-    {?item (wdt:P361|wdt:P16) wd:Q20075} #Underground / OK
-      UNION 
-    {?item (wdt:P361|wdt:P16) wd:Q746021} #London Overground / OK
-      UNION 
-    {?item (wdt:P361|wdt:P16) wd:Q216360} #Dockland Light railway  / OK
-      UNION 
-    {?item (wdt:P361|wdt:P16) wd:Q732649} #Crossrail / OK
-      UNION 
-    {?item (wdt:P361|wdt:P16) wd:Q786032} . #Tramlink / OK    
-    ?item wdt:P625 ?coordinates  .
-    ?item p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 .
-    ?item p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
-    OPTIONAL { ?item wdt:P18 ?image }.
-  } GROUP BY ?item
-} .
+    INCLUDE %stations .
     INCLUDE %nextstations .
     ?item p:P197 ?nextstationstatement .
     ?nextstationstatement ps:P197 ?nextstation .
@@ -185,6 +215,9 @@ WHERE {
     BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
     BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
   }
-} } .
+} AS %lines 
+ 
+WHERE {
+  { INCLUDE %stations }  UNION { INCLUDE %lines  } .
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""" .

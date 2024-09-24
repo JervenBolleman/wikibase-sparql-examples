@@ -25,6 +25,32 @@ WHERE
 {
 SELECT DISTINCT ?item2 ?item ?INSEE
 WHERE {
+  hint:Query hint:optimizer \"None\".
+  ?item2 wdt:P131+ wd:Q142.
+  ?item2 (wdt:P31/wdt:P279*) wd:Q16970.
+  ?item2 wdt:P131 ?commune.
+  ?commune p:P131 ?stmt . ?stmt ps:P131 ?item . OPTIONAL { ?stmt pq:P582 ?end } FILTER (!BOUND(?end)) .
+  ?item wdt:P2586 ?INSEE
+       }
+}
+  GROUP BY ?item ?INSEE
+}         
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". } }       
+ORDER BY ?INSEE""",
+    """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?INSEE ?itemLabel (CONCAT(\"[[Wikidata:WikiProject France/Églises/\",?INSEE,\"\\u007C\",?itemLabel,\"]]\") AS ?LIEN) ?depCount
+WHERE { {
+SELECT ?item ?INSEE (COUNT(?item) AS ?depCount)
+WHERE 
+{
+SELECT DISTINCT ?item2 ?item ?INSEE
+WHERE {
   
   ?item2 wdt:P131+ wd:Q142.
   ?item2 (wdt:P31/wdt:P279*) wd:Q16970.
@@ -37,14 +63,7 @@ WHERE {
 }         
 SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". } }       
 ORDER BY ?INSEE""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?INSEE ?itemLabel (CONCAT(\"[[Wikidata:WikiProject France/Églises/\",?INSEE,\"\\u007C\",?itemLabel,\"]]\") AS ?LIEN) ?depCount
+  <http://example.org/bigdata_select> """SELECT ?item ?INSEE ?itemLabel (CONCAT(\"[[Wikidata:WikiProject France/Églises/\",?INSEE,\"\\u007C\",?itemLabel,\"]]\") AS ?LIEN) ?depCount
 WHERE { {
 SELECT ?item ?INSEE (COUNT(?item) AS ?depCount)
 WHERE 

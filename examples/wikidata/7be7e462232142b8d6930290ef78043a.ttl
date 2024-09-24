@@ -16,25 +16,7 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel (GROUP_CONCAT(DISTINCT ?placeLabel; separator=\", \") AS ?places)  WHERE {
-  {
-  SELECT DISTINCT ?item ?birthPlace ?country {
-    ?item wdt:P106 wd:Q4964182. # restrict to philosophers
-    ?item wdt:P19 ?birthPlace . # get the birthplace
-    ?birthPlace wdt:P131* ?country .
-    OPTIONAL { ?country wdt:P131 ?upper } .
-    FILTER( !BOUND( ?upper ) ) .
-  } LIMIT 1000
-} .
-  ?birthPlace wdt:P131* ?place .
-  ?place wdt:P131* ?country .
-  SERVICE wikibase:label {
-    bd:serviceParam wikibase:language \"en\" .
-    ?item rdfs:label ?itemLabel .
-    ?place rdfs:label ?placeLabel .
-  } .
-} GROUP BY ?item ?itemLabel ?birthPlace ?country""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel (GROUP_CONCAT(DISTINCT ?placeLabel; separator=\", \") AS ?places) WITH {
+SELECT ?item ?itemLabel (GROUP_CONCAT(DISTINCT ?placeLabel; separator=\", \") AS ?places) WITH {
   SELECT DISTINCT ?item ?birthPlace ?country {
     ?item wdt:P106 wd:Q4964182. # restrict to philosophers
     ?item wdt:P19 ?birthPlace . # get the birthplace
@@ -57,7 +39,25 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel (GROUP_CONCAT(DISTINCT ?placeLabel; separator=\", \") AS ?places) WITH {
+SELECT ?item ?itemLabel (GROUP_CONCAT(DISTINCT ?placeLabel; separator=\", \") AS ?places) WHERE {
+   {
+  SELECT DISTINCT ?item ?birthPlace ?country {
+    ?item wdt:P106 wd:Q4964182. # restrict to philosophers
+    ?item wdt:P19 ?birthPlace . # get the birthplace
+    ?birthPlace wdt:P131* ?country .
+    OPTIONAL { ?country wdt:P131 ?upper } .
+    FILTER( !BOUND( ?upper ) ) .
+  } LIMIT 1000
+}.
+  ?birthPlace wdt:P131* ?place .
+  ?place wdt:P131* ?country .
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+    ?item rdfs:label ?itemLabel .
+    ?place rdfs:label ?placeLabel .
+  } .
+} GROUP BY ?item ?itemLabel ?birthPlace ?country""";
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel (GROUP_CONCAT(DISTINCT ?placeLabel; separator=\", \") AS ?places) WITH {
   SELECT DISTINCT ?item ?birthPlace ?country {
     ?item wdt:P106 wd:Q4964182. # restrict to philosophers
     ?item wdt:P19 ?birthPlace . # get the birthplace

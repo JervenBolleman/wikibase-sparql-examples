@@ -19,23 +19,6 @@ PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
 PREFIX dct: <http://purl.org/dc/terms/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?lexeme (GROUP_CONCAT(?lemma; separator = \"/\") AS ?lemmata) ?sampleSense (SAMPLE(?gloss) AS ?anyGloss)
-
-WHERE {
-  {
-  SELECT ?lexeme (SAMPLE(?sense) AS ?sampleSense) WHERE {
-    SERVICE bd:sample {
-      ?lexeme dct:language wd:Q8752.
-      bd:serviceParam bd:sample.limit 20 .
-    }
-    OPTIONAL { ?lexeme ontolex:sense ?sense. }
-  }
-  GROUP BY ?lexeme
-}.
-  ?lexeme wikibase:lemma ?lemma.
-  OPTIONAL { ?sampleSense skos:definition ?gloss. }
-}
-GROUP BY ?lexeme ?sampleSense""";
-  <http://example.org/bigdata_select> """SELECT ?lexeme (GROUP_CONCAT(?lemma; separator = \"/\") AS ?lemmata) ?sampleSense (SAMPLE(?gloss) AS ?anyGloss)
 WITH {
   SELECT ?lexeme (SAMPLE(?sense) AS ?sampleSense) WHERE {
     SERVICE bd:sample {
@@ -59,6 +42,13 @@ PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
 PREFIX dct: <http://purl.org/dc/terms/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?lexeme (GROUP_CONCAT(?lemma; separator = \"/\") AS ?lemmata) ?sampleSense (SAMPLE(?gloss) AS ?anyGloss)
+WHERE {
+  INCLUDE %lexemesWithOneSense.
+  ?lexeme wikibase:lemma ?lemma.
+  OPTIONAL { ?sampleSense skos:definition ?gloss. }
+}
+GROUP BY ?lexeme ?sampleSense""";
+  <http://example.org/bigdata_select> """SELECT ?lexeme (GROUP_CONCAT(?lemma; separator = \"/\") AS ?lemmata) ?sampleSense (SAMPLE(?gloss) AS ?anyGloss)
 WITH {
   SELECT ?lexeme (SAMPLE(?sense) AS ?sampleSense) WHERE {
     SERVICE bd:sample {
