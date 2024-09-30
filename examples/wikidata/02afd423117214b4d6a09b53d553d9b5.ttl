@@ -11,6 +11,30 @@
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   schema:target <https://query.wikidata.org/sparql>;
+  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?level ?item ?relation ?linkTo ?itemLabel ?pic
+{
+  hint:Query hint:optimizer \"None\"
+  { BIND(0 AS ?level) BIND(wd:Q7200 AS ?item) } UNION
+  {
+    VALUES ?relation { wdt:P22 wdt:P25 } 
+    { BIND(1 AS ?level) BIND(wd:Q7200 AS ?linkTo) }
+    UNION
+    { BIND(2 AS ?level) ?linkTo wdt:P22|wdt:P25 wd:Q7200 }
+    UNION
+    { BIND(3 AS ?level) ?linkTo (wdt:P22|wdt:P25)/(wdt:P22|wdt:P25) wd:Q7200 }
+    UNION
+    { BIND(4 AS ?level) ?linkTo (wdt:P22|wdt:P25)/(wdt:P22|wdt:P25)/(wdt:P22|wdt:P25) wd:Q7200 }
+    ?item ?relation ?linkTo
+  }
+
+  OPTIONAL { ?item wdt:P18 ?pic }
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\"}
+}
+ORDER BY ?level""";
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -35,7 +59,7 @@ SELECT ?level ?item ?relation ?linkTo ?itemLabel ?pic
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\"}
 }
 ORDER BY ?level""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
