@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-194f903286ddd26f289d7701b9ff7ddf> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:orcid-index>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
@@ -52,56 +51,18 @@ WHERE {
 }  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY DESC(?number_of_persons)""";
-  <http://example.org/bigdata_select> """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT
   (?number_of_persons / ?total AS ?fraction) 
   ?occupation ?occupationLabel ?occupationDescription
 WITH {
   SELECT 
-    (SUM(?number_of_persons) AS ?total)
-  WHERE {
-     {
-  SELECT 
-    (COUNT(?person) AS ?number_of_persons)
-    ?occupation
-  WHERE {
-     {
-  SELECT 
     ?person
   WHERE {
     ?person wdt:P496 [] .
   }
   LIMIT 10000
-}    ?person wdt:P106 ?occupation .
-  }
-  GROUP BY ?occupation
-}    BIND(1 AS ?dummy)
-  }
-  GROUP BY ?dummy
-} AS %total
-WHERE {
-   {
-  SELECT 
-    (COUNT(?person) AS ?number_of_persons)
-    ?occupation
-  WHERE {
-     {
-  SELECT 
-    ?person
-  WHERE {
-    ?person wdt:P496 [] .
-  }
-  LIMIT 10000
-}    ?person wdt:P106 ?occupation .
-  }
-  GROUP BY ?occupation
-}   {
-  SELECT 
-    (SUM(?number_of_persons) AS ?total)
-  WHERE {
-     {
+} AS %persons
+WITH {
   SELECT 
     (COUNT(?person) AS ?number_of_persons)
     ?occupation
@@ -110,9 +71,20 @@ WHERE {
     ?person wdt:P106 ?occupation .
   }
   GROUP BY ?occupation
-}    BIND(1 AS ?dummy)
+} AS %counts
+WITH {
+  SELECT 
+    (SUM(?number_of_persons) AS ?total)
+  WHERE {
+    INCLUDE %counts
+    BIND(1 AS ?dummy)
   }
   GROUP BY ?dummy
-}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} AS %total
+WHERE {
+  INCLUDE %counts
+  INCLUDE %total
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
-ORDER BY DESC(?number_of_persons)""" .
+ORDER BY DESC(?number_of_persons)""";
+  schema:target <https://query.wikidata.org/sparql> .

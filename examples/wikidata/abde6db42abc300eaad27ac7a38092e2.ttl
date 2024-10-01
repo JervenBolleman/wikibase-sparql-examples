@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-abde6db42abc300eaad27ac7a38092e2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/most_common_election_days>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -22,13 +21,44 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?countryLabel ?weekday ?count ?totalCount ?percentage
 WHERE {
   # prettify
-  INCLUDE %maxWeekday.
+   {
+  # get weekday whose count matches the highest count for each country (i. e. the most common weekday)
+  # (if more than one weekday have the same count, pick any one)
+  SELECT ?country (SAMPLE(?weekday) AS ?weekday) ?count ?totalCount WHERE {
+     {
+  SELECT ?country ?weekday ?count WHERE {
+    INCLUDE %offsets.
+    # translate offset into weekday (July 4th, 1776 was a Thursday)
+    # SPARQL has no switch/case/match syntax, so this is also finicky
+    BIND(IF(?offset = 0, \"Thursday\"@en,
+            IF(?offset = 1, \"Friday\"@en,
+               IF(?offset = 2, \"Saturday\"@en,
+                  IF(?offset = 3, \"Sunday\"@en,
+                     IF(?offset = 4, \"Monday\"@en,
+                        IF(?offset = 5, \"Tuesday\"@en,
+                           IF(?offset = 6, \"Wednesday\"@en,
+                              \"unknown day\"@en)))))))
+         AS ?weekday)
+  }
+}
+     {
+  # get highest count for each country (i. e. the count for the most common weekday)
+  SELECT ?country (MAX(?count) AS ?maxCount) (SUM(?count) AS ?totalCount) WHERE {
+    INCLUDE %weekdays.
+  }
+  GROUP BY ?country
+  HAVING(?totalCount >= 3) # filter out countries with not enough data (3 is a very generous limit)
+}
+    FILTER(?count = ?maxCount)
+  }
+  GROUP BY ?country ?count ?totalCount
+}
   BIND(?count / ?totalCount AS ?ratio)
   BIND(CONCAT(SUBSTR(STR(100 * ?ratio), 1, 5), \"%\") AS ?percentage)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY DESC(?totalCount)""";
-  <http://example.org/bigdata_select> """# most common election day per country
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# most common election day per country
 SELECT ?countryLabel ?weekday ?count ?totalCount ?percentage
 WITH {
   # count election “weekdays” (but see below) for each country
@@ -90,4 +120,5 @@ WHERE {
   BIND(CONCAT(SUBSTR(STR(100 * ?ratio), 1, 5), \"%\") AS ?percentage)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
-ORDER BY DESC(?totalCount)""" .
+ORDER BY DESC(?totalCount)""";
+  schema:target <https://query.wikidata.org/sparql> .

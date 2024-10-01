@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-2786ed1d62c72a32edb11a4ec918cf67> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Charles_Matthews/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 #Map of “railway things” in Berlin, as classified by LinkedGeoData.org
 #defaultView:Map
@@ -37,4 +36,30 @@ SELECT ?railwayThing ?geometry (SAMPLE(?label) AS ?label) ?layer WHERE {
   BIND(COALESCE(?subway, ?lightrail, ?rail, ?tramway, ?platform, ?abandoned, ?historic, \"other\"@en) AS ?layer)
 }
 GROUP BY ?railwayThing ?geometry ?layer""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://linkedgeodata.org/sparql> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Map of “railway things” in Berlin, as classified by LinkedGeoData.org
+#defaultView:Map
+
+PREFIX lgdo: <http://linkedgeodata.org/ontology/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX geom: <http://geovocab.org/geometry#>
+PREFIX bif: <bif:>
+
+SELECT ?railwayThing ?geometry (SAMPLE(?label) AS ?label) ?layer WHERE {
+  SERVICE <http://linkedgeodata.org/sparql> {
+    ?railwayThing a lgdo:RailwayThing;
+                  geom:geometry [ geo:asWKT ?geometry ].
+    FILTER(bif:st_intersects(?geometry, bif:st_point(13.383333, 52.516667), 0.1))
+    OPTIONAL { ?railwayThing rdfs:label ?label. }
+    OPTIONAL { ?railwayThing a lgdo:Subway. BIND(\"subway\"@en AS ?subway) }
+    OPTIONAL { ?railwayThing a lgdo:Rail. BIND(\"rail\"@en AS ?rail) }
+    OPTIONAL { ?railwayThing a lgdo:LightRail. BIND(\"light rail\"@en AS ?lightrail) }
+    OPTIONAL { ?railwayThing a lgdo:Tramway. BIND(\"tramway\"@en AS ?tramway) }
+    OPTIONAL { ?railwayThing a lgdo:Platform. BIND(\"platform\"@en AS ?platform) }
+    OPTIONAL { ?railwayThing a lgdo:AbandonedRailway. BIND(\"abandoned railway\"@en AS ?abandoned) }
+    OPTIONAL { ?railwayThing a lgdo:HistoricThing. BIND(\"historic\"@en AS ?historic) }
+  }
+  BIND(COALESCE(?subway, ?lightrail, ?rail, ?tramway, ?platform, ?abandoned, ?historic, \"other\"@en) AS ?layer)
+}
+GROUP BY ?railwayThing ?geometry ?layer""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://linkedgeodata.org/sparql>;
+  schema:target <https://query.wikidata.org/sparql> .

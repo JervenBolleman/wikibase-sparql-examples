@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-652aeeb4b86c23f5a60d689e66d428fb> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:ProteinBoxBot/SPARQL_Examples>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -41,5 +40,31 @@ SELECT DISTINCT ?pwTitle ?metabolite1Label ?pKa1 ?pKa2 ?metabolite2Label WHERE {
    }
   }
 }""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Dimensions
+PREFIX wp:      <http://vocabularies.wikipathways.org/wp#>
+PREFIX dcterms:  <http://purl.org/dc/terms/>
+PREFIX dc:      <http://purl.org/dc/elements/1.1/> 
+SELECT DISTINCT ?pwTitle ?metabolite1Label ?pKa1 ?pKa2 ?metabolite2Label WHERE {
+  ?metabolite2 wdt:P1117 ?pKa2 .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  {SELECT * WHERE {
+    ?metabolite1 wdt:P1117 ?pKa1 .
+    {SELECT * WHERE {
+       SERVICE <http://sparql.wikipathways.org/> {
+         ?pathway dc:identifier ?pw ;
+                  dc:title ?pwTitle ;
+                   wp:organismName \"Homo sapiens\"^^xsd:string .
+         ?interaction rdf:type wp:Interaction ;
+                wp:participants ?wpmb1, ?wpmb2 ;
+                dcterms:isPartOf ?pathway .
+          ?wpmb1 wp:bdbWikidata ?metabolite1 .
+          ?wpmb2 wp:bdbWikidata ?metabolite2 .
+         FILTER (?wpmb1 != ?wpmb2)}
+     }
+    }
+   }
+  }
+}""";
   <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://sparql.wikipathways.org/>,
-    <http://wikiba.se/ontology#label> .
+    <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

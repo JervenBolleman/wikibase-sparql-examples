@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-2087b942856119427a09697b632ad04e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Samwilson>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -46,4 +45,34 @@ WHERE {
 }
 GROUP BY ?street ?streetLabel ?streetDescription ?osmRelation ?image
 ORDER BY ?streetLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?street ?streetLabel ?streetDescription
+  ?osmRelation
+  ( GROUP_CONCAT( DISTINCT ?namedAfterLabel; SEPARATOR='; ' ) AS ?namedAfter )
+  ?image
+  ( GROUP_CONCAT( DISTINCT ?coordinateLocation; SEPARATOR=' ' ) AS ?coordinateLocations )
+  ( GROUP_CONCAT( DISTINCT ?locationLabel; SEPARATOR='; ' ) AS ?locations )
+  ( GROUP_CONCAT( DISTINCT ?connectsWithLabel; SEPARATOR='; ' ) AS ?connectsWiths )
+WHERE {
+  # Is a street, road, or alley
+  { ?street wdt:P31 wd:Q79007 } UNION { ?street wdt:P31 wd:Q34442 } UNION { ?street wdt:P31 wd:Q1251403 } .
+  # In the City of Fremantle
+  ?street wdt:P131 wd:Q1455046 .
+  OPTIONAL { ?street wdt:P625 ?coordinateLocation }
+  OPTIONAL { ?street wdt:P2789 ?connectsWith }
+  OPTIONAL { ?street wdt:P402 ?osmRelation }
+  OPTIONAL { ?street wdt:P138 ?namedAfter }
+  OPTIONAL { ?street wdt:P18 ?image }
+  OPTIONAL { ?street wdt:P276 ?location }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+    ?street rdfs:label ?streetLabel .
+    ?street schema:description ?streetDescription .
+    ?namedAfter rdfs:label ?namedAfterLabel .
+    ?location rdfs:label ?locationLabel .
+    ?connectsWith rdfs:label ?connectsWithLabel .
+  }
+}
+GROUP BY ?street ?streetLabel ?streetDescription ?osmRelation ?image
+ORDER BY ?streetLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

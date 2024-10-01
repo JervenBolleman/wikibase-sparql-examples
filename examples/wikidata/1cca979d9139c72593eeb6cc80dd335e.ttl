@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-1cca979d9139c72593eeb6cc80dd335e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Property_talk:P6375/Archives/P969>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
@@ -39,4 +38,30 @@ SELECT ?c (COUNT(DISTINCT ?item) AS ?count) (SAMPLE(?item) as ?sample)
     }
 }
 GROUP BY ?c
-ORDER BY DESC(?count)""" .
+ORDER BY DESC(?count)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?c (COUNT(DISTINCT ?item) AS ?count) (SAMPLE(?item) as ?sample)
+{
+    {
+        SELECT ?item ?c {
+            ?item p:P159 / pq:P969 [] ; wdt:P17 ?c
+        }
+    }
+    UNION
+    {
+        SELECT ?item ?c {
+            ?item p:P159 ?stmt .
+            ?stmt pq:P969 [] ; pq:P17 ?c
+        }
+    }
+    UNION
+    {
+        SELECT ?item ?c {
+            ?item p:P159 ?stmt .
+            ?stmt pq:P969 [] .
+            ?stmt ps:P159 / wdt:P17 ?c
+        }
+    }
+}
+GROUP BY ?c
+ORDER BY DESC(?count)""";
+  schema:target <https://query.wikidata.org/sparql> .

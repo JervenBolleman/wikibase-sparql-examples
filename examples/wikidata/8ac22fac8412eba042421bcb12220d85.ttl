@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8ac22fac8412eba042421bcb12220d85> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/3/12>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -24,12 +23,47 @@ SELECT
   ?itemLabel
   ?P856
 {
-  INCLUDE %1.
-  OPTIONAL{INCLUDE %2}.
+   {
+  SELECT
+    ?item
+    # TODO: Since we are using SAMPLE, which value would be taken
+    # under consideration when, for example, a parent organization has
+    # multiple coordinate locations?
+    (SAMPLE(?coordinates) AS ?coordinates)
+  {
+     {
+  SELECT DISTINCT ?item {
+    ?item wdt:P31/wdt:P279* wd:Q115557431.
+  }
+}
+    # Data from a parent organization
+    OPTIONAL{?item wdt:P749+/wdt:P625 ?P749_plus_P625}.
+    # Data from the item
+    OPTIONAL{?item wdt:P625 ?P625}.
+    OPTIONAL{?item wdt:P159/wdt:P625 ?P159_P625}.
+    OPTIONAL{?item wdt:P131+/wdt:P625 ?P131_plus_P625}.
+
+    BIND(COALESCE(IF(BOUND(?P625), ?P625, 1/0),
+                  IF(BOUND(?P159_P625), ?P159_P625, 1/0),
+                  IF(BOUND(?P131_plus_P625), ?P131_plus_P625, 1/0),
+                  IF(BOUND(?P749_plus_P625), ?P749_plus_P625, 1/0))
+         AS ?coordinates)
+  }
+  GROUP BY ?item
+}
+  OPTIONAL{ {
+  SELECT DISTINCT
+    ?item
+    ?university
+  {
+    ?item wdt:P749+ ?university.
+    ?university wdt:P31/wdt:P279* wd:Q3918.
+  }
+}}.
   OPTIONAL{?item wdt:P856 ?P856}.
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\"}.
 }""";
-  <http://example.org/bigdata_select> """#defaultView:Map
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
 SELECT
   ?coordinates
   ?university
@@ -80,4 +114,6 @@ WITH {
   OPTIONAL{INCLUDE %2}.
   OPTIONAL{?item wdt:P856 ?P856}.
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\"}.
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

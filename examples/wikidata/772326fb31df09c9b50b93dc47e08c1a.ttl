@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-772326fb31df09c9b50b93dc47e08c1a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_Taxonomy/Archive/2017/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -48,4 +47,38 @@ WHERE
    	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
 }
 GROUP BY ?fam ?famLabel ?instanceof ?instanceofLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT 
+	?fam ?famLabel ?instanceof ?instanceofLabel 
+	(SAMPLE(?image) as ?image)  (SAMPLE(?taxonname) as ?taxonname)
+	# (GROUP_CONCAT(DISTINCT ?species; separator=\"/\" ) as ?allspecies)
+	(GROUP_CONCAT(DISTINCT ?extinct; separator=\", \" ) as ?extinct_species)
+	(GROUP_CONCAT(DISTINCT ?nonextinct; separator=\", \" ) as ?nonextinct_species)
+	(GROUP_CONCAT(DISTINCT ?unknown; separator=\", \" ) as ?unknownstatus_species)
+	(GROUP_CONCAT(DISTINCT ?taxonnamespeciesmissing; separator=\" \" ) as ?taxonname_species_missing)
+WHERE
+{
+  	?item wdt:P171* wd:Q5113 .
+	?item wdt:P105 wd:Q7432 .
+  	?item wdt:P171* ?fam .
+  	?fam wdt:P105 wd:Q35409 .
+  	?fam wdt:P31 ?instanceof . 
+  
+  	# FILTER NOT EXISTS { ?fam wdt:P31 wd:Q23038290 }    # fossil taxon (family)
+  	# FILTER NOT EXISTS { ?item wdt:P31 wd:Q23038290 }   # fossil taxon (species)
+  	# FILTER NOT EXISTS { ?item wdt:P141 wd:Q237350 }
+  
+	OPTIONAL { ?fam wdt:P18 ?image } .
+  	OPTIONAL { ?fam wdt:P225 ?taxonname } .
+
+  	OPTIONAL { ?item wdt:P225 ?taxonnamespecies } .  
+  	BIND( IF(!BOUND(?taxonnamespecies), str(?item), \"\") as ?taxonnamespeciesmissing) # does this work?
+
+  	OPTIONAL { ?item wdt:P141 ?status }
+	BIND(IF(!BOUND(?status), ?taxonnamespecies, \"\") as ?unknown)  
+	BIND(IF(?status = wd:Q237350, ?taxonnamespecies, \"\") as ?extinct)  
+	BIND(IF(?status != wd:Q237350, ?taxonnamespecies, \"\") as ?nonextinct) 
+   	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}
+GROUP BY ?fam ?famLabel ?instanceof ?instanceofLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

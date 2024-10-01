@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-a9ac134e2889730e06846e31999ce556> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Property_talk:P7935>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
@@ -29,4 +28,20 @@ WHERE
 }
 GROUP BY ?item ?itemLabel
 ORDER BY ?cc""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel 
+  (GROUP_CONCAT(DISTINCT ?cc1; separator=\", \") as ?CorpusCorporum)
+  (GROUP_CONCAT(DISTINCT ?gnd1; separator=\", \") as ?GND)
+  (GROUP_CONCAT(DISTINCT ?viaf1; separator=\", \") as ?VIAF)
+  (GROUP_CONCAT(DISTINCT ?mw1; separator=\", \") as ?Mirabile)
+WHERE
+{
+  ?item wdt:P7935 ?cc1 .
+  OPTIONAL { ?item wdt:P227 ?gnd1 . }
+  OPTIONAL { ?item wdt:P214 ?viaf1 . }
+  OPTIONAL { ?item wdt:P7986 ?mw1 . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en,la\" . }
+}
+GROUP BY ?item ?itemLabel
+ORDER BY ?cc""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

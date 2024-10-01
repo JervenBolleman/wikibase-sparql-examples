@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-105024786d87fde7bd9457e3ba8ca965> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/02>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -44,4 +43,31 @@ SELECT distinct ?serie ?serieLabel ?season ?seasonLabel ?seasonN2 ?episode ?epis
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 }
 ORDER BY  ?serie xsd:integer(?seasonN2) xsd:integer(?episodeN)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT distinct ?serie ?serieLabel ?season ?seasonLabel ?seasonN2 ?episode ?episodeLabel ?episodeN ?seasonN ?prev ?next ?imdb ?date WHERE {
+  ?episode wdt:P31 wd:Q21191270 .
+  ?episode wdt:P179 wd:Q108774.
+  ?episode wdt:P179 ?serie.
+  ?episode wdt:P361 wd:Q3468580.
+  ?episode wdt:P361 ?season.
+  OPTIONAL {?episode wdt:P1191 ?date .}
+  OPTIONAL {?episode wdt:P345 ?imdb .}
+  OPTIONAL {?episode wdt:P155 ?prev.}
+  OPTIONAL {?episode wdt:P156 ?next.}
+  
+  ?episode p:P179 ?statement .
+  ?statement pq:P1545 ?episodeN .
+  
+  ?episode p:P361 ?statement2 .
+  OPTIONAL {?statement2 pq:P1545 ?seasonN .}
+  
+  OPTIONAL {?season p:P179 ?statementSeason .}
+  OPTIONAL {?statementSeason pq:P1545 ?seasonN2 .}
+  
+  OPTIONAL {?season wdt:P31 ?istance .}
+  FILTER (?istance = wd:Q3464665) .
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY  ?serie xsd:integer(?seasonN2) xsd:integer(?episodeN)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

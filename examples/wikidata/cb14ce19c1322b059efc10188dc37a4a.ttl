@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-cb14ce19c1322b059efc10188dc37a4a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/08>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -24,4 +23,14 @@ SELECT ?item ?itemLabel ?acronyms (STRBEFORE(?acronyms, \",\") AS ?acronym1 ) (S
   GROUP BY ?item ?itemLabel
   ORDER BY (?itemLabel)
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?acronyms (STRBEFORE(?acronyms, \",\") AS ?acronym1 ) (STRAFTER(?acronyms, \",\") AS ?acronym2 ) WHERE {
+  SELECT ?item ?itemLabel (GROUP_CONCAT(DISTINCT STR(?acronym); SEPARATOR = \",\") AS ?acronyms) WHERE {
+    ?item wdt:P1343 wd:Q96192978;
+      wdt:P1813 ?acronym.
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr,de,it\". }
+  }
+  GROUP BY ?item ?itemLabel
+  ORDER BY (?itemLabel)
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

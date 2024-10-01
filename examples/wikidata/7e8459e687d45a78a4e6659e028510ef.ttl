@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-7e8459e687d45a78a4e6659e028510ef> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Gilliane/Tipps/SPARQL-SIAr>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -38,4 +37,27 @@ SERVICE wikibase:label {
   }
 }
 ORDER BY ?Groupement""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Description des groupements intercommunaux neuchâtelois
+
+SELECT DISTINCT ?item ?Groupement ?Acronyme ?Siège ?URL ?Création ?Dissolution ?Successeur ?successeur
+WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q65934161.
+  OPTIONAL {?item wdt:P856 ?URL. } #cherche le site web s'il existe
+  OPTIONAL {?item wdt:P1813 ?Acronyme .}   
+  OPTIONAL {?item wdt:P159 ?siege .} 
+  OPTIONAL {?item wdt:P571 ?datecreation.} BIND (year(?datecreation) AS ?Création) #cherche la date de création si elle existe
+  OPTIONAL {?item wdt:P576 ?datedissolution.} BIND (year(?datedissolution) AS ?Dissolution) #cherche la date de dissolution si elle existe
+  OPTIONAL {?item wdt:P1366 ?successeur.} #cherche la nouvelle entité si le groupement a été remplacé 
+  
+
+SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr\" . 
+    ?item rdfs:label ?Groupement.
+#    ?item rdfs:description ?Description.
+    ?siege rdfs:label ?Siège.
+    ?successeur rdfs:label ?Successeur.
+  }
+}
+ORDER BY ?Groupement""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

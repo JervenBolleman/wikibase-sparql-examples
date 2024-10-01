@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-5e562e7c9f533084c95787675cb24fda> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/ee>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 SELECT ?edition2 ?title ?year2 ?text2 ?this_is_no ?ota_has_no WHERE {
 ?edition1 wdt:P629 ?work; 
@@ -27,4 +26,21 @@ BIND(YEAR(?pubdate2) as ?year2) # publication year
 #FILTER{ ?year1 > ?year2 }
 OPTIONAL{ ?edition1 wdt:P393 ?ota_has_no } # edition number
 OPTIONAL{ ?edition2 wdt:P393 ?this_is_no }
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?edition2 ?title ?year2 ?text2 ?this_is_no ?ota_has_no WHERE {
+?edition1 wdt:P629 ?work; 
+    wdt:P953 ?text1;
+    wdt:P577 ?pubdate1.
+FILTER CONTAINS(STR(?text1),\"ota.ox.ac.uk\") # OTA scan of work
+BIND(YEAR(?pubdate1) as ?year) # publication year  
+?edition2 wdt:P629 ?work; # edition of work
+    wdt:P953 ?text2;
+    wdt:P1476 ?title;
+    wdt:P577 ?pubdate2.
+FILTER( ?edition1 != ?edition2 ) # non-OTA scan of work
+BIND(YEAR(?pubdate2) as ?year2) # publication year
+#FILTER{ ?year1 > ?year2 }
+OPTIONAL{ ?edition1 wdt:P393 ?ota_has_no } # edition number
+OPTIONAL{ ?edition2 wdt:P393 ?this_is_no }
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-0d5ca6e48f23c48d53776b2a4409c508> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/01>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
@@ -52,4 +51,41 @@ SELECT ?id ?idLabel ?country ?countryLabel ?continent  ?occupation ?parentId ?op
   }
   OPTIONAL { ?id wdt:P737 ?influencer. }
 }
-GROUP BY ?id ?idLabel ?country ?countryLabel ?continent    ?occupation ?parentId ?optionAward ?optionAwardLabel ?mgid ?optionNotable_work ?optionNotable_workLabel ?optionWikipedia_article ?influencer""" .
+GROUP BY ?id ?idLabel ?country ?countryLabel ?continent    ?occupation ?parentId ?optionAward ?optionAwardLabel ?mgid ?optionNotable_work ?optionNotable_workLabel ?optionWikipedia_article ?influencer""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?id ?idLabel ?country ?countryLabel ?continent  ?occupation ?parentId ?optionAward ?optionAwardLabel ?mgid ?optionNotable_work ?optionNotable_workLabel ?optionWikipedia_article ?influencer (SAMPLE(?student) AS ?student) (SAMPLE(?img) AS ?img) WHERE {
+  ?id wdt:P106 wd:Q170790;
+    rdfs:label ?idLabel.
+  FILTER((LANG(?idLabel)) = \"en\")
+  ?country rdfs:label ?countryLabel.
+  FILTER((LANG(?countryLabel)) = \"en\")
+  ?id wdt:P27 ?country.
+  ?country wdt:P30 ?continent.
+  OPTIONAL {
+    ?optionWikipedia_article schema:about ?id;
+      schema:isPartOf <https://en.wikipedia.org/>.
+  }
+  OPTIONAL { ?id wdt:P18 ?img. }
+  OPTIONAL {
+    ?id p:P800 _:b102.
+    _:b102 ps:P800 ?optionNotable_work.
+    ?optionNotable_work rdfs:label ?optionNotable_workLabel.
+    FILTER((LANG(?optionNotable_workLabel)) = \"en\")
+  }
+  OPTIONAL {
+    ?id wdt:P166 ?optionAward.
+    ?optionAward rdfs:label ?optionAwardLabel.
+    FILTER((LANG(?optionAwardLabel)) = \"en\")
+  }
+  OPTIONAL {
+    ?id (wdt:P802|wdt:P185) ?student.
+    ?student wdt:P106 wd:Q170790.
+  }
+  OPTIONAL {
+    ?id (p:P1066|p:P184) _:b103.
+    _:b103 (ps:P1066|ps:P184) ?parentId.
+    ?parentId wdt:P106 wd:Q170790.
+  }
+  OPTIONAL { ?id wdt:P737 ?influencer. }
+}
+GROUP BY ?id ?idLabel ?country ?countryLabel ?continent    ?occupation ?parentId ?optionAward ?optionAwardLabel ?mgid ?optionNotable_work ?optionNotable_workLabel ?optionWikipedia_article ?influencer""";
+  schema:target <https://query.wikidata.org/sparql> .

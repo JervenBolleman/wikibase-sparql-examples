@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b3aae2afc95ddb9125e3eb9b48bea682> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:eiareport-index>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -46,4 +45,36 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,da\". }
 }
 ORDER BY DESC(?year)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT 
+  DISTINCT 
+  ?year
+
+  ?report ?reportLabel
+  (CONCAT(\"#eiareport/\", SUBSTR(STR(?report), 32)) AS ?reportUrl)
+
+  (\"Scholia ↗\" AS ?scholia) 
+  (CONCAT(\"https://scholia.toolforge.org/work/\", SUBSTR(STR(?report), 32)) AS ?scholiaUrl)
+
+  (\"Full text ↗\" AS ?full_text)
+  ?full_textUrl
+
+  (\"Miljøportal ↗\" AS ?miljøportal) ?miljøportalUrl
+WHERE {
+  ?report wdt:P31 wd:Q64548048 .
+  OPTIONAL {
+    ?report wdt:P577 ?publication_datetime .
+    BIND(YEAR(?publication_datetime) AS ?year)        
+  }
+
+  OPTIONAL {
+    ?report wdt:P953 ?full_textUrl
+  }
+  OPTIONAL {
+    ?report wdt:P10930 ?miljøportalId .
+    BIND(CONCAT(\"https://daieproddreamspdfsto.blob.core.windows.net/files/\", STR(?miljøportalId)) AS ?miljøportalUrl)
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,da\". }
+}
+ORDER BY DESC(?year)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

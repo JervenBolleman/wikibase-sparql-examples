@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-78f7d09ca38368a99cab09524551d4ee> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Abbe98/queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -38,5 +37,29 @@ SELECT ?nr ?nrLabel ?nr_coord ?url (COUNT(?m) AS ?m_count) WHERE {
 }
 GROUP BY ?nr ?nrLabel ?nr_coord ?url
 ORDER BY DESC (?m_count)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#TEMPLATE={ \"template\": { \"en\": \"Municipality ?muncipality\" }, \"variables\": { \"?muncipality\": { \"query\": \"SELECT ?id WHERE { ?id wdt:P31 wd:Q127448. }\" } } }
+#defaultView:Map
+#title: Nature reserves close to many monuments
+
+SELECT ?nr ?nrLabel ?nr_coord ?url (COUNT(?m) AS ?m_count) WHERE {
+  BIND(wd:Q508140 AS ?muncipality)
+  ?nr wdt:P31 wd:Q179049;
+    wdt:P131 ?muncipality;
+    wdt:P625 ?nr_coord.
+  SERVICE wikibase:around {
+    ?m wdt:P625 ?location.
+    bd:serviceParam wikibase:center ?nr_coord;
+      wikibase:radius \"1\".
+  }
+  ?m wdt:P1435 wd:Q21287602.
+  BIND(REPLACE(STR(?nr), 'http://www.wikidata.org/entity/', '') AS ?qid)
+
+  BIND(URI(CONCAT('https://query.wikidata.org/embed.html#%23defaultView%3AMap%0ASELECT%20%3Fm%20%3FmLabel%20%3Fm_coord%20WHERE%20%7B%0A%20%20BIND%28wd%3A', ?qid, '%20AS%20%3Fnr%29%0A%20%20%3Fnr%20wdt%3AP625%20%3Fnr_coord%20.%0A%20%20SERVICE%20wikibase%3Aaround%20%7B%0A%20%20%20%20%3Fm%20wdt%3AP625%20%3Fm_coord%20.%0A%20%20%20%20%20%20%20bd%3AserviceParam%20wikibase%3Acenter%20%3Fnr_coord%20%3B%0A%20%20%20%20%20%20wikibase%3Aradius%20%221%22.%0A%20%20%7D%0A%20%20%3Fm%20wdt%3AP1435%20wd%3AQ21287602.%0A%20%20SERVICE%20wikibase%3Alabel%20%7B%20bd%3AserviceParam%20wikibase%3Alanguage%20%22%5BAUTO_LANGUAGE%5D%2Csv%22.%20%7D%0A%7D')) AS ?url)
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],sv\". }
+}
+GROUP BY ?nr ?nrLabel ?nr_coord ?url
+ORDER BY DESC (?m_count)""";
   <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#around>,
-    <http://wikiba.se/ontology#label> .
+    <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

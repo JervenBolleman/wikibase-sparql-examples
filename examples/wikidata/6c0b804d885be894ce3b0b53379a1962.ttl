@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-6c0b804d885be894ce3b0b53379a1962> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/Three-syllable_German_words>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -31,4 +30,21 @@ SELECT ?lexeme (GROUP_CONCAT(DISTINCT ?text; separator = \"/\") AS ?text) WHERE 
   }
   FILTER(REGEX(?hyphenation, \"^[^‧]*‧[^‧]*‧[^‧]*$\"))
 }
-GROUP BY ?lexeme""" .
+GROUP BY ?lexeme""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# German words with three syllables, i. e. a hyphenation (P5279) with two U+2027 HYPHENATION POINTs
+SELECT ?lexeme (GROUP_CONCAT(DISTINCT ?text; separator = \"/\") AS ?text) WHERE {
+  ?lexeme dct:language wd:Q188.
+  {
+    ?lexeme ontolex:lexicalForm [
+      ontolex:representation ?text;
+      wdt:P5279 ?hyphenation
+    ].
+  } UNION {
+    # P5279 is only supposed to be used on forms, but some also use it on the lexeme itself
+    ?lexeme wikibase:lemma ?text;
+            wdt:P5279 ?hyphenation.
+  }
+  FILTER(REGEX(?hyphenation, \"^[^‧]*‧[^‧]*‧[^‧]*$\"))
+}
+GROUP BY ?lexeme""";
+  schema:target <https://query.wikidata.org/sparql> .

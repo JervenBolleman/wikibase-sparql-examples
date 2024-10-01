@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-0d81868b303c38301a5424f8ab4b3d35> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Carlobia/CCLitBox_Workshop_AIB_2023>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -35,4 +34,23 @@ SELECT ?item ?itemLabel ?ddn ?cc ?wkp WHERE {
     SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY ?ddn""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Elenco di drammaturghi italiani nati nel 900 in ordine di data di nascita, con eventuale pagina di Wikipedia
+SELECT ?item ?itemLabel ?ddn ?cc ?wkp WHERE {
+  
+  ?item wdt:P31 wd:Q5 .
+  ?item wdt:P106 wd:Q214917 .
+  ?item wdt:P569 ?ddn .
+  ?item wdt:P27 wd:Q38 .
+  OPTIONAL { ?item wdt:P8248 ?cc . }
+
+  OPTIONAL {
+    ?wkp schema:about ?item.
+    FILTER(REGEX(STR(?wkp), \"it.wikipedia.org\"))
+  }
+
+  FILTER((?ddn >= \"1900-01-01T00:00:00Z\"^^xsd:dateTime) && (?ddn<=\"1999-12-31T00:00:00Z\"^^xsd:dateTime))
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?ddn""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

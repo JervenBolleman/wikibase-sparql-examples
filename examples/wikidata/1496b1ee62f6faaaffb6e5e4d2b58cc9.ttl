@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-1496b1ee62f6faaaffb6e5e4d2b58cc9> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Jura1/4/9/4/1aruJ:klat_resU>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -28,4 +27,18 @@ SELECT ?author ?authorLabel ?item ?itemLabel ?genreLabel ?date ?year ?title
   	SERVICE wikibase:label { bd:serviceParam wikibase:language \"it,grc,la\" }    
 }
 ORDER BY ?date""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?author ?authorLabel ?item ?itemLabel ?genreLabel ?date ?year ?title
+{
+	?item wdt:P50 ?author . VALUES ?author { wd:Q43353 } .
+	#  ?item wdt:P50 ?author . ?author wdt:P2348 ?p . VALUES ?p { wd:Q486761 wd:Q17167 wd:Q2277 } 
+  	OPTIONAL  { ?item wdt:P136 ?genre }
+  	OPTIONAL  { ?item wdt:P571 ?date1 }
+  	OPTIONAL  { ?item wdt:P1191 ?date2 }
+	BIND(COALESCE (?date2, ?date1) as ?date )
+	BIND(IF(YEAR(?date)<1, CONCAT(str(1+YEAR(?date)*-1), \" BC\"), str(YEAR(?date))) as ?year )
+  	OPTIONAL  { ?item wdt:P1476 ?title }
+  	SERVICE wikibase:label { bd:serviceParam wikibase:language \"it,grc,la\" }    
+}
+ORDER BY ?date""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

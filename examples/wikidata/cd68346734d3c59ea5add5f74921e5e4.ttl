@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-cd68346734d3c59ea5add5f74921e5e4> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/ambassadors>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -33,4 +32,20 @@ where
 
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """select distinct ?person ?personLabel ?positionLabel ?startyear ?endyear ?birthyear ?deathyear
+where
+{
+  { ?position wdt:P31 wd:Q18115939 . } union { ?position wdt:P31 wd:Q56760832 } . # position is UK ambassador or high commissioner
+    
+    ?person p:P39 ?positionStatement . ?positionStatement ps:P39 ?position . # find positions they held
+
+    optional { ?positionStatement pq:P580 ?start . bind(year(?start) as ?startyear) } # id start year
+    optional { ?positionStatement pq:P582 ?end . bind(year(?end) as ?endyear) } # id end year
+    optional { ?person wdt:P569 ?born . bind(year(?born) as ?birthyear) } # id start year
+    optional { ?person wdt:P570 ?died . bind(year(?died) as ?deathyear) } # id end year
+  filter (?deathyear = ?endyear )
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

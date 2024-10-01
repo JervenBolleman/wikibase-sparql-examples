@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-52a714395975859317fe401a417828b5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -45,4 +44,32 @@ SELECT ?item ?itemLabel ?fr_male ?fr_female ?de_male ?de_female ?da {
   } .
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\" } .
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?fr_male ?fr_female ?de_male ?de_female ?da {
+  ?item wdt:P31 wd:Q3624078 .
+  VALUES ?male_val { wd:Q6581097 wd:Q499327 } .
+  VALUES ?female_val { wd:Q6581072 wd:Q1775415 } .
+
+  ?item p:P1549 ?fr_male_statement; p:P1549 ?fr_female_statement .
+  ?fr_male_statement (pq:P366|pq:P518) ?male_val; ps:P1549 ?fr_male .
+  ?fr_female_statement (pq:P366|pq:P518) ?female_val; ps:P1549 ?fr_female .
+  FILTER( LANG( ?fr_male ) = 'fr' && LANG( ?fr_female ) = 'fr' ) .
+  MINUS { ?fr_male_statement (pq:P366|pq:P518) wd:Q146786 } .
+  MINUS { ?fr_female_statement (pq:P366|pq:P518) wd:Q146786 } .
+  OPTIONAL {
+    ?item p:P1549 ?de_male_statement; p:P1549 ?de_female_statement .
+    ?de_male_statement (pq:P366|pq:P518) ?male_val; ps:P1549 ?de_male .
+    ?de_female_statement (pq:P366|pq:P518) ?female_val; ps:P1549 ?de_female .
+    FILTER( LANG( ?de_male ) = 'de' && LANG( ?de_female ) = 'de' ) .
+    MINUS { ?de_male_statement (pq:P366|pq:P518) wd:Q146786 } .
+    MINUS { ?de_female_statement (pq:P366|pq:P518) wd:Q146786 } .
+  } .
+  OPTIONAL {
+    ?item p:P1549 ?da_statement .
+    ?da_statement ps:P1549 ?da .
+    FILTER( LANG( ?da ) = 'da' ) .
+    MINUS { ?da_statement (pq:P366|pq:P518) wd:Q146786 } .
+  } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\" } .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-0d69eb27ff27dd7f7c6b434ae907072a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/08>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -41,4 +40,31 @@ SELECT DISTINCT ?twin ?twinLabel ?geo ?pop ?image ?twinyear ?layer WHERE {
   OPTIONAL {?twin wdt:P18 ?image}
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
+SELECT DISTINCT ?twin ?twinLabel ?geo ?pop ?image ?twinyear ?layer WHERE {
+  ?city wdt:P190 ?twin .
+  MINUS {?city wdt:P17 wd:Q30}
+  ?twin wdt:P17 ?country .
+  ?country wdt:P37 wd:Q1321 .
+  ?twin wdt:P625 ?geo .
+  ?twin wdt:P1082 ?pop .
+  ?twin wdt:P571 ?inception .
+  BIND(YEAR(?inception) AS ?twinyear)
+  BIND(IF(?twinyear < 1700, \"Pre-1700\", 
+          IF(?twinyear < 1751, \"1700-1750\", 
+             IF(?twinyear < 1801, \"1751-1800\", 
+                IF(?twinyear < 1851, \"1801-1850\", 
+                   IF(?twinyear < 1901, \"1851-1900\", 
+                      IF(?twinyear < 1951, \"1901-1950\", \"Post-1950\") 
+                     ) 
+                  ) 
+               ) 
+            )
+         ) AS ?layer )
+  FILTER (?pop < 100000 )
+  FILTER (?pop > 10000 )
+  OPTIONAL {?twin wdt:P18 ?image}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

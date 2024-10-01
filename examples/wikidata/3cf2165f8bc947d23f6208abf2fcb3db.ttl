@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-3cf2165f8bc947d23f6208abf2fcb3db> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/collections>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -41,4 +40,29 @@ OPTIONAL {?item wdt:P973 ?url FILTER CONTAINS(STR(?url), \"ashmolean.org\")
                 }
 OPTIONAL {?item wdt:P6610 ?ash_id}
 } ORDER BY ?itempage""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?itempage ?extlink ?url ?ash_id WHERE {
+{SELECT DISTINCT ?name ?item ?itempage WHERE {
+    ?item wdt:P195 wd:Q636400.   # items in the Ashmolean
+    ?itempage schema:about ?item;
+         schema:isPartOf <https://en.wikipedia.org/>;   # ENWP articles about them
+         schema:name ?name     # Title of article
+}
+ }
+OPTIONAL {SERVICE wikibase:mwapi { # External links from each article
+    bd:serviceParam wikibase:api \"Generator\";
+         wikibase:endpoint \"en.wikipedia.org\";
+         mwapi:generator \"allpages\";
+         mwapi:gapfrom ?name;
+         mwapi:gapto ?name;
+         mwapi:prop \"extlinks\";
+         mwapi:ellimit 50 .
+    ?extlink wikibase:apiOutput \"extlinks/el/text()\".
+  }
+    FILTER CONTAINS(?extlink, \"ashmolean.org\")
+ }
+OPTIONAL {?item wdt:P973 ?url FILTER CONTAINS(STR(?url), \"ashmolean.org\")
+                }
+OPTIONAL {?item wdt:P6610 ?ash_id}
+} ORDER BY ?itempage""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

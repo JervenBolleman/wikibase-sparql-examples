@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-2c4cc94a4e81c7a8fcd9737d1ca13c2b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/05>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -32,4 +31,21 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
  	}
    SERVICE wikibase:label { bd:serviceParam wikibase:language 'en'. }
  } GROUP BY ?country ?countryLabel ?coordinates""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
+ SELECT 
+ ?country
+ ?countryLabel
+ ?coordinates
+ (group_concat(?languagesLabel;separator=\" , \") as ?official_languages)
+ WHERE {
+   ?country wdt:P31 wd:Q3624078.
+   ?country wdt:P37 ?languages .
+   ?country wdt:P625 ?coordinates .
+   OPTIONAL { 
+ 		?languages rdfs:label ?languagesLabel.
+ 		FILTER(LANG(?languagesLabel) = \"en\").
+ 	}
+   SERVICE wikibase:label { bd:serviceParam wikibase:language 'en'. }
+ } GROUP BY ?country ?countryLabel ?coordinates""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

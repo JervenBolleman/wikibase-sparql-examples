@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-cf31037d0e8e163d66825a727f432c60> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_France/Liste_des_d%C3%A9partements>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -40,4 +39,29 @@ SELECT ?inseeDépartement ?département ?nom WHERE {
     FILTER ( !BOUND(?dateDébutNom) || ?dateDébutNom <= ?dateRecherche ) # ancien nom
     FILTER ( !BOUND(?dateFinNom) || ?dateFinNom > ?dateRecherche ) # futur nom
 }
-ORDER BY ?inseeDépartement""" .
+ORDER BY ?inseeDépartement""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Au 1er janvier 1976, il y a 100 départements.
+SELECT ?inseeDépartement ?département ?nom WHERE {
+  BIND ( \"1976-01-01\"^^xsd:dateTime as ?dateRecherche ) 
+    ?département p:P2586 ?P2586node . # existence d'un code Insee
+    ?P2586node ps:P2586 ?inseeDépartement . # valeur du code Insee
+    OPTIONAL { ?P2586node pq:P580 ?dateDébutCode . } # date de début du code Insee
+    OPTIONAL { ?P2586node pq:P582 ?dateFinCode . } # date de fin du code Insee
+    FILTER ( !BOUND(?dateDébutCode) || ?dateDébutCode <= ?dateRecherche ) # ancien code Insee
+    FILTER ( !BOUND(?dateFinCode) || ?dateFinCode > ?dateRecherche ) # futur code Insee
+  {?département wdt:P31 wd:Q6465.} UNION {?département wdt:P31 wd:Q202216.} # nature de département
+    OPTIONAL { ?département wdt:P571 ?dateCréation . } # date de création
+    OPTIONAL { ?département wdt:P576 ?dateDissolution . } # date de dissolution
+    FILTER ( !BOUND(?dateCréation) || ?dateCréation <= ?dateRecherche ) # départements futurs
+    FILTER ( !BOUND(?dateDissolution) || ?dateDissolution > ?dateRecherche ) # départements passés
+  ?département p:P1448 ?P1448node . # existence d'un nom
+    ?P1448node ps:P1448 ?nom . # valeur du nom
+    FILTER( lang(?nom)=\"fr\" ). # nom en français
+    MINUS { ?P1448node pq:P2241 ?dépréciationNom . } # nom erroné
+    OPTIONAL { ?P1448node pq:P580 ?dateDébutNom . } # date de début du nom
+    OPTIONAL { ?P1448node pq:P582 ?dateFinNom . } # date de fin du nom
+    FILTER ( !BOUND(?dateDébutNom) || ?dateDébutNom <= ?dateRecherche ) # ancien nom
+    FILTER ( !BOUND(?dateFinNom) || ?dateFinNom > ?dateRecherche ) # futur nom
+}
+ORDER BY ?inseeDépartement""";
+  schema:target <https://query.wikidata.org/sparql> .

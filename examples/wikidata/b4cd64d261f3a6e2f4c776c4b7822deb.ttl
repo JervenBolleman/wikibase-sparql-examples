@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b4cd64d261f3a6e2f4c776c4b7822deb> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/08>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -47,4 +46,34 @@ WHERE
   filter (str(?statement1)>str(?statement2))
   
   optional {?item rdfs:label ?en_label. filter(lang(?en_label)=\"en\")}
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?en_label ?pit1 ?value1 ?pit2 ?value2 
+WHERE 
+{
+  ?item wdt:P106 wd:Q10873124.      # occupation of chess player
+# values ?item {wd:Q183250}         # the JuditP values statement
+  ?item wdt:P27 wd:Q145.            # UK citizen - comment out if you want to enstate the JuditP values statement
+
+  ?item p:P1087 ?statement1.        # find first date block
+  ?statement1 ps:P1087 ?value1.
+  ?statement1 pqv:P585 ?node1.
+  {?node1 wikibase:timePrecision \"11\"^^xsd:integer.}
+  UNION
+  {?node1 wikibase:timePrecision \"10\"^^xsd:integer.}
+  ?node1 wikibase:timeValue ?pit1.
+             
+  ?item p:P1087 ?statement2.        # find second date block
+  ?statement2 ps:P1087 ?value2.
+  ?statement2 pqv:P585 ?node2.
+  {?node2 wikibase:timePrecision \"11\"^^xsd:integer.}
+  UNION
+  {?node2 wikibase:timePrecision \"10\"^^xsd:integer.}
+  ?node2 wikibase:timeValue ?pit2.
+ 
+  filter(month(?pit1)=month(?pit2))  # logic
+  filter(year(?pit1)=year(?pit2))
+  filter (str(?statement1)>str(?statement2))
+  
+  optional {?item rdfs:label ?en_label. filter(lang(?en_label)=\"en\")}
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-70c17345e01fd2f4acafa940b774896e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Realworldobject/LexemeExamples>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -52,4 +51,40 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY ?language ?lemma ?conceptualSense ?lexicalCategory""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?languageLabel ?lemma ?conceptualSenseDescription ?lexicalCategoryLabel ?lexeme ?representation ?grammaticalFeatureLabel 
+WHERE {
+  VALUES ?conceptualSenseX {
+#     wd:Q186360  # nurse (type of healthcare giver)
+     wd:Q5482740 # programmer
+  }
+  
+  VALUES ?lemma {
+#    \"nurse\"@en
+#    \"developer\"@en
+#    \"hunger\"@en
+    \"white\"@en
+  }
+  VALUES ?lexicalCategoryX {
+    wd:Q1084 # noun
+  }
+  VALUES ?grammaticalFeatureX {
+#    wd:Q110786 # singular
+    wd:Q146786 # plural
+  }
+  VALUES ?language {
+    wd:Q1860
+  }
+  
+  ?lexeme ontolex:sense ?sense ;
+          wikibase:lemma ?lemma ;
+          dct:language ?language ;
+          wikibase:lexicalCategory ?lexicalCategory ;
+          ontolex:lexicalForm ?form .
+  ?sense wdt:P5137 ?conceptualSense .
+  ?form wikibase:grammaticalFeature ?grammaticalFeature ;
+        ontolex:representation ?representation .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?language ?lemma ?conceptualSense ?lexicalCategory""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

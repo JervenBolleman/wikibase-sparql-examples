@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-df5a614c662f834433f9e505e1eb290b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Simon_Villeneuve/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
@@ -28,4 +27,17 @@ select ?h1Label ?h2Label ?p1 ?p2 ?diff ?h1 ?h2 where
  bind (abs(?p2-?p1) as ?diff)
  }
 order by desc (?diff)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#différence de masse entre les partenaires d'un couple, en kg et en ordre décroissant
+select ?h1Label ?h2Label ?p1 ?p2 ?diff ?h1 ?h2 where 
+{SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+ ?h1 (wdt:P451| wdt:P26) ?h2 .
+ FILTER( STR( ?h1 ) < STR( ?h2 ) ) .
+ ?h1 p:P2067 ?p1_ .
+ ?p1_ psn:P2067 [wikibase:quantityAmount ?p1; wikibase:quantityUnit ?unit1] .
+ ?h2 p:P2067 ?p2_ .
+ ?p2_ psn:P2067 [wikibase:quantityAmount ?p2; wikibase:quantityUnit ?unit2] .
+ bind (abs(?p2-?p1) as ?diff)
+ }
+order by desc (?diff)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8f7ae92bf32c279aa2c9d4237047dfb9> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/02>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -32,4 +31,22 @@ WHERE {
 }
 
 GROUP BY ?genre ?item ?itemLabel
-ORDER BY ?item""" .
+ORDER BY ?item""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?itemLabel ?languageLabel ?countryLabel ?directorLabel ?genreLabel ?scriptLabel (GROUP_CONCAT(DISTINCT(str(?genre)); separator=\"$$$ \") as ?genre)
+
+WHERE {
+  ?item wdt:P31 wd:Q11424.
+  ?item wdt:P577 ?pubdate.
+    OPTIONAL { ?item wdt:P495 ?country }
+    OPTIONAL { ?item wdt:P136 ?genre }
+    OPTIONAL { ?item wdt:P364 ?language }
+    OPTIONAL { ?item wdt:P57 ?director }
+    OPTIONAL { ?item wdt:P58 ?script }
+ 
+  FILTER((?pubdate >= \"2017-01-01T00:00:00Z\"^^xsd:dateTime) && (?pubdate <= \"2017-12-31T00:00:00Z\"^^xsd:dateTime))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"cy,en,de,fr,ru,bg,cs,po,pl,nl,sl,eun,ro,oc,az,ast,my,tl,ga,br,it,cs,hu,ca,es,no,nn,gl\". }
+}
+
+GROUP BY ?genre ?item ?itemLabel
+ORDER BY ?item""";
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-3a9de1702f78eae19427139d929ccb40> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -54,4 +53,41 @@ WHERE {
 }
 # order layer by ?partyLabel
 ORDER BY ?partyLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# title of the query
+#title: geographic-shape map of the 2018 Taiwanese mayoral/magistrate election results
+# viewed as map (also viewable as table)
+# layered by ?partyLabel
+#defaultView:Map{\"layer\":\"?partyLabel\"}
+SELECT DISTINCT ?election ?electionLabel ?jurisdiction ?jurisdictionLabel ?geoshape ?winner ?winnerLabel ?party ?partyLabel
+WHERE {
+  # ?election is instance of (P31) \"subclass of (P279)\" [ZeroOrMorePath (*)] election (Q40231)
+  ?election wdt:P31/wdt:P279* wd:Q40231;
+            # ?election is part of (P361) [OneOrMorePath (+)] the 2018 Taiwanese mayoral/magistrate election (Q51167783)
+            wdt:P361+ wd:Q51167783;
+            # ?election's office contested (P541) is subclass of (P279) [ZeroOrMorePath (*)] head of government (Q2285706)
+            wdt:P541/wdt:P279* wd:Q2285706;
+            # ?election applies to jurisdiction (P1001): ?jurisdiction
+            wdt:P1001 ?jurisdiction.
+  # ?jurisdiction is instance of (P31) \"subclass of (P279)\" [ZeroOrMorePath (*)] ?x
+  ?jurisdiction wdt:P31/wdt:P279* ?x
+  # define ?x as special municipality of Taiwan (Q2225003) or county-level division of Taiwan (Q12083042)
+  VALUES ?x {wd:Q2225003 wd:Q12083042}
+  # optional: ?jurisdiction's geoshape (P3896) is ?geoshape
+  OPTIONAL {?jurisdiction wdt:P3896 ?geoshape}
+  # optional: ?election's \"candidate\" (P726) statement is ?x_winner
+  OPTIONAL {?election p:P726 ?x_winner.
+            # ?x_winner's value is ?winner
+            ?x_winner ps:P726 ?winner;
+                      # ?x_winner's qualifier \"ranking\" (P1352) is ?rank
+                      pq:P1352 ?rank;
+                      # ?x_winner's qualifier \"represents\" (P1352) is ?party
+                      pq:P1268 ?party
+            # ?rank is 1
+            FILTER (?rank=1)}
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+# order layer by ?partyLabel
+ORDER BY ?partyLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

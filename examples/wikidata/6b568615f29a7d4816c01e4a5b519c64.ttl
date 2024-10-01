@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-6b568615f29a7d4816c01e4a5b519c64> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WP_EBath/Query_examples>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -33,4 +32,23 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"sv\". }
 } Group By 
 ?node ?nodeLabel ?nodeDescription ?BathId  ?adminLabel  ?HavsAPI ?Hav ?NatReg ?plats ?platsLabel ?Nat ?shape
 order by ?platsLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title: Swedish Bathing waters in a Nature reserve
+#defaultView:Map{\"hide\":[\"?coord\",\"?layer\"], \"layer\": \"?platsLabel\"}
+SELECT ?node (REPLACE(STR(?node), \".*Q\", \"Q\") AS ?qid) ?nodeLabel ?nodeDescription ?BathId ?Hav  ?adminLabel ?HavsAPI
+(SAMPLE(?coord) AS ?coord) ?plats ?platsLabel ?NatReg ?Nat ?shape WHERE {
+   ?node wdt:P6104 wd:Q106774536.
+   OPTIONAL {?node wdt:P9616 ?BathId}
+   {?node wdt:P3018  ?plats.
+   ?plats wdt:P3613 ?NatReg}
+   ?node wdt:P625 ?coord.
+   ?plats wdt:P3896 ?shape      
+  BIND (URI(CONCAT(\"https://badplatsen.havochvatten.se/badplatsen/api/detail/\",?BathId)) AS ?HavsAPI)
+  BIND(URI(CONCAT(\"https://badplatsen.havochvatten.se/badplatsen/karta/#/bath/\",?BathId)) AS ?Hav)
+  BIND(URI(CONCAT(\"http://skyddadnatur.naturvardsverket.se/sknat/?nvrid=\",?NatReg)) AS ?Nat)
+
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"sv\". }
+} Group By 
+?node ?nodeLabel ?nodeDescription ?BathId  ?adminLabel  ?HavsAPI ?Hav ?NatReg ?plats ?platsLabel ?Nat ?shape
+order by ?platsLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

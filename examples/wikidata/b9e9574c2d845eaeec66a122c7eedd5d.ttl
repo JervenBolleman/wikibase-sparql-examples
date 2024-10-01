@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b9e9574c2d845eaeec66a122c7eedd5d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Lutzto>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -33,4 +32,23 @@ WHERE {
   #BIND(IF(BOUND(?street),\"FFA500\",\"7FFF00\") AS ?rgb)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en,[AUTO_LANGUAGE]\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#---------------------------------------------------------------------------------------
+# Straßen und Plätze in Torgau
+#---------------------------------------------------------------------------------------
+#defaultView:Map{\"layer\":\"?instance_ofLabel\"}
+SELECT  ?item ?itemLabel ?itemDescription ?coordinate ?commons ?instance_ofLabel
+WHERE {    
+  ?item (wdt:P131/wdt:P279*) wd:Q12062.                   # liegt in Verwaltungseinheit Torgau
+    VALUES ?instance_of { 
+      wd:Q79007      # Innerortstraße
+      wd:Q21000333   # Einkaufsstraße 
+      wd:Q174782     # Platz
+    } 
+  ?item wdt:P31 ?instance_of.                            # ist Straße oder Platz  
+  OPTIONAL{?item wdt:P625 ?coordinate.}                  # Koordinate für Kartendarstellung auslesen
+  OPTIONAL{?item wdt:P373 ?commons.}                     
+  #BIND(IF(BOUND(?street),\"FFA500\",\"7FFF00\") AS ?rgb)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en,[AUTO_LANGUAGE]\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

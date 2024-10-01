@@ -1,26 +1,25 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-a3a810f09f6b2057de0f268285c31509> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -43,4 +42,23 @@ SELECT (SAMPLE(?_continentLabel) AS ?continent) (COUNT(?_country) AS ?battles) (
   BIND((NOW()) - ?date AS ?distance)
   FILTER((0 <= ?distance) && (?distance < 31 * 12 * 80))
 }
-GROUP BY ?year ?_country""" .
+GROUP BY ?year ?_country""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:BarChart
+SELECT (SAMPLE(?_continentLabel) AS ?continent) (COUNT(?_country) AS ?battles) (SAMPLE(?_countryLabel) AS ?_countryLabel) (SAMPLE(?year) AS ?year)  WHERE {
+  ?subj wdt:P31 wd:Q178561.        # instance of battle
+  OPTIONAL { ?subj wdt:P580 ?d1. } # start date
+  OPTIONAL { ?subj wdt:P585 ?d2. } # point in time
+  OPTIONAL { ?subj wdt:P582 ?d3. } # end date
+  BIND(IF(!BOUND(?d1), IF(!BOUND(?d2), ?d3, ?d2), ?d1) AS ?date)
+  BIND(str(YEAR(?date)) AS ?year)
+  FILTER(BOUND(?year))
+  ?subj wdt:P276/wdt:P17 ?_country.
+  ?_country wdt:P30 ?_continent.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+       ?_country rdfs:label ?_countryLabel.
+       ?_continent rdfs:label ?_continentLabel.}
+  BIND((NOW()) - ?date AS ?distance)
+  FILTER((0 <= ?distance) && (?distance < 31 * 12 * 80))
+}
+GROUP BY ?year ?_country""";
+  schema:target <https://query.wikidata.org/sparql> .

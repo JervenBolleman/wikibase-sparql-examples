@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-004f58757a620c1f042edcd9b035fd21> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -44,4 +43,34 @@ WHERE {
   # show label in auto language as default, and English when no default label exists
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# find Jia Baoyu's blood relatives, i.e., those who share a common ancestor with Jia Baoyu
+### Note: previous section \"Graph of lineal ancestors/descendants: Daoguang Emperor\" does not have any subsection for blood relatives
+#defaultView:Graph
+SELECT DISTINCT ?blood_relative ?blood_relativeLabel ?birthdate ?image ?parent ?parentLabel ?edgeLabel
+WHERE {
+  # define ?ancestor as Jia Baoyu (Q8428650)'s any father (P22) or mother (P25)'s father or mother's...
+  wd:Q8428650 (wdt:P22|wdt:P25)* ?ancestor.
+  # define ?blood_relative as one whose any father (P22) or mother (P25)'s father or mother's... is ?ancestor
+  ?blood_relative (wdt:P22|wdt:P25)* ?ancestor
+  # optional: define ?blood_relative's father (P22) or mother (P25) as ?parent
+  OPTIONAL {?blood_relative (wdt:P22|wdt:P25) ?parent.
+           # To eliminate blood relative's parent who is not Jia Baoyu's blood relative,
+           # require that ?parent's any father (P22) or mother (P25)'s father or mother's... is ?ancestor
+          ?parent (wdt:P22|wdt:P25)* ?ancestor
+           # To avoid showing any other relation,
+           # define ?relation as father (P22) or mother (P25)
+           VALUES ?relation {wdt:P22 wdt:P25}
+           # ?relation is from ?blood_relative to ?parent
+           ?blood_relative ?relation ?parent.
+           # get ?relation's property label and allow it to appear on graph edge
+           ?edge wikibase:directClaim ?relation;
+               a wikibase:Property}
+  # optional: show ?blood_relative's birthdate (P569), which only appears in table, not graph
+  OPTIONAL {?blood_relative wdt:P569 ?birthdate}
+  # optional: show ?blood_relative's image (P18), which appears directly in graph, and as link in table
+  OPTIONAL {?blood_relative wdt:P18 ?image}
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

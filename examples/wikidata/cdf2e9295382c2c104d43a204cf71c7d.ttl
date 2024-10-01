@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-cdf2e9295382c2c104d43a204cf71c7d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Civil_Defense/List_of_law_enforcement_agencies>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -32,4 +31,20 @@ SELECT DISTINCT ?item ?itemLabel ?countryLabel ?jurisdictionLabel ?operating_are
   FILTER(NOT EXISTS { ?item wdt:P17 ?val. })
 }
 ORDER BY (?countryLabel) (?jurisdiction) (?operating_areaLabel)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# MAINTAINCE QUERY: Return only values without country assigned
+# instances_of=law enforcement agency (Q732717); NOT EXISTS P17 ?country
+SELECT DISTINCT ?item ?itemLabel ?countryLabel ?jurisdictionLabel ?operating_areaLabel ?official_website WHERE {
+  VALUES ?instances_of {
+    wd:Q732717
+  }
+  { ?item (p:P31/ps:P31/(wdt:P279*)) ?instances_of. }
+  OPTIONAL { ?item wdt:P17 ?country. }
+  OPTIONAL { ?item wdt:P1001 ?jurisdiction. }
+  OPTIONAL { ?item wdt:P2541 ?operating_area. }
+  OPTIONAL { ?item wdt:P856 ?official_website. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de,fr,ru,es,ja,zh,ar\". }
+  FILTER(NOT EXISTS { ?item wdt:P17 ?val. })
+}
+ORDER BY (?countryLabel) (?jurisdiction) (?operating_areaLabel)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

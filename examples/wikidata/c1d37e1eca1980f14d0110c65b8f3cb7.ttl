@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c1d37e1eca1980f14d0110c65b8f3cb7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rjlabs/WikiData_Company_Data_Project>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -28,4 +27,20 @@ WHERE
 	BIND(YEAR(?dob) as ?birthyear).
    ?person rdfs:label ?name filter (lang(?name) = \"en\")
    ?place rdfs:label ?birthplace filter (lang(?birthplace) = \"en\")
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Map of places of birth of economists
+#added before 2016-10
+
+#defaultView:Map
+SELECT ?person ?name ?coord ?place ?birthplace ?birthyear
+WHERE
+{
+   {?person wdt:P106 wd:Q188094 .} UNION {?person wd:P101 wd:Q8134.}. MINUS {?person wdt:P106 wd:Q188094. ?person wd:P101 wd:Q8134.}
+   ?person wdt:P19 ?place .
+   ?place wdt:P625 ?coord .
+      OPTIONAL { ?person wdt:P569 ?dob .}.
+	BIND(YEAR(?dob) as ?birthyear).
+   ?person rdfs:label ?name filter (lang(?name) = \"en\")
+   ?place rdfs:label ?birthplace filter (lang(?birthplace) = \"en\")
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

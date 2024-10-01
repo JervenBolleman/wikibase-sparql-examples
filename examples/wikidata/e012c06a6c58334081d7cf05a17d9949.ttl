@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-e012c06a6c58334081d7cf05a17d9949> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/pictures_of_animals_with_female_grammatical_gender_in_German_but_male_grammatical_gender_in_French>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -21,7 +20,27 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:ImageGrid
 SELECT ?animal ?deLemmas ?frLemmas ?image
 WHERE {
-  INCLUDE %animalsWithLabels.
+   {
+  SELECT ?animal ?animalLabel ?deLemmas ?frLemmas WHERE {
+     {
+  SELECT ?animal (STRLANG(GROUP_CONCAT(?deLemma; separator = \"/\"), \"de\") AS ?deLemmas) (STRLANG(GROUP_CONCAT(?frLemma; separator = \"/\"), \"fr\") AS ?frLemmas) WHERE {
+    ?de dct:language wd:Q188;
+        wikibase:lexicalCategory wd:Q1084;
+        wikibase:lemma ?deLemma;
+        wdt:P5185 wd:Q1775415;
+        ontolex:sense [ wdt:P5137 ?animal ].
+    ?fr dct:language wd:Q150;
+        wikibase:lexicalCategory wd:Q1084;
+        wikibase:lemma ?frLemma;
+        wdt:P5185 wd:Q499327;
+        ontolex:sense [ wdt:P5137 ?animal ].
+    ?animal wdt:P279+ wd:Q729.
+  }
+  GROUP BY ?animal
+}
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  }
+}
   BIND(CONCAT(\"haswbstatement:P180=\", STRAFTER(STR(?animal), STR(wd:))) AS ?search)
   SERVICE wikibase:mwapi {
     bd:serviceParam wikibase:api \"Search\";
@@ -33,7 +52,7 @@ WHERE {
   }
   BIND(IRI(CONCAT(\"http://commons.wikimedia.org/wiki/Special:FilePath/\", STRAFTER(?title, \"File:\"))) AS ?image)
 }""";
-  <http://example.org/bigdata_select> """#defaultView:ImageGrid
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:ImageGrid
 SELECT ?animal ?deLemmas ?frLemmas ?image
 WITH {
   SELECT ?animal (STRLANG(GROUP_CONCAT(?deLemma; separator = \"/\"), \"de\") AS ?deLemmas) (STRLANG(GROUP_CONCAT(?frLemma; separator = \"/\"), \"fr\") AS ?frLemmas) WHERE {
@@ -69,4 +88,7 @@ WHERE {
     ?title wikibase:apiOutput mwapi:title.
   }
   BIND(IRI(CONCAT(\"http://commons.wikimedia.org/wiki/Special:FilePath/\", STRAFTER(?title, \"File:\"))) AS ?image)
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>,
+    <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

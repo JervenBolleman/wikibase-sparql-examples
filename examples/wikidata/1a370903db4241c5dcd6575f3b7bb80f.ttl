@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-1a370903db4241c5dcd6575f3b7bb80f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/11>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -31,4 +30,20 @@ SELECT ?file ?image ?center ?coordinate WHERE {
       bd:serviceParam wikibase:radius \"10\". # 10 Kilometer around
   }  
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#around> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Table;ImageGrid;Map
+SELECT ?file ?image ?center ?coordinate WHERE {
+  #?file wdt:P180 wd:Q1731 .       # Motiv is Dresden
+  #?file wdt:P625 ?coords .         # Coordinate of image
+  #?file wdt:P1259 ?pov_coords .   # POV_coordinate 
+  ?file schema:contentUrl ?url .
+  bind(iri(concat(\"http://commons.wikimedia.org/wiki/Special:FilePath/\", replace(substr(str(?url),53),\"_\",\"%20\"))) AS ?image)
+  
+  wd:Q1731 wdt:P625 ?center. #Around the city Dresden
+  SERVICE wikibase:around {
+      ?file wdt:P625 ?coordinate.
+      bd:serviceParam wikibase:center ?center.
+      bd:serviceParam wikibase:radius \"10\". # 10 Kilometer around
+  }  
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#around>;
+  schema:target <https://query.wikidata.org/sparql> .

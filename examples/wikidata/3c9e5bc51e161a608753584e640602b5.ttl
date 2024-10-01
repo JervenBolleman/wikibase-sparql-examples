@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-3c9e5bc51e161a608753584e640602b5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_20th_Century_Press_Archives/Use_cases>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -42,4 +41,29 @@ where {
   service wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en, de, fr, es, nl, pl, ru\". }
 }
 order by desc (?workCount)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """select distinct ?item ?itemLabel ?pm20 ?viewer ?workCount
+where {
+  # all research expeditions
+  ##?expedition wdt:P31 wd:Q366301 .
+  # alternatively: all expeditions of any type
+  ?expedition p:P31/ps:P31/wdt:P279* wd:Q2401485 .
+  ?item wdt:P1344 ?expedition ;
+        # with PM20 id
+        wdt:P4293 ?pm20Id .
+  # restrict to items with online accessible articles
+  ?item p:P4293/pq:P5592 ?workCount .
+  filter(?workCount > 0)
+  # optional image
+  optional { ?item wdt:P18 ?image . }
+  # PM20 Link
+  bind(uri(concat('http://purl.org/pressemappe20/folder/', ?pm20Id)) as ?pm20)
+  # viewer link
+  bind(substr(?pm20Id, 4, 4) as ?numStub)
+  bind(substr(?pm20Id, 4, 6) as ?num)
+  bind(uri(concat('http://dfg-viewer.de/show/?tx_dlf[id]=http://zbw.eu/beta/pm20mets/', ?numStub, 'xx/', ?num, '.xml')) as ?viewer)
+  # add labels
+  service wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en, de, fr, es, nl, pl, ru\". }
+}
+order by desc (?workCount)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-6d8ed1b91128d311ef8ec623a4188def> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_France/Queries/Langues>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -92,4 +91,80 @@ WHERE
 
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\". }
 } ORDER BY ?languageLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Liste des projets Wikimedia localisés dans les langues régionales et minoritaires de France
+# telles que définies par la DGLFLF
+# auxquelles s'ajoutent le français et le luxembourgeois
+# Manquent : 
+# - Wikisource/Wiktionary/Wikibooks/Wikiquote/Wikivoyage en alémanique (sur als:, voir Notes)
+
+SELECT DISTINCT ?language ?languageLabel ?wpURL ?wiktURL ?wsURL ?wnURL ?wqURL ?wbURL ?wvURL ?wvoyURL
+WHERE 
+{
+  { VALUES ?language {
+    wd:Q150
+    wd:Q33302
+    wd:Q9051
+    wd:Q33491
+    wd:Q13955
+    }
+  } UNION
+  { ?language wdt:P361/wdt:P361 wd:Q496250 . }
+  
+  ?wp wdt:P31 wd:Q10876391 .
+  ?wp p:P407 ?wpLangStatement .
+  ?wpLangStatement ps:P407 ?language .
+  ?wp wdt:P856 ?wpURL .
+  
+  OPTIONAL {
+    ?wikt wdt:P31 wd:Q22001389 .
+    ?wikt p:P407 ?wiktLangStatement .
+    ?wiktLangStatement ps:P407 ?language .
+    ?wikt wdt:P856 ?wiktURL .
+  }
+  
+  OPTIONAL {
+    ?ws wdt:P31 wd:Q15156455 .
+    ?ws p:P407 ?wsLangStatement .
+    ?wsLangStatement ps:P407 ?language .
+    ?ws wdt:P856 ?wsURL .
+  }
+
+  OPTIONAL {
+    ?wn wdt:P31 wd:Q20671729 .
+    ?wn p:P407 ?wnLangStatement .
+    ?wnLangStatement ps:P407 ?language .
+    ?wn wdt:P856 ?wnURL .
+  }
+
+  OPTIONAL {
+    ?wq wdt:P31 wd:Q22001361 .
+    ?wq p:P407 ?wqLangStatement .
+    ?wqLangStatement ps:P407 ?language .
+    ?wq wdt:P856 ?wqURL .
+  }
+  
+  OPTIONAL {
+    ?wb wdt:P31 wd:Q22001316 .
+    ?wb p:P407 ?wbLangStatement .
+    ?wbLangStatement ps:P407 ?language .
+    ?wb wdt:P856 ?wbURL .
+  }
+
+  OPTIONAL {
+    ?wv wdt:P31 wd:Q22001390 .
+    ?wv p:P407 ?wvLangStatement .
+    ?wvLangStatement ps:P407 ?language .
+    ?wv wdt:P856 ?wvURL .
+  }
+  
+  OPTIONAL {
+    ?wvoy wdt:P31 wd:Q19826567 .
+    ?wvoy p:P407 ?wvoyLangStatement .
+    ?wvoyLangStatement ps:P407 ?language .
+    ?wvoy wdt:P856 ?wvoyURL .
+  }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\". }
+} ORDER BY ?languageLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

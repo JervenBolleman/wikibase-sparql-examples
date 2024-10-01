@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b61e030b2b6382287d953a8dddfb96f1> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 SELECT DISTINCT 
@@ -29,4 +28,22 @@ WHERE {
   FILTER REGEX(LCASE(?title), \"\\\\b(invasive|non-native|invasion|exotic|alien\\\\b|introduced)\").
 }
 GROUP BY ?item ?title ?taxon ?taxon_name
-LIMIT 200""" .
+LIMIT 200""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT 
+?item ?title ?taxon ?taxon_name
+  (REPLACE(STR(?item), \".*Q\", \"Q\") AS ?qid) 
+  (\"P921\" AS ?property)
+  (\"Q183368\" AS ?ReplaceWithYourTargetID)
+  (\"S887\" AS ?heuristic)
+  (\"Q69652283\" AS ?deduced)
+WHERE { 
+  ?item wdt:P6104 wd:Q56241615 ;
+        wdt:P1476 ?title ;
+        wdt:P921 ?taxon . 
+  FILTER NOT EXISTS { ?item wdt:P921 wd:Q183368 }
+  ?taxon wdt:P225 ?taxon_name .
+  FILTER REGEX(LCASE(?title), \"\\\\b(invasive|non-native|invasion|exotic|alien\\\\b|introduced)\").
+}
+GROUP BY ?item ?title ?taxon ?taxon_name
+LIMIT 200""";
+  schema:target <https://query.wikidata.org/sparql> .

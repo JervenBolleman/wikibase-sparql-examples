@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-3b6ae7933e86b7bec7e3c0d0a7f92ff1> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Deansfa/SPARQL>, <https://www.wikidata.org//wiki/User:Deansfa>;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Deansfa>, <https://www.wikidata.org//wiki/User:Deansfa/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -45,4 +44,36 @@ SELECT $item $count ?author_name $a WHERE {
     }
     LIMIT 3000
   }
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# select nber articles with one single author (author as a string), 
+# select economists
+# join economist name with single author string.
+# without the limit, we're in timeout.
+
+SELECT $item $count ?author_name $a WHERE {
+  # FILTER REGEX(STR(?count), \"^[1]{1}$\")
+  FILTER (?count = 1)
+  {
+    SELECT DISTINCT ?item (COUNT (?author) as ?count) WHERE {
+      ?item wdt:P31 wd:Q13442814 ; wdt:P179 wd:Q57081850 .
+      ?item wdt:P2093 ?author.
+    }
+    GROUP BY (?item)
+  }
+  {
+    SELECT DISTINCT ?item (xsd:string(?author) AS ?author_name) WHERE {
+      ?item wdt:P31 wd:Q13442814 ; wdt:P179 wd:Q57081850 .
+      ?item wdt:P2093 ?author.
+    }
+  }
+  {
+    SELECT (xsd:string(?author) AS ?author_name) $a WHERE {
+      ?a wdt:P31 wd:Q5;
+         wdt:P106 wd:Q188094;
+         rdfs:label ?author .
+      FILTER(LANG(?author) IN (\"en\")) .
+    }
+    LIMIT 3000
+  }
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-be7200b466d890fcc64c0bcc8e79d0ea> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Dipsacus_fullonum>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 #Tool: wbi_fastrun _query_data
 SELECT ?sid ?item ?v ?unit ?pq ?qval ?qunit
@@ -52,4 +51,46 @@ WHERE
       ?pq wikibase:qualifierValue ?pqv .
     }
   }
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Tool: wbi_fastrun _query_data
+SELECT ?sid ?item ?v ?unit ?pq ?qval ?qunit
+WHERE
+{
+  {
+    SELECT ?item ?sid ?v
+    WHERE
+    {
+        ?item <http://www.wikidata.org/prop/direct/P699> ?zzP699 .
+
+        # Get statement ID and the simple value for the statements
+        ?item <http://www.wikidata.org/prop/P31> ?sid .
+        ?sid <http://www.wikidata.org/prop/statement/P31> ?v .
+    }
+    ORDER BY ?sid OFFSET 0 LIMIT 10000
+  }
+
+  # Get the optional unit for statements with a quantity value
+  OPTIONAL
+  {
+    ?sid <http://www.wikidata.org/prop/statement/value/P31> / wikibase:quantityUnit ?unit .
+  }
+
+  # Get qualifiers
+  OPTIONAL
+  {
+    {
+      # Get simple values for qualifiers which are not of type quantity
+      ?sid ?propQualifier ?qval .
+      ?pq wikibase:qualifier ?propQualifier .
+      ?pq wikibase:propertyType ?qualifer_property_type .
+      FILTER (?qualifer_property_type != wikibase:Quantity)
+    }
+    UNION
+    {
+      # Get amount and unit for qualifiers of type quantity
+      ?sid ?pqv [wikibase:quantityAmount ?qval; wikibase:quantityUnit ?qunit] .
+      ?pq wikibase:qualifierValue ?pqv .
+    }
+  }
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

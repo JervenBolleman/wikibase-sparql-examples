@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-0bdb0a505ec55194d695c9f81b4cfe2b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/04>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX schema: <http://schema.org/>
@@ -32,4 +31,22 @@ WHERE
   ?article_sv schema:about ?item.
   ?article_sv schema:isPartOf <https://sv.wikipedia.org/>.
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?title ?title_sv ?article_sv ?item
+WHERE 
+{
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:api \"Search\" .
+    bd:serviceParam wikibase:endpoint \"sv.wikipedia.org\" .
+    bd:serviceParam mwapi:srnamespace \"0\" .
+    bd:serviceParam mwapi:srsearch 'deepcat:\"Pargas (kommun)\"' .
+    ?title wikibase:apiOutput mwapi:title .
+  }
+  
+  BIND (STRLANG(?title, \"sv\") AS ?title_sv)
+  ?article_sv schema:name ?title_sv.
+  ?article_sv schema:about ?item.
+  ?article_sv schema:isPartOf <https://sv.wikipedia.org/>.
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

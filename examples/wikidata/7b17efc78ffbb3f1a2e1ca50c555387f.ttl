@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-7b17efc78ffbb3f1a2e1ca50c555387f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Arpyia/brouillon>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -43,4 +42,28 @@ WHERE {
                           }                        
 }GROUP BY ?installation ?installationLabel ?numéro ?nomRESinstallation
 ORDER BY ?installationLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Liste des installations comprenant une fosse à plongeon en France
+SELECT ?installation ?installationLabel ?numéro ?nomRESinstallation
+(GROUP_CONCAT(?noméquipement; separator=\" ; \") AS ?nomséquipements) # liste des noms des équipements, séparés par des points-virgules
+WHERE {
+  VALUES ?code { \"104\" }. # choix du type d'équipement sportif
+  ?typeéquipement p:P528 [ps:P528 ?code; # code du type d'équipement
+                        pq:P2868 wd:Q121252873; # type d'équipement sportif
+                        prov:wasDerivedFrom [ pr:P248 wd:Q115755558 ] # enregistrement au Recensement des équipements sportifs
+                ].
+
+  ?installation p:P912 [ps:P912 ?typeéquipement; # présence d'un équipement de ce type
+                                pq:P2561 ?noméquipement; # nom de l'équipement
+                ].
+  ?installation p:P11840 [ps:P11840 ?numéro; # numéro de l'installation dans le Recensement des équipements sportifs
+                        pq:P1810 ?nomRESinstallation; # nom de l'installation dans le Recensement des équipements sportifs
+                        prov:wasDerivedFrom [ pr:P248 wd:Q115755558; pr:P5017 ?miseàjour ] # date de mise à jour dans le Recensement des équipements sportifs
+                ].  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\".
+                          ?installation rdfs:label ?installationLabel . # libellé de l'installation
+                          ?typeéquipement rdfs:label ?typeéquipementLabel . # libellé du type d'équipement
+                          }                        
+}GROUP BY ?installation ?installationLabel ?numéro ?nomRESinstallation
+ORDER BY ?installationLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

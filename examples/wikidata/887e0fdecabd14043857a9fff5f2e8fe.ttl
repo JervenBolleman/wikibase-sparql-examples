@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-887e0fdecabd14043857a9fff5f2e8fe> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ash_Crow/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 SELECT DISTINCT ?item ?statement ?date ?precision_label {
   ?statement ?date_prop ?date_node .
@@ -44,4 +43,38 @@ SELECT DISTINCT ?item ?statement ?date ?precision_label {
   FILTER(STRSTARTS(STR(?item), \"http://www.wikidata.org/entity/Q\")) .
 
   
-} ORDER BY ?precision YEAR(?date)""" .
+} ORDER BY ?precision YEAR(?date)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?statement ?date ?precision_label {
+  ?statement ?date_prop ?date_node .
+  ?date_node wikibase:timePrecision ?precision ;
+   wikibase:timeValue ?date .
+
+  FILTER (YEAR(?date) < -10000) .
+  FILTER (?precision >= 9 ) . 
+
+  VALUES (?precision ?precision_label) {
+    (0 \"milliard d’années\")
+    (1 \"centaine de million d’années\")
+    (2 \"dizaine de millions d’années\")
+    (3 \"million d’années\")
+    (4 \"centaine de millénaires\")
+    (5 \"dizaine de millénaires\")
+    (6 \"millénaire\")
+    (7 \"siècle\")
+    (8 \"décennie\")
+    (9 \"année\")
+    (10 \"mois\")
+    (11 \"jour\")
+    (12 \"heure\")
+    (13 \"minute\")
+    (14 \"seconde\")
+  } 
+
+  # Exclude Property statements
+  ?item ?p ?statement  .
+  ?item wikibase:statements ?s .
+  FILTER(STRSTARTS(STR(?item), \"http://www.wikidata.org/entity/Q\")) .
+
+  
+} ORDER BY ?precision YEAR(?date)""";
+  schema:target <https://query.wikidata.org/sparql> .

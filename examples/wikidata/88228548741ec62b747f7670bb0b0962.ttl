@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-88228548741ec62b747f7670bb0b0962> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Hodolog/Painting_maps>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -51,4 +50,38 @@ WHERE {
       ?coordinate_node wikibase:geoLatitude ?lat .
       ?coordinate_node wikibase:geoLongitude ?lon .
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Espacios naturales protegidos
+#Identificador OSM, WPES, LL
+#Usuario:Galopax/Pintando_mapas_2
+#User:Galopax/Painting maps (WD)
+#added 2022-02-15
+#defaultView:Map
+SELECT ?item ?itemLabel ?WDPA ?CDDA ?Natura_2000 ?osm ?eswiki ?coord ?image ?commons ?lat ?lon
+(CONCAT(\"[https://protectedplanet.net/\",?WDPA,\"]\") as ?url1)
+(CONCAT(\"[http://eunis.eea.europa.eu/sites/\",?CDDA,\"]\") as ?url2)
+(CONCAT(\"[http://natura2000.eea.europa.eu/Natura2000/SDF.aspx?site=\",?Natura_2000,\"]\") as ?url3)
+WHERE {
+  ?item wdt:P17 wd:Q29.
+  ?item wdt:P809 ?WDPA.#identificador WDPA
+  MINUS {?item wdt:P276 wd:Q5813.}
+  MINUS {?item wdt:P276 wd:Q107356467.}
+  OPTIONAL {?item wdt:P4762 ?CDDA.}#identificador en CDDA
+  OPTIONAL {?item wdt:P3425 ?Natura_2000.}#identificador Natura 2000
+  OPTIONAL {?item  wdt:P625 ?coord. }
+  OPTIONAL {?item wdt:P18 ?image.}
+  OPTIONAL {?item wdt:P402 ?osm.}
+  OPTIONAL {
+   ?eswiki schema:about ?item;
+   schema:isPartOf <https://es.wikipedia.org/>. }
+  OPTIONAL {
+   ?commons schema:about ?item;
+   schema:isPartOf <https://commons.wikimedia.org/>. }
+  BIND(IF(BOUND(?cat),ENCODE_FOR_URI(?cat),\"\" ) as ?catstring)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es\". }
+  ?item p:P625 ?statement . # coordinate-location statement
+      ?statement psv:P625 ?coordinate_node .
+      ?coordinate_node wikibase:geoLatitude ?lat .
+      ?coordinate_node wikibase:geoLongitude ?lon .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

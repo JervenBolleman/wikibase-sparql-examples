@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c0fbe80aed8884a243d5660535a333e9> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/02>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -40,4 +39,28 @@ WHERE {
   ?SE pq:P249 ?Ticker
 }
 GROUP BY ?official_name ?item ?stock_exchange ?itemLabel ?stock_exchangeLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT distinct
+  ?official_name
+  (GROUP_CONCAT( DISTINCT ?isin; separator=\";\") AS ?isin)
+  ?item
+  ?itemLabel
+  ?stock_exchange
+  ?stock_exchangeLabel
+  (GROUP_CONCAT( DISTINCT ?Ticker; separator=\";\") AS ?Ticker)
+  (GROUP_CONCAT( DISTINCT ?other_name; separator=\";\") AS ?other_name)
+WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?item (wdt:P31/wdt:P279*) wd:Q783794.
+  {
+            { ?item wdt:P856 <https://www.google.com> }
+      UNION { ?item wdt:P856 <http://www.google.com> }   
+  }
+  OPTIONAL { ?item wdt:P1448 ?official_name. }
+  OPTIONAL { ?item wdt:P946 ?isin. }
+  OPTIONAL { ?item wdt:P414 ?stock_exchange. }
+  OPTIONAL { ?item skos:altLabel ?other_name. FILTER (LANG (?other_name) = \"en\") }
+  ?SE pq:P249 ?Ticker
+}
+GROUP BY ?official_name ?item ?stock_exchange ?itemLabel ?stock_exchangeLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

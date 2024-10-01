@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b05d4a315d0e6b1d700f30466ee58b73> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/04>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -39,4 +38,27 @@ WHERE
                          ?item rdfs:label ?itemLabel .
                          ?occupation rdfs:label ?occupationLabel_ .}  
 } GROUP BY ?item ?itemLabel ?article ?sitelink""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?article ?sitelink (GROUP_CONCAT(DISTINCT ?occupationLabel_;separator=\"; \") as ?occupationLabel)
+WHERE 
+{
+  VALUES ?occ {                   # list of occupations
+    wd:Q28389   # screenwriter
+    wd:Q2526255 # film director
+    wd:Q33999   # actor
+  }
+  
+  ?item wdt:P106/wdt:P279* ?occ . # item has this occupation of a subclass thereof
+  ?item wdt:P106 ?occupation .    # exactly which occupation does the item have
+  ?occupation wdt:P279* ?occ .    # we're only interested in occupations which are related to the above list
+  ?item wdt:P27 wd:Q953.          # country of citizenship
+  
+  OPTIONAL {?article schema:about ?item ;     # do they have an EN wiki article?
+  schema:isPartOf <https://en.wikipedia.org/> ;
+  schema:name ?sitelink .}
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+                         ?item rdfs:label ?itemLabel .
+                         ?occupation rdfs:label ?occupationLabel_ .}  
+} GROUP BY ?item ?itemLabel ?article ?sitelink""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

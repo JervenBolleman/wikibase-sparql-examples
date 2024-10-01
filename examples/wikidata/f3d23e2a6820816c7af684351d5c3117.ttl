@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-f3d23e2a6820816c7af684351d5c3117> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_20th_Century_Press_Archives/Tools_%26_Tasks/Subject_Category_checks>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
@@ -35,5 +34,26 @@ where {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 }
 order by ?notation""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """select distinct ?item ?itemLabel ?subjectCode ?notation
+where {
+  ?item wdt:P8484 ?subjectCode .
+  bind(replace(?subjectCode, '_', ' ') as ?notation)
+  
+  optional {
+    service <http://zbw.eu/beta/sparql/pm20/query> {
+      select distinct ?notation ?subject
+      where {
+        # it is not reqiered that according subject category has folders!
+        # (may be empty level in the hierarchy)
+        ?subject skos:notation ?notation .
+      }
+    }
+  }
+  filter(!bound(?subject))
+  #
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+order by ?notation""";
   <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>,
-    <http://zbw.eu/beta/sparql/pm20/query> .
+    <http://zbw.eu/beta/sparql/pm20/query>;
+  schema:target <https://query.wikidata.org/sparql> .

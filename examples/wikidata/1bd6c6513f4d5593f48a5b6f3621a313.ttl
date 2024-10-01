@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-1bd6c6513f4d5593f48a5b6f3621a313> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/hansard>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -38,4 +37,24 @@ WHERE {
   # labels
   
 } group by ?person ?personLabel ?genderLabel ?birthyear ?deathyear""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """select distinct ?person ?personLabel ?genderLabel ?birthyear ?deathyear (GROUP_CONCAT(distinct ?hh; separator=\"; \") as ?historic_hansard)
+WHERE {
+  { ?person wdt:P2015 ?hh . } 
+  # anyone in Historic Hansard (includes Lords)
+    union
+  { ?position wdt:P279 wd:Q16707842 . ?person p:P39 ?positionStatement .
+    ?positionStatement ps:P39 ?position ; pq:P580 ?start .
+    bind(year(?start) as ?startyear) . filter (?startyear < 2005 ) . filter (?startyear > 1802 )   }
+  # plus anyone elected as an MP between 1803 and 2004, but not otherwise in Historic Hansard.
+  optional {?person wdt:P21 ?gender } .
+  optional {?person wdt:P569 ?born . bind(year(?born) as ?birthyear) } .
+  optional {?person wdt:P570 ?died . bind(year(?died) as ?deathyear) } .
+  # gender and dates
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . 
+                           ?person rdfs:label ?personLabel .  
+                           ?gender rdfs:label ?genderLabel . }
+  # labels
+  
+} group by ?person ?personLabel ?genderLabel ?birthyear ?deathyear""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

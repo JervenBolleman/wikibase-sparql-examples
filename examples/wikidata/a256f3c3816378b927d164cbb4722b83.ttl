@@ -1,19 +1,18 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-a256f3c3816378b927d164cbb4722b83> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>,
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/de>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/es>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>;
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -23,12 +22,39 @@ SELECT
   ?obraLiterariaLabel
   ?cantidad
 {
-  INCLUDE %1.
-  OPTIONAL{INCLUDE %2}.
+   {
+  SELECT DISTINCT ?peruane ?obraLiteraria {
+     {
+  SELECT DISTINCT ?peruane {
+    {?peruane wdt:P27 wd:Q419 }
+    UNION
+    {?peruane wdt:P19/wdt:P131* wd:Q419 }
+    UNION
+    {?peruane wdt:P1532 wd:Q419}
+  }
+}
+    ?obraLiteraria
+      wdt:P50 ?peruane;
+      wdt:P31/wdt:P279* wd:Q7725634.
+  }
+}
+  OPTIONAL{ {
+  SELECT DISTINCT ?obraLiteraria ?cantidad {
+     {
+  SELECT DISTINCT ?peruane ?obraLiteraria {
+    INCLUDE %0.
+    ?obraLiteraria
+      wdt:P50 ?peruane;
+      wdt:P31/wdt:P279* wd:Q7725634.
+  }
+}
+    ?obraLiteraria wikibase:sitelinks ?cantidad.
+  }
+}}.
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"es\"}.
 }
 ORDER BY DESC(?cantidad)""";
-  <http://example.org/bigdata_select> """SELECT
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT
   ?obraLiteraria
   ?obraLiterariaLabel
   ?cantidad
@@ -60,4 +86,5 @@ WITH {
   OPTIONAL{INCLUDE %2}.
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"es\"}.
 }
-ORDER BY DESC(?cantidad)""" .
+ORDER BY DESC(?cantidad)""";
+  schema:target <https://query.wikidata.org/sparql> .

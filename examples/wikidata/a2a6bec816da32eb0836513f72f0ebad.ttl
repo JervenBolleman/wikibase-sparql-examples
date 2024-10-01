@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-a2a6bec816da32eb0836513f72f0ebad> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -41,4 +40,31 @@ WHERE {
   # show label in auto language as default, and English when no default label exists
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# graph of Soong Mei-ling's extended blood relatives + extended stepfamily members
+# also viewable as table
+#defaultView:Graph
+SELECT ?relative ?relativeLabel ?birthdate ?image ?parent ?parentLabel ?edgeLabel
+WHERE {
+  # define ?relative as Soong Mei-ling (Q17135)'s any father (P22) or mother (P25) or child (P40) or stepparent (P3448) or stepchild (^P3448)'s
+  # father or mother or child or stepparent or stepchild's...
+  ### Note: A stepchild is reached through the inverse path (^) of stepparent (P3448).
+  wd:Q17135 (wdt:P22|wdt:P25|wdt:P40|wdt:P3448|^wdt:P3448)* ?relative
+  # optional: define ?relative's father (P22) or mother (P25) or stepparent (P3448) as ?parent
+  optional {?relative (wdt:P22|wdt:P25|wdt:P3448) ?parent
+            # To avoid showing any other relation,
+            # define ?relation as father (P22) or mother (P25) or stepparent (P3448)
+            VALUES ?relation {wdt:P22 wdt:P25 wdt:P3448}
+            # ?relation is from ?relative to ?parent
+            ?relative ?relation ?parent.
+            # get ?relation's property label and allow it to appear on graph edge
+            ?edge wikibase:directClaim ?relation;
+                a wikibase:Property}
+  # optional: show ?relative's birthdate (P569), which only appears in table, not graph
+  optional {?relative wdt:P569 ?birthdate}
+  # optional: show ?relative's image (P18), which appears directly in graph, and as link in table
+  optional {?relative wdt:P18 ?image}
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

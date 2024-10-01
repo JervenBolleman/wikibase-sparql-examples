@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-fe21b974dc19d9c3e45baf0052ec44ed> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stefan_K%C3%BChn/Persondata>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -47,4 +46,37 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,en,uk,ru\". }
 }
 order by ?itemLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX schema: <http://schema.org/>
+#defaultView:Table;Map
+SELECT DISTINCT ?item ?itemLabel ?itemDescription 
+  ?article_de 
+  ?article_en 
+  ?article_uk
+  ?article_ru
+  ?image 
+WHERE {
+  ?item wdt:P31 wd:Q5.               # ist ein = Mensch
+  ?item wdt:P27 wd:Q212.             # Staatsangehörgigkeit = Ukrainer
+  ?item wdt:P106 wd:Q13365117.       # Tätigkeit = Handballer
+  optional {  # Artikel in der de.wikipedia
+    ?article_de schema:about ?item.
+    ?article_de schema:isPartOf <https://de.wikipedia.org/>.   
+  }
+  optional { # Artikel in der en.wikipedia
+    ?article_en schema:about ?item.
+    ?article_en schema:isPartOf <https://en.wikipedia.org/>.    
+  }
+  optional { # Artikel in der uk.wikipedia
+    ?article_uk schema:about ?item.
+    ?article_uk schema:isPartOf <https://uk.wikipedia.org/>.    
+  }
+  optional { # Artikel in der ru.wikipedia
+    ?article_ru schema:about ?item.
+    ?article_ru schema:isPartOf <https://ru.wikipedia.org/>.    
+  }
+  OPTIONAL { ?item wdt:P18 ?image. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,en,uk,ru\". }
+}
+order by ?itemLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

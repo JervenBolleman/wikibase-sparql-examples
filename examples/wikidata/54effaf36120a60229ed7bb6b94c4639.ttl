@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-54effaf36120a60229ed7bb6b94c4639> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Hofoen/QA>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
@@ -60,4 +59,49 @@ WHERE {
 }
 GROUP BY ?taxon
 ORDER BY ?taxon
-#LIMIT 300""" .
+#LIMIT 300""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT
+  ?taxon
+  (GROUP_CONCAT(DISTINCT ?taxon_name; SEPARATOR = \", \") AS ?taxon_name_)
+  (GROUP_CONCAT(DISTINCT ?taxon_author_label; SEPARATOR = \", \") AS ?taxon_author_label_)
+  (GROUP_CONCAT(DISTINCT ?taxon_date; SEPARATOR = \", \") AS ?taxon_date_)
+  (SAMPLE(?basionym) AS ?basionym_)
+  (SAMPLE(?basionymOf) AS ?basionymOf_)
+  (SAMPLE(?synonymOf) AS ?synonymOf_)
+  (GROUP_CONCAT(DISTINCT ?indexFungorum; SEPARATOR = \", \") AS ?indexFungorum_)
+  (SAMPLE(?article_de) AS ?article_de_)
+  (SAMPLE(?article_en) AS ?article_en_)
+  (SAMPLE(?cat) AS ?cat_)
+  (SAMPLE(?image) AS ?image_)
+WHERE {
+  ?taxon wdt:P31 wd:Q16521.
+  
+  #?taxon wdt:P171 wd:Q578471.
+  ?taxon wdt:P171* wd:Q1633488.
+  #FILTER NOT EXISTS { ?taxon wdt:P105 wd:Q7432. }
+  
+  ?taxon wdt:P225 ?taxon_name.
+  OPTIONAL {
+    ?taxon p:P225 ?taxon_name_node.
+    ?taxon_name_node pq:P405 ?taxon_author.
+    ?taxon_author rdfs:label ?taxon_author_label.
+    FILTER((LANG(?taxon_author_label)) = \"en\")
+  }
+  OPTIONAL {
+    ?taxon p:P225 ?taxon_name_node.
+    ?taxon_name_node pq:P574 ?taxon_date.
+  }
+  OPTIONAL { ?taxon wdt:P566 ?basionym. }
+  OPTIONAL { ?basionymOf wdt:P566 ?taxon. }
+  OPTIONAL { ?synonymOf wdt:P1420 ?taxon. }
+  OPTIONAL { ?taxon wdt:P1391 ?indexFungorum. }
+  OPTIONAL { ?taxon wdt:P373 ?p373. }
+  BIND (URI(CONCAT(\"https://commons.wikimedia.org/wiki/Category:\", ENCODE_FOR_URI(REPLACE(?p373, \" \", \"_\")))) AS ?cat)
+  OPTIONAL { ?article_de schema:about ?taxon. ?article_de schema:isPartOf <https://de.wikipedia.org/>. }
+  OPTIONAL { ?article_en schema:about ?taxon. ?article_en schema:isPartOf <https://en.wikipedia.org/>. }
+  OPTIONAL { ?taxon wdt:P18 ?image. }
+}
+GROUP BY ?taxon
+ORDER BY ?taxon
+#LIMIT 300""";
+  schema:target <https://query.wikidata.org/sparql> .

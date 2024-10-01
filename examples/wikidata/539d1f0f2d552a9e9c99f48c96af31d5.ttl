@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-539d1f0f2d552a9e9c99f48c96af31d5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:venue-topic>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX target1: <http://www.wikidata.org/entity/Q4744266>
 PREFIX target2: <http://www.wikidata.org/entity/Q1492760>
@@ -39,4 +38,33 @@ WHERE {
     BIND(CONCAT(\"#topic/\", ?q) AS ?valueUrl)
   }
 } 
-ORDER BY ?order""" .
+ORDER BY ?order""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX target1: <http://www.wikidata.org/entity/Q4744266>
+PREFIX target2: <http://www.wikidata.org/entity/Q1492760>
+
+SELECT DISTINCT ?description ?value ?valueUrl
+WHERE {
+  {
+    BIND(1 AS ?order)
+    BIND(\"Venue\" AS ?description)
+    BIND(target1: AS ?iri)
+    BIND(SUBSTR(STR(?iri), 32) AS ?q) 
+    ?iri rdfs:label ?value_string . 
+    FILTER (LANG(?value_string) = 'en')
+    BIND(COALESCE(?value_string, ?q) AS ?value)
+    BIND(CONCAT(\"#venue/\", ?q) AS ?valueUrl)
+  }
+  UNION
+  {
+    BIND(2 AS ?order)
+    BIND(\"Topic\" AS ?description)
+    BIND(target2: AS ?iri)
+    BIND(SUBSTR(STR(?iri), 32) AS ?q) 
+    ?iri rdfs:label ?value_string . 
+    FILTER (LANG(?value_string) = 'en')
+    BIND(COALESCE(?value_string, ?q) AS ?value)
+    BIND(CONCAT(\"#topic/\", ?q) AS ?valueUrl)
+  }
+} 
+ORDER BY ?order""";
+  schema:target <https://query.wikidata.org/sparql> .

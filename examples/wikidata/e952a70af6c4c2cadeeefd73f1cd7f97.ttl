@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-e952a70af6c4c2cadeeefd73f1cd7f97> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Realworldobject/ShowTell>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -35,4 +34,21 @@ WHERE {
   FILTER (?work=wd:Q2222)
 }
 ORDER BY ?workLabel ?date""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?workLabel ?work ?workOCNURI ?editionOCNURI ?editionLanguageLabel ?year ?translatorLabel ?translator
+WHERE {
+  ?work p:P577 ?edition ;
+        rdfs:label ?workLabel .
+  ?edition pq:P407 ?editionLanguage ;
+	ps:P577 ?date .
+  OPTIONAL { ?work wdt:P243 ?workOCN }
+  OPTIONAL { ?edition pq:P243 ?editionOCN }
+  OPTIONAL { ?edition pq:P655 ?translator }
+  BIND(URI(CONCAT('http://www.worldcat.org/oclc/', ?workOCN)) AS ?workOCNURI)
+  BIND(URI(CONCAT('http://www.worldcat.org/oclc/', ?editionOCN)) AS ?editionOCNURI)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+  BIND(YEAR(?date) AS ?year)
+  FILTER (?work=wd:Q2222)
+}
+ORDER BY ?workLabel ?date""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

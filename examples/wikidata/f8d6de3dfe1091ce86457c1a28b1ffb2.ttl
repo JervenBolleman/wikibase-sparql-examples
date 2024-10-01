@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-f8d6de3dfe1091ce86457c1a28b1ffb2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:No39188>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -41,4 +40,30 @@ SELECT ?page_title (GROUP_CONCAT(DISTINCT ?instanceLabel; SEPARATOR = \", \") AS
   }
 }
 GROUP BY ?item ?page_title ?article ?bild ?comkat ?location
-ORDER BY (?verwaltungseinheiten)""" .
+ORDER BY (?verwaltungseinheiten)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Table
+#title: Wikipediaseiten mit Bezug zu München
+SELECT ?page_title (GROUP_CONCAT(DISTINCT ?instanceLabel; SEPARATOR = \", \") AS ?ist_ein) (GROUP_CONCAT(DISTINCT ?velabel; SEPARATOR = \", \") AS ?verwaltungseinheiten) ?article ?item ?bild ?comkat ?location WHERE {
+  ?item (wdt:P131*) ?top.
+  BIND(wd:Q1726 AS ?top)
+  ?item wdt:P131 ?ve.
+  OPTIONAL { ?item wdt:P31 ?instance. }
+  OPTIONAL { ?item wdt:P625 ?location. }
+  OPTIONAL {
+    ?article schema:about ?item;
+      schema:isPartOf <https://de.wikipedia.org/>;
+      schema:name ?page_title.
+  }
+  OPTIONAL { ?item wdt:P18 ?bild. }
+  OPTIONAL { ?item wdt:P373 ?commons. }
+  BIND(IF(BOUND(?commons), URI(CONCAT(\"https://commons.wikimedia.org/wiki/Category:\", STR(?commons))), \"\") AS ?comkat)
+  FILTER(BOUND(?article))
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?instance rdfs:label ?instanceLabel.
+    ?ve rdfs:label ?velabel.
+  }
+}
+GROUP BY ?item ?page_title ?article ?bild ?comkat ?location
+ORDER BY (?verwaltungseinheiten)""";
+  schema:target <https://query.wikidata.org/sparql> .

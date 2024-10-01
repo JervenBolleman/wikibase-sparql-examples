@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-097363474aac52880c1df7601452b716> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_COVID-19/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -43,4 +42,28 @@ WHERE {
 }
 GROUP BY ?date ?measureLabel
 ORDER BY ASC(?date) DESC(?measure)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:LineChart
+SELECT ?date (MAX(?count) AS ?max_count) ?measureLabel
+WHERE {
+  BIND(wd:Q81068910 AS ?outbreak).
+  {
+    BIND(wd:Q166231 AS ?measure).
+    ?outbreak p:P1603 ?cases.
+    ?cases prov:wasDerivedFrom/pr:P248/wdt:P50 wd:Q7817.
+    ?cases pqv:P585/wikibase:timeValue ?date.
+    ?cases psv:P1603/wikibase:quantityAmount ?count.
+    ?cases psv:P1603/wikibase:quantityAmount ?infection_count.
+  } UNION {
+    BIND(wd:Q4 AS ?measure).
+    ?outbreak p:P1120 ?deaths.
+    ?deaths prov:wasDerivedFrom/pr:P248/wdt:P50 wd:Q7817.
+    ?deaths pqv:P585/wikibase:timeValue ?date.
+    ?deaths psv:P1120/wikibase:quantityAmount ?count.
+    ?deaths psv:P1120/wikibase:quantityAmount ?death_count.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?date ?measureLabel
+ORDER BY ASC(?date) DESC(?measure)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

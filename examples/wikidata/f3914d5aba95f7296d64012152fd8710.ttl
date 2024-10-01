@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-f3914d5aba95f7296d64012152fd8710> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/04>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
@@ -26,4 +25,17 @@ OPTIONAL {
     
     # Select only statements without an end time
     FILTER NOT EXISTS { ?represents_statement pq:P582 []. }
-  }""" .
+  }""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """OPTIONAL {
+    ?player p:P1532 ?represents_statement.
+    ?represents_statement ps:P1532 ?represents.
+
+    # Select only truthy statements
+    ?represents_statement wikibase:rank ?represents_rank.
+    FILTER (?represents_rank = wikibase:PreferredRank ||
+            ?represents_rank = wikibase:NormalRank && NOT EXISTS { ?player p:P1532/wikibase:rank wikibase:PreferredRank. })
+    
+    # Select only statements without an end time
+    FILTER NOT EXISTS { ?represents_statement pq:P582 []. }
+  }""";
+  schema:target <https://query.wikidata.org/sparql> .

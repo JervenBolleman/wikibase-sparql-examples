@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-9894ddb852d6259f8cb875c14f755511> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/01>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -32,4 +31,19 @@ WHERE
   OPTIONAL { ?statement pq:P1534 ?end_cause . }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?positionLabel ?electoral_districtLabel ?start_time ?end_time ?elected_inLabel ?end_causeLabel
+WHERE 
+{
+  values ?item {wd:Q5345819}                  # person you're interested in
+  ?item p:P39 ?statement .                    # has a position statement
+  ?statement ps:P39 [wdt:P279* wd:Q486839] .  # which is a subclass of MP
+  ?statement ps:P39 ?position .               # and this is the specific position
+  OPTIONAL { ?statement pq:P768 ?electoral_district . } # might have an electoral district
+  OPTIONAL { ?statement pq:P580 ?start_time . }         # and so on for all the other qualifiers 
+  OPTIONAL { ?statement pq:P582 ?end_time . }
+  OPTIONAL { ?statement pq:P2715 ?elected_in . }
+  OPTIONAL { ?statement pq:P1534 ?end_cause . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-d84c009d5b146546f158581f6deea44b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:No39188>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -51,4 +50,39 @@ SELECT ?item_title ?geschlecht ?land (GROUP_CONCAT(DISTINCT ?lang; SEPARATOR = \
   }
 }
 GROUP BY ?item_title ?geschlecht ?land ?article ?item""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title: Personen verurteilt für Hexerei
+SELECT ?item_title ?geschlecht ?land (GROUP_CONCAT(DISTINCT ?lang; SEPARATOR = \", \") AS ?sprachen) ?article ?item WHERE {
+  ?item wdt:P1399 wd:Q259745.
+  OPTIONAL {
+    ?frwiki schema:about ?item;
+      schema:isPartOf <https://fr.wikipedia.org/>;
+      schema:name ?fr_title.
+  }
+  OPTIONAL {
+    ?enwiki schema:about ?item;
+      schema:isPartOf <https://en.wikipedia.org/>;
+      schema:name ?en_title.
+  }
+  OPTIONAL {
+    ?dewiki schema:about ?item;
+      schema:isPartOf <https://de.wikipedia.org/>;
+      schema:name ?de_title.
+  }
+  OPTIONAL {
+    ?page schema:about ?item;
+      schema:inLanguage ?lang.
+  }
+  OPTIONAL { ?item wdt:P21 ?gender. }
+  OPTIONAL { ?item wdt:P27 ?country. }
+  BIND(IF(BOUND(?dewiki), ?dewiki, IF(BOUND(?frwiki), ?frwiki, ?enwiki)) AS ?article)
+  BIND(IF(BOUND(?de_title), ?de_title, IF(BOUND(?fr_title), ?fr_title, IF(BOUND(?en_title), ?en_title, ?item_title))) AS ?page_title)
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],da,sv,cs,en\".
+    ?item rdfs:label ?item_title.
+    ?gender rdfs:label ?geschlecht.
+    ?country rdfs:label ?land.
+  }
+}
+GROUP BY ?item_title ?geschlecht ?land ?article ?item""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

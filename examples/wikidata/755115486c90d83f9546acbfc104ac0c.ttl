@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-755115486c90d83f9546acbfc104ac0c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:Lexicographical_data/Archive/2019/11>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -37,4 +36,25 @@ limit 100 # only show the 100 highest to avoid clutter
   }
 SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\"}
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT distinct ?meaning ?meaningLabel ?count WHERE
+{
+     ?l a ontolex:LexicalEntry ; 
+        dct:language ?language ;
+        ontolex:sense ?sense. # get the sense
+  ?sense wdt:P5137 ?meaning. #extract the meaning
+  FILTER (?language = wd:Q7737)
+  {
+SELECT ?meaning (count(?l) as ?count) 
+WHERE {
+   ?l a ontolex:LexicalEntry ; 
+        ontolex:sense ?sense. # get the sense
+  ?sense wdt:P5137 ?meaning. #extract the meaning
+}
+group by ?meaning # this is to avoid \"bad aggregate\", see https://www.wikidata.org/wiki/Wikidata:SPARQL_tutorial#Painting_materials
+order by desc(?count) # rank by the most translated concepts 
+limit 100 # only show the 100 highest to avoid clutter
+  }
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\"}
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

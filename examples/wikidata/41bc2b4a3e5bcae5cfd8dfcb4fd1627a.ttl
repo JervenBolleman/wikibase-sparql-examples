@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-41bc2b4a3e5bcae5cfd8dfcb4fd1627a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_India/COVID-19_task_force/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -40,4 +39,27 @@ SELECT ?item ?itemLabel ?dist ?distLabel ?cases ?shape ?rgb ?time WHERE {
        \"f5cbce\")))))))) as ?rgb)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#created by Mahir256
+#defaultView:Map{\"hide\":[\"?shape\", \"?rgb\"]}
+SELECT ?item ?itemLabel ?dist ?distLabel ?cases ?shape ?rgb ?time WHERE {
+  wd:Q84055514 wdt:P527/wdt:P527 ?item.
+  ?item wdt:P276 ?dist ; p:P1120 ?casestmt. 
+  ?dist wdt:P3896 ?shape.
+  ?casestmt ps:P1120 ?cases ; pq:P585 ?time .
+  { SELECT (MAX(?cases_) as ?mc) {
+      wd:Q84055514 wdt:P527/wdt:P527/wdt:P1120 ?cases_
+  } }
+  FILTER NOT EXISTS { ?item p:P1120/pq:P585 ?time_. FILTER(?time < ?time_) }
+  BIND(IF(?cases > (9 * ?mc)/10,\"290205\", 
+       IF(?cases > (4 * ?mc)/5,\"66080f\",
+       IF(?cases > (7 * ?mc)/10,\"a60c17\", 
+       IF(?cases > (3 *?mc)/5,\"db0f1e\",
+       IF(?cases > ?mc/2,\"f02937\", 
+       IF(?cases > (2 * ?mc)/5,\"ed4e59\",
+       IF(?cases > (3 * ?mc)/10,\"ed727a\", 
+       IF(?cases > ?mc/5,\"f79ca2\",  
+       \"f5cbce\")))))))) as ?rgb)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

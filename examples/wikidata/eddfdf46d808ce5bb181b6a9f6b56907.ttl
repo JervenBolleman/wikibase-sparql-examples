@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-eddfdf46d808ce5bb181b6a9f6b56907> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_France/Sport>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -34,4 +33,20 @@ WHERE {
                 p:P528 [pq:P972 wd:Q115755558]. # type d'équipement au Recensement des équipements sportifs
 }GROUP BY ?installation ?installationLabel
 ORDER BY ?installationLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Liste des 178 installations comprenant une aire de sports de glace en France
+SELECT ?installation ?installationLabel
+(GROUP_CONCAT(?typedaireLabel; separator=\", \") AS ?aires)
+WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\".
+                          ?installation rdfs:label ?installationLabel .
+                          ?typedaire rdfs:label ?typedaireLabel .
+  }
+  
+  ?installation p:P912 [ps:P912 ?typedaire; # présence d'une aire de sports de glace                     
+                ].
+  ?typedaire wdt:P279 wd:Q1282870; # sous-classe d'aire de sports de glace
+                p:P528 [pq:P972 wd:Q115755558]. # type d'équipement au Recensement des équipements sportifs
+}GROUP BY ?installation ?installationLabel
+ORDER BY ?installationLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

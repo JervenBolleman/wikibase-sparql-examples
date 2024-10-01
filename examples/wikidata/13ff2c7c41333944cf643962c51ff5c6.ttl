@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-13ff2c7c41333944cf643962c51ff5c6> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -59,4 +58,46 @@ WHERE {
 }
 # order layer by ?edgeLabel
 ORDER BY ?edgeLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# people who died from Wuhan pneumonia (COVID-19)
+# querying qualifier
+# viewed as map of birth/death/nationality locations, with ?edgeLabel as layer
+# also viewable as table and graph
+#defaultView:Map{\"layer\":\"?edgeLabel\"}
+SELECT DISTINCT ?patient ?patientLabel ?image ?birth_date ?disease_start ?death_date ?x ?xLabel ?edgeLabel ?coord
+WHERE {
+  # ?patient is instance of (P31) human (Q5)
+  ?patient wdt:P31 wd:Q5;
+  # ?patient's cause of death (P509) is COVID-19 (Q84263196)
+           wdt:P509 wd:Q84263196.
+  # optional: show ?patient's image (P18) as ?image
+  OPTIONAL {?patient wdt:P18 ?image}
+  # optional: show ?patient's birth date (P569) as ?birth_date
+  OPTIONAL {?patient wdt:P569 ?birth_date}
+  # optional: show ?patient's start time (P580) of COVID-19 (Q84263196) as ?disease_start by
+  # defining ?patient's \"medical condition\" (P1050) statement as ?COVID19
+  OPTIONAL {?patient p:P1050 ?COVID19.
+            # and defining ?COVID19's value as COVID-19 (Q84263196)
+            ?COVID19 ps:P1050 wd:Q84263196;
+            # and defining ?COVID19's qualifier \"start time\" (P580) as ?disease_start
+                     pq:P580 ?disease_start}
+  # optional: show ?patient's death date (P570) as ?death_date
+  OPTIONAL {?patient wdt:P570 ?death_date}
+  # optional: show ?patient's birth place (P19) or death place (P20) or nationality (P27) or occupation (P106) as ?x
+  OPTIONAL {?patient (wdt:P19|wdt:P20|wdt:P27|wdt:P106) ?x
+            # optional: show ?x's coordinate location (P625) as ?coord
+             OPTIONAL {?x wdt:P625 ?coord}
+            # To avoid showing any other relation
+            # define ?relation as birth place (P19) or death place (P20) or nationality (P27) or occupation (P106)
+             VALUES ?relation {wdt:P19 wdt:P20 wdt:P27 wdt:P106}
+            # ?relation is from ?patient to ?x
+            ?patient ?relation ?x.
+            # get ?relation's property label and allow it to appear on graph edge
+            ?edge wikibase:directClaim ?relation;
+               a wikibase:Property}
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+# order layer by ?edgeLabel
+ORDER BY ?edgeLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

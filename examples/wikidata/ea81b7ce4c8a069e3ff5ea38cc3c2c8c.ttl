@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-ea81b7ce4c8a069e3ff5ea38cc3c2c8c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:2le2im-bdc/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -33,4 +32,20 @@ WHERE
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de,it,es\".}
 }
 GROUP BY ?film ?filmLabel ?duree ?decrit""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#films mis à disposition en libre accès en VOD par artfilm.ch durant la crise du Covid-19 (manque les réalisateurs (demande d'aide en cours))
+SELECT DISTINCT ?film ?filmLabel (GROUP_CONCAT(DISTINCT(?réalLabel); separator=\", \") as ?réals) ?duree (GROUP_CONCAT(DISTINCT(?date); separator=\", \") as ?dates) ?decrit 
+WHERE 
+{
+  ?film wdt:P1344 wd:Q89370484;
+        wdt:P2047 ?duree;
+        wdt:P577 ?date;
+        wdt:P57 ?réal.
+  ?film p:P973 ?describestmt.
+  ?describestmt ps:P973 ?decrit.
+  ?describestmt pq:P407 wd:Q150.
+  FILTER STRSTARTS(STR(?decrit), \"https://www.artfilm.ch\").
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de,it,es\".}
+}
+GROUP BY ?film ?filmLabel ?duree ?decrit""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

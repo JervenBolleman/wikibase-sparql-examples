@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-ff591ae2ef79973fd1f6c67ff6b9700f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Mfchris84>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -38,4 +37,25 @@ SELECT * WHERE {
   ?comm1 rdfs:label ?comm1Label. FILTER(LANG(?comm1Label)=\"[AUTO_LANGUAGE]\").
   ?comm2 rdfs:label ?comm2Label. FILTER(LANG(?comm2Label)=\"[AUTO_LANGUAGE]\").
    }
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map{\"hide\":[\"?coord1\", \"?coord2\", \"?line\", \"?rgb\", \"?coord1lon\", \"?coord1lat\", \"?coord2lon\", \"?coord2lat\", \"?str\", \"?stationType\"]}
+SELECT * WHERE {
+  {
+  VALUES ?stationType   { wd:Q55488 wd:Q55678 wd:Q4663385 wd:Q65464941 }
+  ?comm1 wdt:P31 ?stationType ; 
+         wdt:P17 wd:Q40 ;
+         wdt:P625 ?coord1 ; wdt:P197 ?comm2.
+  OPTIONAL { ?comm1 wdt:P582|wdt:P576 ?endtime1. }
+  OPTIONAL { ?comm2 wdt:P582|wdt:P576 ?endtime2. }
+  ?comm2 wdt:P625 ?coord2 .
+  ?comm1 p:P625 [ ps:P625 [];  psv:P625 [ wikibase:geoLongitude ?coord1lon; wikibase:geoLatitude ?coord1lat; ] ].
+  ?comm2 p:P625 [ ps:P625 [];  psv:P625 [ wikibase:geoLongitude ?coord2lon; wikibase:geoLatitude ?coord2lat; ] ].
+  BIND(CONCAT('LINESTRING (', STR(?coord1lon), ' ', STR(?coord1lat), ',', STR(?coord2lon), ' ', STR(?coord2lat), ')') AS ?str) .
+  BIND(STRDT(?str, geo:wktLiteral) AS ?line).
+  BIND( IF(BOUND(?endtime1) || BOUND(?endtime2),\"c2c2c2\",  \"ff0033\")as ?rgb) 
+  BIND( IF(BOUND(?endtime1) || BOUND(?endtime2),\"decomissioned\",  \"in service\")as ?layer) 
+  ?comm1 rdfs:label ?comm1Label. FILTER(LANG(?comm1Label)=\"[AUTO_LANGUAGE]\").
+  ?comm2 rdfs:label ?comm2Label. FILTER(LANG(?comm2Label)=\"[AUTO_LANGUAGE]\").
+   }
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

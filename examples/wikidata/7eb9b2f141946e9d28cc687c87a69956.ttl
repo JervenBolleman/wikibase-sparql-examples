@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-7eb9b2f141946e9d28cc687c87a69956> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/04>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -36,4 +35,25 @@ WHERE
   }
 }
 GROUP BY ?camp ?campLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?camp ?campLabel (GROUP_CONCAT(DISTINCT ?instance_ofLabel ; SEPARATOR=\", \") AS ?type)
+WHERE 
+{
+  {
+    ?camp wdt:P31 ?instance_of.
+    ?instance_of wdt:P279* wd:Q328468. # Nazi concentration camp
+  }
+  UNION
+  {
+    ?camp wdt:P31 ?instance_of.
+    ?instance_of wdt:P279* wd:Q1719244. # Subcamp
+  }
+  SERVICE wikibase:label
+  {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+    ?camp rdfs:label ?campLabel.
+    ?instance_of rdfs:label ?instance_ofLabel.
+  }
+}
+GROUP BY ?camp ?campLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

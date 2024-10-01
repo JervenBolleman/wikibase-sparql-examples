@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-e382f4873a4fefcb4269b1c1ddde5e2c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Succu/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
@@ -37,4 +36,20 @@ SELECT ?item ?taxonName ?nomenclaturalStatusLabel ?typeSpeciesName ?typeSpeciesR
       #MINUS {?typeSpecies rdf:type wdno:P427} 
 }
 ORDER BY ASC(?taxonName)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?taxonName ?nomenclaturalStatusLabel ?typeSpeciesName ?typeSpeciesRoleLabel WHERE {
+      ?item wdt:P105 wd:Q34740 . # genus
+      ?item p:P225 ?taxonNameStatement .
+      ?taxonNameStatement ps:P225 ?taxonName .
+      ?taxonNameStatement pq:P1135 ?nomenclaturalStatus . 
+      ?taxonNameStatement prov:wasDerivedFrom ?ref .
+      ?ref pr:P248 wd:Q65706483 . # Appendix III
+      OPTIONAL {?item wdt:P427 ?typeSpecies} .
+      OPTIONAL {?item wdt:P427/wdt:P225 ?typeSpeciesName} .
+      OPTIONAL {?item p:P427/pq:P3831 ?typeSpeciesRole} . 
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+      #FILTER(!bound(?typeSpecies))
+      #MINUS {?typeSpecies rdf:type wdno:P427} 
+}
+ORDER BY ASC(?taxonName)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

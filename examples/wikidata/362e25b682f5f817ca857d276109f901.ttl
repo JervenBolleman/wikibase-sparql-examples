@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-362e25b682f5f817ca857d276109f901> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/Tolkien_plurals>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
@@ -32,4 +31,23 @@ SELECT ?lexeme ?singular ?plural ?tolkienPlural WHERE {
                        ontolex:representation ?tolkienPlural.
   }
 }
-ORDER BY MD5(?singular)""" .
+ORDER BY MD5(?singular)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?lexeme ?singular ?plural ?tolkienPlural WHERE {
+  ?lexeme dct:language wd:Q1860;
+          wikibase:lexicalCategory wd:Q1084;
+          ontolex:lexicalForm ?singularForm, ?pluralForm.
+  ?singularForm wikibase:grammaticalFeature wd:Q110786;
+                ontolex:representation ?singular.
+  ?pluralForm wikibase:grammaticalFeature wd:Q146786;
+              ontolex:representation ?plural.
+  FILTER(STRENDS(?singular, \"f\"))
+  FILTER(STRENDS(?plural, \"fs\"))
+  BIND(STRLANG(CONCAT(IF(STRENDS(?plural, \"ffs\"), SUBSTR(?plural, 1, STRLEN(?plural) - 3), SUBSTR(?plural, 1, STRLEN(?plural) - 2)), \"ves\"), LANG(?plural)) AS ?tolkienPlural)
+  MINUS {
+    ?lexeme ontolex:lexicalForm ?tolkienPluralForm.
+    ?tolkienPluralForm wikibase:grammaticalFeature wd:Q146786;
+                       ontolex:representation ?tolkienPlural.
+  }
+}
+ORDER BY MD5(?singular)""";
+  schema:target <https://query.wikidata.org/sparql> .

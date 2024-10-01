@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-f0bbd9dca9f8b9d41e29e1b0e7098f6f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:PKM/sandboxorganiser>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -33,4 +32,24 @@ SELECT ?file ?image ?item WHERE {
   BIND(URI(CONCAT(STR(sdc:M), ?pageid)) AS ?file)
   BIND(URI(CONCAT(\"http://commons.wikimedia.org/wiki/Special:FilePath/\", ENCODE_FOR_URI(?title))) AS ?image)
   ?file wdt:P6243 ?item.
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#show values of \"digital representation of\" for files in a Category
+#defaultView:ImageGrid 
+SELECT ?file ?image ?item WHERE {
+  hint:Query hint:optimizer \"None\".
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\";
+                    wikibase:api \"Generator\";
+                    mwapi:generator \"categorymembers\";
+                    mwapi:gcmtitle \"Category:Portrait paintings of Elizabeth I of England\";
+                    mwapi:gcmprop \"ids|title\";
+                    mwapi:gcmtype \"file\";
+                    mwapi:gcmlimit \"max\".
+    ?pageid wikibase:apiOutput \"@pageid\".
+    ?title wikibase:apiOutput mwapi:title.
+  }
+  BIND(URI(CONCAT(STR(sdc:M), ?pageid)) AS ?file)
+  BIND(URI(CONCAT(\"http://commons.wikimedia.org/wiki/Special:FilePath/\", ENCODE_FOR_URI(?title))) AS ?image)
+  ?file wdt:P6243 ?item.
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

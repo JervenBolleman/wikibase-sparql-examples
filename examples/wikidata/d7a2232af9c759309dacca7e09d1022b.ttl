@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-d7a2232af9c759309dacca7e09d1022b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/Swiss_items_with_article_in_exactly_one_of_German-,_French-,_Italian-,_and_Romansh-language_Wikipedias>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -29,7 +28,14 @@ SELECT ?item (SAMPLE(?title) AS ?itemLabel) (SAMPLE(?location) AS ?location) (SA
            schema:inLanguage ?language;
            schema:name ?title.
   # filter out some stray results that have country Switzerland but coordinates outside it (e. g. rivers)
-  INCLUDE %switzerlandBoundingBox.
+   {
+  SELECT * WHERE {
+    wd:Q39 p:P1332/psv:P1332/wikibase:geoLatitude ?n;
+           p:P1333/psv:P1333/wikibase:geoLatitude ?s;
+           p:P1334/psv:P1334/wikibase:geoLongitude ?e;
+           p:P1335/psv:P1335/wikibase:geoLongitude ?w.
+  }
+}
   BIND(geof:latitude(?location) AS ?lat)
   BIND(geof:longitude(?location) AS ?lon)
   FILTER(?s <= ?lat && ?lat <= ?n &&
@@ -37,7 +43,7 @@ SELECT ?item (SAMPLE(?title) AS ?itemLabel) (SAMPLE(?location) AS ?location) (SA
 }
 GROUP BY ?item
 HAVING(COUNT(DISTINCT ?wiki) = 1)""";
-  <http://example.org/bigdata_select> """#defaultView:Map
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
 SELECT ?item (SAMPLE(?title) AS ?itemLabel) (SAMPLE(?location) AS ?location) (SAMPLE(?language) AS ?layer) WITH {
   SELECT * WHERE {
     wd:Q39 p:P1332/psv:P1332/wikibase:geoLatitude ?n;
@@ -62,4 +68,5 @@ SELECT ?item (SAMPLE(?title) AS ?itemLabel) (SAMPLE(?location) AS ?location) (SA
          ?w <= ?lon && ?lon <= ?e)
 }
 GROUP BY ?item
-HAVING(COUNT(DISTINCT ?wiki) = 1)""" .
+HAVING(COUNT(DISTINCT ?wiki) = 1)""";
+  schema:target <https://query.wikidata.org/sparql> .

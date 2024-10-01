@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-e024a97b71cb7f13550dbd8bd771a4c2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Amadalvarez/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -70,4 +69,56 @@ SELECT DISTINCT ?item ?itemLabel ?muntura ?munturaLabel ?elements ?grups ?fulles
 GROUP BY ?item ?itemLabel  ?muntura ?munturaLabel ?elements ?grups ?fulles ?enfocament ?diametre_o ?diametre_f 
 ?estabilitzador ?estabilitzadorLabel ?lloc ?llocLabel ?web 
 LIMIT 4000""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title: dades tècniques objectius (amb focal i obertura)
+SELECT DISTINCT ?item ?itemLabel ?muntura ?munturaLabel ?elements ?grups ?fulles (GROUP_CONCAT(DISTINCT ?distància_focal; separator=\", \") AS ?focals )
+ (GROUP_CONCAT(DISTINCT ?obertura; separator=\", \") AS ?obertures ) ?enfocament ?diametre_o ?diametre_f 
+?estabilitzador ?estabilitzadorLabel ?lloc ?llocLabel ?web WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+                         ?item rdfs:label ?itemLabel . 
+                         ?muntura rdfs:label ?munturaLabel .
+                         ?estabilitzador rdfs:label ?estabilitzadorLabel. 
+                         ?lloc  rdfs:label  ?llocLabel .
+                         }
+  ?item (wdt:P279*) wd:Q192234.
+  OPTIONAL {
+    ?item p:P2935 _:b6.
+    _:b6 ps:P2935 ?muntura;
+      pq:P518 wd:Q205722.
+  }
+  OPTIONAL {
+    ?item p:P2283 _:b7.
+    _:b7 ps:P2283 wd:Q115743910;
+      pq:P1114 ?elements.
+  }
+  OPTIONAL {
+    ?item p:P2283 _:b8.
+    _:b8 ps:P2283 wd:Q115744033;
+      pq:P1114 ?grups.
+  }
+  OPTIONAL {
+    ?item p:P2283 _:b9.
+    _:b9 ps:P2283 wd:Q115745185;
+      pq:P1114 ?fulles.
+  }
+  OPTIONAL { ?item wdt:P11412 ?enfocament. }
+  OPTIONAL {
+    ?item p:P2386 _:b10.
+    _:b10 ps:P2386 ?diametre_f;
+      pq:P518 wd:Q876650.
+  }
+  OPTIONAL {
+    ?item p:P2386 _:b11.
+    _:b11 ps:P2386 ?diametre_o;
+      pq:P518 wd:Q192234.
+  }
+  OPTIONAL { ?item wdt:P11415 ?estabilitzador. }
+  OPTIONAL { ?item wdt:P1071 ?lloc. }
+  OPTIONAL { ?item wdt:P856 ?web. }
+  OPTIONAL { ?item wdt:P2151 ?distància_focal. }
+  OPTIONAL { ?item wdt:P7863 ?obertura. }
+}
+GROUP BY ?item ?itemLabel  ?muntura ?munturaLabel ?elements ?grups ?fulles ?enfocament ?diametre_o ?diametre_f 
+?estabilitzador ?estabilitzadorLabel ?lloc ?llocLabel ?web 
+LIMIT 4000""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

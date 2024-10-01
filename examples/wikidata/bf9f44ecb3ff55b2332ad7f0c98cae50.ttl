@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-bf9f44ecb3ff55b2332ad7f0c98cae50> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Shonagon/Archive_3>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -89,4 +88,74 @@ WHERE {
   
 } GROUP BY ?item ?itemLabel ?hauteur ?largeur 
 ORDER BY xsd:integer(?numCatalogue)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:ImageGrid
+# Œuvres de l'exposition Le Mystère Le Nain
+SELECT distinct ?item ?itemLabel 
+(GROUP_CONCAT(distinct ?crea_label; separator=\" - \") as ?crea)
+(GROUP_CONCAT(distinct ?date; separator=\" ; \") as ?dates)
+(CONCAT(STR(?hauteur),\"×\",STR(?largeur),\" cm\") AS ?dimensions)
+(GROUP_CONCAT(distinct ?collLb; separator=\" - \") as ?collection)
+(GROUP_CONCAT(distinct ?ninv; separator=\" - \") as ?inv)
+(SAMPLE(?img) as ?image) # si plusieurs images, une est choisie au hasard
+(SAMPLE(?url) as ?URL)
+WHERE {
+  ?item wdt:P608 wd:Q50314087.
+  OPTIONAL { ?item wdt:P170 ?crea.
+           ?crea rdfs:label ?crea_label filter (lang(?crea_label) = \"fr\").}
+  OPTIONAL { ?item wdt:P18 ?img }
+  OPTIONAL { ?item wdt:P195 ?coll.
+           ?coll rdfs:label ?collLb filter (lang(?collLb) = \"fr\")}
+  OPTIONAL { ?item wdt:P2048 ?hauteur }
+  OPTIONAL { ?item wdt:P2049 ?largeur }
+  OPTIONAL { ?item p:P571 ?declarationdate }
+  OPTIONAL { ?item wdt:P217 ?ninv }
+  OPTIONAL { MINUS {?declarationdate pq:P1319 ?pasavant }
+             MINUS {?declarationdate pq:P1480 wd:Q5727902 }
+             ?declarationdate ps:P571 ?dateunique .
+             BIND (year(?dateunique) AS ?date)}
+  OPTIONAL { MINUS {?declarationdate pq:P1319 ?pasavant }
+             ?declarationdate pq:P1480 wd:Q5727902. 
+             ?declarationdate ps:P571 ?dateunique . 
+             BIND (CONCAT(\"c.\",STR(year(?dateunique))) AS ?date)}
+  OPTIONAL { ?declarationdate pq:P1319 ?pasavant . 
+             ?declarationdate pq:P1326 ?pasapres.
+             BIND (CONCAT(STR(year(?pasavant)),\"-\",STR(year(?pasapres))) AS ?date)}
+  ############ Trouver une URL vedette ############
+  ### Cas n°1, une URL via un identifiant spécifique à la collection
+  OPTIONAL {
+    ?item p:P195 ?declarationlcoll.
+    ?declarationlcoll ps:P195 ?coll.
+   
+    {?Qprop wdt:P2378 ?coll.}
+    UNION{
+      ?coll  wdt:P361 ?Topcoll.
+      ?Qprop wdt:P2378 ?Topcoll. 
+    }
+    ?Qprop wdt:P31/wdt:P279* wd:Q18618644. 
+    ?Qprop wikibase:directClaim ?prop.        
+    ?item ?prop ?id .
+    ?Qprop wdt:P1630 ?formatterurl .  
+    BIND(IRI(REPLACE(?id, '^(.+)$', ?formatterurl)) AS ?urlColl)
+  }
+  ### Cas n°2, une URL via la propriété P973/\"décrit à l'URL\"
+  OPTIONAL {
+    ?item wdt:P973 ?urlP973.
+  }
+  ### Cas n°3, une URL via une propriété identifant d'œuvre d'art
+  OPTIONAL {
+    ?Qprop wikibase:directClaim ?prop.     
+    ?Qprop wdt:P31/wdt:P279* wd:Q18618644. 
+    ?item ?prop ?id .
+    ?Qprop wdt:P1630 ?formatterurl .  
+    BIND(IRI(REPLACE(?id, '^(.+)$', ?formatterurl)) AS ?urlID)
+  }
+  ############ cas n°1 l'emporte sur cas n°2 qui l'emporte sur cas n°3 ############
+  BIND(COALESCE(COALESCE(?urlColl, ?urlP973),?urlID) AS ?url)
+  ########################
+  
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,en\"}
+  
+} GROUP BY ?item ?itemLabel ?hauteur ?largeur 
+ORDER BY xsd:integer(?numCatalogue)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

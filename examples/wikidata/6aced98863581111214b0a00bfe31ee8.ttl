@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-6aced98863581111214b0a00bfe31ee8> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/UN_member_states_with_most_identical_labels_across_languages_(detail)>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -20,13 +19,36 @@ PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX p: <http://www.wikidata.org/prop/>
 SELECT ?state ?string ?languages ?labels ?percent ?ratio
 WHERE {
-  INCLUDE %stringsAndLanguages.
-  INCLUDE %labels.
+   {
+  SELECT ?state ?string (COUNT(*) AS ?languages) WHERE {
+     {
+  SELECT ?state ?label ?string WHERE {
+    INCLUDE %states.
+    ?state rdfs:label ?label.
+    BIND(STR(?label) AS ?string)
+  }
+}
+  }
+  GROUP BY ?state ?string
+  HAVING(?languages > 1)
+}
+   {
+  SELECT ?state (COUNT(*) AS ?labels) WHERE {
+     {
+  SELECT ?state ?label ?string WHERE {
+    INCLUDE %states.
+    ?state rdfs:label ?label.
+    BIND(STR(?label) AS ?string)
+  }
+}
+  }
+  GROUP BY ?state
+}
   BIND(?languages / ?labels AS ?ratio)
   BIND(CONCAT(SUBSTR(STR(?ratio * 100), 1, 5), \"%\") AS ?percent)
 }
 ORDER BY DESC(?languages)""";
-  <http://example.org/bigdata_select> """SELECT ?state ?string ?languages ?labels ?percent ?ratio
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?state ?string ?languages ?labels ?percent ?ratio
 WITH {
   SELECT DISTINCT ?state WHERE {
     ?state wdt:P31/wdt:P279* wd:Q3624078;
@@ -63,4 +85,5 @@ WHERE {
   BIND(?languages / ?labels AS ?ratio)
   BIND(CONCAT(SUBSTR(STR(?ratio * 100), 1, 5), \"%\") AS ?percent)
 }
-ORDER BY DESC(?languages)""" .
+ORDER BY DESC(?languages)""";
+  schema:target <https://query.wikidata.org/sparql> .

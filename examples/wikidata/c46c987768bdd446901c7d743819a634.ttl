@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c46c987768bdd446901c7d743819a634> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1.1>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query>;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1.1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -40,4 +39,27 @@ WHERE {
   # show label in auto language as default, and English when no default label exists
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# title of the query
+#title: timeline of members of the Politburo Standing Committee of the Chinese Communist Party
+# viewed as timeline (also viewable as table and image grid)
+#defaultView:Timeline
+SELECT DISTINCT ?member ?memberLabel ?image ?start ?end
+WHERE {
+  # ?member is instance of (P31) human (Q5)
+  ?member wdt:P31 wd:Q5;
+          # ?member's \"position held\" (P39) statement is ?x_position
+          p:P39 ?x_position.
+  # ?x_position's value is \"subclass of (P279)\" [ZeroOrMorePath (*)]
+  # member of the Politburo Standing Committee of the Chinese Communist Party (Q42327067)
+  ?x_position ps:P39/wdt:P279* wd:Q42327067
+  # optional: ?member's image (P18) is ?image
+  OPTIONAL {?member wdt:P18 ?image}
+  # optional: ?x_position's qualifier \"start time\" (P580) is ?start
+  OPTIONAL {?x_position pq:P580 ?start}
+  # optional: ?x_position's qualifier \"end time\" (P582) is ?end
+  OPTIONAL {?x_position pq:P582 ?end}
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-17767e386bfa656c2d7b083683542138> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:D1gggg/Wikidata_model_and_SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -32,4 +31,22 @@ OPTIONAL { ?item wdt:P136                  ?genre       }
 OPTIONAL { ?item wdt:P135                  ?movement    }
 	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:ImageGrid
+SELECT ?item ?itemLabel ?image ?genreLabel ?movementLabel
+WHERE
+{
+           ?item wdt:P31/wdt:P279*          wd:Q838948   . # works of art
+           ?item wdt:P276                   wd:Q19675    . # located in Louvre
+           # 117 items
+MINUS    { ?item wdt:P136                   wd:Q440928   } # except ONE sculptural genre (Q440928)
+           # 116 items
+MINUS    { ?item wdt:P136/wdt:P31/wdt:P279* wd:Q18783400 } # except ANY sculptural genre (Q18783400)
+           # 113 items
+  
+OPTIONAL { ?item wdt:P18                   ?image       }
+OPTIONAL { ?item wdt:P136                  ?genre       }
+OPTIONAL { ?item wdt:P135                  ?movement    }
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

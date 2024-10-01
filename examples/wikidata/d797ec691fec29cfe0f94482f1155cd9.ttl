@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-d797ec691fec29cfe0f94482f1155cd9> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:language-location-index>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX target: <http://www.wikidata.org/entity/Q150>
 
@@ -48,4 +47,42 @@ WHERE {
     BIND(CONCAT(\"https://scholia.toolforge.org/language/\", SUBSTR(STR(target:), 32)) AS ?scholiaUrl)
   }
 } 
-ORDER BY ?order""" .
+ORDER BY ?order""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX target: <http://www.wikidata.org/entity/Q150>
+
+SELECT
+  ?description ?descriptionUrl
+
+  ?value ?valueUrl
+
+  ?wikidata ?wikidataUrl
+  ?hangor ?hangorUrl
+  ?ordia ?ordiaUrl
+  ?scholia ?scholiaUrl
+WHERE {
+  {
+    BIND(1 AS ?order)
+
+    BIND(\"Language\" AS ?description)
+    BIND(\"#language/\" AS ?descriptionUrl)
+
+    target: rdfs:label ?value_string .
+    FILTER (LANG(?value_string) = 'en')
+    BIND(COALESCE(?value_string, SUBSTR(STR(target:), 32)) AS ?value)
+    BIND(CONCAT(\"#language/\", SUBSTR(STR(target:), 32)) AS ?valueUrl)
+
+    BIND(CONCAT(SUBSTR(STR(target:), 32), \"&nbsp;↗\") AS ?wikidata)
+    BIND(CONCAT(\"https://www.wikidata.org/wiki/\", SUBSTR(STR(target:), 32)) AS ?wikidataUrl)
+    
+    BIND(\"Hangor&nbsp;↗\" AS ?hangor)
+    BIND(CONCAT(\"https://hangor.toolforge.org/browse/\", SUBSTR(STR(target:), 32)) AS ?hangorUrl)
+
+    BIND(\"Ordia&nbsp;↗\" AS ?ordia)
+    BIND(CONCAT(\"https://ordia.toolforge.org/language/\", SUBSTR(STR(target:), 32)) AS ?ordiaUrl)
+
+    BIND(\"Scholia&nbsp;↗\" AS ?scholia)
+    BIND(CONCAT(\"https://scholia.toolforge.org/language/\", SUBSTR(STR(target:), 32)) AS ?scholiaUrl)
+  }
+} 
+ORDER BY ?order""";
+  schema:target <https://query.wikidata.org/sparql> .

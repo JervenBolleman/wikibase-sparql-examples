@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-eeb6cc97f73a1c36a571e8ffcf642250> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Lutzto>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -50,4 +49,36 @@ SELECT DISTINCT ?lon ?lat ?group ?item ?itemLabel ?itemDescription ?start_date ?
 
 }
 ORDER BY ?itemLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#------------------------------------------------------------------------------------------------
+# Kursächsische Postmeilensäulen (für interne Weiterverarbeitung zur tsv für \"Historic.Place)
+#------------------------------------------------------------------------------------------------
+#defaultView:Map;Table
+SELECT DISTINCT ?lon ?lat ?group ?item ?itemLabel ?itemDescription ?start_date ?coordinates ?heritage2 ?image  ?heritage (URI(CONCAT(\"Category:\", ?wikimedia)) as ?wikimedia_commons) ?wikipedia {
+  ?item p:P31/ps:P31 wd:Q896635 ;
+  OPTIONAL {?item p:P625 ?coordinate.
+  ?coordinate psv:P625 ?coordinate_node.
+  ?coordinate_node wikibase:geoLatitude ?lat.
+  ?coordinate_node wikibase:geoLongitude ?lon. }
+  OPTIONAL { ?item wdt:P625 ?coordinates. }
+  OPTIONAL { ?item wdt:P571 ?inception. }
+  OPTIONAL { ?item wdt:P18 ?image. }
+  OPTIONAL { ?item wdt:P373 ?wikimedia. }
+  OPTIONAL { ?item wdt:P1708 ?heritage2. }
+  OPTIONAL { ?item wdt:P1708 ?heritage. }
+  OPTIONAL { ?sitelink schema:about ?item.
+             FILTER(REGEX(STR(?sitelink), \"de.wikipedia.org/wiki/\"))}      # nur deutsche Wikipedia-Artikel
+  BIND((bound(?sitelink) ) AS ?has_de_sitelink).                         # true/false - wenn de-Artikel vorhanden   
+
+  BIND(URI(CONCAT(\"https://de.wikipedia.org/wiki/Kurs%C3%A4chsische_Postmeilens%C3%A4ule\")) as ?url2).  # alternative URL bauen
+  
+  BIND(  IF( ?has_de_sitelink ,?sitelink ,?url2 ) AS ?wikipedia).           # if ... then ... else
+  
+
+ 
+  BIND(str(YEAR(?inception)) AS ?start_date)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+
+}
+ORDER BY ?itemLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

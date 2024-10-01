@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-062a080fe021c3f014c6570bafcaab38> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jarekt/queries>, <https://www.wikidata.org//wiki/Wikidata:Requests_for_permissions/Bot/MatSuBot_7>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
 PREFIX prov: <http://www.w3.org/ns/prov#>
@@ -33,4 +32,23 @@ SELECT ?item ?val1 ?prec1 ?val2 ?prec2 {
   FILTER( ?pr2 != pr:P143 ) . # the more precise statement does have it
   FILTER( YEAR( ?val1 ) = YEAR( ?val2 ) ) .
   FILTER( ?prec1 = 9 || MONTH( ?val1 ) = MONTH( ?val2 ) ) . # one time value is inside the other one
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?val1 ?prec1 ?val2 ?prec2 {
+  ?item p:P569 ?statement1 .
+  ?item p:P569 ?statement2 FILTER( ?statement2 != ?statement1 ) . # more than one statement
+  MINUS { ?item p:P569/wikibase:rank wikibase:PreferredRank } .
+  ?statement1 psv:P569 [ wikibase:timeValue ?val1; wikibase:timePrecision ?prec1 ] .
+  ?statement2 psv:P569 [ wikibase:timeValue ?val2; wikibase:timePrecision ?prec2 ] .
+  FILTER( ?prec1 < ?prec2 ) . # different precision
+  MINUS {
+    ?statement1 prov:wasDerivedFrom ?ref1 .
+    ?ref1 ?pr1 [] .
+    FILTER( ?pr1 != pr:P143 ) . # the less precise statement is without real source
+  } .
+  ?statement2 prov:wasDerivedFrom ?ref2 .
+  ?ref2 ?pr2 [] .
+  FILTER( ?pr2 != pr:P143 ) . # the more precise statement does have it
+  FILTER( YEAR( ?val1 ) = YEAR( ?val2 ) ) .
+  FILTER( ?prec1 = 9 || MONTH( ?val1 ) = MONTH( ?val2 ) ) . # one time value is inside the other one
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-1523651a90a3a3da480dc0fc29ed8bb5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Government/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -49,4 +48,38 @@ SELECT ?municipality ?municipalityLabel ?currentMayor ?currentMayorLabel ?startD
     ?otherStatement pq:P580 ?otherStartDate .
     FILTER (?otherStartDate > ?startDate)
   }
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title: Current majors of municipalities of Iceland (should be 64)
+SELECT ?municipality ?municipalityLabel ?currentMayor ?currentMayorLabel ?startDate WHERE {
+  # Find all municipalities in Iceland
+  ?municipality wdt:P31 wd:Q955655 .
+  ?municipality wdt:P17 wd:Q189 .
+  
+  # Exclude municipalities with dissolved date (P576) and qualifiers (P1366)
+  MINUS { ?municipality wdt:P576 [] }
+  MINUS { ?municipality wdt:P1366 [] }
+
+  # Get the head of government (mayor) statement and its value
+  ?municipality p:P6 ?statement .
+  ?statement ps:P6 ?currentMayor .
+
+  # Get the start date (P580) of the mayor's term
+  ?statement pq:P580 ?startDate .
+
+  # Get the label of the current mayor
+  ?currentMayor rdfs:label ?currentMayorLabel .
+  FILTER(LANG(?currentMayorLabel) = \"en\")
+
+  # Get the label of the municipality
+  ?municipality rdfs:label ?municipalityLabel .
+  FILTER(LANG(?municipalityLabel) = \"en\")
+
+  # Filter out mayors that do not have the most recent start time
+  FILTER NOT EXISTS {
+    ?municipality p:P6 ?otherStatement .
+    ?otherStatement ps:P6 ?otherMayor .
+    ?otherStatement pq:P580 ?otherStartDate .
+    FILTER (?otherStartDate > ?startDate)
+  }
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

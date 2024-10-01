@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-88b4e26dfec95a04203c33158da8a58a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jvillafruela>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -30,4 +29,19 @@ SELECT ?MH ?MHLabel ?communeLabel ?deptLabel  ?dist ?coordMH ?coordLoc WHERE {
   FILTER(?dist > 10 )
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
 } ORDER BY DESC (?dist)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#MH dont les coordonnées sont à plus de 10 kilomètres des coordonnées de la localisation en P131
+SELECT ?MH ?MHLabel ?communeLabel ?deptLabel  ?dist ?coordMH ?coordLoc WHERE {
+  ?MH wdt:P380 []; wdt:P131 ?commune ; wdt:P625 ?coordMH .
+  ?commune wdt:P31 wd:Q484170 . #commune de France
+  ?commune wdt:P131 wd:Q3336. #dept 
+  ?commune wdt:P131 ?dept.
+  ?dept wdt:P31 wd:Q6465 .
+  
+  ?commune wdt:P625  ?coordLoc.  
+
+  BIND(geof:distance(?coordLoc, ?coordMH) AS ?dist)
+  FILTER(?dist > 10 )
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+} ORDER BY DESC (?dist)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

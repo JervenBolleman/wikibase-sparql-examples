@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8b24fbe3fc2c7dc4bb8ab22c08c2bf20> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/1/13>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
@@ -37,13 +36,41 @@ SELECT
   # example, we can know which languages have 0 pronunciation audios
   # or which language code is not linked to a Wikidata item.
 
-  OPTIONAL{INCLUDE %0}
-  OPTIONAL{INCLUDE %2}
-  OPTIONAL{INCLUDE %3}
+  OPTIONAL{ {
+  SELECT DISTINCT ?lang ?langCode {
+    [] dct:language ?lang.
+    ?lang wdt:P424 ?langCode.
+  }
+}}
+  OPTIONAL{ {
+  SELECT ?langCode (COUNT(*) AS ?count) {
+     {
+  SELECT ?claim ?example ?langCode {
+    [] p:P5831 ?claim.
+    ?claim ps:P5831 ?example.
+    BIND(LANG(?example) AS ?langCode)
+  }
+}
+  }
+  GROUP BY ?langCode
+}}
+  OPTIONAL{ {
+  SELECT ?langCode (COUNT(*) AS ?countAudios) {
+     {
+  SELECT ?claim ?example ?langCode {
+    [] p:P5831 ?claim.
+    ?claim ps:P5831 ?example.
+    BIND(LANG(?example) AS ?langCode)
+  }
+}
+    ?claim pq:P443 [].
+  }
+  GROUP BY ?langCode
+}}
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 }
 ORDER BY DESC(?countAudios) DESC(?count)""";
-  <http://example.org/bigdata_select> """#title: Languages with count per usage example and count per usage examples that have pronunciation audio.
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title: Languages with count per usage example and count per usage examples that have pronunciation audio.
 
 SELECT
   ?lang
@@ -93,4 +120,6 @@ WITH {
   OPTIONAL{INCLUDE %3}
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 }
-ORDER BY DESC(?countAudios) DESC(?count)""" .
+ORDER BY DESC(?countAudios) DESC(?count)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

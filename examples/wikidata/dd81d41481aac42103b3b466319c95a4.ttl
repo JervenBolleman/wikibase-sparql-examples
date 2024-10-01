@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-dd81d41481aac42103b3b466319c95a4> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/hansard>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -48,4 +47,35 @@ WHERE {
   # find Historic Hansard IDs
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }      
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# first query - more reliable data - parties with known values, *or* inferred by dates on P102 
+select distinct ?mp ?mpLabel ?start ?end ?seatLabel ?known_partyLabel ?date_inferred_partyLabel ?historic_hansard
+WHERE {  
+  ?position wdt:P279 wd:Q16707842 . ?mp p:P39 ?positionStatement .
+  ?positionStatement ps:P39 ?position ; pq:P768 ?seat ; pq:P580 ?start ; pq:P582 ?end .
+  bind(year(?start) as ?startyear) . bind(year(?end) as ?endyear) . filter (?startyear < 2005) .
+  optional { ?positionStatement pq:P4100 ?known_party . }
+  # party if it is known during the electoral period
+  optional { ?mp p:P102 ?partyStatement . ?partyStatement ps:P102 ?date_inferred_party . 
+             ?partyStatement pq:P580 ?inferredstart . filter (?inferredstart < ?end ) .
+             ?partyStatement pq:P582 ?inferredend . filter ( ?inferredend > ?start ) . 
+             filter not exists { ?positionStatement pq:P4100 ?known_party . } . }
+  # this looks for a P102 statement which is valid *during* the electoral term  
+  optional { ?mp p:P102 ?partyStatement . ?partyStatement ps:P102 ?date_inferred_party . 
+             ?partyStatement pq:P580 ?inferredstart . filter (?inferredstart < ?end ) .
+             filter not exists { ?partyStatement pq:P582 ?inferredend . }
+             filter not exists { ?positionStatement pq:P4100 ?known_party . } . }
+  # P102 has only a start date (assume indefinite after)
+  optional { ?mp p:P102 ?partyStatement . ?partyStatement ps:P102 ?date_inferred_party . 
+             filter not exists { ?partyStatement pq:P580 ?inferredstart . }
+             ?partyStatement pq:P582 ?inferredend . filter ( ?inferredend > ?start ) . 
+             filter not exists { ?positionStatement pq:P4100 ?known_party . } . }
+  # P102 has only an end date (assume indefinite before)
+  { SELECT distinct ?mp (GROUP_CONCAT(distinct ?hh; separator=\"; \") as ?historic_hansard) WHERE {
+             ?position wdt:P279 wd:Q16707842 . ?mp p:P39 ?positionStatement .
+             ?positionStatement ps:P39 ?position .
+             optional { ?mp wdt:P2015 ?hh . }  } group by ?mp }
+  # find Historic Hansard IDs
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }      
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8bf3bc9b616632fbbe2c1e4ab28eba08> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/12>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -36,4 +35,26 @@ WHERE {
 }
 group by ?pays ?paysLabel ?PaysPrecedentLabel ?Fondation ?Disparition ?PaysRemplacantLabel
 order by ?paysLabel ?Fondation""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?pays #country
+?paysLabel #countryname
+(sample(?naturelabel) as ?nature) 
+(sample(?capitaleLabel) as ?capital) 
+(sample(?PaysPrecedentLabel) as ?PPL) #preceding country
+(max(?Fondation) as ?AnneeFondation) #foundation year
+(year(?Disparition) as ?AnneeDisparition) #disappearance year
+(sample(?PaysRemplacantLabel) as ?PRL) #following country
+WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?pays (wdt:P31/wdt:P279*) wd:Q6256 .
+  OPTIONAL { ?pays wdt:P17 ?pays. }
+  OPTIONAL { ?pays wdt:P31 ?nature. }
+  OPTIONAL { ?pays wdt:P36 ?capitale. }
+  OPTIONAL { ?pays wdt:P1365 ?PaysPrecedent. }
+  OPTIONAL { ?pays wdt:P571 ?Fondation. }
+  OPTIONAL { ?pays wdt:P576 ?Disparition. }
+  OPTIONAL { ?pays wdt:P1366 ?PaysRemplacant. }
+}
+group by ?pays ?paysLabel ?PaysPrecedentLabel ?Fondation ?Disparition ?PaysRemplacantLabel
+order by ?paysLabel ?Fondation""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c7711d1cb4bb4b7f4e3a08c1dfb28c6d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:AllyD/sandbox>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -41,4 +40,30 @@ SELECT DISTINCT (?mapcolour AS ?layer) ?towndescLabel ?monmntLabel ?placedesc ?s
   BIND (IF (BOUND(?articleEN), ?articleEN, (IF (BOUND(?articleDE), ?articleDE,?null))) AS ?article).
   BIND (IF (BOUND(?gotimg), IF (BOUND(?article),\"Category A with image and article\", \"Category A with image\"), \"Category A without image\") AS ?mapcolour).
   }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
+SELECT DISTINCT (?mapcolour AS ?layer) ?towndescLabel ?monmntLabel ?placedesc ?statloc ?article ?gotimg WHERE { 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  {
+   SELECT DISTINCT ?townrand ?tmpmon ?monmntrand  WHERE { 
+   ?tmpmon wdt:P1435 wd:Q10729054.
+   ?tmpmon wdt:P131 ?townrand. 
+   BIND(SHA256(CONCAT(STR(RAND()), STR(?tmpmon))) AS ?monmntrand) .
+   }
+   ORDER BY ?monmntrand
+   LIMIT 1
+   }
+  {?monmnt wdt:P131 ?townrand; wdt:P1435 wd:Q10729054.}
+  ?monmnt wdt:P1435 ?listAB.
+  ?monmnt wdt:P131 ?towndesc. 
+  #FILTER (?towndesc=?townrand).
+  optional {?monmnt wdt:P18 ?gotimg.}.
+  ?monmnt wdt:P31 ?placedesc.
+  ?monmnt wdt:P625 ?statloc.
+  ?sitelink schema:about ?monmnt .
+  OPTIONAL {?articleEN schema:about ?monmnt . ?articleEN schema:isPartOf <https://en.wikipedia.org/> .}.
+  OPTIONAL {?articleDE schema:about ?monmnt . ?articleDE schema:isPartOf <https://de.wikipedia.org/> .}.
+  BIND (IF (BOUND(?articleEN), ?articleEN, (IF (BOUND(?articleDE), ?articleDE,?null))) AS ?article).
+  BIND (IF (BOUND(?gotimg), IF (BOUND(?article),\"Category A with image and article\", \"Category A with image\"), \"Category A without image\") AS ?mapcolour).
+  }""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

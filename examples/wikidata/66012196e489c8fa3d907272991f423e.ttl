@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-66012196e489c8fa3d907272991f423e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -30,4 +29,20 @@ SELECT ?prodco ?prodcoLabel (SUM(?boxOffice - ?cost) as ?totalNetProfit)
     GROUP BY ?prodco ?prodcoLabel
     ORDER BY desc(?totalNetProfit)
     LIMIT 20""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?prodco ?prodcoLabel (SUM(?boxOffice - ?cost) as ?totalNetProfit)
+    WHERE
+    {
+    ?art wdt:P272 ?prodco. # art produced by production companies
+    ?art wdt:P31 wd:Q11424. # ensure that the art produced is an instance of film
+    ?art wdt:P495 ?countryOfOrigin. # counbtry of origin of the art
+    ?art wdt:P2142 ?boxOffice. # get the box office earnings for the fil
+    ?art wdt:P2130 ?cost. # Find the cost of each art
+    #Does this make sure all companies that didn't produce ANY film in USA are removed?
+    FILTER (?countryOfOrigin != wd:Q30) # Ensure that the film does not originate from USA.
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+    }
+    GROUP BY ?prodco ?prodcoLabel
+    ORDER BY desc(?totalNetProfit)
+    LIMIT 20""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

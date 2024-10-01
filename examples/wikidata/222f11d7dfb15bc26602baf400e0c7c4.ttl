@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-222f11d7dfb15bc26602baf400e0c7c4> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/08>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -54,4 +53,40 @@ SELECT distinct ?election ?electionLabel ?members ?veterans ?new where
 
   SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
 } order by desc(?electiondate)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Number of veteran MPs and completely new MPs returned at each general election
+# Note that \"veteran\" includes any previous experience, which may not have been in the previous term
+# Thus an MP who leaves, spends some time out of Parliament, and returns, will count as \"veteran\" not \"new\"
+
+SELECT distinct ?election ?electionLabel ?members ?veterans ?new where
+{
+  { SELECT distinct ?election ?electiondate where 
+    { ?election wdt:P31 wd:Q15283424 . ?election wdt:P585 ?electiondate .  
+    filter (?electiondate >= \"1832-01-01T00:00:00Z\"^^xsd:dateTime) } # throttle at 1832 for now
+  } # find all general elections and their date (for sorting)
+  
+  { SELECT ?election (count(distinct ?item) as ?members) where 
+    { ?item p:P39 ?positionStatement . ?positionStatement ps:P39 ?membership . 
+      ?membership wdt:P2715 ?election . ?positionStatement pq:P2715 ?election .
+    } group by ?election
+  } # number of people elected in this election
+    # this code finds anyone who served the parliamentary term linked to this election
+    # with a P39 value which started with this election
+
+  { SELECT ?election (count(distinct ?item) as ?veterans) where 
+    { ?item p:P39 ?positionStatement . ?positionStatement ps:P39 ?membership . 
+      ?membership wdt:P2715 ?election . ?positionStatement pq:P2715 ?election . 
+     # item holds a term which began with the election
+      ?item p:P39 ?positionStatement2 . ?positionStatement2 ps:P39 ?membership2 . 
+      ?positionStatement2 pq:P580 ?start . filter ( ?start < ?electiondate ) .
+      ?election wdt:P585 ?electiondate . ?membership2 wdt:P279 wd:Q16707842 .
+     # item also holds another term which began before the election
+     # and, critically, that office was an MP!
+    } group by ?election
+  } # people who served in any previous term
+  
+  bind((?members-?veterans) as ?new)
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+} order by desc(?electiondate)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

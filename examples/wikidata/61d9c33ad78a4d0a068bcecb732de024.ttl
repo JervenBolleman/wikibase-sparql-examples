@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-61d9c33ad78a4d0a068bcecb732de024> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Shonagon/Expositions>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -106,4 +105,91 @@ WHERE {
   
 } GROUP BY ?numCatalogue ?item ?itemLabel 
 ORDER BY xsd:integer(?numCatalogue)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:ImageGrid
+SELECT distinct 
+?numCatalogue ?item ?itemLabel 
+(GROUP_CONCAT(distinct ?nature_label; separator=\" - \") as ?type) 
+(GROUP_CONCAT(distinct ?crea_label; separator=\" - \") as ?crea)
+(GROUP_CONCAT(distinct ?date; separator=\" ; \") as ?dates)
+(GROUP_CONCAT(distinct ?coll_label; separator=\" - \") as ?collection)
+(GROUP_CONCAT(distinct ?ninv; separator=\" - \") as ?inv)
+(SAMPLE(?img) as ?image) 
+(SAMPLE(?url) as ?URL)
+WHERE {
+  BIND (wd:Q28043290 as ?expo) # élément exposition
+  ?item wdt:P608 ?expo. 
+  OPTIONAL { ?expo wdt:P972 ?catalogue.
+           ?item p:P528 [ ps:P528 ?numCatalogue ;
+                   pq:P972 ?catalogue ]
+           }
+  ?item wdt:P31 ?nature.
+  OPTIONAL{?nature rdfs:label ?nature_labelfr. filter (lang(?nature_labelfr) = \"fr\")}
+  OPTIONAL{?nature rdfs:label ?nature_labelen. filter (lang(?nature_labelen) = \"en\")}
+  BIND(COALESCE(?nature_labelfr,?nature_labelen) AS ?nature_label)
+  OPTIONAL { ?item wdt:P170 ?crea.
+           OPTIONAL{?crea rdfs:label ?crea_labelfr filter (lang(?crea_labelfr) = \"fr\")}
+           OPTIONAL{?crea rdfs:label ?crea_labelen filter (lang(?crea_labelen) = \"en\")}
+           BIND(COALESCE(?crea_labelfr,?crea_labelen) AS ?crea_label)
+           }
+  OPTIONAL { ?item wdt:P195 ?coll.
+           OPTIONAL{?coll rdfs:label ?coll_labelfr filter (lang(?coll_labelfr) = \"fr\")}
+           OPTIONAL{?coll rdfs:label ?coll_labelen filter (lang(?coll_labelen) = \"en\")}
+           BIND(COALESCE(?coll_labelfr,?coll_labelen) AS ?coll_label)
+           }
+  OPTIONAL { ?item wdt:P18 ?img }
+  OPTIONAL { ?item wdt:P217 ?ninv }
+  OPTIONAL { ?item p:P571 ?declarationdate }
+  # date de publication
+  OPTIONAL { ?item wdt:P577 ?datepubli
+             BIND (year(?datepubli) AS ?date)}
+  # date unique
+  OPTIONAL { MINUS {?declarationdate pq:P1319 ?pasavant }
+             MINUS {?declarationdate pq:P1480 wd:Q5727902 }
+             ?declarationdate ps:P571 ?dateunique .
+             BIND (year(?dateunique) AS ?date)}
+  # date unique environ
+  OPTIONAL { MINUS {?declarationdate pq:P1319 ?pasavant }
+             ?declarationdate pq:P1480 wd:Q5727902. 
+             ?declarationdate ps:P571 ?dateunique . 
+             BIND (CONCAT(\"c.\",STR(year(?dateunique))) AS ?date)}
+  # période pas avant / pas apres
+  OPTIONAL { ?declarationdate pq:P1319 ?pasavant . 
+             ?declarationdate pq:P1326 ?pasapres.
+             BIND (CONCAT(STR(year(?pasavant)),\"-\",STR(year(?pasapres))) AS ?date)}
+  # URL vedette
+  # Cas n°1, une URL via un identifiant spécifique à la collection
+  OPTIONAL {
+    ?item p:P195 ?declarationlcoll.
+    ?declarationlcoll ps:P195 ?coll.
+   
+    {?Qprop wdt:P2378 ?coll.}
+    UNION{
+      ?coll  wdt:P361 ?Topcoll.
+      ?Qprop wdt:P2378 ?Topcoll. 
+    }
+    ?Qprop wdt:P31/wdt:P279* wd:Q18618644. 
+    ?Qprop wikibase:directClaim ?prop.        
+    ?item ?prop ?id .
+    ?Qprop wdt:P1630 ?formatterurl .  
+    BIND(IRI(REPLACE(?id, '^(.+)$', ?formatterurl)) AS ?urlColl)
+  }
+  # Cas n°2, une URL via la propriété P973/\"décrit à l'URL\"
+  OPTIONAL {
+    ?item wdt:P973 ?urlP973.
+  }
+  # Cas n°3, une URL via une propriété identifant d'œuvre d'art
+  OPTIONAL {
+    ?Qprop wikibase:directClaim ?prop.     
+    ?Qprop wdt:P31/wdt:P279* wd:Q18618644. 
+    ?item ?prop ?id .
+    ?Qprop wdt:P1630 ?formatterurl .  
+    BIND(IRI(REPLACE(?id, '^(.+)$', ?formatterurl)) AS ?urlID)
+  }
+  # cas n°1 l'emporte sur cas n°2 qui l'emporte sur cas n°3
+  BIND(COALESCE(COALESCE(?urlColl, ?urlP973),?urlID) AS ?url)
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,en\"}
+  
+} GROUP BY ?numCatalogue ?item ?itemLabel 
+ORDER BY xsd:integer(?numCatalogue)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

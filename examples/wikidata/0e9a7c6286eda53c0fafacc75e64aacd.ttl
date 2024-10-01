@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-0e9a7c6286eda53c0fafacc75e64aacd> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/02>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -45,5 +44,35 @@ WHERE {
                 ?historicCounty rdfs:label ?historicCountyLabel .}
 } 
 GROUP BY ?itemLabel ?location ?inception ?historicCountyLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?itemLabel 
+                (sample(?image_) as ?image) 
+                (group_concat(distinct ?instanceOfTypeLabel_;separator=\"; \" ) as ?instanceOfTypeLabel)  
+                ?location 
+                ?inception 
+                (group_concat(distinct ?adminEntityLabel_;separator=\"; \" ) as ?adminEntityLabel)  
+                ?historicCountyLabel 
+WHERE {
+  
+  SERVICE bd:slice {
+    ?item wdt:P1435 wd:Q15700834.
+    bd:serviceParam bd:slice.offset 0 . # Start at item number (not to be confused with QID)
+    bd:serviceParam bd:slice.limit 50000 . # List this many items
+  }
+
+    ?item wdt:P18 ?image_.
+    ?item wdt:P31 ?instanceOfType.
+    ?item wdt:P625 ?location.
+    OPTIONAL { ?item wdt:P571 ?inception . }
+    OPTIONAL { ?item wdt:P131 ?adminEntity . }
+    OPTIONAL { ?item wdt:P7959 ?historicCounty . }
+
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". 
+                ?item rdfs:label ?itemLabel . 
+                ?instanceOfType rdfs:label ?instanceOfTypeLabel_ . 
+                ?adminEntity rdfs:label ?adminEntityLabel_ .
+                ?historicCounty rdfs:label ?historicCountyLabel .}
+} 
+GROUP BY ?itemLabel ?location ?inception ?historicCountyLabel""";
   <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>,
-    <http://www.bigdata.com/rdf#slice> .
+    <http://www.bigdata.com/rdf#slice>;
+  schema:target <https://query.wikidata.org/sparql> .

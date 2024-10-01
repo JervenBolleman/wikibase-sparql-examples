@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-794a907896a83e63985f41420b98771e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Simon_Villeneuve/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -59,4 +58,48 @@ SELECT DISTINCT ?itemLabel ?itemDescription ?item WHERE { SERVICE wikibase:label
 #Classer par VARIABLE. ORDER BY ?VARIABLE
 #Si temps limite atteint, limiter les résultats à X. LIMIT X
 #Si temps limite atteint, fractionner les résultats en sautant les X premiers et en affichant les Y suivants. OFFSET X LIMIT Y
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Requête permettant d'obtenir des statistiques
+#concernant les entrées de Britannica et d'Universalis.
+
+#Pour rendre opérante la requête, enlevez, au début
+#de la ligne, du dièse (#) jusqu'à l'expression ?item
+
+#Pour des requêtes qui dépassent les capacités de l'outil 
+#(le message « Limite du temps de requête atteinte » s'affiche), remplacez 
+#la première ligne (SELECT ?item ?itemLabel...[AUTO_LANGUAGE],fr\" }) 
+#par SELECT (COUNT(?item) AS ?count) WHERE {
+
+SELECT DISTINCT ?itemLabel ?itemDescription ?item WHERE { SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+##Si excède capacités de l'outil SELECT DISTINCT (COUNT(?item) AS ?count) WHERE {
+#Britannica ?item wdt:P1417 ?britannica . 
+#Universalis ?item wdt:P3219 ?universalis .
+#localités ?item wdt:P31/wdt:P279* wd:Q486972 .
+#êtres humains ?item wdt:P31 wd:Q5 . 
+#femmes ?item wdt:P21 wd:Q6581072 .
+#hommes ?item wdt:P21 wd:Q6581097 .
+#Allemand-e-s ?item wdt:P27 wd:Q183 .
+#Américain-e-s ?item wdt:P27 wd:Q30 .
+#Belges ?item wdt:P27 wd:Q31 .
+#Britanniques ?item wdt:P27 wd:Q145 .
+#Canadien-ne-s ?item wdt:P27 wd:Q16 .
+#Chinois-e-s ?item wdt:P27 wd:Q148 .
+#Français-e-s ?item wdt:P27 wd:Q142 .
+#Japonais-e-s ?item wdt:P27 wd:Q17 .
+#Russes ?item wdt:P27 wd:Q159 .
+#Russes (1721-1917) ?item wdt:P27 wd:Q34266 .
+#Soviétiques ?item wdt:P27 wd:Q15180 .
+#Suisse-sse-s ?item wdt:P27 wd:Q39 .
+#musicien-ne-s ?item wdt:P106/wdt:P279* wd:Q639669 .
+#artistes ?item wdt:P106/wdt:P279* wd:Q483501 .
+#scientifiques ?item wdt:P106/wdt:P279* wd:Q901 .
+#personnalité politique ?item wdt:P106/wdt:P279* wd:Q82955 .
+#lien vers une version linguistique OPTIONAL {?article 	schema:about ?item ; schema:isPartOf <https://CODE_LANGUE.wikipedia.org/> .}
+##sans lien vers une version linguistique FILTER (!BOUND(?article))
+#lier au numéro des éléments Wikidata situé entre BORNE_INFÉRIEURE et BORNE_SUPÉRIEURE BIND( xsd:integer( STRAFTER( STR( ?item ), STR( wd:Q ) ) ) AS ?num ) . FILTER( BORNE_INFÉRIEURE < ?num && ?num < BORNE_SUPÉRIEURE ) .
+}
+#Classer par VARIABLE. ORDER BY ?VARIABLE
+#Si temps limite atteint, limiter les résultats à X. LIMIT X
+#Si temps limite atteint, fractionner les résultats en sautant les X premiers et en affichant les Y suivants. OFFSET X LIMIT Y
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

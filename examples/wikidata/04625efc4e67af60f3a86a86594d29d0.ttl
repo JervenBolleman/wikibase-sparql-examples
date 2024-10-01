@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-04625efc4e67af60f3a86a86594d29d0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rama>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -27,4 +26,17 @@ SELECT ?item ?itemLabel ?pic ?locationLabel ?streetAddress ?geo ?authorLabel WHE
   # MINUS { ?item wdt:P18 [] } .  # that lack a picture
         SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
+SELECT ?item ?itemLabel ?pic ?locationLabel ?streetAddress ?geo ?authorLabel WHERE {
+  VALUES ?institution {wd:Q27481225 wd:Q16636570 wd:Q3145370 wd:Q71 wd:Q123859078 wd:Q121890510} # selected institutions are FCAC, FMAC, HUG, City of Geneva, Fonds d'art de Carouge, Fonds d'art contemporain de Meyrin
+  ?item wdt:P195 ?institution ;                   # item is in collection of one of the selected institutions
+        wdt:P625 ?geo ;
+        wdt:P170 ?author ;
+        wdt:P276 ?location ;
+  OPTIONAL { ?item wdt:P18 ?pic .}                # get the picture as well if we can
+  OPTIONAL { ?location wdt:P6375 ?streetAddress .}         # get the street address of location
+  # MINUS { ?item wdt:P18 [] } .  # that lack a picture
+        SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

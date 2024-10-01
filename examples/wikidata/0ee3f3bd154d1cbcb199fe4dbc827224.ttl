@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-0ee3f3bd154d1cbcb199fe4dbc827224> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/10>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -62,5 +61,50 @@ WHERE {
   }
 }
 GROUP BY ?itemNew ?itemNewLabel ?itemNewDescription ?article""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>,
-    <http://wikiba.se/ontology#box> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:ImageGride
+SELECT 
+  ?itemNew ?itemNewLabel ?itemNewDescription ?article
+  (SAMPLE(?geo) AS ?geo) # The SAMPLE code is needed to inform the GROUP BY code what to do when there are more than one.
+  (SAMPLE(?img) AS ?img)
+  (SAMPLE(?categorie) AS ?categorie)
+  (GROUP_CONCAT(?instanceLabel; SEPARATOR = \", \") AS ?instancesof) # a nices String with the labels of the different instances of related to the item
+
+WHERE {
+  #### Selection based on location ####   
+  SERVICE wikibase:box {
+    ?itemNew wdt:P625 ?geo.
+    bd:serviceParam wikibase:cornerWest \"Point(2.30 48.87)\"^^geo:wktLiteral. 
+    bd:serviceParam wikibase:cornerEast \"Point(2.32 48.86)\"^^geo:wktLiteral.
+  }
+  
+  MINUS { ?itemNew (wdt:P31/(wdt:P279*)) wd:Q376799. } # Remove everything related to roads
+  ?itemNew wdt:P18 ?img. # Only keep items with pictures 
+
+  #### Categorise items ####
+  BIND(
+    IF(EXISTS {?itemNew (wdt:P31/(wdt:P279*)) wd:Q811979}, \"Architectural\",
+    IF(EXISTS {?itemNew (wdt:P31/(wdt:P279*)) wd:Q1656682}, \"Event\",
+      \"Other\"
+  ))
+  AS ?categorie)
+  
+  OPTIONAL { ?itemNew wdt:P31 ?instance. } # Get instances
+   
+  #### Wikipedia link ####
+  OPTIONAL {
+    ?article schema:about ?itemNew . # Get wikipedia link
+    ?article schema:isPartOf <https://en.wikipedia.org/>. # Only keep EN language
+  }
+  
+  #### Labels & discription #### 
+  SERVICE wikibase:label { # Get labels
+    bd:serviceParam wikibase:language \"en\". 
+    ?instance rdfs:label ?instanceLabel.      # The specification of the variables to be labeld is needed for grouping the instances of correctly
+    ?itemNew rdfs:label ?itemNewLabel.
+    ?itemNew schema:description ?itemNewDescription.
+  }
+}
+GROUP BY ?itemNew ?itemNewLabel ?itemNewDescription ?article""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#box>,
+    <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

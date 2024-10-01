@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-da8fae147dcbe9d657a6eb2d3d7964d5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/11>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -34,4 +33,24 @@ SELECT DISTINCT ?airport ?airportLabel ?ICAO ?IATA ?FAA_USA ?6 {
   bind(concat(?1,\"; \",?2,\"; \",?3,\"; \",?4,\"; \",?5) as ?6)
 }
 limit 10""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?airport ?airportLabel ?ICAO ?IATA ?FAA_USA ?6 {
+  ?airport (wdt:P31/wdt:P279*) wd:Q62447.
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }   
+  OPTIONAL { ?airport wdt:P239 ?ICAO. }
+  OPTIONAL { ?airport wdt:P238 ?IATA. }
+  ?airport wdt:P240 ?FAA_USA. 
+  OPTIONAL { ?airport wdt:P5699 ?Code_Transport_Canada. }
+  ?airport wdt:P5746 ?DGAC. 
+  OPTIONAL { ?airport wdt:P5851 ?russ. }
+
+  bind(if(bound(?FAA_USA),?FAA_USA,\"\") as ?1)
+  bind(if(bound(?Code_Transport_Canada),?Code_Transport_Canada,\"\") as ?2) 
+  bind(if(bound(?DGAC),?DGAC,\"\") as ?3) 
+  bind(if(bound(?russ),?russ,\"\") as ?4)
+  bind(if(bound(?FAArg),?FAArg,\"\") as ?5)
+  bind(concat(?1,\"; \",?2,\"; \",?3,\"; \",?4,\"; \",?5) as ?6)
+}
+limit 10""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

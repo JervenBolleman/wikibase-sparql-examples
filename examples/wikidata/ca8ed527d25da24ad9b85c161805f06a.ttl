@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-ca8ed527d25da24ad9b85c161805f06a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/02>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -36,4 +35,26 @@ select distinct ?itemLabel ?licenseLabel {
   filter(bound(?item) && ?ns = \"0\")
   optional {?item wdt:P275 ?license} 
   service wikibase:label {bd:serviceParam wikibase:language \"en\"}
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """prefix encat: <https://en.wikipedia.org/wiki/Category:>
+select distinct ?itemLabel ?licenseLabel {
+  service <https://query.wikidata.org/bigdata/namespace/categories/sparql> {
+    ?s mediawiki:isInCategory* encat:Linux_media_players ;
+       rdfs:label ?label .
+  }
+  bind (concat(\"Category:\", ?label) as ?title)
+  service wikibase:mwapi {
+     bd:serviceParam wikibase:api \"Generator\" .
+     bd:serviceParam wikibase:endpoint \"en.wikipedia.org\" .
+     bd:serviceParam mwapi:gcmtitle ?title .
+     bd:serviceParam mwapi:generator \"categorymembers\" .
+     bd:serviceParam mwapi:gcmprop \"ids\" .
+     bd:serviceParam mwapi:gcmlimit \"max\" .
+     ?ns wikibase:apiOutput \"@ns\" .
+     ?item wikibase:apiOutputItem mwapi:item .
+  }
+  filter(bound(?item) && ?ns = \"0\")
+  optional {?item wdt:P275 ?license} 
+  service wikibase:label {bd:serviceParam wikibase:language \"en\"}
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

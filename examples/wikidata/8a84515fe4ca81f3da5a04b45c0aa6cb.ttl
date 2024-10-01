@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8a84515fe4ca81f3da5a04b45c0aa6cb> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infrastruktur/Sandbox2>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
@@ -51,4 +50,41 @@ WHERE {
   BIND(xsd:dateTime(?timestamp) AS ?touched)
 }
 ORDER BY DESC(?length)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Elaborate MWAPI example - UK passenger ships
+# APIs: Search, Categories, EntitySearch, Generator
+# See also: https://github.com/wikimedia/wikidata-query-deploy/blob/master/mwservices.json
+SELECT
+  ?item ?title ?pageid ?uri (round(?length/1024) AS ?kiB) ?touched
+  ?lastrevid ?ordinal ?user
+WHERE {
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:endpoint \"en.wikipedia.org\";
+      wikibase:api \"Generator\" ;
+      wikibase:limit 500 ;
+      mwapi:generator \"categorymembers\" ;
+      mwapi:gcmtitle \"Category:Passenger_ships_of_the_United_Kingdom\" ;
+      mwapi:gcmnamespace \"0\" ;
+      mwapi:gcmlimit \"max\" ;
+      mwapi:prop \"info|pageprops|revisions\" ;
+      mwapi:ppprop \"wikibase_item\" ;
+      mwapi:inprop \"url\" ;
+      mwapi:rvprop \"user\" .
+
+    ?ordinal wikibase:apiOrdinal true.
+
+    ?item wikibase:apiOutputItem mwapi:item.
+    ?title wikibase:apiOutput mwapi:title.
+    ?pageid wikibase:apiOutput mwapi:pageid.
+    ?timestamp wikibase:apiOutput mwapi:timestamp.
+    ?lastrevid wikibase:apiOutput mwapi:lastrevid.
+
+    ?uri wikibase:apiOutputURI \"@fullurl\".
+    ?length_ wikibase:apiOutput \"@length\".
+    ?user wikibase:apiOutput \"revisions/rev/@user\".
+  }
+  BIND(xsd:integer(?length_) AS ?length)
+  BIND(xsd:dateTime(?timestamp) AS ?touched)
+}
+ORDER BY DESC(?length)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-eada0907875357843066605beca205f2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Czech_Republic/Strategick%C3%A9_spolupr%C3%A1ce/N%C3%A1rodn%C3%AD_knihovna_%C4%8CR/NK/Validace_dat>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -51,4 +50,41 @@ GROUP BY ?property
 
 }
 order by desc(?procento)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:BubbleChart
+SELECT ?property ?propertyLabel ?procento WHERE {
+{
+SELECT ?property ?procento WHERE {
+{
+SELECT ?property (count(?item) as ?numberof) WHERE {
+      {
+SELECT distinct ?property ?item WHERE {
+
+  ?item ?p [] .
+  ?property wikibase:claim ?p .
+  ?property wikibase:propertyType wikibase:ExternalId filter( ?property != wd:P691) .
+  #{?property wdt:P31/wdt:P279 wd:Q18614948 .} union { ?property wdt:P31 wd:Q18614948 .}
+  {?property wdt:P17 wd:Q213 . } union {?property wdt:P1629/wdt:P17 wd:Q213 .} union {?property wdt:P2378/wdt:P17 wd:Q213 .}
+  
+  {
+  select ?item where 
+         {
+     ?item wdt:P691 [] .
+     ?item wdt:P31 wd:Q5 .
+         }
+  }
+  
+} 
+limit 10000
+      }
+  }
+GROUP BY ?property
+         }
+  bind((100 * ?numberof / 10000) as ?procento)
+         }
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"cs,en\". }
+
+}
+order by desc(?procento)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

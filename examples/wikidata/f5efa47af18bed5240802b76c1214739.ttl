@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-f5efa47af18bed5240802b76c1214739> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/01>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
@@ -28,4 +27,20 @@ WHERE {
   BIND (?intentional_redirects + ?other_redirects AS ?total_redirects) .
   BIND ((ROUND(1000.0 * ?intentional_redirects / ?total_redirects) / 10.0) AS ?pct_intentional) .
   BIND ((ROUND(1000.0 * ?other_redirects / ?total_redirects) / 10.0) AS ?pct_other) .
-} ORDER BY DESC (?total_redirects)""" .
+} ORDER BY DESC (?total_redirects)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?project ?total_redirects ?intentional_redirects ?pct_intentional  ?other_redirects ?pct_other
+WHERE {
+  {
+    SELECT ?project (COUNT(DISTINCT ?intentional_sitelink) AS ?intentional_redirects) (COUNT(DISTINCT ?other_sitelink) AS ?other_redirects) WHERE {
+      {
+        ?intentional_sitelink schema:isPartOf ?project; wikibase:badge wd:Q70894304 .
+      } UNION {
+        ?other_sitelink schema:isPartOf ?project; wikibase:badge wd:Q70893996 . 
+      }
+    } GROUP BY ?project 
+  }
+  BIND (?intentional_redirects + ?other_redirects AS ?total_redirects) .
+  BIND ((ROUND(1000.0 * ?intentional_redirects / ?total_redirects) / 10.0) AS ?pct_intentional) .
+  BIND ((ROUND(1000.0 * ?other_redirects / ?total_redirects) / 10.0) AS ?pct_other) .
+} ORDER BY DESC (?total_redirects)""";
+  schema:target <https://query.wikidata.org/sparql> .

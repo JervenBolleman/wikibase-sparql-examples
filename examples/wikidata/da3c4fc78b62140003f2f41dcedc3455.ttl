@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-da3c4fc78b62140003f2f41dcedc3455> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -45,4 +44,35 @@ WHERE {
   # show label in auto language as default, and English when no default label exists
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".}
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# table of contents of the Twenty-Six Histories
+# viewed as table (also viewable as image grid)
+SELECT DISTINCT ?bookLabel ?volume ?partLabel ?part ?genreLabel ?main_subjectLabel ?main_subjectDescription ?image ?main_subject
+WHERE {
+  # define ?book specifically as:
+  ### Note: VALUES is used to give a specific list of the Twenty-Six Histories (cf. the general definition of the Twenty-Six Histories used in
+  ### previous queries \"Timeline of periods: Twenty-Six Histories civilizations\" and \"Timeline of points in time: publication dates of the Twenty-Six Histories\")
+  ### so that we can remove certain books from the list to have a table of contents for one or some specific books.
+  # Records of the Grand Historian (Q272530), Book of Han (Q846905), Book of the Later Han (Q430428), Records of the Three Kingdoms (Q247318), Book of Jin (Q1154753)
+  # Book of Song (Q1143142), Book of Southern Qi (Q1192857), Book of Liang (Q1285767), Book of Chen (Q1275744), Book of Wei (Q1269357)
+  VALUES ?book {wd:Q272530 wd:Q846905 wd:Q430428 wd:Q247318 wd:Q1154753 wd:Q1143142 wd:Q1192857 wd:Q1285767 wd:Q1275744 wd:Q1269357
+                # Book of Northern Qi (Q1247505), Book of Zhou (Q1285731), Book of Sui (Q1156924), History of Southern Dynasties (Q1137686), History of Northern Dynasties (Q1188548)
+                # Old Book of Tang (Q1146980), New Book of Tang (Q386073), Old History of the Five Dynasties (Q1333316), New History of the Five Dynasties (Q919488), History of Song (Q1147260)
+                wd:Q1247505 wd:Q1285731 wd:Q1156924 wd:Q1137686 wd:Q1188548 wd:Q1146980 wd:Q386073 wd:Q1333316 wd:Q919488 wd:Q1147260
+                # History of Liao (Q1188539), History of Jin (Q637035), History of Yuan (Q1345223), History of Ming (Q28763)
+                # New History of Yuan (Q1053256), Draft History of Qing (Q1374339)
+                wd:Q1188539 wd:Q637035 wd:Q1345223 wd:Q28763 wd:Q1053256 wd:Q1374339}
+  # optional: show ?part, which is part of (P361) or published in (P1433) [ZeroOrMorePath (*)] ?book
+  OPTIONAL {?part (wdt:P361|wdt:P1433)* ?book
+            # optional: show ?part's volume (P478) as ?volume
+            OPTIONAL {?part wdt:P478 ?volume}
+            # optional: show ?part's genre (P136) as ?genre
+            OPTIONAL {?part wdt:P136 ?genre}
+            # optional: show ?part's main subject (P921) as ?main_subject
+            OPTIONAL {?part wdt:P921 ?main_subject
+                     # optional: show ?main_subject's image (P18) as ?image
+                      OPTIONAL {?main_subject wdt:P18 ?image} } }
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".}
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-bd008f9b0789b3d8b8b8a5daadaae861> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Informatics/Software/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
@@ -18,12 +17,27 @@ SELECT DISTINCT ?property ?propertyLabel ?items ?statements
 
 
 WHERE {
-  INCLUDE %results.
+   {
+  SELECT DISTINCT ?property (COUNT(DISTINCT ?item) AS ?items) (COUNT(*) AS ?statements) WHERE {
+   {
+  SELECT DISTINCT ?item WHERE {
+    { ?item wdt:P1324 ?sourcecode . }
+    UNION
+    { ?item wdt:P277 ?proglang . }
+  }
+  LIMIT 200000
+  }
+    ?item ?p [ ] .
+    ?property a wikibase:Property;
+                wikibase:claim ?p.
+  }
+  GROUP BY ?property 
+  }
   FILTER (?statements > 50)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 }
 ORDER BY DESC(?statements)""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT ?property ?propertyLabel ?items ?statements
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?property ?propertyLabel ?items ?statements
 WITH {
   SELECT DISTINCT ?item WHERE {
     { ?item wdt:P1324 ?sourcecode . }
@@ -46,4 +60,6 @@ WHERE {
   FILTER (?statements > 50)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 }
-ORDER BY DESC(?statements)""" .
+ORDER BY DESC(?statements)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

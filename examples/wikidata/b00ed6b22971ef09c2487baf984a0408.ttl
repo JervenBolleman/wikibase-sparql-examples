@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b00ed6b22971ef09c2487baf984a0408> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:PAC2/SPARQL_queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
@@ -35,5 +34,27 @@ SELECT ?item ?itemLabel ?created
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
 }
 ORDER BY DESC(?created)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi>,
-    <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?created
+{ 
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam mwapi:generator \"random\" .
+    bd:serviceParam mwapi:list \"usercontribs\" . 
+    bd:serviceParam mwapi:ucuser \"PAC2\" . 
+    bd:serviceParam mwapi:ucprop \"title|timestamp|comment\" .
+    bd:serviceParam mwapi:ucnamespace \"0\" .
+    bd:serviceParam mwapi:ucshow \"new\" .
+    bd:serviceParam mwapi:uclimit \"1\" .
+    ?created wikibase:apiOutput \"//api/query/usercontribs/item/@timestamp\" .
+    ?comment wikibase:apiOutput \"//api/query/usercontribs/item/@comment\" .
+    ?item wikibase:apiOutputItem \"//api/query/usercontribs/item/@title\" .
+    bd:serviceParam wikibase:limitContinuations \"249\" .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ORDER BY DESC(?created)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>,
+    <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

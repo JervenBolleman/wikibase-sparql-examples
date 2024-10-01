@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-61cb227df88ae10488b23a209d281774> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jobu0101/API>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -34,4 +33,22 @@ SELECT ?ordinal ((MIN(YEAR(?publication))) AS ?year) ?film ?title ?filmLabel ?ac
 }
 GROUP BY ?film ?title ?filmLabel ?imdb ?ordinal ?actor ?actorLabel
 ORDER BY ASC(xsd:integer(?ordinal))""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX v: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+
+SELECT ?ordinal ((MIN(YEAR(?publication))) AS ?year) ?film ?title ?filmLabel ?actorLabel (GROUP_CONCAT(DISTINCT(?directorName);separator=\", \") AS ?director) (SAMPLE(?runtime) AS ?runtime) ?imdb (SAMPLE(?mojo) AS ?mojo) WHERE {
+	?film p:P179 ?series . ?series v:P179 wd:Q2484680 . ?series pq:P1545 ?ordinal .
+	?film p:P161 ?bond . ?bond pq:P453 wd:Q2009573 . ?bond v:P161 ?actor .
+    OPTIONAL{?film wdt:P57 ?dir . ?dir rdfs:label ?directorName .  FILTER(lang(?directorName) = \"en\")} .
+    ?film wdt:P345 ?imdb .
+	OPTIONAL{?film wdt:P1237 ?mojo} .
+  	?film wdt:P577 ?publication .
+	?film wdt:P1476 ?title .
+    OPTIONAL{?film wdt:P2047 ?runtime}
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" }
+}
+GROUP BY ?film ?title ?filmLabel ?imdb ?ordinal ?actor ?actorLabel
+ORDER BY ASC(xsd:integer(?ordinal))""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

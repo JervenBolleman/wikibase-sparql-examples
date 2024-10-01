@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-42914356ca0f1196c9db978a7a0e00d4> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Weather_observations/en/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -42,5 +41,33 @@ SELECT DISTINCT ?station ?coordonn_es_g_ographiques WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
   OPTIONAL { ?station wdt:P625 ?coordonn_es_g_ographiques. }
 }""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Stations in Québec closer than 1 km from a bridge of a length over 100 m 
+#defaultView:Map
+SELECT DISTINCT ?station ?coordonn_es_g_ographiques WHERE {
+  
+  # Bridges
+  {
+    SELECT ?bridge WHERE { ?bridge (wdt:P31/wdt:P279*) wd:Q12280. }
+  }
+  ?bridge wdt:P131* wd:Q176. # in QC
+  
+  # with a length < 100 m
+  ?bridge wdt:P2043 ?length.
+  FILTER(?length > 100)
+          
+  # Find station within 1km of these bridges 
+  ?bridge wdt:P625 ?bridgeLoc 
+  SERVICE wikibase:around {
+    ?station wdt:P625 ?location .
+    bd:serviceParam wikibase:center ?bridgeLoc .
+    bd:serviceParam wikibase:radius \"1\" . # within 1 km radius
+  } .
+  # is close from a Wx station
+  FILTER EXISTS { ?station wdt:P31/wdt:P279* wd:Q190107 } .
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  OPTIONAL { ?station wdt:P625 ?coordonn_es_g_ographiques. }
+}""";
   <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#around>,
-    <http://wikiba.se/ontology#label> .
+    <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

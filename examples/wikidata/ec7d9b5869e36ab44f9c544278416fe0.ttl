@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-ec7d9b5869e36ab44f9c544278416fe0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/05>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -49,4 +48,37 @@ SELECT DISTINCT ?item ?itemLabel ?coords ?coordsApprox ?image ?placeLabel ?natur
     LIMIT 10000
   }
 } ORDER BY ?item""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Table
+SELECT DISTINCT ?item ?itemLabel ?coords ?coordsApprox ?image ?placeLabel ?nature ?natureLabel WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr,de\". }
+  {
+    SELECT DISTINCT ?item (MIN(?coords_) AS ?coords) ?coordsApprox (MIN(?image_) AS ?image) (MIN(?place_) AS ?place) (MIN(?nature_) AS ?nature) WHERE {
+      {
+        ?item p:P180 ?depict.
+        { ?depict (ps:P180/wdt:P31*/wdt:P279*) wd:Q7559. } # dragon
+        UNION
+        { ?depict (ps:P180/wdt:P31*/wdt:P279*) wd:Q30170627. } # dragon of fiction
+      } UNION {
+        ?item p:P31 ?nature.
+        ?nature (ps:P31/wdt:P279*) wd:Q60985310. # chinese dragon colum
+      }
+      
+      OPTIONAL { ?item wdt:P276 ?place_. }
+      OPTIONAL { ?item wdt:P625 ?coords_. }
+      
+      # This optional is used to generate the list of dragon depiction with no coordinates
+      OPTIONAL {
+        ?item p:P276 ?statement2.
+        ?statement2 (ps:P276/wdt:P276*/wdt:P361*) ?place. # TODO: this need to be improved. For example a Louvre wing and the Louvre will both be returned, but we want the most precise info
+        ?place wdt:P625 ?coordsApprox.
+      }
+      
+      OPTIONAL { ?item wdt:P31 ?nature_. }
+      OPTIONAL { ?item wdt:P18 ?image_. }
+      
+    } GROUP BY ?item ?coordsApprox
+    LIMIT 10000
+  }
+} ORDER BY ?item""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-4ff9a12c33137086298e7d06103532e3> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -45,4 +44,35 @@ WHERE {
   # show label in simplified Chinese (zh-hans) as default, and English when no default label exists
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"zh-hans,en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# extend the query from Water Margin Universe to external systems, i.e., ?y is larger than ?x in size, by
+# adding birth_place/death_place/residence, which
+# is in real world and has no P1441 (present in work) link to Q70827 (Water Margin), and
+# has no inverse property to form a edge back to the entity in this fictional universe
+#defaultView:Graph
+SELECT DISTINCT ?x ?xLabel ?image ?y ?yLabel ?edgeLabel
+WHERE {
+  # define ?x as what is present in work (P1441) Water Margin (Q70827)
+  ?x wdt:P1441 wd:Q70827
+  # optional: define ?y as ?x's father (P22) or mother (P25) or child (P40) or sibling (P3373) or spouse (P26), i.e., nuclear family member,
+  # or teacher (P1066) or student (P802) or killed by (P157) or member of (P463) or part of (P361) or has part (P527)
+  # or uses (P2283) or used by (P1535) or owner of (P1830) or owned by (P127)
+  # or birth place (P19) or death place (P20) or residence (P551)
+  OPTIONAL {?x (wdt:P22|wdt:P25 |wdt:P40 |wdt:P3373 |wdt:P26 |wdt:P1066 |wdt:P802 |wdt:P157 |wdt:P463 |wdt:P361 |wdt:P527 |wdt:P2283 |wdt:P1535 |wdt:P1830 |wdt:P127 |wdt:P19 |wdt:P20 |wdt:P551) ?y
+            # To avoid showing any other relation
+            # define ?relation as only father (P22) or mother (P25) or child (P40) or sibling (P3373) or spouse (P26)
+            # or teacher (P1066) or student (P802) or killed by (P157) or member of (P463) or part of (P361) or has part (P527)
+            # or uses (P2283) or used by (P1535) or owner of (P1830) or owned by (P127)
+            # or birth place (P19) or death place (P20) or residence (P551)
+            VALUES ?relation {wdt:P22 wdt:P25 wdt:P40 wdt:P3373 wdt:P26 wdt:P1066 wdt:P802 wdt:P157 wdt:P463 wdt:P361 wdt:P527 wdt:P2283 wdt:P1535 wdt:P1830 wdt:P127 wdt:P19 wdt:P20 wdt:P551}
+            # ?relation is from ?x to ?y
+            ?x ?relation ?y.
+            # show ?relation on graph edges
+            ?edge wikibase:directClaim ?relation;
+               a wikibase:Property}
+  # optional: show ?x's image (P18), which appears directly in graph, and as link in table
+  OPTIONAL {?x wdt:P18 ?image}
+  # show label in simplified Chinese (zh-hans) as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"zh-hans,en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c28eac7d9e8a27d316282c97544be9ab> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/06>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -36,4 +35,23 @@ WHERE
 }
 
 GROUP BY ?person ?personLabel ?award ?personDescription ?doctorate ?doctorateLabel ?gender""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?person ?personLabel ?award ?personDescription ?doctorate ?doctorateLabel ?gender ( MIN(?P585base) AS ?P585) (MIN(?P6949base) AS ?P6949) (SAMPLE(?image) as ?image)
+WHERE
+{
+  ?doctorate wdt:P279 wd:Q11415564.
+  ?doctorate wdt:P17 wd:Q142.
+
+  ?person p:P166 ?award.
+  ?award ps:P166 ?doctorate .
+
+  OPTIONAL {   ?award pq:P585 ?P585base }
+  OPTIONAL {   ?award pq:P6949 ?P6949base }
+  OPTIONAL {   ?person wdt:P18 ?image }
+  OPTIONAL {   ?person wdt:P21 ?gender }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\". }
+}
+
+GROUP BY ?person ?personLabel ?award ?personDescription ?doctorate ?doctorateLabel ?gender""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

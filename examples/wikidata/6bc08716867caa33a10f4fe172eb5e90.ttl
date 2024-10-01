@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-6bc08716867caa33a10f4fe172eb5e90> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:CopyClear/Lakenhal/export>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -42,4 +41,28 @@ SELECT DISTINCT ?itemLabel ?item  ?constituentID ?RKDlink ?viaflink ?dbnllink
   
    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],nl\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?itemLabel ?item  ?constituentID ?RKDlink ?viaflink ?dbnllink
+{
+	?item wdt:P6379 wd:Q2098586 .
+   ?item p:P6379 [ ps:P6379 ?collectie;
+                    prov:wasDerivedFrom 
+                    [ pr:P528 ?constituentID; #tms
+                    ]
+                  ].
+  OPTIONAL {
+  ?item wdt:P650 ?rkdID.
+  BIND(CONCAT(\"https://rkd.nl/nl/explore/artists/\", ?rkdID) as ?RKDlink)
+  } 
+  OPTIONAL {
+  ?item wdt:P214 ?viafID.
+  BIND(CONCAT(\"https://viaf.org/viaf/\", ?viafID) as ?viaflink)
+  } 
+  OPTIONAL {
+  ?item wdt:P723 ?dbnlID.
+  BIND(CONCAT(\"https://www.dbnl.org/auteurs/auteur.php?id=\", ?dbnlID) as ?dbnllink)
+  } 
+  
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],nl\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

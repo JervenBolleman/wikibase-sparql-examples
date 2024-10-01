@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-012108b2895d8e1c8a99d8cdf1f8d0c4> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:No39188>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -58,4 +57,44 @@ SELECT DISTINCT ?item ?name (GROUP_CONCAT(?typ; SEPARATOR = \", \") AS ?ist_ein)
 }
 GROUP BY ?item ?name ?article ?page_title ?einwohner ?location
 ORDER BY DESC (?einwohner)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
+#title: Verwaltungseinheiten in Bayern
+SELECT DISTINCT ?item ?name (GROUP_CONCAT(?typ; SEPARATOR = \", \") AS ?ist_ein) ?article ?page_title ?einwohner ?location WHERE {
+  {
+    ?item wdt:P17 wd:Q183;
+      wdt:P31 wd:Q85482556, ?einheit.
+    OPTIONAL {
+      ?item p:P31 _:b15.
+      _:b15 pq:P582 ?end.
+    }
+    FILTER(!(BOUND(?end)))
+  }
+  UNION
+  {
+    ?item wdt:P17 wd:Q183;
+      wdt:P31 wd:Q85631896, ?einheit.
+  }
+  UNION
+  {
+    ?item wdt:P17 wd:Q183;
+      wdt:P31 wd:Q464235, ?einheit.
+    FILTER(!(EXISTS { ?item wdt:P576 ?demolished. }))
+  }
+  OPTIONAL {
+    ?dewiki schema:about ?item;
+      schema:isPartOf <https://de.wikipedia.org/>;
+      schema:name ?page_title.
+  }
+  BIND(IF(BOUND(?dewiki), ?dewiki, ?enwiki) AS ?article)
+  OPTIONAL { ?item wdt:P625 ?location. }
+  OPTIONAL { ?item wdt:P1082 ?einwohner. }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?item rdfs:label ?name.
+    ?einheit rdfs:label ?typ.
+  }
+}
+GROUP BY ?item ?name ?article ?page_title ?einwohner ?location
+ORDER BY DESC (?einwohner)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

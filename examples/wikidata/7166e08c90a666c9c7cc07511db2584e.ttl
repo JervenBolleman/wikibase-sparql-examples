@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-7166e08c90a666c9c7cc07511db2584e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Plagiat/sandbox/sparql_pdc_oom>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/> 
@@ -41,4 +40,34 @@ SELECT ?participant ?participantLabel ?ranking ?prize_money ?balance ?team WHERE
 }
 ORDER BY DESC(?prize_money)
 LIMIT 100""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/> 
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX q: <http://www.wikidata.org/prop/qualifier/>
+PREFIX v: <http://www.wikidata.org/prop/statement/>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX prov: <http://www.w3.org/ns/prov#> 
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+
+#query Q24809945: Current PDC Order of Merit
+SELECT ?participant ?participantLabel ?ranking ?prize_money ?balance ?team WHERE {
+  wd:Q24809945 p:P710 ?participantS.
+  ?participantS v:P710 ?participant ;  #name
+                q:P1352 ?ranking ;     #ranking
+                q:P2121 ?prize_money . #prize money
+
+  OPTIONAL { ?participantS q:P1355 ?balance . } #wins posistions
+  
+  OPTIONAL { ?participant wdt:P1532 ?_team .
+             ?_team rdfs:label ?team filter (lang(?team) = \"en\") .
+  }
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"nl,de,en\". }
+
+}
+ORDER BY DESC(?prize_money)
+LIMIT 100""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

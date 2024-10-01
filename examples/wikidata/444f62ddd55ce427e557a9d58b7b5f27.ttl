@@ -1,23 +1,34 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-444f62ddd55ce427e557a9d58b7b5f27> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:Lexicographical_data/Documentation/Languages/zh>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 SELECT ?type (COUNT(*) AS ?count)
 {
-  INCLUDE %1.
+   {
+  SELECT ?entity ?type {
+     {
+SELECT DISTINCT ?entity {
+  ?entity wdt:P1721 [].
+}
+}      BIND(COALESCE(IF(REGEX(STR(?entity), '/L[0-9]+-F[0-9]+$'), \"form\", 1/0),
+                    IF(REGEX(STR(?entity), '/S[0-9]+-S[0-9]+$'), \"sense\", 1/0),
+                    IF(REGEX(STR(?entity), '/Q[0-9]+$'), \"item\", 1/0),
+                    IF(TRUE, \"other\", 1/0))
+             AS ?type)
+  }
+}
 }
 GROUP BY ?type""";
-  <http://example.org/bigdata_select> """SELECT ?type (COUNT(*) AS ?count)
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?type (COUNT(*) AS ?count)
 WITH {
 SELECT DISTINCT ?entity {
   ?entity wdt:P1721 [].
@@ -36,4 +47,5 @@ WITH {
 {
   INCLUDE %1.
 }
-GROUP BY ?type""" .
+GROUP BY ?type""";
+  schema:target <https://query.wikidata.org/sparql> .

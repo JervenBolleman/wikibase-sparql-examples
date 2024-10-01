@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-84a57ba1a9cfd2cb8100ca901482c38d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/2017_German_federal_election_results>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -72,4 +71,56 @@ SELECT ?district ?districtLabel ?districtNumber ?mdb ?mdbLabel ?party ?partyLabe
   }
 }
 ORDER BY ?districtNumber""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map{\"hide\": [\"?districtNumber\", \"?layer\", \"?rgb\", \"?shape\", \"?sanityCheckMdb\"]}
+# constituencies for the election to the German Bundestag 2017, with winning candidate and party
+SELECT ?district ?districtLabel ?districtNumber ?mdb ?mdbLabel ?party ?partyLabel (?partyLabel AS ?layer) ?votesPercentage ?rgb ?shape ?sanityCheckMdb WHERE {
+  # find districts with shape
+  ?district wdt:P3896 ?shape;
+            # successful candidate for 19th German Bundestag with party and % votes
+            p:P991 [
+              ps:P991 ?mdb;
+              pq:P2937 wd:Q30579723;
+              pq:P1268 ?party;
+              pqv:P1111 [ wikibase:quantityAmount ?votesPercentage; wikibase:quantityUnit wd:Q11229 ]
+            ];
+            # district number in 2017 Bundestag constituencies
+            p:P528 [
+              ps:P528 ?districtNumberString;
+              pq:P972 wd:Q26971257
+            ].
+  # turn string district number into integer
+  BIND(xsd:integer(?districtNumberString) AS ?districtNumber)
+  # sanity check
+  OPTIONAL {
+    ?mdb p:P39 [
+      ps:P39 wd:Q1939555;
+      pq:P2937 wd:Q30579723;
+      pq:P768 ?district;
+      pq:P4100 ?party
+    ].
+    BIND(true AS ?sanityCheckMdb)
+  }
+  # find original color of party
+  OPTIONAL { ?party wdt:P462/wdt:P465 ?rgbOriginalViaColor. }
+  OPTIONAL { ?party wdt:P465 ?rgbOriginalDirect. }
+  BIND(COALESCE(?rgbOriginalDirect, ?rgbOriginalViaColor) AS ?rgbOriginal)
+  # fade color depending on % votes; unfortunately, SPARQL has no facililties to parse hex as far as I’m aware,
+  # and the colors use a lot of different hex codes for each component, so we just replace each color fully :/
+  # each component (two digits) calculated in bc with ibase=obase=16, 100-(100-__)*3/4 or *2/4
+  BIND(IF(?votesPercentage >= (100/2),
+          ?rgbOriginal,
+          IF(?votesPercentage >= (100/3),
+             REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(?rgbOriginal, \"000000\", \"404040\"), \"009EE0\", \"40B7E8\"), \"0088CE\", \"40A6DB\"), \"46962B\", \"75B161\"), \"BE3075\", \"CF6498\"), \"ED1B34\", \"F25567\"),
+             REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(?rgbOriginal, \"000000\", \"808080\"), \"009EE0\", \"80CFF0\"), \"0088CE\", \"80C4E7\"), \"46962B\", \"A3CB96\"), \"BE3075\", \"DF98BB\"), \"ED1B34\", \"F78E9A\")
+            )
+         ) AS ?rgb)
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?district rdfs:label ?districtLabel.
+    ?party rdfs:label ?partyLabel.
+    ?mdb rdfs:label ?mdbLabel.
+  }
+}
+ORDER BY ?districtNumber""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

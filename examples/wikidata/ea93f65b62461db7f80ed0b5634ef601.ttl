@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-ea93f65b62461db7f80ed0b5634ef601> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/09>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -35,4 +34,23 @@ WHERE {
 }
 GROUP BY ?battle ?battleLabel ?wikipedia_link_en ?year ?typeBattle ?coordinates
 ORDER BY (?year)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Battles, Sieges, Military Campaigns, Wars, Rebellions in the Sengoku Period
+#Show label, link to English Wikipedia, year, coordinates, startTime
+SELECT ?battle ?battleLabel ?wikipedia_link_en ?year ?coordinates
+  (GROUP_CONCAT(DISTINCT ?participantLabel; SEPARATOR = \" // \") AS ?participants)
+WHERE {
+  { ?battle (wdt:P361|wdt:P2348) wd:Q204023. }
+  OPTIONAL { ?battle wdt:P710 ?participant. }
+  OPTIONAL { ?battle (wdt:P585|wdt:P580) ?year. }
+  OPTIONAL { ?battle wdt:P625 ?coordinates. }
+  OPTIONAL { ?wikipedia_link_en schema:about ?battle ; schema:isPartOf <https://en.wikipedia.org/>. }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,ja\".
+    ?battle rdfs:label ?battleLabel.
+    ?participant rdfs:label ?participantLabel.
+  }
+}
+GROUP BY ?battle ?battleLabel ?wikipedia_link_en ?year ?typeBattle ?coordinates
+ORDER BY (?year)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

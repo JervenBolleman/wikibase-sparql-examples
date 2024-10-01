@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-6b88c5aab305a01b49d88c7401d717ec> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Events/DINI_AG_KIM_2018>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -37,5 +36,28 @@ SELECT DISTINCT ?item ?itemLabel ?location WHERE {
   # mit Namen
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 } LIMIT 1000""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
+SELECT DISTINCT ?item ?itemLabel ?location WHERE {
+  {
+    { ?item wdt:P31*/wdt:P279* wd:Q746369 } # Tonstudio
+    UNION
+    { ?item wdt:P31*/wdt:P279* wd:Q2442401 } # Tonträgerunternehmen
+    UNION
+    { ?item wdt:P31*/wdt:P279* wd:Q1955150 } # Musikinstrumentebauer
+  }
+
+  # mit Koordinaten 20km um Berlin
+  wd:Q64 wdt:P625 ?berlinLocation .
+  SERVICE wikibase:around { 
+      ?item wdt:P625 ?location . 
+      bd:serviceParam wikibase:center ?berlinLocation . 
+      bd:serviceParam wikibase:radius \"20\" . 
+      bd:serviceParam wikibase:distance ?dist.
+  } 
+
+  # mit Namen
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} LIMIT 1000""";
   <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#around>,
-    <http://wikiba.se/ontology#label> .
+    <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

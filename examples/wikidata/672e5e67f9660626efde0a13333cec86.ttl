@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-672e5e67f9660626efde0a13333cec86> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:Request_a_query>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
@@ -38,4 +37,30 @@ WITH {
       ?pageid wikibase:apiOutput mwapi:pageid.
       ?content wikibase:apiOutput 'revisions/rev/slots/slot/text()'.
     }
-    BIND(REPLACE(?content, \"^.*?Images from Auckland Museum\\\\""" .
+    BIND(REPLACE(?content, \"^.*?Images from Auckland Museum\\\\""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT
+
+?file ?title
+(GROUP_CONCAT(DISTINCT ?en_label; separator=\", \") as ?labels_en)
+(GROUP_CONCAT(DISTINCT ?mi_label; separator=\", \") as ?labels_mi)
+?section ?object ?id
+
+WITH {
+  SELECT * WHERE {
+    BIND (URI(CONCAT('https://commons.wikimedia.org/entity/M', ?pageid)) AS ?file)
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:api \"Generator\";
+                      wikibase:endpoint \"commons.wikimedia.org\";
+                      mwapi:gcmtitle \"Category:1930s photographs in Auckland Museum\";
+                      mwapi:generator \"categorymembers\";
+                      mwapi:gcmtype \"file\";
+                      mwapi:gcmlimit \"50\";
+                      mwapi:prop \"revisions\";
+                      mwapi:rvslots \"main\";
+                      mwapi:rvprop \"content\".
+      ?title wikibase:apiOutput mwapi:title.
+      ?pageid wikibase:apiOutput mwapi:pageid.
+      ?content wikibase:apiOutput 'revisions/rev/slots/slot/text()'.
+    }
+    BIND(REPLACE(?content, \"^.*?Images from Auckland Museum\\\\""";
+  schema:target <https://query.wikidata.org/sparql> .

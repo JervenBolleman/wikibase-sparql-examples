@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-9e17497c6c86b046ada00cbaa028017c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/1/13>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -25,14 +24,40 @@ SELECT
   ?with
   ?ratio
 {
-  INCLUDE %1.
-  INCLUDE %2.
+   {
+  SELECT ?language (COUNT(*) AS ?with) {
+    {
+  SELECT ?language {
+    VALUES ?language {
+      wd:Q1321
+    }
+  }
+}
+    [] dct:language ?language;
+       ontolex:lexicalForm [wdt:P443 []]
+  }
+  GROUP BY ?language
+}
+   {
+  SELECT ?language (COUNT(*) AS ?total) {
+     {
+  SELECT ?language {
+    VALUES ?language {
+      wd:Q1321
+    }
+  }
+}
+    [] dct:language ?language;
+       ontolex:lexicalForm [].
+  }
+  GROUP BY ?language
+}
   BIND((?total - ?with) AS ?without)
   BIND(CONCAT(STR((?with/?total)), \" %\") AS ?ratio)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 }
 ORDER BY DESC(?without)""";
-  <http://example.org/bigdata_select> """SELECT
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT
   ?language
   ?languageLabel
   ?total
@@ -69,4 +94,6 @@ WITH {
   BIND(CONCAT(STR((?with/?total)), \" %\") AS ?ratio)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 }
-ORDER BY DESC(?without)""" .
+ORDER BY DESC(?without)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

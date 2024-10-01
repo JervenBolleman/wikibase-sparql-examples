@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-ece489568339f4b0b056c4fd581bceaf> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:FHd/Cartes>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -33,4 +32,19 @@ SELECT DISTINCT ?item ?itemLabel ?coord ?articleWikipédia ?layer  WHERE {
     BIND( year(?protDate) AS ?layer)
     SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
     }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
+SELECT DISTINCT ?item ?itemLabel ?coord ?articleWikipédia ?layer  WHERE {
+	{ ?item wdt:P1435 wd:Q10387575 . } UNION { ?item wdt:P1435 wd:Q10387684 . } #MH
+    ?item wdt:P131/wdt:P131/wdt:P131 wd:Q18678265 . # en Occ
+	?item p:P380 []. #immeubles
+    ?item wdt:P625 ?coord.
+    ?item p:P1435 ?stat .
+	{ ?stat ps:P1435 wd:Q10387575 ; pq:P580 ?protDate . } UNION { ?stat ps:P1435 wd:Q10387684 ; pq:P580 ?protDate  . } #MH
+    FILTER( year(?protDate) > 1970 ) # à adapter 
+    OPTIONAL {?articleWikipédia schema:about ?item .
+               ?articleWikipédia schema:isPartOf <https://fr.wikipedia.org/>. }
+    BIND( year(?protDate) AS ?layer)
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+    }""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

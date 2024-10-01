@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-fe6498cbc312d8e7ada21519ab08b024> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Deansfa/SPARQL>, <https://www.wikidata.org//wiki/User:Deansfa>;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Deansfa>, <https://www.wikidata.org//wiki/User:Deansfa/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -34,4 +33,24 @@ SELECT ?obituaries ?autho ?authoLabel ?year WHERE {
   }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,fr\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# wrong
+SELECT ?obituaries ?autho ?authoLabel ?year WHERE {
+  {
+	SELECT (MAX(?total_obituaries) as ?obituaries) (MAX(?author) as ?autho) ?year WHERE {
+	  {
+	    SELECT ?author (count(?q) as ?total_obituaries) ?year WHERE {
+	      ?q wdt:P1433 wd:Q9684 ; wdt:P31 wd:Q309481 .
+	      ?q wdt:P50 ?author .
+	      ?q wdt:P577 ?date .
+	      BIND(YEAR(?date) AS ?year) .
+	      FILTER(?year IN (2022, 2021)).
+	    }
+	    GROUP BY ?author ?year
+	  }
+	}
+	GROUP BY ?year  
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,fr\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

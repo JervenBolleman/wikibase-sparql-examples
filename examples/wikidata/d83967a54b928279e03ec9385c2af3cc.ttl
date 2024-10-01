@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-d83967a54b928279e03ec9385c2af3cc> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_COVID-19/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -38,4 +37,30 @@ WHERE
     ?org rdfs:label ?orgLabel. FILTER( LANG(?orgLabel)=\"en\" )
   }
   ?item rdfs:label ?itemLabel. FILTER( LANG(?itemLabel)=\"en\" )
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
+SELECT DISTINCT ?item ?itemLabel ?org ?orgLabel ?loc
+WHERE 
+{
+  { ?item wdt:P31 wd:Q87719492 } UNION {
+    VALUES ?v { wd:Q84263196 wd:Q82069695 }
+    VALUES ?vv { wd:Q134808 wd:Q28051899 }
+    ?item wdt:P31 ?vv.
+    ?item wdt:P1924 ?v.
+  }
+  OPTIONAL
+  {
+    VALUES ?type { wd:Q3560939 wd:Q96695067 wd:Q96841548 wd:Q578537 wd:Q97153934 wd:Q97153933 wd:Q58623657 wd:Q99518999 }
+    ?item wdt:P31 ?type
+  }
+  OPTIONAL {
+    VALUES ?p { wdt:P176 wdt:P178 }
+    ?item ?p ?org.
+    OPTIONAL { ?org wdt:P159 [ wdt:P625 ?hloc ]. }
+    OPTIONAL { ?org wdt:P625 ?cloc. }
+    BIND (IF (BOUND(?hloc), ?hloc, ?cloc) AS ?loc)
+    ?org rdfs:label ?orgLabel. FILTER( LANG(?orgLabel)=\"en\" )
+  }
+  ?item rdfs:label ?itemLabel. FILTER( LANG(?itemLabel)=\"en\" )
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

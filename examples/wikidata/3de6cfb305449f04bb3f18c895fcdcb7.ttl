@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-3de6cfb305449f04bb3f18c895fcdcb7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/khalili>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -26,4 +25,15 @@ SELECT DISTINCT ?type ?typeLabel ?typeDescription ?typetypeLabel (SAMPLE(?image)
   FILTER NOT EXISTS {?type rdfs:label ?arabicLabel FILTER(lang(?arabicLabel) = \"ar\") }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"ar,[AUTO_LANGUAGE],en\". }
 } GROUP BY ?type ?typeLabel ?typeDescription ?typetypeLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title:Types of object in the Khalili Collections (Islamic) with no Arabic name
+SELECT DISTINCT ?type ?typeLabel ?typeDescription ?typetypeLabel (SAMPLE(?image) as ?img) WHERE {
+  VALUES ?coll {wd:Q66455355 wd:Q66458773} # Islamic Art and Hajj collection
+  ?item wdt:P195 ?coll
+  FILTER (?item NOT IN (wd:Q3114572, wd:Q109341408, wd:Q2997010, wd:Q108543136, wd:Q107663626) ).# Exclude objects in multiple collections
+  ?item wdt:P18 ?image.
+  ?item wdt:P31 ?type. OPTIONAL{ ?type wdt:P279 ?typetype}.
+  FILTER NOT EXISTS {?type rdfs:label ?arabicLabel FILTER(lang(?arabicLabel) = \"ar\") }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"ar,[AUTO_LANGUAGE],en\". }
+} GROUP BY ?type ?typeLabel ?typeDescription ?typetypeLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

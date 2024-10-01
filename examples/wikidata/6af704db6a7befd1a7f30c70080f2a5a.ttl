@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-6af704db6a7befd1a7f30c70080f2a5a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:scientificevent>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -152,4 +151,138 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 } 
 ORDER BY ?order""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX target: <http://www.wikidata.org/entity/Q119153957>
+
+SELECT
+  ?description ?descriptionLabel ?descriptionUrl
+
+  ?value ?valueLabel ?valueUrl
+
+  ?wikidata ?wikidataLabel ?wikidataUrl
+
+  ?scholia ?scholiaUrl
+WHERE {
+  {
+    BIND(1 AS ?order)
+    BIND(wd:Q52260246 AS ?description)
+    BIND(\"#scientificevent/\" AS ?descriptionUrl)
+    
+    BIND(target: AS ?value)
+    
+    BIND(target: AS ?wikidata)
+    BIND(CONCAT(SUBSTR(STR(target:), 32), \"&nbsp;↗\") AS ?wikidataLabel)
+    BIND(CONCAT(\"https://www.wikidata.org/wiki/\", SUBSTR(STR(target:), 32)) AS ?wikidataUrl)
+    
+    BIND(\"Scholia&nbsp;↗\" AS ?scholia)
+    BIND(CONCAT(\"https://scholia.toolforge.org/event/\", SUBSTR(STR(target:), 32)) AS ?scholiaUrl)
+  } 
+  UNION
+  {
+    BIND(2 AS ?order)
+    BIND(wd:P1813 AS ?description)
+    target: wdt:P1813 ?value .
+  }
+  UNION
+  {
+    BIND(3 AS ?order)
+    BIND(wd:Q125391566 AS ?description)
+    BIND(\"#scientificeventseries/\" AS ?descriptionUrl)
+    target: wdt:P179 ?value .
+    BIND(CONCAT(\"#scientificeventseries/\", SUBSTR(STR(?value), 32)) AS ?valueUrl)
+  }
+  UNION
+  {
+    BIND(4 AS ?order)
+    BIND(wd:P11633 AS ?description)
+    target: wdt:P11633 | ^wdt:P11633 ?value .
+    BIND(CONCAT(\"#scientificevent/\", SUBSTR(STR(?value), 32)) AS ?valueUrl)
+  }
+  UNION
+  {
+    BIND(5 AS ?order)
+    BIND(wd:Q34770 AS ?description)
+    BIND(\"#language\" AS ?descriptionUrl)
+    
+    target: wdt:P2936 ?value .
+    BIND(CONCAT(\"#language/\", SUBSTR(STR(?value), 32)) AS ?valueUrl)
+
+    BIND(?value AS ?wikidata)
+    BIND(CONCAT(SUBSTR(STR(?value), 32), \"&nbsp;↗\") AS ?wikidataLabel)
+    BIND(CONCAT(\"https://www.wikidata.org/wiki/\", SUBSTR(STR(?value), 32)) AS ?wikidataUrl)
+    
+    BIND(\"Scholia&nbsp;↗\" AS ?scholia)
+    BIND(CONCAT(\"https://scholia.toolforge.org/language/\", SUBSTR(STR(?value), 32)) AS ?scholiaUrl)
+
+  }
+  UNION
+  {
+    SELECT
+      (10 AS ?order)
+      (\"Organizers\" AS ?description)
+      (GROUP_CONCAT(?value_; separator=\", \") AS ?value)
+    {
+      BIND(1 AS ?dummy)
+      target: wdt:P664 ?iri .
+      BIND(SUBSTR(STR(?iri), 32) AS ?q) 
+      ?iri rdfs:label ?value_string .
+      FILTER (LANG(?value_string) = 'en')
+      BIND(COALESCE(?value_string, ?q) AS ?value_)
+    }
+    GROUP BY ?dummy
+  }
+  UNION
+  {
+    # number of participants
+    BIND(20 AS ?order)
+    BIND(wd:P1132  AS ?description)
+    
+    target: wdt:P1132 ?value .
+  }
+  UNION
+  {
+    # number of submissions
+    BIND(21 AS ?order)
+    BIND(\"number of submissions\"  AS ?description)
+    
+    target: p:P12655 ?value_statement .
+    ?value_statement ps:P12655 ?submissions.
+    OPTIONAL {
+      ?value_statement  pq:P518 / rdfs:label ?track .
+      FILTER (LANG(?track) = \"en\")
+    }
+    BIND(IF(BOUND(?track), CONCAT(STR(?submissions), \" (\", ?track, \")\"), STR(?submissions)) AS ?value)
+  }
+  UNION
+  {
+    # number of accepted contributions
+    BIND(22 AS ?order)
+    BIND(\"number of accepted contributions\"  AS ?description)
+    
+    target: p:P12649 ?value_statement .
+    ?value_statement ps:P12649 ?accepted .
+    OPTIONAL {
+      ?value_statement  pq:P518 / rdfs:label ?track .
+      FILTER (LANG(?track) = \"en\")
+    }
+    BIND(IF(BOUND(?track), CONCAT(STR(?accepted), \" (\", ?track, \")\"), STR(?accepted)) AS ?value)
+  }
+  UNION
+  {
+    # acceptance rate
+    BIND(23 AS ?order)
+    BIND(\"Acceptance&nbsp;rate\" AS ?description)
+    
+    target: p:P5822 ?value_statement .
+    ?value_statement ps:P5822 ?acceptance_rate .
+    OPTIONAL {
+      ?value_statement  pq:P518 / rdfs:label ?track .
+      FILTER (LANG(?track) = \"en\")
+    }
+    BIND(IF(BOUND(?track), CONCAT(STR(?acceptance_rate * 100), \" % (\", ?track, \")\"), CONCAT(STR(?acceptance_rate * 100), \" %\")) AS ?value)
+  }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} 
+ORDER BY ?order""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

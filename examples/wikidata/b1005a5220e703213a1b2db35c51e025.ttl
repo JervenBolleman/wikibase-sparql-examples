@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b1005a5220e703213a1b2db35c51e025> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:AllyD/sandbox>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -32,4 +31,20 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
            IF(?itemtype = wd:Q55488, \"Station\",    
            IF(?itemtype = wd:Q5, \"Person\", \"Site\"))) AS ?itemdesc).
    }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
+   SELECT DISTINCT (?itemdesc AS ?layer) ?loc ?item ?itemLabel ?gotimg ?itemtypeLabel WHERE {
+     SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+     VALUES ?item { wd:Q43396168 wd:Q1612113 wd:Q800825 wd:Q10314411 wd:Q5124894 wd:Q5519335 wd:Q43393601 wd:Q5124855 wd:Q6842247 wd:Q30624440 wd:Q6502991 wd:Q17792014 wd:Q1046939 wd:Q276382 wd:Q15849096 wd:Q723359 wd:Q4819399 wd:Q25384171 wd:Q56667183 wd:Q4881486 wd:Q5021768 wd:Q17771263 wd:Q17572099 wd:Q101003894 wd:Q43389980 wd:Q6665021 wd:Q43390004 wd:Q116788697 wd:Q67913321 wd:Q17844144 wd:Q17124680 }
+     ?item wdt:P31 ?itemtype.
+     OPTIONAL {?item wdt:P625 ?iloc.}.
+     OPTIONAL {?item p:P115 ?tpark. ?tpark ps:P115 ?teampark. optional {?teampark wdt:P625 ?teamparkloc.}.}.
+     OPTIONAL {?item wdt:P551 ?home. ?home wdt:P625 ?homeloc.}.
+     OPTIONAL {?item wdt:P159 ?hq. ?hq wdt:P625 ?hqloc.}.
+     optional {?item wdt:P18 ?gotimg.}.
+     BIND (IF (BOUND(?iloc), ?iloc, (IF (BOUND(?teamparkloc), ?teamparkloc, (IF (BOUND(?homeloc), ?homeloc,(IF (BOUND(?hqloc), ?hq,?null)))))    )) AS ?loc).
+     BIND (IF(?itemtype = wd:Q476028, \"Football club\", 
+           IF(?itemtype = wd:Q55488, \"Station\",    
+           IF(?itemtype = wd:Q5, \"Person\", \"Site\"))) AS ?itemdesc).
+   }""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-9d89904fb1d062cee9d87b132a6f4d18> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/12>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -95,4 +94,82 @@ SELECT DISTINCT ?item ?itemLabel ?itemDescription ?itemAltLabel ?beam ?coords ?d
 ::    GROUP BY ?item ?beam ?coords ?draft ?end ?ia ?imo ?mass ?mmsi ?start ?website ?wikimedia ?links
 ::  }
 ::}
-::""" .
+::""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?itemLabel ?itemDescription ?itemAltLabel ?beam ?coords ?draft ?end ?imo ?mass ?mmsi ?start 
+::  ?wikimedia ?website ?links ?images ?instances ?subclasses ?weapons WHERE {
+::  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en-GB,en\". }
+::  { 
+::    SELECT DISTINCT ?item ?beam ?coords ?draft ?end ?imo ?mass ?mmsi ?start ?wikimedia ?website ?links
+::      (GROUP_CONCAT(DISTINCT ?imagelist; SEPARATOR = \", \") AS ?images) 
+::      (REPLACE(GROUP_CONCAT(DISTINCT ?instancelist; SEPARATOR = \" \"),\"http://www.wikidata.org/entity/\",\"\") AS ?instances) 
+::      (REPLACE(GROUP_CONCAT(DISTINCT ?subclasslist; SEPARATOR = \" \"),\"http://www.wikidata.org/entity/\",\"\") AS ?subclasses) 
+::      (REPLACE(GROUP_CONCAT(DISTINCT ?weaponlist; SEPARATOR = \" \"),\"http://www.wikidata.org/entity/\",\"\") AS ?weapons) 
+::      WHERE {
+::      ?item p:P31 ?statement0.
+::      ?statement0 (ps:P31/(wdt:P279*)) wd:Q1785071.
+::      ?item p:P7959 ?statement1.
+::      ?statement1 (ps:P7959/(wdt:P279*)) wd:Q67531563.
+::      ?wikipediaEN schema:about ?item.
+::        
+::      OPTIONAL {?item wdt:P373 ?wikimedia}
+::      OPTIONAL {?item wdt:P724 ?ia}
+::      OPTIONAL {?item wdt:P856 ?website}
+::      OPTIONAL {?item wdt:P587 ?mmsi}
+::      OPTIONAL {?item wdt:P458 ?imo}
+::      OPTIONAL {?item wdt:P625 ?coords}
+::      OPTIONAL {?item wdt:P2067 ?mass}
+::      OPTIONAL {?item wdt:P2262 ?draft}
+::      OPTIONAL {?item wdt:P2261 ?beam}
+::      OPTIONAL {?item wdt:P2043 ?length}
+::      OPTIONAL {?item wdt:P569 ?birth}
+::      OPTIONAL {?item wdt:P571 ?inception}
+::      OPTIONAL {?item wdt:P729 ?serviceentry}
+::      OPTIONAL {?item wdt:P580 ?starttime}
+::      OPTIONAL {?item wdt:P585 ?pointintime}
+::      OPTIONAL {?item wdt:P570 ?death}
+::      OPTIONAL {?item wdt:P576 ?abolished}
+::      OPTIONAL {?item wdt:P730 ?serviceretirement}
+::      OPTIONAL {?item wdt:P582 ?endtime}
+::      BIND(COALESCE(?birth,?inception,?serviceentry,?starttime,?pointintime) AS ?start) 
+::      BIND(COALESCE(?death,?abolished,?serviceretirement,?endtime,?pointintime) AS ?end) 
+::      OPTIONAL {?item wdt:P50 ?author. BIND(STR(?author) AS ?author1)}
+::      OPTIONAL {?item wdt:P17 ?country. BIND(STR(?country) AS ?country1)}
+::      OPTIONAL {?item wdt:P495 ?countryoforigin. BIND(STR(?countryoforigin) AS ?countryoforigin1)}
+::      OPTIONAL {?item wdt:P27 ?countryofcitizenship. BIND(STR(?countryofcitizenship) AS ?countryofcitizenship1)}
+::      OPTIONAL {?item wdt:P7959 ?county. BIND(STR(?county) AS ?county1)}
+::      OPTIONAL {?item wdt:P98 ?editor. BIND(STR(?editor) AS ?editor1)}
+::      OPTIONAL {?item wdt:P88 ?commissioned. BIND(STR(?commissioned) AS ?commissioned1)}
+::      OPTIONAL {?item wdt:P101 ?fieldofwork. BIND(STR(?fieldofwork) AS ?fieldofwork1)}
+::      OPTIONAL {?item wdt:P967 ?goh. BIND(STR(?goh) AS ?goh1)}
+::      OPTIONAL {?item wdt:P137 ?operator. BIND(STR(?operator) AS ?operator1)}
+::      OPTIONAL {?item wdt:P800 ?notablework. BIND(STR(?notablework) AS ?notablework1)}
+::      OPTIONAL {?item wdt:P176 ?manufacturer. BIND(STR(?manufacturer) AS ?manufacturer1)}
+::      OPTIONAL {?item wdt:P710 ?participant. BIND(STR(?participant) AS ?participant1)}
+::      OPTIONAL {?item wdt:P1344 ?participantin. BIND(STR(?participantin) AS ?participantin1)}
+::      OPTIONAL {?item wdt:P361 ?partof. BIND(STR(?partof) AS ?partof1)}
+::      OPTIONAL {?item wdt:P289 ?vesselclass. BIND(STR(?vesselclass) AS ?vesselclass1)}
+::      BIND(REPLACE(CONCAT(IF(BOUND(?author1),?author1,\"\"),\" \",
+::                          IF(BOUND(?country1),?country1,\"\"),\" \",
+::                          IF(BOUND(?commissioned1),?commissioned1,\"\"),\" \",
+::                          IF(BOUND(?countryoforigin1),?countryoforigin1,\"\"),\" \",
+::                          IF(BOUND(?countryofcitizenship1),?1countryofcitizenship,\"\"),\" \",
+::                          IF(BOUND(?editor1),?editor1,\"\"),\" \",
+::                          IF(BOUND(?fieldofwork1),?fieldofwork1,\"\"),\" \",
+::                          IF(BOUND(?goh1),?goh1,\"\"),\" \",
+::                          IF(BOUND(?operator1),?operator1,\"\"),\" \",
+::                          IF(BOUND(?notablework1),?notablework1,\"\"),\" \",
+::                          IF(BOUND(?manufacturer1),?manufacturer1,\"\"),\" \",
+::                          IF(BOUND(?participant1),?participantin1,\"\"),\" \",
+::                          IF(BOUND(?partof1),?partof1,\"\"),\" \",
+::                          IF(BOUND(?vesselclass1),?vesselclass1,\"\"),\" \"),
+::                   \"http://www.wikidata.org/entity/\",\"\") AS ?links)
+::      OPTIONAL {?item wdt:P31 ?instancelist}
+::      OPTIONAL {?item wdt:P279 ?subclasslist}
+::      OPTIONAL {?item p:P520 [ps:P520 ?weaponlist; pq:P1114 ?weaponcount]} 
+::      OPTIONAL { {?item wdt:P18 ?imagelist} UNION {?item wdt:P3311 ?imagelist} } 
+::    }
+::    GROUP BY ?item ?beam ?coords ?draft ?end ?ia ?imo ?mass ?mmsi ?start ?website ?wikimedia ?links
+::  }
+::}
+::""";
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-5d40651844320a4d6f6a58cea0df241d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jarekt/queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
@@ -37,4 +36,28 @@ WHERE
   bind(concat('\"',?description,\", \",?year,'\"') as ?desc2)
   bind(concat('\"',?description,\" (\",?lab, ' ', ?inv,')\"') as ?desc3)
   
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?QID ?Dlang ?desc3 
+WHERE 
+{
+  VALUES ?item { wd:Q88190330 }
+  ?item schema:description ?description .
+  ?item wdt:P217 ?inv .
+  ?item wdt:P571 ?date . 
+  ?item wdt:P195 ?gallery . 
+  bind(str(YEAR(?date)) as ?year) 
+  BIND(LANG(?description) as ?lang)
+  
+   OPTIONAL {
+     ?gallery rdfs:label ?lab 
+     FILTER((LANG(?lab)) = ?lang)
+   }
+
+  bind(strafter(str(?item),\"http://www.wikidata.org/entity/\")as ?QID)
+  bind(concat(\"D\",?lang) as ?Dlang)
+  bind(concat('\"',?description,\" (\",?inv,')\"') as ?desc1)
+  bind(concat('\"',?description,\", \",?year,'\"') as ?desc2)
+  bind(concat('\"',?description,\" (\",?lab, ' ', ?inv,')\"') as ?desc3)
+  
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

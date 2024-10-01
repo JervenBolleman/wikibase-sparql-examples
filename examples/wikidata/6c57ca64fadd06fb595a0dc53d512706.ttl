@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-6c57ca64fadd06fb595a0dc53d512706> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:MKar/Query>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -36,4 +35,24 @@ SELECT ?item ?linkcount ?statementCount ?itemLabel ?itemDescription ?article  WH
 }
 ORDER BY ASC (?statementCount)
 LIMIT 123""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# All Humans  with less than 6 statements linked with Odia Wikipedia
+SELECT ?item ?linkcount ?statementCount ?itemLabel ?itemDescription ?article  WHERE {
+  VALUES (?project ?maxStatementCount ?labelLanguage) {
+    (<https://or.wikipedia.org/>6 \"or\") # adjust language and count here
+    # URL above must be https:// and include the trailing / !
+  }
+  ?item wdt:P31 wd:Q5 .         # item = humans only
+  ?article a schema:Article;
+           schema:about ?item;
+           schema:isPartOf ?project.
+  ?item wikibase:statements ?statementCount.
+    FILTER(?statementCount < ?maxStatementCount).
+  OPTIONAL { ?item rdfs:label ?itemLabel. 
+    FILTER(LANG(?itemLabel) = ?labelLanguage). }
+    OPTIONAL { ?item wikibase:sitelinks ?linkcount. } # for counting sitelinks
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . } # for generating label
+}
+ORDER BY ASC (?statementCount)
+LIMIT 123""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-6e603ab6efe39b6a262969f24472b1eb> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Will_(Wiki_Ed)/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -18,11 +17,19 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 #title:Number of statements by property for things (ex. albums)
 SELECT ?property ?propertyLabel ?count ?type WHERE
 {
-  INCLUDE %i.
+   {
+  SELECT ?property (count(?property) as ?count)
+WHERE 
+{
+  ?item wdt:P31 wd:Q482994.      # the thing you're interested in. \"albums\" (Q482994) in this example
+  
+  ?item ?predicate [].
+  ?property wikibase:directClaim ?predicate .
+} group by ?property ?propertyLabel }
   ?property wikibase:propertyType ?type.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 } ORDER BY DESC(?count)""";
-  <http://example.org/bigdata_select> """#title:Number of statements by property for things (ex. albums)
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title:Number of statements by property for things (ex. albums)
 SELECT ?property ?propertyLabel ?count ?type WITH {
   SELECT ?property (count(?property) as ?count)
 WHERE 
@@ -37,4 +44,6 @@ WHERE
   INCLUDE %i.
   ?property wikibase:propertyType ?type.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-} ORDER BY DESC(?count)""" .
+} ORDER BY DESC(?count)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

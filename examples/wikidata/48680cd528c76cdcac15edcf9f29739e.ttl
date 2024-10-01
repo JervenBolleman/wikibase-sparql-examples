@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-48680cd528c76cdcac15edcf9f29739e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_PCC_Wikidata_Pilot/UNLV>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -50,4 +49,38 @@ WHERE
  #FILTER(?countryOfOrigin != wd:Q30) 
  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }ORDER BY ASC (?publicationDate)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# SELECT MAPS/MAPS SERIES BY DATE OF PUBLICATION IN ASSECNDING ORDER
+SELECT DISTINCT ?map ?mapLabel 
+?mapDescription ?width ?width_unitLabel ?height ?height_unitLabel ?scale ?series ?seriesLabel
+?publisher ?publisherLabel ?publicationDate ?placepfPublication 
+?placepfPublicationLabel ?depicts ?depictsLabel ?mainSubject ?mainSubjectLabel ?language
+?languageLabel ?countryOfOrigin ?countryOfOriginLabel ?oclc_url ?map_url
+WHERE
+{
+ ?map wdt:P31 wd:Q4006 . 
+ OPTIONAL {?map wdt:P953 ?map_url} .
+ ?map wdt:P123 ?publisher ;
+      wdt:P577 ?publicationDate ;
+      wdt:P291 ?placepfPublication ;
+      wdt:P921 ?mainSubject ;
+      p:P2049 ?width_stmnode .
+ #?map wdt:P5008 wd:Q73644758 . # CHANGE PROJECT FOCUS LIST HERE
+ ?width_stmnode psn:P2049 ?width_valuenode .
+ ?width_valuenode wikibase:quantityAmount ?width .
+ ?width_valuenode wikibase:quantityUnit ?width_unit . 
+ ?map p:P2048 ?height_stmnode .
+ ?height_stmnode psn:P2048 ?height_valuenode .
+ ?height_valuenode wikibase:quantityAmount ?height .
+ ?height_valuenode wikibase:quantityUnit ?height_unit .
+ ?map wdt:P1752 ?scale ;
+      wdt:P407 ?language ;
+      wdt:P495 ?countryOfOrigin ;
+   OPTIONAL {?map wdt:P243 ?oclcControlNumber } .
+   OPTIONAL {?map wdt:P179 ?series ;
+                  wdt:P180 ?depicts } . 
+ BIND(URI(CONCAT(\"https://www.worldcat.org/oclc/\",?oclcControlNumber)) AS ?oclc_url)
+ #FILTER(?countryOfOrigin != wd:Q30) 
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}ORDER BY ASC (?publicationDate)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

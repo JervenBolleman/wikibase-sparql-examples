@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-1815c7ed3652ddfc9d39f10bc08e6c4d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Vislupus>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -20,7 +19,21 @@ PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 # most ender-imbalanced occupations in odia wikipedia 
 SELECT ?occupation ?occupationLabel ?women ?men WHERE {
-  INCLUDE %results. # subquery as optimization: don’t make the label service fetch labels for every ?person in the subquery
+   {
+  SELECT ?occupation (SUM(?woman) AS ?women) (SUM(?man) AS ?men) WHERE {
+    #BIND(wd:Q668 AS ?country). # substitute country of your choice here (remove the Q668, hit Ctrl+Space and start typing the country name, select the right one from the suggestions with the arrow keys and insert it with Enter)
+    ?person wdt:P31 wd:Q5;.
+    #?person wdt:P27 ?country. # remove this to search world-wide – results in query timeout unless you reduce the dataset in some other fashion
+     ?person p:P106/ps:P106 ?occupation.
+?article schema:about ?person . ?article schema:isPartOf <https://bg.wikipedia.org/> .
+    { ?person wdt:P21 wd:Q6581097. BIND(1 AS ?man). } UNION
+    { ?person wdt:P21 wd:Q2449503. BIND(1 AS ?man). } UNION
+    { ?person wdt:P21 wd:Q6581072. BIND(1 AS ?woman). } UNION
+    { ?person wdt:P21 wd:Q1052281. BIND(1 AS ?woman). }
+    # TODO consider how to count P21: Q48270 (genderqueer) and Q1097630 (intersex)
+  }
+  GROUP BY ?occupation
+} # subquery as optimization: don’t make the label service fetch labels for every ?person in the subquery
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY
@@ -29,7 +42,7 @@ ORDER BY
   DESC(IF(?women > ?men, (?women+1)/(?men+1), (?men+1)/(?women+1)))
   # if the ratio is the same, show results with more people in total first
   DESC(?women + ?men)""";
-  <http://example.org/bigdata_select> """# most ender-imbalanced occupations in odia wikipedia 
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# most ender-imbalanced occupations in odia wikipedia 
 SELECT ?occupation ?occupationLabel ?women ?men WITH {
   SELECT ?occupation (SUM(?woman) AS ?women) (SUM(?man) AS ?men) WHERE {
     #BIND(wd:Q668 AS ?country). # substitute country of your choice here (remove the Q668, hit Ctrl+Space and start typing the country name, select the right one from the suggestions with the arrow keys and insert it with Enter)
@@ -53,4 +66,6 @@ ORDER BY
   # (unfortunately, we can’t use ABS(LOG(x/y)) instead of the IF() because SPARQL has no LOG function)
   DESC(IF(?women > ?men, (?women+1)/(?men+1), (?men+1)/(?women+1)))
   # if the ratio is the same, show results with more people in total first
-  DESC(?women + ?men)""" .
+  DESC(?women + ?men)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

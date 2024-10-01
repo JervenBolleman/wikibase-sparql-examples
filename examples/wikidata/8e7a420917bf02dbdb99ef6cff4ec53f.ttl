@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8e7a420917bf02dbdb99ef6cff4ec53f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Japastorsanchez/webdatos-2023-2024/laboratorio-3>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -42,4 +41,30 @@ SELECT ?pais ?paisLabel ?poblacion ?superficie ?densidad ?geo ?rgb ?label WHERE 
    OPTIONAL { ?pais wdt:P3896 ?geo. }
    BIND(IF(?pais = wd:Q29999, cd:Nederland.map, ?geo) AS ?geo)
    SERVICE wikibase:label { bd:serviceParam wikibase:language \"es\". }
-} ORDER BY ?densidad""" .
+} ORDER BY ?densidad""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map{\"hide\":[\"?geoshape\", \"?rgb\"],\"layer\":\"?label\"}
+PREFIX cd:<http://commons.wikimedia.org/data/main/Data:>
+SELECT ?pais ?paisLabel ?poblacion ?superficie ?densidad ?geo ?rgb ?label WHERE {
+   ?pais wdt:P463 wd:Q458;
+         wdt:P1082 ?poblacion;
+         wdt:P2046 ?superficie.
+   FILTER(NOT EXISTS {
+      ?pais p:P463 ?statement.
+      ?statement ps:P463 wd:Q458;
+                 pq:P582 ?fecha_fin.
+   })
+   BIND(IF(?densidad < 50 , \"ffebee\", 
+        IF(?densidad < 100 , \"ef9a9a\",
+        IF(?densidad < 200 , \"ef5350\",
+        IF(?densidad < 300 , \"c62828\",\"7f0000\")))) AS ?rgb)
+   BIND(IF(?densidad < 50 , \"Menos de 50 habs./km2\", 
+        IF(?densidad <= 100 , \"Entre 50 y 100 habs./km2\",
+        IF(?densidad <=200 , \"Entre 100 y 200 habs./km2\",
+        IF(?densidad <=300 , \"Entre 200 y 300/km2\",
+                             \"Más de 300 habs./km2\")))) AS ?label) 
+   BIND(ROUND(?poblacion/?superficie) AS ?densidad)
+   OPTIONAL { ?pais wdt:P3896 ?geo. }
+   BIND(IF(?pais = wd:Q29999, cd:Nederland.map, ?geo) AS ?geo)
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"es\". }
+} ORDER BY ?densidad""";
+  schema:target <https://query.wikidata.org/sparql> .

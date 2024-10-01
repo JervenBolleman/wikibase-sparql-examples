@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-058927c83576dc5488090617feb9c0e8> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infovarius/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -53,4 +52,41 @@ SELECT ?item ?itemLabel ?itemDescription ?date_of_death ?cemetery ?cemeteryLabel
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr\". }
   ?cemetery wdt:P131* wd:Q915.
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title:People recently buried in a cemetery nearby without an image of the grave (P1442) on Wikidata
+#defaultView:Map{\"hide\":[\"?coor\"]}
+#by Jura1, 2021-11-0, source: https://www.wikidata.org/wiki/Property_talk:P1442#Queries
+SELECT ?item ?itemLabel ?itemDescription ?date_of_death ?cemetery ?cemeteryLabel ?coor ?commons_category_which_may_include_one ?findagrave ?img_person ?img_cemetery WHERE {
+  ?item wdt:P119 ?cemetery.
+  ?cemetery wdt:P31 wd:Q39614.
+  ?item wdt:P570 ?date_of_death.
+  FILTER(?date_of_death > \"2010-01-01\"^^xsd:dateTime)
+  FILTER(NOT EXISTS { ?item p:P1442 _:b0. })
+  ?cemetery wdt:P625 ?coor.
+  FILTER(NOT EXISTS {
+    ?cemetery wdt:P625 ?c2.
+    FILTER((STR(?coor)) > (STR(?c2)))
+  })
+  OPTIONAL {
+    ?item wdt:P373 ?cat.
+    BIND(URI(CONCAT(\"https://commons.wikimedia.org/wiki/Category:\", ?cat)) AS ?commons_category_which_may_include_one)
+  }
+  OPTIONAL {
+    ?item wdt:P535 ?fid.
+    wd:P535 wdt:P1630 ?ff.
+    BIND(URI(REPLACE(?ff, \"\\\\$1\", ?fid)) AS ?findagrave)
+  }
+  OPTIONAL { ?item wdt:P18 ?img_person. }
+  FILTER(NOT EXISTS {
+    ?item wdt:P18 ?i2.
+    FILTER((STR(?i2)) > (STR(?img_person)))
+  })
+  OPTIONAL { ?cemetery wdt:P18 ?img_cemetery. }
+  FILTER(NOT EXISTS {
+    ?cemetery wdt:P18 ?i3.
+    FILTER((STR(?i3)) > (STR(?img_cemetery)))
+  })
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr\". }
+  ?cemetery wdt:P131* wd:Q915.
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

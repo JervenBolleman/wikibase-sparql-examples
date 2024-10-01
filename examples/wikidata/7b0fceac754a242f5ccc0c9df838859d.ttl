@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-7b0fceac754a242f5ccc0c9df838859d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ash_Crow/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -72,4 +71,64 @@ WHERE {
   }
   FILTER (?min <= ?year && ?year < ?max)
 
-} GROUP BY ?item ORDER BY ?year ?battle""" .
+} GROUP BY ?item ORDER BY ?year ?battle""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
+SELECT DISTINCT
+?item 
+(SAMPLE(?item_label) AS ?battle)
+(SAMPLE(?place_label) AS ?place_label)
+(SAMPLE(?partOf_label) AS ?partOf_label)
+(SAMPLE(?year) AS ?year)
+(SAMPLE(?image) AS ?image)
+(SAMPLE(?layer) AS ?layer)
+(SAMPLE(?coords) AS ?coords)
+(SAMPLE(?rgb) AS ?rgb)
+WHERE {
+  {
+    ?item wdt:P31/wdt:P279* wd:Q178561 . 
+  } UNION {
+    ?item wdt:P31/wdt:P279* wd:Q188055 . 
+  }
+  
+  OPTIONAL {
+    ?item rdfs:label ?item_label .
+    FILTER(LANG(?item_label) IN ('fr', 'en')) .
+  }
+  
+  OPTIONAL { 
+    ?item wdt:P361 ?partOf .
+    ?partOf rdfs:label ?partOf_label .
+    FILTER(LANG(?partOf_label) IN ('fr', 'en')) .
+  }
+  OPTIONAL { ?item wdt:P18 ?image . }
+  
+  # Place
+  ?item wdt:P276 ?place .
+  
+  OPTIONAL {
+    ?place rdfs:label ?place_label .
+    FILTER(LANG(?place_label) IN ('fr', 'en')) .
+  }
+  
+  # Coords
+  OPTIONAL { ?item wdt:P625 ?coordsItem . }
+  OPTIONAL { ?place wdt:P625 ?coordsPlace . }
+  BIND(COALESCE(?coordsItem, ?coordsPlace) AS ?coords)
+  
+  # Date
+  ?item (wdt:P585|wdt:P580|wdt:P582) ?date .
+  BIND(YEAR(?date) AS ?year) .
+  
+  # Layer
+  VALUES (?layer ?min ?max ?rgb) {
+    (\"Prehistory\" -100000 -3500 \"0078BF\")
+    (\"Ancien History -3500 → 500\" -3500 500 \"DDD700\")
+    (\"Middle Ages 500 → 1500\" -500 1500 \"5BD500\")
+    (\"Early Modern Period 1500 → 1750\" 1500 1750 \"00CE23\")
+    (\"Mid Modern Period 1750 → 1914\" 1750 1914 \"00C699\")
+    (\"Contemporary Period 1914 → present\" 1914 3500 \"0078BF\")
+  }
+  FILTER (?min <= ?year && ?year < ?max)
+
+} GROUP BY ?item ORDER BY ?year ?battle""";
+  schema:target <https://query.wikidata.org/sparql> .

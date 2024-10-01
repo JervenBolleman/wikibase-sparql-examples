@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c2e6d14d742c55eeafd6cdd28d8ad9aa> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Alexmar983>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -32,4 +31,18 @@ WHERE {
 SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],it,en\". }
 }
 ORDER BY ?tel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Tutti gli elementi interessati dall'import dal Sistema Cultura
+SELECT DISTINCT ?i ?iLabel ?iDescription ?coord ?inst ?instLabel ?instcoord ?tel
+WHERE {
+  ?i p:P17 [ps:P17 ?c ; prov:wasDerivedFrom [pr:P248 wd:Q80199870] ] .
+  ?i wdt:P131 ?inst .
+  ?inst wdt:P625 ?instcoord .
+  OPTIONAL { ?i wdt:P625 ?coord . }
+  OPTIONAL { ?i wdt:P1329 ?tel . }
+  FILTER(CONTAINS(STR(?tel),\"+39-058\"))
+  BIND(IF(BOUND(?coord),'biblio','comune') AS ?layer)
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],it,en\". }
+}
+ORDER BY ?tel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

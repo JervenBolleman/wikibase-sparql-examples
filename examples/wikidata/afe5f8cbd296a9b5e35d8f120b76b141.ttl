@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-afe5f8cbd296a9b5e35d8f120b76b141> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/12>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
@@ -33,4 +32,20 @@ SELECT DISTINCT ?airport ?airportLabel ?country ?countryLabel WHERE {
   #except those special instances of unnotheworthy aerodromes
   OPTIONAL {?airport wdt:P17 ?country. }
 } order by ?countryLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?airport ?airportLabel ?country ?countryLabel WHERE {
+  ?airport (wdt:P31/wdt:P279*) wd:Q62447.#any aerodromes
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr,de,kk\". }
+  optional {?airport wdt:P239|wdt:P238|wdt:P240|wdt:P5699|wdt:P5746|wdt:P5851|wdt:P6120 ?code.}#any airport code
+  filter(!Bound(?code)).#who does not have any airport code
+
+  FILTER NOT EXISTS { ?airport p:P239 [rdf:type wdno:P239].} #we do not want the ?item if ICAO has a <no value>   
+  MINUS {?airport wdt:P576 [].} # remove items with P576 (dissolved, abolished or demolished) as a main property
+  MINUS {?airport wdt:P582 [].} # remove items with P582 (end date) as a main property
+    MINUS {?airport a wdno:P17.}                                    #exclude airports that aren't physically based in a country
+
+  MINUS {?airport (wdt:P31/wdt:P279*) (wd:Q695850 wd:Q2265915 wd:Q1311670 wd:Q7373622 wd:Q782667 wd:Q502074 wd:Q44665966 wd:Q2071567).} 
+  #except those special instances of unnotheworthy aerodromes
+  OPTIONAL {?airport wdt:P17 ?country. }
+} order by ?countryLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

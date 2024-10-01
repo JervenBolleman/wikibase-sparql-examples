@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-cb0279d4b0b4e24b563405a7afc7bef3> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/11>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -50,4 +49,38 @@ WHERE
 }
 GROUP BY ?human ?humanLabel ?genderLabel ?countryLabel ?birth_date
 limit 100""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?human ?humanLabel ?genderLabel ?countryLabel ?birth_date
+  (GROUP_CONCAT(DISTINCT ?alias_en; separator=\", \") AS ?aliases_en)
+  (GROUP_CONCAT(DISTINCT STR(?label); separator=\", \") AS ?labels)
+  (GROUP_CONCAT(DISTINCT ?childLabel; separator=\", \") AS ?children)
+  (GROUP_CONCAT(DISTINCT ?spouseLabel; separator=\", \") AS ?spouses)
+WHERE
+{
+  VALUES ?human { wd:Q22686 }
+  ?human wdt:P31 wd:Q5;
+      wdt:P106 wd:Q82955.
+  OPTIONAL { ?human wdt:P21 ?gender. }
+  OPTIONAL { ?human wdt:P569 ?birth_date. }
+  OPTIONAL { ?human wdt:P27 ?country. }
+  OPTIONAL
+  {
+    ?human skos:altLabel ?alias_en .
+    FILTER (LANG(?alias_en) = \"en\")
+  }
+  OPTIONAL { ?human rdfs:label ?label . }
+  OPTIONAL { ?human wdt:P40 ?child . }
+  OPTIONAL { ?human wdt:P26 ?spouse . }
+  SERVICE wikibase:label
+  {
+    bd:serviceParam wikibase:language \"en\" .
+    ?human rdfs:label ?humanLabel .
+    ?gender rdfs:label ?genderLabel .
+    ?country rdfs:label ?countryLabel .
+    ?child rdfs:label ?childLabel .
+    ?spouse rdfs:label ?spouseLabel .
+  }
+}
+GROUP BY ?human ?humanLabel ?genderLabel ?countryLabel ?birth_date
+limit 100""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

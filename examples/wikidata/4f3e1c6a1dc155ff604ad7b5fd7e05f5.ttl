@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-4f3e1c6a1dc155ff604ad7b5fd7e05f5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:ProteinBoxBot/SPARQL_Examples>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -32,4 +31,22 @@ SELECT ?drugLabel ?geneLabel ?biological_processLabel ?diseaseLabel WHERE {
   #?disease wdt:P2176 ?drug . 	# disease is treated by a drug 
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" .	}
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Find drugs for cancers that target genes related to cell proliferation, where a drug physically interacts with the product of gene known to be genetically associated to a disease
+SELECT ?drugLabel ?geneLabel ?biological_processLabel ?diseaseLabel WHERE {
+  ?drug wdt:P129 ?gene_product .   # drug interacts with a gene_product 
+  ?gene wdt:P688 ?gene_product .  # gene_product (usually a protein) is a product of a gene (a region of DNA)
+  ?disease	wdt:P2293 ?gene .    # genetic association between disease and gene 
+  ?disease wdt:P279* wd:Q12078 .  # limit to cancers wd:Q12078 (the * operator runs up a transitive relation..)
+  ?gene_product wdt:P682 ?biological_process . #add information about the GO biological processes that the gene is related to  
+  #limit to genes related to certain biological processes (and their sub-processes):
+  		#apoptosis wd:Q14599311 
+  		#cell proliferation wd:Q14818032
+  {?biological_process wdt:P279* wd:Q14818032 } # chain down subclass
+   UNION 
+  {?biological_process wdt:P361* wd:Q14818032 } # chain down part of
+  #uncomment the next line to find a subset of the known true positives (there are not a lot of them in here yet)
+  #?disease wdt:P2176 ?drug . 	# disease is treated by a drug 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" .	}
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

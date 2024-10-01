@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-a7b3eacbbfa98fda938c9cf8d877627a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -87,4 +86,74 @@ WHERE {
 ### if the 3rd variable does not have value in the 1st record (row) of the table,
 ### points in scatter chart cannot be distinguished into different colors according to the 3rd variable.
 ORDER BY DESC(?narrative_roleLabel)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# scatter chart of characters in Water Margin chapters classified by narrative role
+# also viewable as table
+#defaultView:ScatterChart
+### Note: Points are distinguished into different colors according to the 3rd non-item variable (?narrative_roleLabel).
+SELECT DISTINCT ?chapter ?chapter_number ?name ?character ?first_appearance ?narrative_roleLabel
+WHERE {
+  # ?chapter is instance of (P31) chapter (Q1980247)
+  ?chapter wdt:P31 wd:Q1980247;
+           # and is part of (P361) [OneOrMorePath (+)] Water Margin's 120-chapter edition (Q70761009)
+           wdt:P361+ wd:Q70761009
+  # optional: ?chapter's chapter (P792) is ?number
+  ### Note: This OPTIONAL (generating ?number) and the next two OPTIONALs (generating respectively ?first_appearance_number and ?native_name)
+  ### produce respectively ?chapter_number and ?name, the variables for X-axis and Y-axis. Although
+  ### the variable for an axis should not have null value in the 1st record (row) of the table,
+  ### putting ?number, ?first_appearance_number, and ?native_name into OPTIONAL makes it easy
+  ### to check (in table view) whether there is any ?chapter lacking number or ?character lacking first appearance or native name.
+  OPTIONAL {?chapter wdt:P792 ?number}
+  # use IF to bind ?number's 3-character form as ?chapter_number:
+  # if ?number has 1 character, concatenate \"00\" and it;
+  ### Note: Getting chapter's 3-character number for table view because ?number, whose data type is string (see P792 (chapter)),
+  ### cannot be ordered as number in table's column although
+  ### it can be ordered as number in scatter chart's axis.
+  BIND(IF(STRLEN(?number)=1, CONCAT(\"00\", ?number),
+       # if ?number has 2 characters, concatenate \"0\" and it;
+       IF(STRLEN(?number)=2, CONCAT(\"0\", ?number),
+       # otherwise (?number has 3 characters), don't change it
+       ?number)) AS ?chapter_number)
+  # ?chapter's \"characters\" (P674) statement is ?y
+  ?chapter p:P674 ?y.
+  # ?y's value is ?character
+  ?y ps:P674 ?character
+  # optional: ?first_appearance is instance of (P31) chapter (Q1980247)
+  OPTIONAL {?first_appearance wdt:P31 wd:Q1980247;
+                              # and is part of (P361) [OneOrMorePath (+)] Water Margin's 120-chapter edition (Q70761009)
+                              wdt:P361+ wd:Q70761009
+            # optional: ?first_appearance's chapter (P792) is ?first_appearance_number
+            OPTIONAL {?first_appearance wdt:P792 ?first_appearance_number}
+            # ?first_appearance's \"characters\" (P674) statement is ?y1
+            ?first_appearance p:P674 ?y1.
+            # ?y1's value is ?character
+            ?y1 ps:P674 ?character;
+                # ?y1's qualifier \"subject has role\" (P2868) is \"first appearance\" (Q8563381)
+                pq:P2868 wd:Q8563381}
+  # use IF to bind ?first_appearance_number's 3-character form as ?first_appearance_number1:
+  # if ?first_appearance_number has 1 character, concatenate \"00\" and it;
+  BIND(IF(STRLEN(?first_appearance_number)=1, CONCAT(\"00\", ?first_appearance_number),
+       # if ?first_appearance_number has 2 characters, concatenate \"0\" and it;
+       IF(STRLEN(?first_appearance_number)=2, CONCAT(\"0\", ?first_appearance_number),
+       # otherwise (?first_appearance_number has 3 characters), don't change it
+       ?first_appearance_number)) AS ?first_appearance_number1)
+  # optional: ?character's native label (P1705) or name in native language (P1559) is ?native_name
+  ### Note: Native label (P1705) is for fictional non-mythical animal and group of fictional characters,
+  ### which should not have name in native language (P1559),
+  ### and is also for those fictional humans or characters who do not have a (personal) name.
+  OPTIONAL {?character (wdt:P1705|wdt:P1559) ?native_name}
+  # bind concatenation of ?first_appearance_number1 and ?native_name as ?name
+  ### Note: Although a string of number (e.g., ?number above) can be ordered as number in scatter chart's axis (not in table's column),
+  ### a string that consists of a number followed by other characters cannot be ordered as number first in scatter chart's axis.
+  ### So ?first_appearance_number has to be transformed to ?first_appearance_number1 (3-character form) before concatenated with ?native_name.
+  BIND(CONCAT(?first_appearance_number1, ?native_name) AS ?name)
+  # optional: show ?y's qualifier \"narrative role\" (P5800) as ?narrative_role
+  OPTIONAL {?y pq:P5800 ?narrative_role}
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+### Note: ORDER BY the 3rd variable in DESC order because
+### if the 3rd variable does not have value in the 1st record (row) of the table,
+### points in scatter chart cannot be distinguished into different colors according to the 3rd variable.
+ORDER BY DESC(?narrative_roleLabel)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

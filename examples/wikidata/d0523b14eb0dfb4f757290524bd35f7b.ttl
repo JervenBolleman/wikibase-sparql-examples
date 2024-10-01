@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-d0523b14eb0dfb4f757290524bd35f7b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/06>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -49,4 +48,36 @@ SELECT DISTINCT ?item ?itemLabel ?tipusLabel ?interpret ?interpretLabel ?album ?
   BIND(IF(BOUND(?pista_ord), ?pista_ord, ?pista_rol)
            as ?pista).
 }
-GROUP BY ?item ?itemLabel ?tipusLabel ?interpret ?interpretLabel ?album ?albumLabel ?pista ?data_publi""" .
+GROUP BY ?item ?itemLabel ?tipusLabel ?interpret ?interpretLabel ?album ?albumLabel ?pista ?data_publi""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title:list of recorded track from one specific composition, and all the releases (single/album, etc.) where using
+SELECT DISTINCT ?item ?itemLabel ?tipusLabel ?interpret ?interpretLabel ?album ?albumLabel ?pista ?data_publi 
+                 (GROUP_CONCAT(DISTINCT ?productorLabel; separator=\", \") AS ?productors ) WHERE
+{
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+                         ?item rdfs:label ?itemLabel . 
+                         ?tipus rdfs:label ?tipusLabel .
+                         ?interpret rdfs:label ?interpretLabel. 
+                         ?album  rdfs:label  ?albumLabel .
+                         ?productor rdfs:label ?productorLabel.
+                         }
+  ?item wdt:P2550 wd:Q1550581.
+  OPTIONAL { ?item wdt:P31 ?tipus_trk. }
+  OPTIONAL { ?item wdt:P175 ?interpret. }
+  OPTIONAL { ?item wdt:P10135 ?data_enreg. }
+  OPTIONAL { ?item wdt:P483 ?gravat_a. }
+  OPTIONAL { ?item wdt:P162 ?productor. }
+  OPTIONAL { ?album p:P658 ?statement.
+       ?statement ps:P658 ?item.
+       OPTIONAL {?statement pq:P1545 ?pista_ord.}
+       OPTIONAL {?statement pq:P3831 ?pista_rol.}
+       OPTIONAL { ?album wdt:P31 ?tipus_rls. }
+       OPTIONAL { ?album wdt:P577 ?data_publi. }
+       OPTIONAL { ?album wdt:P437 ?format_dist. }
+           }
+  BIND(IF(BOUND(?tipus_rls), ?tipus_rls, ?tipus_trk )
+           as ?tipus).
+  BIND(IF(BOUND(?pista_ord), ?pista_ord, ?pista_rol)
+           as ?pista).
+}
+GROUP BY ?item ?itemLabel ?tipusLabel ?interpret ?interpretLabel ?album ?albumLabel ?pista ?data_publi""";
+  schema:target <https://query.wikidata.org/sparql> .

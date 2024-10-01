@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-a44e132ed188185765b29d99274cb271> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Charles_Matthews/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -59,4 +58,45 @@ SELECT DISTINCT ?item ?itemLabel ?constituencyLabel ?causeLabel ?end {
  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
 }
 order by ?end""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# This query identifies MPs and the final ends to their careers (Andrew Gray)
+# It looks for 
+# - the last time someone left office as an MP
+# - what the cause of their leaving office was
+#defaultView:Timeline
+
+SELECT DISTINCT ?item ?itemLabel ?constituencyLabel ?causeLabel ?end {
+ 
+ # find all MP positions
+ 
+ ?membership wdt:P279 wd:Q16707842 . 
+ 
+ # and people who held such a position
+ 
+ ?item p:P39 ?positionStatement . ?positionStatement ps:P39 ?membership . 
+ 
+ OPTIONAL { ?positionStatement pq:P768 ?constituency . } # constituency if known
+ OPTIONAL { ?positionStatement pq:P4100 ?party . } # party if known
+ ?positionStatement pq:P580 ?start . # all members who have a start date (need to block out any without full dates)
+ ?positionStatement pq:P582 ?end . # all members who have an end date 
+ ?positionStatement pq:P1534 ?cause . # cause of leaving office
+  
+ FILTER (?end >= \"1950-02-23T00:00:00Z\"^^xsd:dateTime) .  # everyone whose term ended after the 1950 general election
+  
+ {?positionStatement pq:P1534 wd:Q52112831 } union  #
+ {?positionStatement pq:P1534 wd:Q46993416 } union  #
+ {?positionStatement pq:P1534 wd:Q46992747 }        # filter to three special cases 
+  
+ FILTER NOT EXISTS {
+ ?membership2 wdt:P279 wd:Q16707842 .
+ ?item p:P39 ?positionStatement2 . 
+ ?positionStatement2 ps:P39 ?membership2 . 
+ ?positionStatement2 pq:P580 ?start2 .
+ FILTER (?start2 >= ?end) . 
+ }
+ # filter out any where they came back to office at a later date
+ 
+ SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}
+order by ?end""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

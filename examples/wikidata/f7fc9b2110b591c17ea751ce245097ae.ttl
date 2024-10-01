@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-f7fc9b2110b591c17ea751ce245097ae> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:ProteinBoxBot/SPARQL_Examples>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
@@ -28,4 +27,17 @@ SELECT DISTINCT ?item ?doid ?itemLabel (group_concat(distinct ?itemaltLabel; sep
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
 }
 group by ?item ?doid ?itemLabel ?itemDesc""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?doid ?itemLabel (group_concat(distinct ?itemaltLabel; separator=\"|\") as ?altLabel) ?itemDesc WHERE {
+  ?item wdt:P699 ?doid .
+  values ?doid {\"DOID:0050602\" \"DOID:0060308\" \"DOID:0060728\" \"DOID:10595\" \"DOID:11589\" \"DOID:2476\" \"DOID:5212\"}
+  OPTIONAL{
+  ?item skos:altLabel ?itemaltLabel .
+    FILTER(LANG(?itemaltLabel) = \"en\")
+  ?item schema:description ?itemDesc .
+    FILTER(LANG(?itemDesc) = \"en\")
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+group by ?item ?doid ?itemLabel ?itemDesc""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b74891ba9b3ec4e72c12f571eb83b753> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/sports/Olympics>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -26,4 +25,16 @@ SELECT ?item ?itemLabel ?section ?typeLabel ?url WHERE {
   }
   SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?section ?typeLabel ?url WHERE {
+  VALUES ?type { wd:Q5389 wd:Q159821 wd:Q82414 wd:Q26132862 wd:Q1123217 } # wd:Q18536594 wd:Q26213387
+  VALUES ?wdt { wdt:P31 wdt:P279 }
+  ?item ?wdt ?type .
+  BIND(CONCAT(STRAFTER(STR(?wdt), 'direct/'), '-', STRAFTER(STR(?type), 'entity/')) AS ?section) .
+  OPTIONAL {
+    ?item wdt:P973 ?url .
+    FILTER(CONTAINS(STR(?url), 'sports-reference.com')) .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

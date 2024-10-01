@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-1f26e59f47e5af09dc7af9d6fa0d3b05> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Erfurth/Tabakkarte>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -42,4 +41,29 @@ WHERE
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de\". }
   
 } ORDER BY (?founded)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Dresdner Unternehmen der Tabakindustrie (Headquarter)
+SELECT ?item ?itemLabel ?street ?coord ?founded ?dissolved ?legalformLabel
+WHERE 
+{
+  ?item wdt:P31 wd:Q4830453.
+  ?item wdt:P159 wd:Q1731.
+  ?item wdt:P452 wd:Q907703. 
+  ?item wdt:P571 ?inception.
+  optional {
+    ?item wdt:P1454 ?legalform.
+  }
+  optional {
+    ?item  wdt:P576 ?dissolvedYear.
+  }
+  optional {
+  ?item p:P159 [ pq:P625 ?coord; pq:P6375 ?street;]
+  
+    }
+  BIND(str(YEAR(?inception)) AS ?founded)
+  BIND(str(YEAR(?dissolvedYear)) AS ?dissolved)
+  FILTER (?inception >= \"1860-01-01T00:00:00Z\"^^xsd:dateTime && ?inception <= \"2020-01-01T00:00:00Z\"^^xsd:dateTime) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de\". }
+  
+} ORDER BY (?founded)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

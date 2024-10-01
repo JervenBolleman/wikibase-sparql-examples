@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-78efc74b91a40c4da46d494fd8796296> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Culex/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -58,4 +57,48 @@ SELECT DISTINCT ?timestamp ?entity ?relationLabel ?entityLabel (SAMPLE(?image) A
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,de,fr\" }
 }
 GROUP BY ?timestamp ?entity ?relationLabel ?entityLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title: Timeline of François Arago
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+#defaultView:Timeline
+SELECT DISTINCT ?timestamp ?entity ?relationLabel ?entityLabel (SAMPLE(?image) AS ?img) WHERE {
+  BIND(wd:Q154353 AS ?person)
+  {
+    ?person ?property ?timestamp.
+    ?entity wikibase:directClaim ?property.
+    FILTER((DATATYPE(?timestamp)) = xsd:dateTime)
+  }
+  UNION
+  {
+    ?person ?entityToStatement ?statement.
+    OPTIONAL {?person wdt:P570 ?dDate.}
+    ?statement ?statementToQualifier ?timestamp.
+    ?statement ?statementToValue ?entity.
+    ?relation wikibase:statementProperty ?statementToValue.
+    FILTER(REGEX(STR(?entityToStatement), \"prop/P\"))
+    FILTER(REGEX(STR(?statementToQualifier), \"prop/qualifier/P\"))
+    FILTER((DATATYPE(?timestamp)) = xsd:dateTime)
+    BIND (IF(!BOUND(?dDate), now(), ?dDate) AS ?deathDate)
+    FILTER(?timestamp <= ?deathDate)
+  }
+  UNION
+  {
+    BIND(wd:P50 AS ?relation)
+    ?relation wikibase:directClaim ?property.
+    ?entity ?property ?person.
+    ?entity wdt:P577 ?timestamp.
+    FILTER(NOT EXISTS { ?person wdt:P800 ?entity })
+  }
+  UNION
+  {
+    BIND(wd:P800 AS ?relation)
+    ?relation wikibase:directClaim ?property.
+    ?person ?property ?entity.
+    ?entity wdt:P577 ?timestamp.
+  }
+  OPTIONAL { ?entity wdt:P18 ?image }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,de,fr\" }
+}
+GROUP BY ?timestamp ?entity ?relationLabel ?entityLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

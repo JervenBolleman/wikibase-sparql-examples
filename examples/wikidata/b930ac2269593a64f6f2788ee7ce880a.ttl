@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b930ac2269593a64f6f2788ee7ce880a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:YanikB/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
@@ -42,4 +41,29 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\". }
 }
 ORDER BY ?debut""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ('Q176' as ?qid) (?pmqid as ?P6) (?position as ?qal1545) (?debut as ?qal580) (?fin as ?qal582) ?pmLabel
+WHERE { 
+  ?pm p:P39 ?statement .
+  ?statement ps:P39 wd:Q2911019 .
+  OPTIONAL { ?statement pq:P1545 ?position }
+  OPTIONAL {
+    ?statement pqv:P580 [wikibase:timeValue ?dt; wikibase:timePrecision ?dp] .
+    FILTER STRENDS(?dt, 'Z') .
+    BIND(CONCAT('+', STR(?dt), '/', STR(?dp)) as ?debut) .
+  }
+  OPTIONAL { 
+    ?statement pqv:P582 [wikibase:timeValue ?ft; wikibase:timePrecision ?fp] .
+    FILTER STRENDS(?ft, 'Z') .
+    BIND(CONCAT('+', STR(?ft), '/', STR(?fp)) as ?fin) .
+  }
+  BIND(STRAFTER(STR(?pm), 'http://www.wikidata.org/entity/') as ?pmqid) .
+  FILTER STRSTARTS(?pmqid, 'Q') .
+#  MINUS {
+#    wd:Q176 p:P6 ?s.
+#    ?s ps:P6 ?pm
+#  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\". }
+}
+ORDER BY ?debut""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

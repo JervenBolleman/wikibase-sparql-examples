@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-688d1e8b372578fa6b12b753ec32cc33> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Collection_highlights_National_Library_of_the_Netherlands/Flora_Batava/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
@@ -47,4 +46,38 @@ WHERE
   BIND (URI(CONCAT('https://commons.wikimedia.org/entity/M', ?pageid2)) AS ?file)
   FILTER(REGEX(?title,\"(Pl[0-9]{4} - FloraBatava-KB-v[0-9]{2}.jpg)$\"))  #File name ending with  \"Pl<4 digits> - FloraBatava-KB-v<2 digits>.jpg\"         
 } ORDER BY ?category ?plate""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# List of all botanical plates in Category:Flora Batava - KB copy, and its subcategories
+SELECT ?category ?categoryName ?plate ?file ?title
+WHERE
+{
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+    bd:serviceParam mwapi:gcmtitle \"Category:Flora Batava - KB copy\" .
+    bd:serviceParam mwapi:generator \"categorymembers\" .
+    bd:serviceParam mwapi:gcmlimit \"max\" .
+    ?categoryName wikibase:apiOutput mwapi:title .
+    ?pageid wikibase:apiOutput \"@pageid\" .
+    ?ns wikibase:apiOutput \"@ns\".
+  }
+  FILTER (?ns = \"14\") # (sub)categories only
+  BIND (URI(CONCAT('https://commons.wikimedia.org/entity/M', ?pageid)) AS ?category)
+ 
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+    bd:serviceParam mwapi:gcmtitle ?categoryName.
+    bd:serviceParam mwapi:generator \"categorymembers\" .
+    bd:serviceParam mwapi:gcmtype \"file\" .
+    bd:serviceParam mwapi:gcmlimit \"max\" .
+    ?title wikibase:apiOutput mwapi:title .
+    ?pageid2 wikibase:apiOutput \"@pageid\" .
+  }
+  BIND(STRBEFORE(STRAFTER(?title,\" - Pl\"),\" - FloraBatava-KB-v\") AS ?plate)
+  BIND (URI(CONCAT('https://commons.wikimedia.org/entity/M', ?pageid2)) AS ?file)
+  FILTER(REGEX(?title,\"(Pl[0-9]{4} - FloraBatava-KB-v[0-9]{2}.jpg)$\"))  #File name ending with  \"Pl<4 digits> - FloraBatava-KB-v<2 digits>.jpg\"         
+} ORDER BY ?category ?plate""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

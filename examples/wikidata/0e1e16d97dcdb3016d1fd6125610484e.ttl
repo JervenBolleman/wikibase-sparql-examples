@@ -1,17 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-0e1e16d97dcdb3016d1fd6125610484e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Indonesia/Kueri>,
-    <https://www.wikidata.org//wiki/User:Bennylin>;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Bennylin>, <https://www.wikidata.org//wiki/Wikidata:WikiProject_Indonesia/Kueri>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -36,4 +34,22 @@ SELECT ?country ?year ?population ?countryLabel WHERE {
   }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:LineChart
+SELECT ?country ?year ?population ?countryLabel WHERE {
+  {
+    SELECT ?country ?year (AVG(?population) AS ?population) WHERE {
+      {
+        SELECT ?country (str(YEAR(?date)) AS ?year) ?population WHERE {
+          ?country wdt:P47 wd:Q252;   # shares border with Indonesia
+                   p:P1082 ?populationStatement.
+          ?populationStatement ps:P1082 ?population;
+                               pq:P585 ?date.
+        }
+      }
+    }
+    GROUP BY ?country ?year
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

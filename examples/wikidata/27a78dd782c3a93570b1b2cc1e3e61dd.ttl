@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-27a78dd782c3a93570b1b2cc1e3e61dd> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infovarius/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -31,5 +30,22 @@ SELECT ?item ?itemLabel ?genderLabel WHERE {
   ?item wdt:P21 ?gender .                                      # Example retrieval of a value
 SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,sv\". }    
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi>,
-    <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Using mwapi to base a query on articles in a Wikipedia category
+# Use the MediaWiki API to get the articles from a specific category in a specific Wikipedia language version.
+# Then use this results as usual in a query, in this example a simple query for the gender.
+# By User:Ainali with the help of User:Dipsacus fullonum  2021-02
+SELECT ?item ?itemLabel ?genderLabel WHERE {
+  SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:endpoint \"sv.wikipedia.org\";     # Set the project here
+                     wikibase:api \"Generator\";
+                     mwapi:generator \"categorymembers\";        # Selects the content from a category
+                     mwapi:gcmtitle \"Category:Födda 2001\";.    # Specifies the category (Born in 2001)
+     ?item wikibase:apiOutputItem mwapi:item.
+  } 
+  FILTER BOUND (?item)                                         # Safeguard to not get a timeout from unbound items when using ?item below
+  ?item wdt:P21 ?gender .                                      # Example retrieval of a value
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,sv\". }    
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>,
+    <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

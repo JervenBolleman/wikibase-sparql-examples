@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c9edd69d99dd87bb1fffb6c6256321ac> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Toni_001>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -33,4 +32,24 @@ where {
     optional { ?quantity wdt:P4020 ?dim . }
     optional { ?quantity wdt:P8111 / wdt:P5061 ?recommendedUnit . filter (lang(?recommendedUnit) = \"en\") }
   }
-} group by ?property""" .
+} group by ?property""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """select
+  ?property
+  (sample(?label) as ?label)
+  (sample(?quantity) as ?quantity)
+  (sample(?quantityLabel) as ?quantityLabel)
+  (sample(?symbol) as ?symbol)
+  (sample(?dim) as ?dim)
+  (group_concat(distinct ?recommendedUnit; separator = \", \") as ?recommendedUnits)
+where {
+  ?property wikibase:propertyType wikibase:Quantity .
+  optional { ?property rdfs:label ?label . filter (lang(?label) = \"en\") }
+  optional {
+    ?property wdt:P1629 ?quantity . ?quantity wdt:P279+ wd:Q71550118 .
+    optional { ?quantity rdfs:label ?quantityLabel . filter (lang(?quantityLabel) = \"en\") }
+    optional { ?quantity wdt:P7973 ?symbol . }
+    optional { ?quantity wdt:P4020 ?dim . }
+    optional { ?quantity wdt:P8111 / wdt:P5061 ?recommendedUnit . filter (lang(?recommendedUnit) = \"en\") }
+  }
+} group by ?property""";
+  schema:target <https://query.wikidata.org/sparql> .

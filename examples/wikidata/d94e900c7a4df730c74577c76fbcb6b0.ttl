@@ -1,0 +1,57 @@
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+<https://www.wikidata.org/#query-d94e900c7a4df730c74577c76fbcb6b0> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_France/%C3%89tablissements_scolaires>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?établissement ?nom ?code_UAI WHERE {
+  BIND ( \"2024-09-01\"^^xsd:dateTime as ?dateRecherche ) # Au 1er septembre 2024
+
+  ?établissement wdt:P3202 ?code_UAI. # code_UAI
+  
+  ?établissement wdt:P7374 wd:Q273556; # classes de niveau maternel
+                 wdt:P7374 wd:Q3578542. # et classes de niveau élémentaire
+  
+  ?établissement p:P1448 ?P1448node . # existence d'un nom
+    ?P1448node ps:P1448 ?nom . # valeur du nom
+    FILTER( lang(?nom)=\"fr\" ). # nom en français
+    MINUS { ?P1448node pq:P2241 ?dépréciationNom . } # nom erroné
+    OPTIONAL { ?P1448node pq:P580 ?dateDébutNom . } # date de début du nom
+    OPTIONAL { ?P1448node pq:P582 ?dateFinNom . } # date de fin du nom
+    FILTER ( !BOUND(?dateDébutNom) || ?dateDébutNom <= ?dateRecherche ) # ancien nom
+    FILTER ( !BOUND(?dateFinNom) || ?dateFinNom > ?dateRecherche ) # futur nom
+
+}
+ORDER BY ?code_UAI""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?établissement ?nom ?code_UAI WHERE {
+  BIND ( \"2024-09-01\"^^xsd:dateTime as ?dateRecherche ) # Au 1er septembre 2024
+
+  ?établissement wdt:P3202 ?code_UAI. # code_UAI
+  
+  ?établissement wdt:P7374 wd:Q273556; # classes de niveau maternel
+                 wdt:P7374 wd:Q3578542. # et classes de niveau élémentaire
+  
+  ?établissement p:P1448 ?P1448node . # existence d'un nom
+    ?P1448node ps:P1448 ?nom . # valeur du nom
+    FILTER( lang(?nom)=\"fr\" ). # nom en français
+    MINUS { ?P1448node pq:P2241 ?dépréciationNom . } # nom erroné
+    OPTIONAL { ?P1448node pq:P580 ?dateDébutNom . } # date de début du nom
+    OPTIONAL { ?P1448node pq:P582 ?dateFinNom . } # date de fin du nom
+    FILTER ( !BOUND(?dateDébutNom) || ?dateDébutNom <= ?dateRecherche ) # ancien nom
+    FILTER ( !BOUND(?dateFinNom) || ?dateFinNom > ?dateRecherche ) # futur nom
+
+}
+ORDER BY ?code_UAI""";
+  schema:target <https://query.wikidata.org/sparql> .

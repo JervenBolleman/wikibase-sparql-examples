@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-52c7b69dbf94c735d65c356d87ac3971> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Herzi_Pinki/Sparql>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -47,4 +46,37 @@ SELECT DISTINCT ?item ?itemLabel ?itemDescription (GROUP_CONCAT(DISTINCT ?profLa
     #?item wdt:P734 / wdt:P1705 ?lastname . FILTER( REGEX(?lastname, ?lastnamePattern ) )
 
     SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
-} group by ?item ?itemLabel ?itemDescription ?profLabels ?yearOfBirth ?yearOfDeath ?firstname ?lastname""" .
+} group by ?item ?itemLabel ?itemDescription ?profLabels ?yearOfBirth ?yearOfDeath ?firstname ?lastname""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title:find artist by initials 
+SELECT DISTINCT ?item ?itemLabel ?itemDescription (GROUP_CONCAT(DISTINCT ?profLabel; SEPARATOR=', ') AS ?profLabels) ?yearOfBirth ?yearOfDeath ?firstname ?lastname where 
+{
+    ### variable search parameters
+    BIND (1960 as ?dateOfWork) .
+    # using bind for regex will slow down to timeout
+    #BIND (\"^D\" as ?firstnamePattern). # first letter of initials, assuming firstname
+    #BIND (\"^K\" as ?lastnamePattern). # second letter of initials, assuming lastname
+    ###
+  
+    optional {?item wdt:P569 ?d1.}
+    optional {?item wdt:P570 ?d2.}
+    BIND(IF(BOUND(?d1), year(?d1), 0) AS ?yearOfBirth) . # use null value
+    BIND(IF(BOUND(?d2), year(?d2), 3000) AS ?yearOfDeath) .
+    #hint:Prior hint:rangeSafe true .
+    ?item wdt:P106/wdt:P279* wd:Q3391743 . #Q483501 
+    ?item wdt:P106 ?prof.
+    OPTIONAL {
+      ?prof rdfs:label ?profLiteral .
+      FILTER(LANG(?profLiteral) = 'de') .
+    }
+
+    BIND(IF(BOUND(?prof), IF(BOUND(?profLiteral), ?profLiteral, STRAFTER(STR(?prof), 'entity/')), 'no Prof') AS ?profLabel) .
+
+    FILTER( ?yearOfBirth+20 <= ?dateOfWork && ?yearOfDeath >= ?dateOfWork )
+    ?item wdt:P735 / wdt:P1705 ?firstname . FILTER( REGEX(?firstname, \"^D\" ) )
+    ?item wdt:P734 / wdt:P1705 ?lastname . FILTER( REGEX(?lastname, \"^K\" ) )
+    #?item wdt:P735 / wdt:P1705 ?firstname . FILTER( REGEX(?firstname, ?firstnamePattern ) )
+    #?item wdt:P734 / wdt:P1705 ?lastname . FILTER( REGEX(?lastname, ?lastnamePattern ) )
+
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+} group by ?item ?itemLabel ?itemDescription ?profLabels ?yearOfBirth ?yearOfDeath ?firstname ?lastname""";
+  schema:target <https://query.wikidata.org/sparql> .

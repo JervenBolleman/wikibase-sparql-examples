@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-f82c549d9bf9fab760b3348ccfd05705> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Pmartinolli/OtSoCG>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -20,7 +19,20 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:BubbleChart
 SELECT ?property ?propertyLabel ?propertyDescription  (COUNT(DISTINCT ?item) AS ?count)
 WHERE {
-  INCLUDE %properties.
+   {
+  SELECT DISTINCT ?property ?propertyLabel WHERE {
+    VALUES ?type {
+      wikibase:ExternalId
+      wikibase:Url
+    }
+    #?property wikibase:propertyType ?type;
+    #  (wdt:P31/(wdt:P279*)) wd:Q28147643;
+    #  rdfs:label ?propertyLabel.
+    #FILTER((LANG(?propertyLabel)) = \"en\")
+    #MINUS { ?property wdt:P1629 wd:Q96096761. }
+    #MINUS { ?property wdt:P1629 wd:Q27631547. }
+  }
+}
   ?item wdt:P31 wd:Q1643932 .
   ?property wikibase:claim ?propertyclaim.
   ?item ?propertyclaim _:b4.
@@ -28,7 +40,7 @@ WHERE {
 }
 
 GROUP BY ?property ?propertyLabel ?propertyDescription ORDER BY DESC (?count)""";
-  <http://example.org/bigdata_select> """#title:Most used properties of TTRPG (adapted from a query by https://twitter.com/JeanFred https://w.wiki/5Fvr)
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title:Most used properties of TTRPG (adapted from a query by https://twitter.com/JeanFred https://w.wiki/5Fvr)
 #defaultView:BubbleChart
 SELECT ?property ?propertyLabel ?propertyDescription  (COUNT(DISTINCT ?item) AS ?count)
 WITH {
@@ -53,4 +65,6 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 
-GROUP BY ?property ?propertyLabel ?propertyDescription ORDER BY DESC (?count)""" .
+GROUP BY ?property ?propertyLabel ?propertyDescription ORDER BY DESC (?count)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

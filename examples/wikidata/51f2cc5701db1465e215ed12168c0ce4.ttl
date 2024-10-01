@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-51f2cc5701db1465e215ed12168c0ce4> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Civil_Defense/List_of_dams/Brazil>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -39,4 +38,26 @@ SELECT DISTINCT ?item ?itemLabel ?itemDescription ?located_in_admLabel ?coordina
   OPTIONAL { ?item wdt:P131 ?located_in_adm. }
   OPTIONAL { ?item wdt:P625 ?coordinate_location. }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# barragem (Q12323) ; Brasil (Q155)
+SELECT DISTINCT ?item ?itemLabel ?itemDescription ?located_in_admLabel ?coordinate_location WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+  {
+    SELECT DISTINCT ?item WHERE {
+      {
+        ?item p:P31 ?statement0.
+        ?statement0 (ps:P31/(wdt:P279*)) wd:Q12323.
+        FILTER(EXISTS { ?statement0 prov:wasDerivedFrom ?reference. })
+      }
+      {
+        ?item p:P17 ?statement1.
+        ?statement1 (ps:P17/(wdt:P279*)) wd:Q155.
+        FILTER(EXISTS { ?statement1 prov:wasDerivedFrom ?reference. })
+      }
+    }
+    # LIMIT 10000
+  }
+  OPTIONAL { ?item wdt:P131 ?located_in_adm. }
+  OPTIONAL { ?item wdt:P625 ?coordinate_location. }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

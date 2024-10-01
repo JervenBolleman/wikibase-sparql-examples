@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8f93cb1327152540207134802b56273e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:ScienceSource_project/MeSH_queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -63,4 +62,53 @@ WHERE {
                 \"Q101929\" \"Q512285\" \"Q170201\" }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } 
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#MeSH Code tree handling for \"health speciality\" P1995 read off from P672
+#C23 (clinical finding) suppressed
+#Update 20/08/2019
+#Set out in columns for QuickStatements, though itemLabel is not for that.
+SELECT DISTINCT ?item ?itemLabel ?hs1 ?hs2
+WHERE {
+ ?item wdt:P31 wd:Q12136 .
+  ?item wdt:P672 ?meshc  .
+  MINUS { ?item wdt:P1995 [ ]}
+  BIND(IF (STRSTARTS(?meshc, 'C01.252'), \"Q788926\", 1/0) AS ?spec01a)  #infectiology
+  BIND(IF (STRSTARTS(?meshc, 'C01.703'), \"Q788926\", 1/0) AS ?spec01b)  #infectiology
+  BIND(IF (STRSTARTS(?meshc, 'C02'), \"Q788926\", 1/0) AS ?spec02)  #infectiology
+  BIND(IF (STRSTARTS(?meshc, 'C03'), \"Q788926\", 1/0) AS ?spec03) #infectiology
+  BIND(IF (STRSTARTS(?meshc, 'C04'), \"Q162555\", 1/0) AS ?spec04) #oncology
+  BIND(IF (STRSTARTS(?meshc, 'C05'), \"Q327657\", 1/0) AS ?spec05) #rheumatology
+  BIND(IF (STRSTARTS(?meshc, 'C06'), \"Q120569\", 1/0) AS ?spec06) #gastroenterology
+  BIND(IF (STRSTARTS(?meshc, 'C07'), \"Q504033\", 1/0) AS ?spec07) #oral and maxillofacial surgery
+  BIND(IF (STRSTARTS(?meshc, 'C08'), \"Q203337\", 1/0) AS ?spec08) #pulmonology
+  BIND(IF (STRSTARTS(?meshc, 'C09'), \"Q189553\", 1/0) AS ?spec09) #otolaryngology
+  BIND(IF (STRSTARTS(?meshc, 'C10'), \"Q83042\", 1/0) AS ?spec10) #neurology
+  BIND(IF (STRSTARTS(?meshc, 'C11'), \"Q161437\", 1/0) AS ?spec11) #ophthalmology 
+  BIND(IF (STRSTARTS(?meshc, 'C12.294'), \"Q105650\", 1/0) AS ?spec12a) #urology
+  BIND(IF (STRSTARTS(?meshc, 'C12.777'), \"Q105650\", 1/0) AS ?spec12b) #urology
+  BIND(IF (STRSTARTS(?meshc, 'C13'), \"Q80015\", 1/0) AS ?spec13) #obstetrics gynecology
+  BIND(IF (STRSTARTS(?meshc, 'C14'), \"Q10379\", 1/0) AS ?spec14) #cardiology
+  BIND(IF (STRSTARTS(?meshc, 'C15.378'), \"Q103824\", 1/0) AS ?spec15a) #hematology
+  BIND(IF (STRSTARTS(?meshc, 'C15.604'), \"Q539690\", 1/0) AS ?spec15b) #angiology
+  BIND(IF (STRSTARTS(?meshc, 'C16.320'), \"Q123028\", 1/0) AS ?spec16a) #pediatrics
+  BIND(IF (STRSTARTS(?meshc, 'C16.614'), \"Q1071953\", 1/0) AS ?spec16b) #medical genetics
+  BIND(IF (STRSTARTS(?meshc, 'C17.3'), \"Q327657\", 1/0) AS ?spec17a) #rheumatology
+  BIND(IF (STRSTARTS(?meshc, 'C17.8'), \"Q171171\", 1/0) AS ?spec17b) #dermatology
+  BIND(IF (STRSTARTS(?meshc, 'C18.452'), \"Q2351083\", 1/0) AS ?spec18a) #endocrinology
+  BIND(IF (STRSTARTS(?meshc, 'C18.654'), \"Q2138622\", 1/0) AS ?spec18b) #nutrition
+  BIND(IF (STRSTARTS(?meshc, 'C19'), \"Q162606\", 1/0) AS ?spec19) #endocrinology
+  BIND(IF (STRSTARTS(?meshc, 'C20'), \"Q101929\", 1/0) AS ?spec20) #immunology
+  BIND(IF (STRSTARTS(?meshc, 'C21'), \"Q512285\", 1/0) AS ?spec21) #environmental medicine
+  BIND(IF (STRSTARTS(?meshc, 'C22'), \"Q170201\", 1/0) AS ?spec22) #veterinary medicine
+
+  BIND(COALESCE(?spec01a,?spec01b,?spec02,?spec03,?spec04,?spec05,?spec06,?spec07,?spec08,?spec09,?spec10,?spec11,?spec12a,?spec12b,?spec13,?spec14,?spec15a,?spec15b,?spec16a,?spec16b,?spec17a,?spec17b,?spec18a,?spec18b,?spec19,?spec20,?spec21,?spec22,000000) AS ?hs2)
+
+  VALUES ?hs1 { \"P1995\" }
+  VALUES ?hs2 { \"Q788926\" \"Q162555\" \"Q327657\" \"Q120569\" \"Q504033\" 
+                \"Q203337\" \"Q189553\" \"Q83042\" \"Q161437\" \"Q105650\" 
+                \"Q80015\" \"Q10379\"  \"Q103824\" \"Q539690\" \"Q123028\"
+                \"Q1071953\" \"Q171171\" \"Q2351083\" \"Q2138622\"
+                \"Q101929\" \"Q512285\" \"Q170201\" }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } 
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

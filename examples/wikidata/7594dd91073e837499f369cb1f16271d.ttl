@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-7594dd91073e837499f369cb1f16271d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:AllyD/sandbox>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -30,4 +29,20 @@ SELECT DISTINCT  (?Era as ?layer) ?loc ?modLabel ?mod ?bornwhereLabel ?livewhere
                          \"5 Recent\")))) AS ?Era).
 
 } LIMIT 900""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
+SELECT DISTINCT  (?Era as ?layer) ?loc ?modLabel ?mod ?bornwhereLabel ?livewhereLabel ?diedwhen WHERE {  
+ ?mod wdt:P39 wd:Q6888514.
+  optional {?mod wdt:P19 ?bornwhere.}
+  optional {?mod wdt:P551 ?livewhere. ?livewhere wdt:P625 ?lloc.}
+  optional {?mod wdt:P69 ?edwhere. ?edwhere wdt:P625 ?eloc.}
+  ?mod wdt:P570 ?diedwhen.
+  BIND(year(?diedwhen) AS ?dyr).
+  optional {?mod wdt:P20 ?diedwhere. ?diedwhere wdt:P625 ?dloc.}.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+  BIND (COALESCE(?lloc, COALESCE(?dloc, ?eloc)) AS ?loc).
+  BIND( IF (?dyr < 1700, \"1 pre-1700\", IF (?dyr < 1800, \"2 18th century\", IF (?dyr < 1900, \"3 19th century\", IF (?dyr < 2000, \"4 20th century\", 
+                         \"5 Recent\")))) AS ?Era).
+
+} LIMIT 900""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

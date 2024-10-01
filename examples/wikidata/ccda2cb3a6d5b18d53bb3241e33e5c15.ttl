@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-ccda2cb3a6d5b18d53bb3241e33e5c15> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Bangbang.S>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
@@ -20,7 +19,22 @@ SELECT *
 
 
 WHERE {
-  INCLUDE %rawResult.
+   {
+SELECT ?year ?country ?human ?yearOther ?countryOther ?humanOther WHERE {
+    ?human (p:P166) ?awardStatement.
+    ?awardStatement ps:P166/wdt:P279* wd:Q7191.
+    ?awardStatement pq:P585 ?date.
+    bind(str(YEAR(?date)) AS ?year)
+  
+    ?humanOther (p:P166) ?awardStatementOther.
+    ?awardStatementOther ps:P166/wdt:P279* wd:Q7191.
+    ?awardStatementOther pq:P585 ?dateOther.
+    bind(str(YEAR(?dateOther)) AS ?yearOther)
+  
+    FILTER (?year >= ?yearOther).
+    FILTER (?year >= \"1901\" && ?year <= \"1903\").
+}
+}
   
   ?human  wdt:P27 ?country.
   ?humanOther  wdt:P27 ?countryOther.
@@ -29,7 +43,7 @@ WHERE {
 
 #GROUP BY ?year
 ORDER BY ASC(?year)""";
-  <http://example.org/bigdata_select> """SELECT * 
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT * 
 
 WITH {
 SELECT ?year ?country ?human ?yearOther ?countryOther ?humanOther WHERE {
@@ -57,4 +71,5 @@ WHERE {
 }
 
 #GROUP BY ?year
-ORDER BY ASC(?year)""" .
+ORDER BY ASC(?year)""";
+  schema:target <https://query.wikidata.org/sparql> .

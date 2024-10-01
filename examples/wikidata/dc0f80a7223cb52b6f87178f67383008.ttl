@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-dc0f80a7223cb52b6f87178f67383008> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Kerala/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -40,4 +39,27 @@ SELECT ?age ?item ?itemLabel ?partyLabel ?party_groupLabel ?dob ?districtLabel ?
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 }
 ORDER BY (?age)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Created by User:naveenpf
+# 2021 MLAs below 40 years
+
+SELECT ?age ?item ?itemLabel ?partyLabel ?party_groupLabel ?dob ?districtLabel ?start ?end WHERE {
+  ?item p:P39 ?statement.
+  ?statement ps:P39 _:b1;
+    pq:P2715 wd:Q85737920.
+  _:b1 (wdt:P279*) wd:Q19468152.
+  ?item wdt:P569 ?dob.
+  BIND(2021  - (YEAR(?dob)) AS ?age)
+  OPTIONAL { ?statement pq:P580 ?start. }
+  OPTIONAL { ?statement pq:P582 ?end. }
+  OPTIONAL { ?statement pq:P768 ?district. }
+  OPTIONAL { ?statement pq:P4100 ?party_group. }
+  OPTIONAL { ?statement pq:P102 ?party. }
+  OPTIONAL { ?statement pq:P1365 ?precededby. }
+  OPTIONAL { ?statement pq:P1366 ?succeededby. }
+  OPTIONAL { ?statement pq:P2715 ?electedin. }
+  FILTER(?age <= 40 )
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY (?age)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

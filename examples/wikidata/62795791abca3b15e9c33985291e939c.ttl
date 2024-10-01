@@ -1,17 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-62795791abca3b15e9c33985291e939c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Oravrattas/daynotes/2017-06-27>,
-    <https://www.wikidata.org//wiki/Talk:Q22120071>;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Talk:Q22120071>, <https://www.wikidata.org//wiki/User:Oravrattas/daynotes/2017-06-27>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -35,4 +33,21 @@ SELECT DISTINCT ?position ?positionLabel ?cabinet_start ?cabinet_end ?who ?whoLa
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 }
 ORDER BY ?positionLabel ?mem_start""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?position ?positionLabel ?cabinet_start ?cabinet_end ?who ?whoLabel ?mem_start ?mem_end WHERE {
+  BIND (wd:Q22120071 AS ?cabinet) 
+  ?cabinet wdt:P2670 ?position; wdt:P571 ?cabinet_start .
+  OPTIONAL { ?cabinet wdt:P576 ?cabinet_end } .
+  BIND(if(BOUND(?cabinet_end), ?cabinet_end, NOW()) as ?effective_cabinet_end)
+  
+  OPTIONAL {
+    ?who p:P39 ?mem .
+    ?mem ps:P39 ?position ; pq:P580 ?mem_start .
+    OPTIONAL { ?mem pq:P582 ?mem_end }
+    BIND(if(BOUND(?mem_end), ?mem_end, NOW()) as ?effective_end)
+    FILTER((?effective_end > ?cabinet_start) && (?mem_start < ?effective_cabinet_end))
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY ?positionLabel ?mem_start""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-df8c06983ea79e54817ccda05f7ec47f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/07>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -54,4 +53,41 @@ select distinct ?item ?revenue ?unitLabel ?usd ?revenue_USD where {
     filter (?revenue_USD >= 1000000000)
 }
 order by desc (?revenue_USD)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """select distinct ?item ?revenue ?unitLabel ?usd ?revenue_USD where {
+?item wdt:P31 wd:Q5 ;
+  wdt:P21 wd:Q6581072 ;
+  p:P2218 ?s .
+  ?s rdf:type wikibase:BestRank .
+
+   {
+    ?s psv:P2218 [
+      wikibase:quantityAmount ?revenue; wikibase:quantityUnit wd:Q4917
+    ] .
+    BIND( wd:Q4917 AS ?unit ) .
+    BIND( ?revenue AS ?revenue_USD ) .
+    BIND (1 AS ?usd)
+  } UNION {
+    ?s psv:P2218 [
+      wikibase:quantityAmount ?revenue; wikibase:quantityUnit ?unit
+    ] .
+    FILTER( ?unit != wd:Q4917 ) .
+    ?unit p:P2284 ?unit_statement .
+    ?unit_statement wikibase:rank ?unit_rank;
+                    psv:P2284 [ wikibase:quantityUnit wd:Q4917; wikibase:quantityAmount ?usd ] .
+    FILTER( ?unit_rank != wikibase:DeprecatedRank ) .
+    OPTIONAL {
+      FILTER( ?unit_rank != wikibase:PreferredRank ) .
+      ?unit p:P2284 ?unit_statement1 .
+      ?unit_statement1 psv:P2284/wikibase:quantityUnit wd:Q4917;
+                       wikibase:rank wikibase:PreferredRank .
+      FILTER( ?unit_statement1 != ?unit_statement ) .
+    } .
+    FILTER( !BOUND( ?unit_statement1 ) ) .
+    BIND( ?revenue * ?usd AS ?revenue_USD ) .
+  }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+    filter (?revenue_USD >= 1000000000)
+}
+order by desc (?revenue_USD)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

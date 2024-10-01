@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-112b1f4fa24d6d51b05a57cf1f3f5c69> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/11>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -55,4 +54,44 @@ SELECT DISTINCT ?item ?itemLabel ?place ?placeLabel ?id ?coords ?article ?mapfla
                                                              # assign some colours based on state            
   BIND( IF(BOUND(?article),   IF(BOUND(?ns), \"009500\" , \"FFF000\" )  ,  \"FF0000\"   )  AS ?rgb).  
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
+SELECT DISTINCT ?item ?itemLabel ?place ?placeLabel ?id ?coords ?article ?mapflags ?rgb WHERE {
+  hint:Query hint:optimizer \"None\".           # do the query in the order I specify
+  ?place wdt:P131* wd:Q1223 .                 # ?place is in Washington, or is in a place that is in Washington
+                                              # or is in a place which is within a place which is within Washington, &c
+  ?item wdt:P291|wdt:P159|wdt:P131 ?place .   # ?item is published in, or has its HQ in, or is located in a ?place 
+                                                      # (which per the above is within Washington)
+  ?c wdt:P279* wd:Q11032 .                    # get all items (i.e. ?c) on the subclass tree of newspaper 
+  ?item wdt:P31 ?c .                          # the ?item is some sort of newspaper
+  ?item wdt:P17|wdt:P495 wd:Q30 .         # it's in America or has a country of origin of America
+  OPTIONAL{?item wdt:P5454 ?id .}             # might have an ID
+  ?place wdt:P625 ?coords.                    # the ?place must have coordinates 
+  OPTIONAL {                                  # go off & get articles that have infobox newspaper
+    SELECT ?item ?pageid ?ns WHERE {
+      SERVICE wikibase:mwapi {
+        bd:serviceParam wikibase:endpoint \"en.wikipedia.org\" .
+        bd:serviceParam wikibase:api \"Generator\" .
+        bd:serviceParam mwapi:generator \"search\" .
+        bd:serviceParam mwapi:gsrsearch \"insource:\"infobox newspaper\"\" .
+        bd:serviceParam mwapi:gsrlimit \"max\" .
+        ?item wikibase:apiOutputItem mwapi:item .
+        ?pageid wikibase:apiOutput \"@pageid\" .
+        ?ns wikibase:apiOutput \"@ns\" .
+       }
+    } LIMIT 15000
+ }
+  OPTIONAL {                            # ?item might have an EN wiki article
+      ?article schema:about ?item .
+      ?article schema:inLanguage \"en\" .
+      FILTER (SUBSTR(str(?article), 1, 25) = \"https://en.wikipedia.org/\")
+  }
+                                       # Lord knows. Some sort of colour coding logic. Too tired.
+  BIND(IF(BOUND(?ns),\"_infobox\",\"_noinfobox\") AS ?infobox).  # there is or is not an infobox
+  BIND(IF(BOUND(?article),\"enwiki\",\"noenwiki\") AS ?onwiki).  # there is or is not an enwiki article
+  BIND(CONCAT(?onwiki,?infobox) as ?layer) .                 # concatenate those twoas a key (?)
+                                                             # assign some colours based on state            
+  BIND( IF(BOUND(?article),   IF(BOUND(?ns), \"009500\" , \"FFF000\" )  ,  \"FF0000\"   )  AS ?rgb).  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

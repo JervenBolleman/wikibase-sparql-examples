@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-106cdd6b190b7aa2169d40bbce5a9c99> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Nortix08/Landtagswahl_2022_in_Niedersachsen>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -46,4 +45,30 @@ SELECT ?district ?districtLabel ?mdl ?mdlLabel ?party (?partyLabel AS ?layer) ?v
     ?mdl rdfs:label ?mdlLabel .
   }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map{\"hide\":[\"?shape\", \"?layer\", \"?rgb\"]}
+SELECT ?district ?districtLabel ?mdl ?mdlLabel ?party (?partyLabel AS ?layer) ?votesPercentage ?rgb ?shape WHERE {
+  ?district wdt:P3896 ?shape;
+            p:P991 [
+              ps:P991 ?mdl;
+              pq:P2937 wd:Q41079386;
+              pq:P1268 ?party;
+              pqv:P1111 [ wikibase:quantityAmount ?votesPercentage; wikibase:quantityUnit wd:Q11229 ]
+            ];
+  BIND(xsd:integer(?districtNumberString) AS ?districtNumber)
+  ?party wdt:P462?/wdt:P465 ?rgbOriginal.
+  BIND(IF(?votesPercentage >= (100/2),
+          ?rgbOriginal,
+          IF(?votesPercentage >= (100/3),
+             REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(?rgbOriginal, \"80(..)(..)\", \"A0$1$2\"), \"(..)80(..)\", \"$1A0$2\"), \"(..)(..)80\", \"$1$2A0\"), \"00(..)(..)\", \"40$1$2\"), \"(..)00(..)\", \"$140$2\"), \"(..)(..)00\", \"$1$240\"),
+             REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(?rgbOriginal, \"80(..)(..)\", \"C0$1$2\"), \"(..)80(..)\", \"$1C0$2\"), \"(..)(..)80\", \"$1$2C0\"), \"00(..)(..)\", \"80$1$2\"), \"(..)00(..)\", \"$180$2\"), \"(..)(..)00\", \"$1$280\")
+            )
+         ) AS ?rgb)
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?district rdfs:label ?districtLabel .
+    ?party rdfs:label ?partyLabel .
+    ?mdl rdfs:label ?mdlLabel .
+  }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

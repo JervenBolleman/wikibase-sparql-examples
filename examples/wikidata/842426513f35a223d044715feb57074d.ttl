@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-842426513f35a223d044715feb57074d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Zygimantus/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -34,4 +33,20 @@ SELECT DISTINCT ?item ?itemLabel ?positionLabel ?start ?end WHERE
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
 }
 ORDER BY ASC(?start) ?itemLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title:Presidents of the Republic of Lithuania
+#defaultView:Table
+SELECT DISTINCT ?item ?itemLabel ?positionLabel ?start ?end WHERE
+{
+  ?item wdt:P31 wd:Q5 ;
+        p:P39 ?position_statement .
+  ?position_statement ps:P39 ?position ;
+                      pq:P580 ?start FILTER (?start >= \"1919-01-01T00:00:00Z\"^^xsd:dateTime) .
+  ?position wdt:P279* wd:Q878222 .
+  OPTIONAL { ?position_statement pq:P582 ?x }
+  OPTIONAL { ?item wdt:P18 ?picture }
+  bind(if(bound(?x), ?x, NOW()) as ?end )
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
+ORDER BY ASC(?start) ?itemLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

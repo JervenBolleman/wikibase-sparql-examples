@@ -1,18 +1,16 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-4ac16d7da291f2a866759ec33efc191d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Weather_observations/en/SPARQL>,
-    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Weather_observations/SPARQL>,
-    <https://www.wikidata.org//wiki/User_talk:Dirac>;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Dirac>, <https://www.wikidata.org//wiki/Wikidata:WikiProject_Weather_observations/SPARQL>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Weather_observations/en/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -70,4 +68,57 @@ SELECT ?station ?label_en ?description_en ?label_fr ?description_fr ?instance_of
   FILTER((LANG(?description_fr)) = \"fr\")
 
 }
-ORDER BY(?MSCID)""" .
+ORDER BY(?MSCID)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX schema: <http://schema.org/>
+
+# Information sur les stations météo du SMC
+SELECT ?station ?label_en ?description_en ?label_fr ?description_fr ?instance_of ?coordinate_location ?province_label ?identifiant_WIGOS_de_station ?property_of ?start_date ?end_date ?msc_climate_id ?altitude ?data_interval ?hourly ?h_start ?h_end ?daily ?d_start ?d_end ?monthly ?m_start ?m_end WHERE {
+  ?station (wdt:P31/wdt:P279*) wd:Q190107.
+  ?station wdt:P17 wd:Q16.
+  ?station wdt:P6242 ?MSCID
+
+  # Data interval (HLY, DLY, MLY)
+  OPTIONAL { ?station p:P6339 ?data_interval . }
+  OPTIONAL { ?station p:P6339 ?d_interval .          # there is a P6339 property
+             ?d_interval ps:P6339 wd:Q59657036 .  # and it's a daily
+             ?d_interval ps:P6339 ?daily .        # and we get its value, in case there are no dates
+             OPTIONAL { ?d_interval pq:P580 ?d_start .} # might be a start date
+             OPTIONAL { ?d_interval pq:P582 ?d_end .}   # might be an end date
+  }
+  OPTIONAL { ?station p:P6339 ?m_interval .          # there is a P6339 property
+             ?m_interval ps:P6339 wd:Q59657037 .  # and it's monthly
+             ?m_interval ps:P6339 ?monthly .        # and we get its value, in case there are no dates
+             OPTIONAL { ?m_interval pq:P580 ?m_start .} # might be a start date
+             OPTIONAL { ?m_interval pq:P582 ?m_end .}   # might be an end date
+  }
+  OPTIONAL { ?station p:P6339 ?h_interval .          # there is a P6339 property
+             ?h_interval ps:P6339 wd:Q59657010 .  # and it's hourly
+             ?h_interval ps:P6339 ?hourly .        # and we get its value, in case there are no dates
+             OPTIONAL { ?h_interval pq:P580 ?h_start .} # might be a start date
+             OPTIONAL { ?h_interval pq:P582 ?h_end .}   # might be an end date
+  }
+
+  OPTIONAL { ?station wdt:P31 ?instance_of. }
+  OPTIONAL { ?station wdt:P625 ?coordinate_location. }
+  OPTIONAL { ?station wdt:P131 ?province_label. }
+  OPTIONAL { ?station wdt:P4136 ?identifiant_WIGOS_de_station. }
+  OPTIONAL { ?station wdt:P127 ?property_of. }
+  OPTIONAL { ?station wdt:P729 ?start_date. }
+  OPTIONAL { ?station wdt:P3999 ?end_date. }
+  OPTIONAL { ?station wdt:P6242 ?msc_climate_id. }
+  OPTIONAL { ?station wdt:P2044 ?altitude. }
+  
+  
+  # FR/EN description
+  OPTIONAL { ?station rdfs:label ?label_en. }
+  OPTIONAL { ?station rdfs:label ?label_fr. }
+  OPTIONAL { ?station schema:description ?description_en. }
+  OPTIONAL { ?station schema:description ?description_fr. }
+  FILTER((LANG(?label_en)) = \"en\")
+  FILTER((LANG(?label_fr)) = \"fr\")
+  FILTER((LANG(?description_en)) = \"en\")
+  FILTER((LANG(?description_fr)) = \"fr\")
+
+}
+ORDER BY(?MSCID)""";
+  schema:target <https://query.wikidata.org/sparql> .

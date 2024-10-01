@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-157d9f9606c2e47d9150f68b786217f3> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/02>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
@@ -46,5 +45,34 @@ WHERE
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
 }
 ORDER BY ?age""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi>,
-    <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?created ?age ?title ?q_number
+WHERE
+{
+  ?item p:P136/ps:P136 wd:Q213665 .
+  ?item p:P31/ps:P31 wd:Q169930 .
+  BIND (xsd:integer(SUBSTR(STR(?item), 33)) AS ?q_number)
+  FILTER (?q_number > 110000000) # QQ110000000 is from 2021-12-08
+  BIND (SUBSTR(STR(?item), 32) AS ?title)
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam mwapi:generator \"allpages\" .
+    bd:serviceParam mwapi:gapfrom ?title .
+    bd:serviceParam mwapi:gapto ?title .
+    bd:serviceParam mwapi:prop \"revisions\" .
+    bd:serviceParam mwapi:rvslots \"main\" .
+    bd:serviceParam mwapi:rvprop \"timestamp\" .
+    bd:serviceParam mwapi:rvdir \"newer\" .
+    bd:serviceParam mwapi:rvlimit \"1\" .
+    ?created wikibase:apiOutput \"revisions/rev/@timestamp\" .
+    bd:serviceParam wikibase:limit \"once\" .
+  }
+  BIND (NOW() - xsd:dateTime(?created) AS ?age)
+  FILTER (?age <= 40) # Created in the last 40 days
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ORDER BY ?age""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>,
+    <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

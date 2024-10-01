@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-931e1da44cdc349996ca6312161cb7e4> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/08>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -39,4 +38,28 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
   minus {?item wdt:P576 [].}                               # remove items with P576 (dissolved, abolished or demolished) as a main property
   minus {?item wdt:P582 [].}                               # remove items with P582 (end date) as a main property
 #  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } . #this bit gets labels for Qid values
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# No ICAO and no IATA code and no FAA code
+  SELECT distinct ?item ?itemLabel ?typeLabel ?countryLabel ?iata ?icao WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q1248784.                     # ?item must be an instance of an airport, or an instance that is a subclass of an airport
+  ?item wdt:P31 ?type.                                     #get the type
+  ?type rdfs:label ?typeLabel. filter(lang(?typeLabel)=\"en\")  #get its label in EN
+  optional {?item rdfs:label ?itemLabel. filter(lang(?itemLabel)=\"en\")}
+  optional {?item wdt:P17 ?country .                       # ?item may have a country 
+           filter not exists {?country pq:P582 [].}        # ?country that still exists
+           ?country rdfs:label ?countryLabel. filter(lang(?countryLabel)=\"en\")}       #get the country label in EN             
+  filter not exists {?item wdt:P239 ?icao .}               # there is no ICAO value
+  filter not exists {?item wdt:P238 ?iata .}               # there is no IATA value
+  filter not exists {?item wdt:P240 ?faa .}                # there is no FAA value
+  minus {?item wdt:P31/wdt:P279* wd:Q695850.}              # exclude items having instances that are military airports & subclasses thereof
+  minus {?item wdt:P31/wdt:P279* wd:Q695850.}              # exclude military airports
+  minus {?item wdt:P31/wdt:P279* wd:Q1311670.}             # exclude railways stations
+  minus {?item wdt:P31/wdt:P279* wd:Q7373622.}             # exclude Royal Air Force
+  minus {?item wdt:P31/wdt:P279* wd:Q502074.}              # exclude héliports
+  minus {?item wdt:P576 ?date}                             # exclude destructed airports
+  minus {?item wdt:P31/wdt:P279* wd:Q44665966.}            # exclude  airports being build
+  minus {?item wdt:P576 [].}                               # remove items with P576 (dissolved, abolished or demolished) as a main property
+  minus {?item wdt:P582 [].}                               # remove items with P582 (end date) as a main property
+#  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } . #this bit gets labels for Qid values
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

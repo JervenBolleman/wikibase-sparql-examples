@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-39200f9bc6ad023622197850e86aa5a7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:AllyD/sandbox>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -40,4 +39,27 @@ SELECT DISTINCT ?accper ?accused ?loc ?dateDied ?locator ?locatorLabel ?coord ?d
   BIND(URI (CONCAT (\"https://witches.shca.ed.ac.uk/index.cfm?fuseaction=home.accusedrecord&accusedref=\", ?accused, \"&search_string=lastname\") )  AS ?accusedURI).
   BIND(IF (?dYr < 1600,\"1 pre 1600\",IF (?dYr < 1660,\"2 1600-1660\",IF (?dYr < 1700,\"3 1660-1699\",IF (?dYr < 1760,\"4 1700 on\",\"5 Unknown date\")))) AS ?lBand).
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
+SELECT DISTINCT (?lBand AS ?layer) ?loc ?accper ?accperLabel ?dateDied ?placeDied ?causeDied ?locatorLabel ?accusedURI WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  {
+SELECT DISTINCT ?accper ?accused ?loc ?dateDied ?locator ?locatorLabel ?coord ?dYr WHERE 
+  {
+    VALUES ?place {wd:Q1009725 wd:Q1009891 wd:Q1010098 wd:Q1010266 wd:Q1010422 wd:Q1011221 wd:Q1011521 wd:Q1012069 wd:Q1012257 wd:Q1012333 wd:Q1016911 wd:Q1018540 wd:Q1235672 wd:Q1249896 wd:Q1625364 wd:Q1984807 wd:Q201149 wd:Q2014221 wd:Q211950 wd:Q2188248 wd:Q239193 wd:Q2424554 wd:Q3304653 wd:Q3307907 wd:Q3640797 wd:Q3752621 wd:Q3785636 wd:Q3995788 wd:Q4019090 wd:Q4251125 wd:Q5173194 wd:Q5211552 wd:Q59244052 wd:Q64735066 wd:Q64828012 wd:Q64934564 wd:Q64947484 wd:Q64947494 wd:Q64947496 wd:Q64947498 wd:Q64947526 wd:Q64947529 wd:Q64947545 wd:Q64947575 wd:Q64947581 wd:Q64947596 wd:Q65515723 wd:Q65561359 wd:Q691685 wd:Q758623 wd:Q758624 wd:Q781885 wd:Q896424 wd:Q23436}
+  ?accper wdt:P4478 ?accused.
+    {?accper wdt:P551 ?place.} #UNION {?accper wdt:P20 ?place}.  
+    OPTIONAL {?accper wdt:P570 ?dateDied.}. 
+    OPTIONAL {?accper p:P793 / pq:P585 ?accdate. BIND (?accdate AS ?dateDied).}.
+  OPTIONAL {?accper p:P793 / pq:P580 ?accdate2. BIND (?accdate2 AS ?dateDied).}.
+    BIND(YEAR(?dateDied) AS ?dYr).
+  OPTIONAL {?accper wdt:P20 ?placeDiedQ. } 
+  OPTIONAL {?accper wdt:P551 ?res}.
+  BIND(COALESCE(?res, ?placeDiedQ, wd:Q22) AS ?locator).
+  OPTIONAL {?locator wdt:P625 ?loc; p:P625/psv:P625 ?coord. } 
+} LIMIT 4500
+  }
+  BIND(URI (CONCAT (\"https://witches.shca.ed.ac.uk/index.cfm?fuseaction=home.accusedrecord&accusedref=\", ?accused, \"&search_string=lastname\") )  AS ?accusedURI).
+  BIND(IF (?dYr < 1600,\"1 pre 1600\",IF (?dYr < 1660,\"2 1600-1660\",IF (?dYr < 1700,\"3 1660-1699\",IF (?dYr < 1760,\"4 1700 on\",\"5 Unknown date\")))) AS ?lBand).
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

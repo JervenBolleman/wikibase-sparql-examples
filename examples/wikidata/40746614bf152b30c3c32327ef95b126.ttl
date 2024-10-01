@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-40746614bf152b30c3c32327ef95b126> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Topics/Wikidata/Libraries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -37,4 +36,26 @@ WHERE
     ?compatibleWith rdfs:label ?compatibleWithLabel.
   }
 } GROUP BY ?project ?projectLabel ?compatibleWith ?compatibleWithLabel ?inception ORDER BY ?projectLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?project ?projectLabel ?compatibleWith ?compatibleWithLabel ?inception (GROUP_CONCAT(?use) as ?uses) (GROUP_CONCAT(?useLabel; SEPARATOR = '\\n') as ?useLabels)
+WHERE 
+{
+  ?project wdt:P31/wdt:P279* wd:Q188860.
+
+  # Note that we intentionally don't have an ambiguous \"Wikidata library\" entity
+  # and instead accurately model the use cases of libraries via P8956 and P366.
+  ?project wdt:P8956 ?compatibleWith.
+  {?compatibleWith wdt:P1269 wd:Q16354758}
+  UNION {?compatibleWith wdt:P1269 wd:Q2013}
+  
+  OPTIONAL {?project wdt:P571 ?inception}
+  OPTIONAL {?project wdt:P366 ?use}
+
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?project rdfs:label ?projectLabel.
+    ?use rdfs:label ?useLabel.
+    ?compatibleWith rdfs:label ?compatibleWithLabel.
+  }
+} GROUP BY ?project ?projectLabel ?compatibleWith ?compatibleWithLabel ?inception ORDER BY ?projectLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

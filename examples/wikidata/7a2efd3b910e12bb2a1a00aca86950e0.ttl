@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-7a2efd3b910e12bb2a1a00aca86950e0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/films_starring_more_than_one_future_head_of_government>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -22,7 +21,17 @@ PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?film ?filmLabel ?filmDescription (COUNT(DISTINCT ?headOfGovernmentLabel) AS ?count) (GROUP_CONCAT(DISTINCT CONCAT(?headOfGovernmentLabel, \", \"@en, ?description); separator = \"; \") AS ?headsOfGovernment)
 WHERE {
-  INCLUDE %headsOfGovernment.
+   {
+  SELECT ?headOfGovernment ?position (MIN(?startTime) AS ?earliestStartTime) WHERE {
+    ?headOfGovernment wdt:P31 wd:Q5;
+                      p:P39 [
+                        ps:P39 ?position;
+                        pq:P580 ?startTime
+                      ].
+    ?position wdt:P279+ wd:Q2285706.
+  }
+  GROUP BY ?headOfGovernment ?position
+}
   ?film wdt:P31/wdt:P279* wd:Q11424;
         wdt:P577 ?publicationDate;
         p:P161 ?headOfGovernmentStatement.
@@ -43,13 +52,13 @@ WHERE {
           schema:description ?filmDescription.
     ?headOfGovernment rdfs:label ?headOfGovernmentLabel.
     ?position rdfs:label ?positionLabel.
-  } hint:Prior hint:runLast false.
+  } 
   BIND(IF(BOUND(?characterLabel), CONCAT(?characterLabel, \" / \"@en, ?positionLabel), ?positionLabel) AS ?description)
 }
 GROUP BY ?film ?filmLabel ?filmDescription
 HAVING(?count > 1)
 ORDER BY DESC(?count) ASC(MIN(?publicationDate))""";
-  <http://example.org/bigdata_select> """SELECT ?film ?filmLabel ?filmDescription (COUNT(DISTINCT ?headOfGovernmentLabel) AS ?count) (GROUP_CONCAT(DISTINCT CONCAT(?headOfGovernmentLabel, \", \"@en, ?description); separator = \"; \") AS ?headsOfGovernment)
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?film ?filmLabel ?filmDescription (COUNT(DISTINCT ?headOfGovernmentLabel) AS ?count) (GROUP_CONCAT(DISTINCT CONCAT(?headOfGovernmentLabel, \", \"@en, ?description); separator = \"; \") AS ?headsOfGovernment)
 WITH {
   SELECT ?headOfGovernment ?position (MIN(?startTime) AS ?earliestStartTime) WHERE {
     ?headOfGovernment wdt:P31 wd:Q5;
@@ -88,4 +97,6 @@ WHERE {
 }
 GROUP BY ?film ?filmLabel ?filmDescription
 HAVING(?count > 1)
-ORDER BY DESC(?count) ASC(MIN(?publicationDate))""" .
+ORDER BY DESC(?count) ASC(MIN(?publicationDate))""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

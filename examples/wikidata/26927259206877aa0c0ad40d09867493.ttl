@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-26927259206877aa0c0ad40d09867493> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/01>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -46,4 +45,36 @@ SELECT DISTINCT ?y ?item ?itemLabel ?itemDescription ?dob ?birthLabel ?dod ?deat
     SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],es,en\". }
 }      
 ORDER BY ?y ?itemLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?y ?item ?itemLabel ?itemDescription ?dob ?birthLabel ?dod ?deathLabel
+{
+    { ?item wdt:P569 ?b . BIND(YEAR(?b) as ?y) .  # year of birth known
+      ?item wdt:P31 wd:Q5 .                       # was a human
+      ?item wdt:P19 [wdt:P131* wd:Q717] . }       # born somewhere in Venezuela
+    UNION
+    { ?item wdt:P570 ?d . BIND(YEAR(?d) as ?y) .  # year of death known
+      ?item wdt:P31 wd:Q5 .                       # was a human
+      ?item wdt:P20 [wdt:P131* wd:Q717] . }       # died somewhere in Venezuela
+    UNION
+    { ?item wdt:P569 ?b . BIND(YEAR(?b) as ?y) .  # year of birth known
+      ?item wdt:P31 wd:Q5 .                       # was a human
+      ?item wdt:P27 wd:Q717 . }                   # nationality was Venezuelan
+    UNION
+    { ?item wdt:P570 ?d . BIND(YEAR(?d) as ?y) .  # year of death known
+      ?item wdt:P31 wd:Q5 .                       # was a human
+      ?item wdt:P27 wd:Q717 . }                   # nationality was Venezuelan
+ 
+    # the UNION sections above mean we get any person who satisfies one or more of the four searches
+ 
+    FILTER ( ?y IN ( 1833, 1834, 1838, 1839, 1841, 1843, 1844, 1845, 1846, 1847, 1849, 1850, 1851, 1852, 1853, 1855, 1856, 1857, 1865, 1866, 1867, 1868, 1869, 1870, 1871, 1872, 1874, 1876, 1877, 1878, 1879, 1880, 1882 ) )
+                                                  # filter so the year of birth/death was one of the ones we're interested in
+ 
+    OPTIONAL { ?item wdt:P569 ?dob }              # date of birth if known
+    OPTIONAL { ?item wdt:P19 ?birth }             # place of birth if known
+    OPTIONAL { ?item wdt:P570 ?dod }              # date of death if known
+    OPTIONAL { ?item wdt:P20 ?death }             # place of death if known
+ 
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],es,en\". }
+}      
+ORDER BY ?y ?itemLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

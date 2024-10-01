@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b3f7610c2051b8ab5aefe698806b6d5b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/collections>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -31,4 +30,20 @@ SELECT ?image ?extlink WHERE {
     ?extlink wikibase:apiOutput \"extlinks/el/text()\".
   } }
 } ORDER BY ?name""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?image ?extlink WHERE {
+  wd:Q4656096 wdt:P18 ?image.
+  BIND(STRAFTER(STR(?image), \"FilePath/\") AS ?encoded_name)
+  BIND(wikibase:decodeUri(?encoded_name) AS ?name)
+  OPTIONAL { SERVICE wikibase:mwapi { # External links from each image
+    bd:serviceParam wikibase:api \"Generator\";
+                    wikibase:endpoint \"commons.wikimedia.org\";
+                    mwapi:generator \"allimages\";
+                    mwapi:gaifrom ?name;
+                    mwapi:gaito ?name;
+                    mwapi:prop \"extlinks\";
+                    mwapi:ellimit \"500\".
+    ?extlink wikibase:apiOutput \"extlinks/el/text()\".
+  } }
+} ORDER BY ?name""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

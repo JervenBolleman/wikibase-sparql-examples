@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-971109a6c2c93c72bd1b8d0e61d16bf5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -68,4 +67,53 @@ where {
  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
 } group by ?party1 ?name ?rgb order by desc(?count)
 #defaultView:BubbleChart""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# # # generate all members serving on a specific date
+#
+# see https://www.wikidata.org/wiki/Wikidata:WikiProject_British_Politicians
+# as of Feb 2019 this query will work comprehensively for any date since the 1886 election
+# including, where known, constituency, party, start & end dates, election, & reason term ended
+#
+# 1886 onwards = data precise to the day (a few minor exceptions wrt resignation dates etc)
+#                (taken from Historic Hansard/MySociety then manually cleaned & validated) 
+# 1832-1886 = data from Historic Hansard but not yet validated, known to be somewhat incomplete
+# 1386-1421, 1509-1604 = can only say \"served at some point during the term\" so 
+#                        there will be some ambiguities (note last column for relevant data)
+# 
+# data for earliest periods is taken from History of Parliament but due to gaps
+# in the historical record is inevitably not complete - eg 1401 has only 40 MPs.
+# 
+# 1640-1832 is completely blank, and 1421-1509, 1604-1640 are v patchy. 
+#
+# To run this query, change the date (\"2016-05-10T00:00:00Z\") below - keep the same format
+# then scroll down and click the blue [>] button to the lower left
+
+SELECT DISTINCT ?party1 ?name ?rgb (count(DISTINCT(?item)) as ?count) 
+where {
+  # # # #     # # # #     # # # # #
+  # # # # #     # # # #     # # # # # 
+  # # # # # # sub in value here # # # # 
+    bind((\"2016-05-10T00:00:00Z\"^^xsd:dateTime) as ?date) . 
+  # # # # # # sub in value here # # # #
+  # # # # #     # # # #     # # # # #
+  # # # #     # # # #     # # # # #
+  ?item p:P39 ?positionStatement . ?positionStatement ps:P39 ?term . 
+  { ?term wdt:P279 wd:Q16707842 } union { ?term wdt:P279 wd:Q18015642 } union { ?term wdt:P279 wd:Q18018860 } 
+  OPTIONAL { ?positionStatement pq:P768 ?constituency . }
+  { ?positionStatement pq:P4100 ?party . } # nb PARTY IS REQUIRED
+  OPTIONAL { ?positionStatement pq:P580 ?start . }
+  OPTIONAL { ?positionStatement pq:P582 ?end . }
+  ?term wdt:P571 ?termstart . optional { ?term wdt:P576 ?termend . }
+  filter (COALESCE(?start, ?termstart) <= ?date ) . filter (COALESCE(?end, ?termend, NOW()) >= ?date ) .
+  # use qualifier dates; if not known use term dates; if no end date use now
+ BIND(IF(?party = wd:Q6467393, wd:Q9630 , ?party) AS ?party1) .
+ optional { ?party1 wdt:P465 ?rgb } . # colour if known
+  
+  ?party1 rdfs:label ?longname FILTER (LANG(?longname) = \"en\") .
+ OPTIONAL { ?party1 wdt:P1813 ?shortname FILTER (LANG(?shortname) = \"en\") } 
+ BIND(IF(BOUND(?shortname), ?shortname, ?longname) AS ?name)
+  
+ SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+} group by ?party1 ?name ?rgb order by desc(?count)
+#defaultView:BubbleChart""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

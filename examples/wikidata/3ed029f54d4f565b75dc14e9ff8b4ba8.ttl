@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-3ed029f54d4f565b75dc14e9ff8b4ba8> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/Wikipedia_articles_using_a_transgender_person%E2%80%99s_deadname_in_the_title>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -44,4 +43,30 @@ SELECT ?item ?itemLabel ?deadnameEndTime ?article ?title WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY ?itemLabel ?article""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Wikipedia articles and other wiki pages using a transgender person’s deadname in the title
+# (this query only checks the given name of a person)
+SELECT ?item ?itemLabel ?deadnameEndTime ?article ?title WHERE {
+  ?item wdt:P31 wd:Q5;
+        # gender minority (includes most transgender or non-binary P21 values)
+        wdt:P21/wdt:P279* wd:Q11894636;
+        # deadnames are any names with an end time qualifier
+        p:P735 [
+          ps:P735/wdt:P1705 ?deadname;
+          pq:P582 ?deadnameEndTime
+        ].
+  # find articles (any project, not just Wikipedias) containing the deadname
+  ?article schema:about ?item;
+           schema:name ?title.
+  FILTER(CONTAINS(?title, ?deadname))
+  # remove articles that actually use the new name, but it’s a variant of the deadname (e. g. Andrej → Andreja) so they contain the deadname as well
+  FILTER NOT EXISTS {
+    ?item p:P735 ?nameStatement.
+    MINUS { ?nameStatement pq:P582 ?nameEndTime. }
+    ?nameStatement ps:P735/wdt:P1705 ?name.
+    FILTER(CONTAINS(?name, ?deadname) && CONTAINS(?title, ?name))
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?itemLabel ?article""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-60f60b4e788b26c6f52f0eea32dc8ed3> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Looniverse/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
@@ -28,4 +27,17 @@ SELECT DISTINCT ?spouse ?spouseLabel ?start ?end ?days #?spouse_height
   FILTER (?days > 0) .
 }
 ORDER BY ?days ?itemLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?spouse ?spouseLabel ?start ?end ?days #?spouse_height 
+{
+  ?spouse p:P26 ?spouse_statement .
+#  ?spouse p:P2048/psn:P2048/wikibase:quantityAmount ?spouse_height .
+  ?spouse_statement pq:P580 ?start .
+  OPTIONAL { ?spouse_statement pq:P582 ?x }
+  bind(if(bound(?x), ?x, NOW()) as ?end )
+  bind(floor(?end - ?start) as ?days)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+  FILTER (?days > 0) .
+}
+ORDER BY ?days ?itemLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-41cc0865ddd3260ff67d7bd777354886> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Heads_of_state_and_government/Report:P1313/P1365>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -36,4 +35,23 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
 }
 ORDER BY ?countryLabel ?officeLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?country ?countryLabel ?office ?officeLabel ?person ?personLabel ?replaces ?replacesLabel
+WHERE { 
+  ?country wdt:P31 wd:Q3624078 ;  # find all countries
+           wdt:P1313 ?office . # and their \"office held by head of government\"
+  FILTER NOT EXISTS { ?office wdt:P576 ?end_date } . # (non-dissolved)
+
+  OPTIONAL {
+    ?person p:P39 ?posn ; wdt:P31 wd:Q5 .  # find all humans with a position
+    ?posn ps:P39 ?office ;                 # of that office
+          pq:P580 ?start_date .            # where the position statement has a start date
+    OPTIONAL { ?posn pq:P582 ?end_date }  
+    FILTER ( !bound(?end_date)|| isBLANK(?end_date) ) . # but no end date
+    OPTIONAL { ?posn pq:P1365 ?replaces }  # and see who they replaced
+  }
+                                                                                          
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}
+ORDER BY ?countryLabel ?officeLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

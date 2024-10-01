@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-909efaef89490feb793b65b503d2f81e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
@@ -32,4 +31,20 @@ SELECT distinct ?partyLabel (sum(?duration) as ?total)
      # merges co-op into Labour
      SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 } group by ?partyLabel order by desc(?total)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT distinct ?partyLabel (sum(?duration) as ?total)
+   WHERE {
+     { ?mp p:P39 ?ps . ?ps ps:P39 wd:Q30524710 . ?ps pq:P580 ?start . ?ps pq:P582 ?end . 
+       ?ps pq:P4100 ?party1 . 
+       BIND((?end-?start) AS ?duration) }
+     # period for all ended terms
+     union
+     { ?mp p:P39 ?ps . ?ps ps:P39 wd:Q30524710 . ?ps pq:P580 ?start .
+       ?ps pq:P4100 ?party1 . 
+       filter not exists { ?ps pq:P582 ?end } . BIND(floor((NOW() - ?start)) as ?duration) }
+     # time elapsed in a term which is still ongoing; floor rounds down to whole days 
+     BIND(IF(?party1 = wd:Q6467393, wd:Q9630 , ?party1) AS ?party) .
+     # merges co-op into Labour
+     SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} group by ?partyLabel order by desc(?total)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

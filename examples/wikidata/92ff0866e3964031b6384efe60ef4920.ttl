@@ -1,23 +1,33 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-92ff0866e3964031b6384efe60ef4920> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/02>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?item ?author ?authorQID ?dob ?dod ?field ?description where
 {
-{  include %i}
+{  
+{ 
+  SELECT ?item ?author ?description
+WHERE 
+{
+  ?article wdt:P1433 wd:Q35387261. # article was published in costume
+  ?article wdt:P50 ?item . # here's an author
+  optional {?item rdfs:label ?author .  filter(lang(?author)=\"en\")} 
+  optional {?item schema:description ?description .  filter(lang(?description)=\"en\")} 
+
+}
+}}
           UNION
 {  
 { 
@@ -28,7 +38,7 @@ SELECT ?item ?author ?authorQID ?dob ?dod ?field ?description where
   } group by ?author ?description
 }}
 }""";
-  <http://example.org/bigdata_select> """SELECT ?item ?author ?authorQID ?dob ?dod ?field ?description with 
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?author ?authorQID ?dob ?dod ?field ?description with 
 { 
   SELECT ?item ?author ?description
 WHERE 
@@ -52,4 +62,5 @@ where
 {  include %i}
           UNION
 {  include %j }
-}""" .
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

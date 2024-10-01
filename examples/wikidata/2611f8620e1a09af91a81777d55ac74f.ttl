@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-2611f8620e1a09af91a81777d55ac74f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Lexicographical_data/Documentation/Languages/ja>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -70,4 +69,60 @@ WHERE {
     ?language wdt:P1098 ?value .
   }
 } 
-ORDER BY ?order""" .
+ORDER BY ?order""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title:日本語の語彙素数、語義数、語形数、話者数（ordiaより）
+SELECT ?description ?value ?valueUrl
+WHERE {
+  BIND(wd:Q5287 AS ?language)
+  {
+    BIND(1 AS ?order)
+    BIND(\"言語\" AS ?description)
+    ?language rdfs:label ?value_string .
+    FILTER (LANG(?value_string) = 'ja')
+    BIND(COALESCE(?value_string, ?q) AS ?value)
+  }
+  UNION
+  {
+    SELECT
+      (2 AS ?order)
+      (\"語彙素数\" AS ?description)
+      (COUNT(*) AS ?value)
+    {
+      [] dct:language wd:Q5287 .
+      BIND(1 AS ?dummy)
+    }
+    GROUP BY ?dummy
+  }
+  UNION
+  {
+    SELECT
+      (3 AS ?order)
+      (\"語義数\" AS ?description)
+      (COUNT(*) AS ?value)
+    {
+      [] ^ontolex:sense / dct:language wd:Q5287 .
+      BIND(1 AS ?dummy)
+    }
+    GROUP BY ?dummy
+  }
+  UNION
+  {
+    SELECT
+      (4 AS ?order)
+      (\"語形数\" AS ?description)
+      (COUNT(*) AS ?value)
+    {
+      [] ^ontolex:lexicalForm / dct:language wd:Q5287 .
+      BIND(1 AS ?dummy)
+    }
+    GROUP BY ?dummy
+  }
+  UNION
+  {
+    BIND(10 AS ?order)
+    BIND(\"話者数\" AS ?description)
+    ?language wdt:P1098 ?value .
+  }
+} 
+ORDER BY ?order""";
+  schema:target <https://query.wikidata.org/sparql> .

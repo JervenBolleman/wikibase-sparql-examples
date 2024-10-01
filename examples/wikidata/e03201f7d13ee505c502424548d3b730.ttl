@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-e03201f7d13ee505c502424548d3b730> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Seb35>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
@@ -27,4 +26,16 @@ WHERE {
 }
 GROUP BY ?groupeParlementaire ?groupeParlementaireLabel
 ORDER BY DESC(?nbMandats)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Groupes parlementaires et leur effectifs des députés en poste de la XVIe législature
+SELECT ?groupeParlementaire ?groupeParlementaireLabel (COUNT(?mandat) AS ?nbMandats)
+WHERE {
+  ?depute p:P39 ?mandat .
+  ?mandat pq:P2937 wd:Q112567597 .
+  OPTIONAL { ?mandat pq:P4100 ?groupeParlementaire } .
+  FILTER NOT EXISTS { ?mandat pq:P582 [] } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,en\" } .
+}
+GROUP BY ?groupeParlementaire ?groupeParlementaireLabel
+ORDER BY DESC(?nbMandats)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

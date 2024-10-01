@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-3a1690bc82e5393cf1c07df4048eda10> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
@@ -33,4 +32,21 @@ SELECT ?sultan ?sultanLabel ?sultan_start ?sultan_end ?vizier ?vizierLabel ?vizi
   
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 } ORDER BY ?sultan_start ?vizier_start""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?sultan ?sultanLabel ?sultan_start ?sultan_end ?vizier ?vizierLabel ?vizier_start ?vizier_end WHERE {
+ 
+    ?sultan p:P39 ?sultan_stmt .
+    ?sultan_stmt ps:P39 wd:Q15315411 .
+    OPTIONAL {?sultan_stmt pq:P580 ?sultan_start } .      
+    OPTIONAL {?sultan_stmt pq:P582 ?sultan_end } .
+
+    ?vizier p:P39 ?vizier_stmt .
+    ?vizier_stmt ps:P39 wd:Q15063567 .
+    OPTIONAL {?vizier_stmt pq:P580 ?vizier_start } .      
+    OPTIONAL {?vizier_stmt pq:P582 ?vizier_end } .
+  
+    FILTER ((?vizier_start <= ?sultan_end) && (?vizier_end >= ?sultan_start))
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY ?sultan_start ?vizier_start""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

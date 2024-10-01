@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-9e8c7ebc30106218c9123e0a871425d0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Digital_projects_of_museums/DigAMus_Award>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -121,4 +120,109 @@ WHERE
   }  
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" }  
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Graph
+SELECT ?nodeFrom ?nodeFromLabel ?nodeImage ?rgb ?edgeLabel ?nodeTo ?nodeToLabel ?nodeToImage
+WHERE
+{ 
+  {
+    SELECT
+      (?project AS ?nodeFrom)      
+      (?projectImage AS ?nodeFromImage)
+      (\"2e86c1\" AS ?rgb)
+      (\"award received\" AS ?edgeLabel)      
+      (?award AS ?nodeTo) 
+      (?awardImage AS ?nodeToImage)
+    WHERE 
+    {
+      ?project p:P166 ?awardStatement.      
+      ?awardStatement ps:P166 ?award.
+      ?award wdt:P361 wd:Q106748908.
+      OPTIONAL { ?project wdt:P18 ?projectImage. }
+      OPTIONAL { ?award wdt:P18 ?awardImage. }
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+    }
+  }
+  UNION
+  {
+    SELECT 
+      (?project AS ?nodeFrom)        
+      (?projectImage AS ?nodeFromImage)  
+      (\"2e86c1\" AS ?rgb)
+      (\"creator\" AS ?edgeLabel)      
+      (?creator AS ?nodeTo)  
+      (?creatorImage AS ?nodeToImage)
+    WHERE 
+    {
+      ?project p:P166 ?awardStatement.      
+      ?awardStatement ps:P166 ?award.
+      ?award wdt:P361 wd:Q106748908.
+      ?project wdt:P170 ?creator.
+      OPTIONAL { ?creator wdt:P18 ?creatorImage. }
+      OPTIONAL { ?project wdt:P18 ?projectImage. }
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+    }
+  } 
+  UNION  
+  {
+    SELECT 
+      (?award AS ?nodeFrom)  
+      (?awardImage AS ?nodeFromImage)          
+      (\"ec7063\" AS ?rgb)
+      (\"part of\" AS ?edgeLabel)      
+      (wd:Q106748908 AS ?nodeTo)
+      (?digamusAwardImage AS ?nodeToImage)
+    WHERE 
+    {
+      ?project p:P166 ?awardStatement.
+      ?awardStatement ps:P166 ?award.
+      ?award wdt:P361 wd:Q106748908.
+      OPTIONAL { ?award wdt:P18 ?awardImage. }
+      OPTIONAL { wd:Q106748908 wdt:P18 ?digamusAwardImage. }
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+    }
+  }
+  UNION
+  {
+    SELECT
+      (?project AS ?nodeFrom)      
+      (?projectImage AS ?nodeFromImage)
+      (\"2ecc71\" AS ?rgb)
+      (\"nominated\" AS ?edgeLabel)      
+      (?award AS ?nodeTo) 
+      (?awardImage AS ?nodeToImage)
+    WHERE 
+    {
+      ?project p:P1411 ?awardStatement.
+      FILTER ( NOT EXISTS { ?project wdt:P166 [] } )
+      ?awardStatement ps:P1411 ?award.
+      ?award wdt:P361 wd:Q106748908.      
+      OPTIONAL { ?project wdt:P18 ?projectImage. }
+      OPTIONAL { ?award wdt:P18 ?awardImage. }
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+    }
+  }
+  UNION
+  {
+    SELECT 
+      (?project AS ?nodeFrom)        
+      (?projectImage AS ?nodeFromImage)  
+      (\"2ecc71\" AS ?rgb)
+      (\"creator\" AS ?edgeLabel)      
+      (?creator AS ?nodeTo)  
+      (?creatorImage AS ?nodeToImage)
+    WHERE 
+    {
+      ?project p:P1411 ?awardStatement.
+      FILTER ( NOT EXISTS { ?project wdt:P166 [] } )
+      ?awardStatement ps:P1411 ?award.
+      ?award wdt:P361 wd:Q106748908.      
+      ?project wdt:P170 ?creator.
+      OPTIONAL { ?creator wdt:P18 ?creatorImage. }
+      OPTIONAL { ?project wdt:P18 ?projectImage. }
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+    }
+  }  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" }  
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

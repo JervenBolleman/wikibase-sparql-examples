@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-77e4a65334d287a7aecb3755ee683fdc> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Dirac>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -44,4 +43,31 @@ WHERE
 }
 ORDER BY DESC(?cityPopulation)
 #LIMIT 200""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Toutes les villes du Québec
+
+SELECT DISTINCT ?city ?cityLabel ?cityPopulation
+WHERE
+{
+  	?city wdt:P31/wdt:P279* wd:Q3788231 .  # find instances of subclasses of city
+    # Ville du Québec
+    OPTIONAL { ?city wdt:P3856 ?idQC }
+     FILTER(# code géographique des municipalités du Québec
+      BOUND(?idQC)    
+     )
+  
+	# Now select the population value of the ?city
+	# (wdt: properties use only statements of \"preferred\" rank if any, usually meaning \"current population\")
+   ?city p:P1082 ?populationStatement .
+   ?populationStatement ps:P1082 ?cityPopulation.
+   ?populationStatement pq:P585 ?date
+   FILTER NOT EXISTS { ?city p:P1082/pq:P585 ?date_ . FILTER (?date_ > ?date) } 
+  
+	# Optionally, find English labels for city and mayor:
+	SERVICE wikibase:label {
+		bd:serviceParam wikibase:language \"fr\" .
+	}
+}
+ORDER BY DESC(?cityPopulation)
+#LIMIT 200""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

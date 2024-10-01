@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-e34af562f5d02eeba715a86545444206> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:TweetsFactsAndQueries/Queries/biennales_that_aren%E2%80%99t_biennial>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -19,14 +18,33 @@ PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?biennale ?biennaleLabel WHERE {
-  INCLUDE %biennales.
+   {
+  SELECT DISTINCT ?biennale WHERE {
+    {  {
+  SELECT ?biennale WHERE {
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+                      wikibase:api \"Search\";
+                      mwapi:srsearch \"inlabel:biennale@en\";
+                      mwapi:srlimit \"max\".
+      ?biennale wikibase:apiOutputItem mwapi:title.
+    }
+  }
+} } UNION
+    {  {
+  SELECT ?biennale WHERE {
+    ?biennale wdt:P31/wdt:P279* wd:Q182683. 
+  }
+} }
+  }
+}
   ?biennale p:P2257/psv:P2257 ?interval.
   ?interval wikibase:quantityAmount ?intervalAmount;
             wikibase:quantityUnit ?intervalUnit.
   FILTER(!(?intervalAmount = 2 && ?intervalUnit IN (wd:Q577, wd:Q1092296)))
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <http://example.org/bigdata_select> """SELECT ?biennale ?biennaleLabel WITH {
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?biennale ?biennaleLabel WITH {
   SELECT ?biennale WHERE {
     SERVICE wikibase:mwapi {
       bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
@@ -52,4 +70,7 @@ SELECT ?biennale ?biennaleLabel WHERE {
             wikibase:quantityUnit ?intervalUnit.
   FILTER(!(?intervalAmount = 2 && ?intervalUnit IN (wd:Q577, wd:Q1092296)))
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>,
+    <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

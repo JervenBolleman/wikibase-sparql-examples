@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-75dd11ecb65c031222eaad178bcf1f1a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Quelet>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -33,4 +32,23 @@ SELECT ?centre ?centreLabel ?llocLabel ?ubiseuLabel ?muniLabel WHERE {
 }
 ORDER BY (?llocLabel)
 LIMIT 1000""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?centre ?centreLabel ?llocLabel ?ubiseuLabel ?muniLabel WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],ca,gl,es,en,as\". }
+# Institut de Catalunya 
+  ?centre (wdt:P31/(wdt:P279*)) wd:Q50359544.
+# possible localitzat a entitat territorial administrativa
+  OPTIONAL { ?centre wdt:P131 ?lloc. }
+# possible ubicat a  
+  OPTIONAL { ?centre wdt:P159 ?ubiseu.
+# potser ubicat a un carrer o plaça (potser hi faltaria alguna altra cosa)
+    OPTIONAL { ?ubiseu wdt:P31 wd:Q79007 .
+               ?ubiseu wdt:P31 wd:Q174782 .
+             ?ubiseu wdt:P131 ?muni . }
+# potser ubicat a un municipi de Catalunya
+    OPTIONAL { ?ubiseu wdt:P31 wd:Q33146843 .  }
+  }
+}
+ORDER BY (?llocLabel)
+LIMIT 1000""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

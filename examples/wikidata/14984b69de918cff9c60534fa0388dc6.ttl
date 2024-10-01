@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-14984b69de918cff9c60534fa0388dc6> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/11>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -47,4 +46,36 @@ SELECT DISTINCT ?item ?itemLabel ?itemDescription ?article ?result WHERE
   BIND(IF(BOUND(?ns)&&BOUND(?article),\"Has scholia\",
          IF(BOUND(?article),\"Scholia missing\",\"No article\")) as ?result)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?itemLabel ?itemDescription ?article ?result WHERE
+{
+  ?item wdt:P27 wd:Q664.
+  {?item wdt:P496 [].}                                # has an ORCId
+  UNION                                                 # and/or
+  {?university wdt:P31/wdt:P279* wd:Q4671277. hint:Prior hint:gearing \"forward\".
+  ?item wdt:P108 ?university.}                        # employed by an academic institution
+  UNION                                                 # and/or
+  { VALUES ?profession {wd:Q1650915 wd:Q66666607}     # occupation is researcher or academic
+    ?item wdt:P106/wdt:P279* ?profession .  hint:Prior hint:gearing \"forward\".}
+  OPTIONAL {                                          # get en-wiki articles having a Scholia template
+    SELECT ?item ?pageid ?ns WHERE {
+      SERVICE wikibase:mwapi {
+        bd:serviceParam wikibase:endpoint \"en.wikipedia.org\" .
+        bd:serviceParam wikibase:api \"Generator\" .
+        bd:serviceParam mwapi:generator \"search\" .
+        bd:serviceParam mwapi:gsrsearch \"hastemplate:\"Scholia\"\" .
+        bd:serviceParam mwapi:gsrlimit \"max\" .
+        ?item wikibase:apiOutputItem mwapi:item .
+        ?ns wikibase:apiOutput \"@ns\" .
+       }
+    } LIMIT 10000                             
+  }
+     OPTIONAL {                                        # ?item might have an EN wiki article
+    ?article schema:about ?item ;
+          schema:isPartOf <https://en.wikipedia.org/> 
+  }
+  BIND(IF(BOUND(?ns)&&BOUND(?article),\"Has scholia\",
+         IF(BOUND(?article),\"Scholia missing\",\"No article\")) as ?result)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

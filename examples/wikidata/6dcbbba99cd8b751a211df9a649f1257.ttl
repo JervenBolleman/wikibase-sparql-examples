@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-6dcbbba99cd8b751a211df9a649f1257> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Property_talk:P131>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
@@ -40,4 +39,31 @@ SELECT  ?commune ?departement WHERE {
     wd:Q6465 # département de France métropolitaine
     wd:Q28332 # ou ultramarin
   }
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT  ?commune ?departement WHERE {
+  ?commune p:P31 ?communeStatement . # les trucs qui sont potentiellement
+  ?communeStatement ps:P31 ?type . # ...un des types autorisés ci-dessous
+  VALUES ?type {
+    wd:Q484170 # commune française
+    wd:Q2989454 # commune nouvelle
+    wd:Q22927616 # commune française à statut particulier
+  }
+  FILTER NOT EXISTS {
+    ?communeStatement pq:P582 [] . # mais alors vraiment des communes pur cru, sans date de fin
+  }
+  ?commune p:P131 ?communeDepartementStatement . # qui sont dans un département
+  ?communeDepartementStatement ps:P131 ?departement . 
+  FILTER NOT EXISTS { # mais qui y sont sans date de fin
+    ?communeDepartementStatement pq:P582 [] .
+  }
+  ?departement p:P31 ?departementExistsStatement .
+  FILTER NOT EXISTS {
+    ?departementExistsStatement pq:P582 [] . # un département sans date de fin 
+  }
+  ?departementExistsStatement ps:P31 ?departementType .
+  VALUES ?departementType {
+    wd:Q6465 # département de France métropolitaine
+    wd:Q28332 # ou ultramarin
+  }
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

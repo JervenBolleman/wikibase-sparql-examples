@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-72963ae72aa2eb2c6ff8f0ad3170dc74> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/01>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -45,4 +44,31 @@ WHERE
   }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?country ?countryLabel ?no_of_airports ?population
+WHERE
+{
+  {
+    SELECT ?country (COUNT(?airport) AS ?no_of_airports)
+    WHERE
+    {
+      ?airport wdt:P17 ?country.
+      ?airport wdt:P31/wdt:P279* wd:Q1248784.
+      OPTIONAL { ?airport wdt:P580|wdt:P571 ?starttime. }
+      OPTIONAL { ?airport wdt:P582|wdt:P576 ?endtime. }
+      FILTER((! BOUND(?endtime) || ?endtime >= \"2001-01-01\"^^xsd:dateTime) &&
+             (! BOUND(?starttime) || ?starttime < \"2000-01-01\"^^xsd:dateTime))
+    }
+    GROUP BY ?country
+  }
+  OPTIONAL
+  {
+    ?country p:P1082 [
+              ps:P1082 ?population;
+              pq:P585 ?population_time
+            ].
+    FILTER(SUBSTR(STR(?population_time),1,4) = \"2000\")
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

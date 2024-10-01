@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-f6389eb4edfe70e80a02c2a1f7a9f48e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/02>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -29,4 +28,16 @@ SELECT ?item ?taxon_name ?PL_id ?PLLink   WHERE {
   MINUS {?stat pq:P405 ?taxon_author.}
 }
 ORDER BY ?taxon_name""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?taxon_name ?PL_id ?PLLink   WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+  ?item p:P225 ?stat . 
+  ?stat ps:P225 ?taxon_name .
+  ?item wdt:P171/wdt:P171 wd:Q156569 . # parent taxon of parent taxon is Q156569
+  OPTIONAL { ?item wdt:P1070 ?PL_id } # PlantList ID
+  ?item wdt:P105 wd:Q7432. # taxon rank is species
+  bind(uri(concat(\"http://www.theplantlist.org/tpl1.1/record/\",?PL_id)) as ?PLLink)  
+  MINUS {?stat pq:P405 ?taxon_author.}
+}
+ORDER BY ?taxon_name""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

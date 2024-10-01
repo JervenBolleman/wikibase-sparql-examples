@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-76868b0772511771e1cce776445bfb1c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Pallor/Archive_2023>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
@@ -30,4 +29,19 @@ SELECT ?item ?itemLabel ?birth ?death WHERE {
   }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],hu,en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?birth ?death WHERE {
+  {
+    SELECT ?item ?birth ?death WHERE {
+      # A születésnap kigyűjtése, csak ha legalább nap pontosságú (pontosabbat nem is lehet felvinni, de elvileg a Wikidata tudná tárolni)
+      ?item p:P569 ?pbdate. ?pbdate ps:P569 ?birth; psv:P569/wikibase:timePrecision ?bprec FILTER(?bprec >= 11).
+      # A halálozási dátum kigyűjtése, csak ha legalább nap pontosságú
+      ?item p:P570 ?pddate. ?pddate ps:P570 ?death; psv:P570/wikibase:timePrecision ?dprec FILTER(?dprec >= 11).
+
+      # Azonos a kettő hónap/nap része?
+      FILTER(MONTH(?birth) = MONTH(?death) && DAY(?birth) = DAY(?death)).
+    } LIMIT 250
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],hu,en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

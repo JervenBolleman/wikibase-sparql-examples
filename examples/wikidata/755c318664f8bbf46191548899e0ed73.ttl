@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-755c318664f8bbf46191548899e0ed73> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Hsarrazin/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -25,4 +24,17 @@ SELECT ?item ?itemLabel ?dod ?dob  WHERE {
   OPTIONAL { ?item rdfs:label ?itemLabel . FILTER(LANG(?itemLabel)=\"fr\") . }
   OPTIONAL { ?item wdt:P569 ?dob.}
 }
-ORDER BY DESC(?dod)""" .
+ORDER BY DESC(?dod)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# personnes mortes en 2015, sans prénom, et sans label fr…
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT ?item ?itemLabel ?dod ?dob  WHERE {
+  ?item wdt:P31 wd:Q5.
+  ?item wdt:P570 ?dod.
+  FILTER(NOT EXISTS { ?item wdt:P735 ?prenom. })
+  FILTER((?dod < \"2016-00-00T00:00:00Z\"^^xsd:dateTime) && (?dod >= \"2015-00-00T00:00:00Z\"^^xsd:dateTime))
+  OPTIONAL { ?item rdfs:label ?itemLabel . FILTER(LANG(?itemLabel)=\"fr\") . }
+  OPTIONAL { ?item wdt:P569 ?dob.}
+}
+ORDER BY DESC(?dod)""";
+  schema:target <https://query.wikidata.org/sparql> .

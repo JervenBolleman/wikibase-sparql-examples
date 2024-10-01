@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-83cbcea9a7506918e292cb26d08ada28> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Succu/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -29,4 +28,21 @@ SELECT ?item (SUBSTR(?published1, 1, 10) as ?published )?volume ?issue ?pages ?d
   BIND(if(contains(?pages,  \"–\"), strafter(?pages, \"–\"), ?pages) as ?endpage)
   FILTER (contains(lcase(?title), \"notification that new names\"))
 }
-ORDER BY ASC(?published) ASC(xsd:integer(?issue)) ASC(xsd:integer(?startpage))""" .
+ORDER BY ASC(?published) ASC(xsd:integer(?issue)) ASC(xsd:integer(?startpage))""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item (SUBSTR(?published1, 1, 10) as ?published )?volume ?issue ?pages ?doi ?pubMedId ?title WHERE {  
+  VALUES ?journalItems {wd:Q26827892 wd:Q26827884 wd:Q3511931} .
+  ?item wdt:P1433 ?journalItems .  
+  OPTIONAL {?item wdt:P577 ?published1} .
+  OPTIONAL {?item wdt:P478 ?volume} .
+  OPTIONAL {?item wdt:P433 ?issue} .
+  OPTIONAL {?item wdt:P304 ?pages0} . 
+  OPTIONAL {?item wdt:P356 ?doi} .
+  OPTIONAL {?item wdt:P698 ?pubMedId} .  
+  OPTIONAL {?item wdt:P1476 ?title} . 
+  BIND(REPLACE(?pages0, \"-\", \"–\") AS ?pages)
+  BIND(if(contains(?pages,  \"–\"), strbefore(?pages, \"–\"), ?pages) as ?startpage)
+  BIND(if(contains(?pages,  \"–\"), strafter(?pages, \"–\"), ?pages) as ?endpage)
+  FILTER (contains(lcase(?title), \"notification that new names\"))
+}
+ORDER BY ASC(?published) ASC(xsd:integer(?issue)) ASC(xsd:integer(?startpage))""";
+  schema:target <https://query.wikidata.org/sparql> .

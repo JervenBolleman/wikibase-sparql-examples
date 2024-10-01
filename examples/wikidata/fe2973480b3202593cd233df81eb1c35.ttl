@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-fe2973480b3202593cd233df81eb1c35> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stefan_K%C3%BChn/Dresden>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -42,4 +41,32 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en,[AUTO_LANGUAGE]\". }
 }
 order by ?Nachtansicht ?Panoramaansicht ?Aussicht ?Luftbild ?Innenansicht ?Grundriss ?itemLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#---------------------------------------------------------------------------------------
+# Besondere Ansichten von Dresden
+#---------------------------------------------------------------------------------------
+#defaultView:Map{\"layer\":\"?instance_ofLabel\"}
+SELECT  distinct ?item ?itemLabel ?itemDescription ?Nachtansicht ?Panoramaansicht ?Aussicht ?Luftbild ?Innenansicht ?Grundriss ?Eingang ?coordinate
+WHERE {    
+  ?item (wdt:P131/wdt:P279*) wd:Q1731.            # liegt in Verwaltungseinheit Dresden
+  
+  {?item wdt:P3451 ?Nachtansicht}                # hat Nachtansicht
+  union
+  {?item wdt:P4291 ?Panoramaansicht}             # hat Panoramaansicht
+  union
+  {?item wdt:P8517 ?Aussicht}                    # hat Aussicht
+  union
+  {?item wdt:P8592 ?Luftbild}                    # hat Luftbild
+  union
+  {?item wdt:P5775 ?Innenansicht}                # hat Innenansicht
+  union
+  {?item wdt:P3311 ?Grundriss}                   # hat Grundriss 
+  union
+  {?item wdt:P9721 ?Eingang}                     # Bild Eingang
+  
+  OPTIONAL{?item wdt:P625 ?coordinate.}                  # Koordinate für Kartendarstellung auslesen
+  #BIND(IF(BOUND(?street),\"FFA500\",\"7FFF00\") AS ?rgb)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en,[AUTO_LANGUAGE]\". }
+}
+order by ?Nachtansicht ?Panoramaansicht ?Aussicht ?Luftbild ?Innenansicht ?Grundriss ?itemLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c30fb9ccedfcbb06cf4248dc54c0f564> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_India/Queries/MKar>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -59,4 +58,46 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\
 #ORDER BY ASC(?itemLabel)
 ORDER BY DESC(?year)
 #ORDER BY DESC(?linkcount)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Padma awardees (using UNION), 3759 items @26JAN2022
+SELECT ?item ?linkcount ?itemLabel ?itemDescription ?awardvalLabel ?year WHERE {
+ ?item wdt:P31 wd:Q5.                   # <<<<<< Item = Human
+ ?item p:P166 ?award.
+ ?award ps:P166 ?awardval.
+ 
+{ ?award ps:P166 wd:Q672392. }         # <<<<<< Award = Padma Vibhushan
+UNION { ?award ps:P166 wd:Q84042880.}  # <<<<<< Padma Vibhushan_Public Affairs
+UNION { ?award ps:P166 wd:Q30143915 }  # <<<<<< Padma Vibhushan_Literature
+UNION { ?award ps:P166 wd:Q30147268 }  # <<<<<< Padma Vibhushan_Science and Engineering
+UNION { ?award ps:P166 wd:Q30147343}   # <<<<<< Padma Vibhushan_Trade and Industry
+ 
+UNION { ?award ps:P166 wd:Q932650. }   # <<<<<< Award = Padma Bhushan
+UNION { ?award ps:P166 wd:Q30197118}   # <<<<<< Padma Bhushan in Sc. & Eng.
+UNION { ?award ps:P166 wd:Q63877754}      # <<<<<< Award = Padma Bhushan in Lit. & Education
+UNION { ?award ps:P166 wd:Q110686881}      # <<<<<< Award = Padma Bhushan in Trade & Industry
+
+UNION { ?award ps:P166 wd:Q949193. }   # <<<<<< Award = Padma Shri
+UNION { ?award ps:P166 wd:Q30132541}   # Art
+UNION { ?award ps:P166 wd:Q30132621}   # Literature & Edu
+UNION { ?award ps:P166 wd:Q30132672}   # Medicine
+UNION { ?award ps:P166 wd:Q30132492}   # Science & Engineering
+UNION { ?award ps:P166 wd:Q30133065}   # Sports
+UNION { ?award ps:P166 wd:Q30132984}   # Social Work
+UNION { ?award ps:P166 wd:Q60671348}   # Trade & Industry
+UNION { ?award ps:P166 wd:Q30132589}   # Civil
+UNION { ?award ps:P166 wd:Q60671291}   # Other
+UNION { ?award ps:P166 wd:Q60671325}   # <<<<<< Padma Shri in Public Aff.
+ 
+OPTIONAL { ?item wikibase:sitelinks ?linkcount. } # <<<<<< Link count 
+# Award given in year filter 
+OPTIONAL { ?award pq:P585 ?time. }# <<<<<< Award has a time statement 
+BIND(YEAR(?time) AS ?year)
+# filter(year(?time)=2022)                # <<<<<< Filter for Award time = 2022  
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+# Items without the qualifer point in time # Source: Qualifers on a Heritage Register Item (Wikidata:Request_a_query/Archive/2019/01)
+#filter not exists {?item p:P166 [pq:P585 [] ].}  # <<<<<< filter for items without the qualifier point in time 
+}
+#ORDER BY ASC(?itemLabel)
+ORDER BY DESC(?year)
+#ORDER BY DESC(?linkcount)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

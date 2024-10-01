@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-5890182c5abf1031a1d30985321e8dca> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:PAC2/Tour_de_France>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -36,4 +35,25 @@ SELECT ?winner ?winnerLabel (COUNT(*) AS ?count) WHERE {
   FILTER((LANG(?countryLabel)) = \"[AUTO_LANGUAGE]\" ) 
 }
 GROUP BY ?winner ?winnerLabel
-ORDER BY DESC(?count)""" .
+ORDER BY DESC(?count)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title: List of all stage winners by country
+SELECT ?winner ?winnerLabel (COUNT(*) AS ?count) WHERE {
+  ?tour wdt:P31 wd:Q33881;
+        rdfs:label ?tourLabel.
+  FILTER(LANG(?tourLabel) = \"[AUTO_LANGUAGE]\" )
+ ?item wdt:P361 ?tour;
+    rdfs:label ?itemLabel.
+  FILTER(LANG(?itemLabel) = \"[AUTO_LANGUAGE]\" )
+  ?item wdt:P585 ?date. 
+  ?item p:P1346 ?statement.
+  ?statement ps:P1346 ?winner.
+  ?statement pq:P642 wd:Q20882747 .
+  ?winner rdfs:label ?winnerLabel.
+  FILTER((LANG(?winnerLabel)) = \"[AUTO_LANGUAGE]\" )
+  ?winner wdt:P27 ?country.
+  ?country rdfs:label ?countryLabel.
+  FILTER((LANG(?countryLabel)) = \"[AUTO_LANGUAGE]\" ) 
+}
+GROUP BY ?winner ?winnerLabel
+ORDER BY DESC(?count)""";
+  schema:target <https://query.wikidata.org/sparql> .

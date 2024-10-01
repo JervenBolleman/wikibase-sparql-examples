@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-05b1fae801a811730d5e9e67948a1fff> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Bouzinac/Histoire>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -50,4 +49,36 @@ BIND(?days/365.00 as ?years)
 }
 group by ?siège ?siègeLabel ?start ?tp_end ?tv_end ?end ?days ?years  ?_articleFR ?_articleEN
 order by desc(?years) ?whereLabel2""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+select ?siège ?siègeLabel (sample(?whereLabel) as ?whereLabel2) ?start ?tp_end ?tv_end ?end ?days ?years ?_articleFR ?_articleEN {
+SELECT ?siège ?siègeLabel ?whereLabel ?start ?tp_end ?tv_end ?end ?days ?years ?_articleFR ?_articleEN WHERE {
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+?siège wdt:P31 wd:Q188055.
+OPTIONAL { ?siège wdt:P580 ?start. }
+OPTIONAL { 
+           ?siège p:P582/psv:P582 ?p582node. 
+           ?p582node wikibase:timeValue ?tv_end .       # get the time value
+           ?p582node wikibase:timePrecision ?tp_end .   # get the time precision
+           BIND(
+             IF(?tp_end=9,?tv_end + \"P1Y\"^^xsd:duration - \"P1D\"^^xsd:duration,# set end date to 31 December if time precision is \"year\" (9)
+             IF(?tp_end=10,?tv_end + \"P1M\"^^xsd:duration - \"P1D\"^^xsd:duration,# set end date to 28th if time precision is \"month\" (10)
+             ?tv_end))
+              AS ?end).
+         }
+OPTIONAL { ?siège wdt:P276 ?where. } 
+OPTIONAL { ?siège p:P2047/psn:P2047/wikibase:quantityAmount ?lengthNorm.}
+BIND(COALESCE(?lengthNorm/86400,(?end - ?start+1)) as ?days)
+BIND(?days/365.00 as ?years)
+    OPTIONAL {
+    ?_articleFR schema:about ?siège.
+    ?_articleFR schema:isPartOf <https://fr.wikipedia.org/>.
+    ?_articleEN schema:about ?siège.
+    ?_articleEN schema:isPartOf <https://en.wikipedia.org/>.
+  }
+}
+}
+group by ?siège ?siègeLabel ?start ?tp_end ?tv_end ?end ?days ?years  ?_articleFR ?_articleEN
+order by desc(?years) ?whereLabel2""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

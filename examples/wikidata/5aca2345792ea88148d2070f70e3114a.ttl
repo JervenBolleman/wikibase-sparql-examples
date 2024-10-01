@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-5aca2345792ea88148d2070f70e3114a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/07>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -24,4 +23,14 @@ SELECT DISTINCT ?person ?personLabel ?born ?bornLabel ?coord {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
 }
 #defaultView:Map""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?person ?personLabel ?born ?bornLabel ?coord {
+  ?position wdt:P279* wd:Q1711695 .          # 1. find all the MSP positions
+  ?person wdt:P39 ?position .                # 2. did they hold any MSP position
+  ?person wdt:P19 ?born .                    # 3. where were they born
+  ?born wdt:P131* wd:Q22 .                   # 4. this bit filters down to just \"in Scotland\"
+  OPTIONAL { ?born wdt:P625 ?coord . }       # 5. coordinates if available
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}
+#defaultView:Map""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

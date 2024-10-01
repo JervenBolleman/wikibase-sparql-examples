@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-a2e926c002478cab3b3b34c28334ed4f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Report_a_technical_problem/WDQS_and_Search/Archive/2021>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -41,4 +40,31 @@ WHERE
   OPTIONAL {?author wdt:P136 ?genre .?genre rdfs:label ?genreLabel filter (lang(?genreLabel) = \"es\")}. 
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\" }
 } GROUP BY ?author ?authorLabel ?dob ?dod ?birthplaceLabel ?goodreads ?countryLabel ?workLabel ?isni""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT distinct  ?author ?authorLabel ?dob ?dod ?birthplaceLabel ?goodreads ?countryLabel  ?workLabel ?isni
+(GROUP_CONCAT(DISTINCT ?occupationLabel; separator = \", \") as ?occupationLabels) 
+(GROUP_CONCAT(DISTINCT ?educatedLabel; separator = \", \") as ?educatedLabels ) 
+(GROUP_CONCAT(DISTINCT ?nomineeLabel; separator = \", \") as ?nomineeLabels) 
+(GROUP_CONCAT(DISTINCT ?awardLabel; separator = \", \") as ?awardLabels )
+(GROUP_CONCAT(DISTINCT ?genreLabel; separator = \", \") as ?genreLabels )
+(GROUP_CONCAT(DISTINCT ?pseudonym; separator = \", \") as ?pseudonyms )
+WHERE 
+{ 
+  ?author rdfs:label \"Jorge Luis Borges\"@es .
+  ?author rdfs:label ?authorLabel filter (lang(?authorLabel)='es').
+  OPTIONAL {?author wdt:P569 ?dob } .
+  OPTIONAL {?author wdt:P570 ?dod } .
+  OPTIONAL {?author wdt:P19 ?birthplace .?birthplace rdfs:label ?birthplaceLabel filter (lang(?birthplaceLabel) = \"es\")}.
+  OPTIONAL {?author wdt:P2963 ?goodreads } . 
+  OPTIONAL {?author wdt:P27 ?country .?country rdfs:label ?countryLabel filter (lang(?countryLabel) = \"es\")}. 
+  OPTIONAL {?author wdt:P742 ?pseudonym }. 
+  OPTIONAL {?author wdt:P106 ?occupation .?occupation rdfs:label ?occupationLabel filter (lang(?occupationLabel) = \"es\")} . 
+  OPTIONAL {?author wdt:P101 ?work .?work rdfs:label ?workLabel filter (lang(?workLabel) = \"es\")}. 
+  OPTIONAL {?author wdt:P1411 ?nominee .?nominee rdfs:label ?nomineeLabel filter (lang(?nomineeLabel) = \"es\")}. 
+  OPTIONAL {?author wdt:P69 ?educated .?educated rdfs:label ?educatedLabel filter (lang(?educatedLabel) = \"es\")}. 
+  OPTIONAL {?author wdt:P166 ?award . ?award rdfs:label ?awardLabel  filter (lang(?awardLabel) = \"es\")}. 
+  OPTIONAL {?author wdt:P213 ?isni }. 
+  OPTIONAL {?author wdt:P136 ?genre .?genre rdfs:label ?genreLabel filter (lang(?genreLabel) = \"es\")}. 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\" }
+} GROUP BY ?author ?authorLabel ?dob ?dod ?birthplaceLabel ?goodreads ?countryLabel ?workLabel ?isni""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

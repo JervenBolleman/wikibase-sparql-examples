@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-fb738f0332873429beb340a749f40c76> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/01>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX schema: <http://schema.org/>
@@ -25,4 +24,15 @@ SELECT ?item ?itemLabel ?sitelink_en ?sitelink_de ?ATP_Kennung (GROUP_CONCAT(?si
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en,[AUTO_LANGUAGE]\". }
 }
 GROUP BY ?item ?itemLabel ?sitelink_en ?sitelink_de ?ATP_Kennung ?sitelinks""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?sitelink_en ?sitelink_de ?ATP_Kennung (GROUP_CONCAT(?sitey;SEPARATOR=' ') AS ?sites) {
+  OPTIONAL { ?item wdt:P536 ?ATP_Kennung. }
+  ?article schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> ;  schema:name ?sitelink_en .
+  ?article schema:about ?item ; schema:isPartOf <https://de.wikipedia.org/> ;  schema:name ?sitelink_de .
+  ?site schema:about ?item . 
+  BIND(STRAFTER(STRBEFORE(STR(?site),'.org'),'//') AS ?sitex)
+  BIND(STRBEFORE(?sitex,'.') AS ?sitey)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en,[AUTO_LANGUAGE]\". }
+}
+GROUP BY ?item ?itemLabel ?sitelink_en ?sitelink_de ?ATP_Kennung ?sitelinks""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

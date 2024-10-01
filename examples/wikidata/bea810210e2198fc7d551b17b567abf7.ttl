@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-bea810210e2198fc7d551b17b567abf7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Toni_001>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -43,4 +42,29 @@ where {
   }
 }
 group by ?clause
-order by (100 * xsd:integer(strbefore(?clause, \".\")) + xsd:integer(strafter(?clause, \".\")))""" .
+order by (100 * xsd:integer(strbefore(?clause, \".\")) + xsd:integer(strafter(?clause, \".\")))""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """select
+  ?clause
+  (group_concat(distinct ?namedAs; separator = \"; \") as ?officialLabels)
+  (sample(?item) as ?item)
+  (sample(?label) as ?label)
+  (sample(?desc) as ?desc)
+  (sample(?iev) as ?iev)
+  (count(distinct ?wp) as ?wpCount)
+where {
+  ?item p:P1343 [
+    ps:P1343 wd:Q70257574 ;
+    pq:P958 ?clause ;
+    pq:P1810 ?namedAs ;
+  ] .
+  optional { ?item rdfs:label ?label . filter (lang(?label) = \"en\") }
+  optional { ?item schema:description ?desc . filter (lang(?desc) = \"en\") }
+  optional { ?item wdt:P8855 ?iev }
+  optional {
+    ?wp schema:about ?item ;
+        schema:isPartOf / wikibase:wikiGroup \"wikipedia\" .
+  }
+}
+group by ?clause
+order by (100 * xsd:integer(strbefore(?clause, \".\")) + xsd:integer(strafter(?clause, \".\")))""";
+  schema:target <https://query.wikidata.org/sparql> .

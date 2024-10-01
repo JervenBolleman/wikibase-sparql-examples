@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c5677cf719f61b87c7b693cae595aa42> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_Eurovision>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -29,4 +28,16 @@ SELECT (YEAR(?date) AS ?year) ?winner ?winnerLabel ?countryLabel ?songLabel (SAM
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 } GROUP BY ?date ?winner ?winnerLabel ?countryLabel ?songLabel
 ORDER BY ?year""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT (YEAR(?date) AS ?year) ?winner ?winnerLabel ?countryLabel ?songLabel (SAMPLE(?img) AS ?image) WHERE {
+  ?contest wdt:P31 wd:Q110288240. # Each contest
+  ?contest wdt:P585 ?date. # Get month and year (we'll just use year)
+  ?song p:P1344 ?s. ?s ps:P1344 ?contest. # Song participant in contest
+  ?s pq:P1352 ?rank FILTER (?rank = 1).
+  ?song wdt:P175 ?winner.
+ OPTIONAL{ ?s pq:P17 ?country}
+ OPTIONAL{ ?winner wdt:P18 ?img }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} GROUP BY ?date ?winner ?winnerLabel ?countryLabel ?songLabel
+ORDER BY ?year""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

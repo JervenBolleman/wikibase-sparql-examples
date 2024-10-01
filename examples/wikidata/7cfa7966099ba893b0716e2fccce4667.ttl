@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-7cfa7966099ba893b0716e2fccce4667> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/01>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -36,4 +35,25 @@ WHERE
     ?year rdfs:label ?yearname .
   }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?dob ?dobmonth ?dobyear ?strdobyear ?year ?yearname
+WHERE 
+{
+  ?item wdt:P31 wd:Q5. # human
+  ?item wdt:P569 ?dob. # with a DoB
+  ?item wdt:P106 wd:Q82955. # politician - cut down the result set size
+  ?item wdt:P27 wd:Q145. #British - ditto
+  bind(year(?dob) as ?dobyear) # get the year
+  bind(month(?dob) as ?dobmonth) # get the month
+  filter(?dobmonth=1) # Only interested in January births
+  bind(str(?dobyear) as ?strdobyear) # just in case ?dobyear is an int
+        
+#  ?year wdt:P31 wd:Q19828. # year is a leap year
+#  filter(?yearname=?strdobyear) #DoB year is a leap year
+        
+  SERVICE wikibase:label { 
+    bd:serviceParam wikibase:language \"en\".
+    ?year rdfs:label ?yearname .
+  }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

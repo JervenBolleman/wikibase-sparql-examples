@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-7fdb88087bec9c3cbe07f0be5ac43894> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/01>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -63,4 +62,51 @@ WHERE
   } 
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"cs,en\" } .
 }
-ORDER BY DESC(?revenue_USD)""" .
+ORDER BY DESC(?revenue_USD)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?revenue ?unitLabel ?hqLabel (?usd * ?revenue AS ?revenue_USD) ?date
+WHERE
+{
+  { ?item wdt:P31 wd:Q4830453;
+        wdt:P159 ?hq;
+        p:P2139 ?statement .
+  FILTER NOT EXISTS { ?statement wikibase:rank wikibase:DeprecatedRank } .
+  FILTER NOT EXISTS {
+    ?item p:P2139 ?statement1 .
+    ?statement1 wikibase:rank wikibase:PreferredRank .
+    FILTER( ?statement1 != ?statement ) .
+  } .
+  OPTIONAL { ?statement pq:P585 ?date } .
+  ?statement psv:P2139 [
+    wikibase:quantityAmount ?revenue; wikibase:quantityUnit ?unit
+  ] .
+  ?unit p:P2284 ?unit_statement .
+  FILTER NOT EXISTS { ?unit_statement wikibase:rank wikibase:DeprecatedRank } .
+  FILTER NOT EXISTS {
+    ?unit p:P2284 ?unit_statement1 .
+    ?unit_statement1 wikibase:rank wikibase:PreferredRank .
+    FILTER( ?unit_statement1 != ?unit_statement ) .
+  } .
+  ?unit_statement psv:P2284 [
+    wikibase:quantityUnit wd:Q4917; wikibase:quantityAmount ?usd
+  ] .
+  } 
+  UNION
+  {
+  ?item wdt:P31 wd:Q4830453;
+        wdt:P159 ?hq;
+        p:P2139 ?statement .
+  ?statement psv:P2139 [
+  wikibase:quantityUnit wd:Q4917; wikibase:quantityAmount ?revenue_USD
+  ] .    
+  FILTER NOT EXISTS { ?statement wikibase:rank wikibase:DeprecatedRank } .
+  FILTER NOT EXISTS {
+    ?item p:P2139 ?statement1 .
+    ?statement1 wikibase:rank wikibase:PreferredRank .
+    FILTER( ?statement1 != ?statement ) .
+  } .
+  OPTIONAL { ?statement pq:P585 ?date } .
+  } 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"cs,en\" } .
+}
+ORDER BY DESC(?revenue_USD)""";
+  schema:target <https://query.wikidata.org/sparql> .

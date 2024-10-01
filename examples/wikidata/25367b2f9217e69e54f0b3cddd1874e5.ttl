@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-25367b2f9217e69e54f0b3cddd1874e5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Bot_requests/Archive/2021/11>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
@@ -36,4 +35,22 @@ WHERE
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 LIMIT 100""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT
+  ?item ?itemLabel ?itemDescription
+WHERE
+{
+  ?st a wdno:P26 .
+  ?item p:P26 ?st .
+  OPTIONAL { ?st prov:wasDerivedFrom ?source . 
+            FILTER NOT EXISTS { ?source pr:P143 [] } 
+           } 
+  FILTER(!bound(?source)) 
+  ?item wdt:P31 wd:Q5 ; wdt:P570 ?d . 
+  FILTER ( YEAR(?d) > 1600 ) 
+  FILTER NOT EXISTS { ?item wdt:P106 wd:Q1469535 }
+  FILTER NOT EXISTS { ?item wdt:P26 []  }  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+LIMIT 100""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-71250da2e7976ad5aaf5f89046219bce> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/08>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX schema: <http://schema.org/>
@@ -87,5 +86,74 @@ WHERE {
                            ?class rdfs:label ?classLabel . }
 }
 GROUP BY ?item""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT
+  ?item
+  (SAMPLE(?label) AS ?label)
+  (SAMPLE(?description) AS ?description)
+  (SAMPLE(?class) AS ?class)
+  (SAMPLE(?classLabel) AS ?classLabel)
+  (SAMPLE(?pic) AS ?pic)
+  (SAMPLE(?destroyed) AS ?destroyed)
+  (SAMPLE(?endTime) AS ?endTime)
+  (SAMPLE(?wikipediaArticle) AS ?wikipediaArticle)
+  (SAMPLE(?commonsArticle) AS ?commonsArticle)
+  (SAMPLE(?commonsCategory) AS ?commonsCategory)
+  (SAMPLE(?monument) AS ?monument)
+WHERE {
+  # Around given location
+  SERVICE wikibase:around {
+    ?item wdt:P625 ?location.
+    bd:serviceParam wikibase:center \"Point(4.89 52.37)\"^^geo:wktLiteral. # Longitude latitude
+    bd:serviceParam wikibase:radius \"1\". # Radius in kilometers.
+  }
+
+  # Get the label in the preferred language of the user, or any other language if no label is available in that language.
+  
+
+  # Get the description in the preferred language of the user, or any other language if no description is available in that language.
+  
+  # Get the class label in the preferred language of the user, or any other language if no label is available in that language.
+  OPTIONAL {
+  ?item p:P31/ps:P31 ?class.
+  }
+
+  # Get picture
+  OPTIONAL {?item wdt:P18 ?pic}
+
+  # Get existence
+  OPTIONAL {?item wdt:P576 ?destroyed}
+  OPTIONAL {?item wdt:P582 ?endTime}
+
+  # Get Commons category
+  OPTIONAL {?item wdt:P373 ?commonsCategory}
+
+  # Get Wikipedia article
+  OPTIONAL {
+    ?wikipediaArticle schema:about ?item.
+    ?wikipediaArticle schema:isPartOf <https://en.wikipedia.org/>. # TODO internationalization
+  }
+
+  # Get Commons article
+  OPTIONAL {
+    ?commonsArticle schema:about ?item.
+    ?commonsArticle schema:isPartOf <https://commons.wikimedia.org/>.
+  }
+
+  # Wiki Loves Monuments
+  OPTIONAL {?item p:P1435 ?monument}
+  OPTIONAL {?item p:P2186 ?monument}
+  OPTIONAL {?item p:P1459 ?monument}
+  OPTIONAL {?item p:P1460 ?monument}
+  OPTIONAL {?item p:P1216 ?monument}
+  OPTIONAL {?item p:P709 ?monument}
+  OPTIONAL {?item p:P718 ?monument}
+  OPTIONAL {?item p:P5694 ?monument}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,[AUTO_LANGUAGE]\". 
+                           ?item rdfs:label ?label .
+                           ?item schema:description ?description. 
+                           ?class rdfs:label ?classLabel . }
+}
+GROUP BY ?item""";
   <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#around>,
-    <http://wikiba.se/ontology#label> .
+    <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

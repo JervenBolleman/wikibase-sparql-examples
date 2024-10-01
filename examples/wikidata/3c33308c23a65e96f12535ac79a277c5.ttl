@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-3c33308c23a65e96f12535ac79a277c5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Organizations/Public_Sector_Organizations>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -53,4 +52,40 @@ SELECT ?item
 group by ?item                          #List all the variables for which the values are not concatenated!
          ?Label_en ?Description_en 
          ?Label_de ?Description_de""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item
+	   ?Label_en
+       ?Description_en
+       (group_concat(distinct ?Alias_en;separator=\"; \") as ?Aliases_en)    #Concatenate the values in order not to get several rows per item.
+       ?Label_de
+       ?Description_de
+       (group_concat(distinct ?Alias_de;separator=\"; \") as ?Aliases_de)
+       (replace(group_concat(distinct ?Type;separator=\"; \"), \"http://www.wikidata.org/entity/\", \"\") as ?Types)  #Strip the path in order to get only the Q-number.
+       (group_concat(distinct ?TypeLabel_en;separator=\"; \") as ?TypeLabels_en)
+       (replace(group_concat(distinct ?Municipality;separator=\"; \"), \"http://www.wikidata.org/entity/\", \"\") as ?Municipalities)   
+       (group_concat(distinct ?MunicipalityLabel_de;separator=\"; \") as ?MunicipalityLabels_de)
+       (replace(group_concat(distinct ?Canton;separator=\"; \"), \"http://www.wikidata.org/entity/\", \"\") as ?Cantons)
+       (group_concat(distinct ?CantonLabel_de;separator=\"; \") as ?CantonLabels_de)
+  WHERE {
+  {?item wdt:P31/wdt:P279* wd:Q2659904 } 
+  {?item wdt:P131/wdt:P17 wd:Q39 }.
+  OPTIONAL { ?item rdfs:label ?Label_en . FILTER (lang(?Label_en) = \"en\") }
+  OPTIONAL { ?item rdfs:label ?Label_de . FILTER (lang(?Label_de) = \"de\") } 
+  OPTIONAL { ?item skos:altLabel ?Alias_en . FILTER (lang(?Alias_en) = \"en\") }
+  OPTIONAL { ?item skos:altLabel ?Alias_de . FILTER (lang(?Alias_de) = \"de\") } 
+  OPTIONAL { ?item schema:description ?Description_en . FILTER (lang(?Description_en) = \"en\") }
+  OPTIONAL { ?item schema:description ?Description_de . FILTER (lang(?Description_de) = \"de\") } 
+  OPTIONAL { ?item wdt:P31 ?Type. }
+  OPTIONAL { ?item wdt:P31/rdfs:label ?TypeLabel_en . FILTER (lang(?TypeLabel_en) = \"en\") }  
+  OPTIONAL { ?item wdt:P131 ?Municipality . FILTER EXISTS {?Municipality wdt:P31 wd:Q70208} }  
+  OPTIONAL { ?item wdt:P131/rdfs:label ?MunicipalityLabel_de . FILTER EXISTS {?MunicipalityLabel_de ^rdfs:label/wdt:P31 wd:Q70208} . FILTER (lang(?MunicipalityLabel_de) = \"de\") }
+  OPTIONAL { ?item wdt:P131 ?Canton . FILTER EXISTS {?Canton wdt:P31 wd:Q23058} }
+  OPTIONAL { ?item wdt:P131/rdfs:label ?CantonLabel_de . FILTER EXISTS {?CantonLabel_de ^rdfs:label/wdt:P31 wd:Q23058} . FILTER (lang(?CantonLabel_de) = \"de\") }  
+  OPTIONAL { ?item wdt:P17 ?Country. }
+  OPTIONAL { ?item wdt:P17/rdfs:label ?CountryLabel_de . FILTER (lang(?CountryLabel_de) = \"de\") }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }    
+}
+group by ?item                          #List all the variables for which the values are not concatenated!
+         ?Label_en ?Description_en 
+         ?Label_de ?Description_de""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-3105e43d89b689ebf5ffd588062e9998> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -40,4 +39,30 @@ WHERE {
   # show label in simplified Chinese (zh-hans) as default, and English when no default label exists
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"zh-hans,en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# find maternal relatives of Elizabeth II, mitochondrial DNA descendants of a common ancestor
+#defaultView:Graph
+SELECT DISTINCT ?mtDNA ?mtDNALabel ?birthdate ?image ?mother ?motherLabel ?edgeLabel
+WHERE {
+  # define ?mtDNA as Elizabeth II (Q9682)'s any mother (P25) or child (P40)'s mother or child's...
+  wd:Q9682 (wdt:P25|wdt:P40)* ?mtDNA.
+  # limit ?mtDNA's gender (P21) to female (Q6581072)
+  ?mtDNA wdt:P21 wd:Q6581072.
+  # To eliminate male child's female child (son's daughter),
+  # define ?mtDNA's any mother (P25)'s mother's... as ?Eve, and
+  ?mtDNA wdt:P25* ?Eve.
+  # require ?Eve to be Elizabeth II (Q9682)'s any mother (P25)'s mother's...
+  wd:Q9682  wdt:P25* ?Eve
+  # optional: define ?mtDNA's mother (P25) as ?mother
+  OPTIONAL {?mtDNA wdt:P25 ?mother.
+            # show mother (P25) on graph edges
+            ?edge wikibase:directClaim wdt:P25;
+               a wikibase:Property}
+  # optional: show ?mtDNA's birthdate (P569), which only appears in table, not graph
+  OPTIONAL {?mtDNA wdt:P569 ?birthdate}
+  # optional: show ?mtDNA's image (P18), which appears directly in graph, and as link in table
+  OPTIONAL {?mtDNA wdt:P18 ?image}
+  # show label in simplified Chinese (zh-hans) as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"zh-hans,en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-526eafc5884b7a3df41c8e12f065696a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/khalili>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -22,24 +21,45 @@ SELECT ?from ?fromLabel ?image1 ?to ?toLabel ?image2 ?edgeLabel
 WHERE {
   {
  SELECT ?from  ?image1 (?start AS ?to) (?startimage AS ?image2) (?prop AS ?edge) WHERE {
-  INCLUDE %core.
+   {
+  SELECT ?start ?startimage ?image1 ?from ?prop ?coll  WHERE {
+  VALUES ?start {wd:Q157159}. # Choose person to start with
+    ?start wdt:P18 ?startimage.
+    ?from ?rel ?start; wdt:P195 ?coll. ?coll wdt:P361 wd:Q63160499.
+    ?prop wikibase:directClaim ?rel ; a wikibase:Property.
+    OPTIONAL {?from wdt:P18 ?image1}.
+   }  }
  } ORDER BY ?coll # put objects from the same collection close together
  }
 UNION {
   SELECT ?from  ?image1 (?coll AS ?to) ?image2 (wd:P195 AS ?edge) WHERE {
-   INCLUDE %core.
+    {
+  SELECT ?start ?startimage ?image1 ?from ?prop ?coll  WHERE {
+  VALUES ?start {wd:Q157159}. # Choose person to start with
+    ?start wdt:P18 ?startimage.
+    ?from ?rel ?start; wdt:P195 ?coll. ?coll wdt:P361 wd:Q63160499.
+    ?prop wikibase:directClaim ?rel ; a wikibase:Property.
+    OPTIONAL {?from wdt:P18 ?image1}.
+   }  }
    OPTIONAL {?coll wdt:P18 ?image2}.
   }
 } UNION {
     SELECT ?from ?image1 (?type AS ?to) (\"\" AS ?image2) (wd:P31 AS ?edge) WHERE {
-   INCLUDE %core.
+    {
+  SELECT ?start ?startimage ?image1 ?from ?prop ?coll  WHERE {
+  VALUES ?start {wd:Q157159}. # Choose person to start with
+    ?start wdt:P18 ?startimage.
+    ?from ?rel ?start; wdt:P195 ?coll. ?coll wdt:P361 wd:Q63160499.
+    ?prop wikibase:directClaim ?rel ; a wikibase:Property.
+    OPTIONAL {?from wdt:P18 ?image1}.
+   }  }
       ?from wdt:P31 ?type.
   }
 }
       SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
      ?from rdfs:label ?fromLabel. ?edge rdfs:label ?edgeLabel.  ?to rdfs:label ?toLabel}
 }""";
-  <http://example.org/bigdata_select> """#defaultView:Graph
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Graph
 #title:Khalili Collections objects related to Abbas II
 SELECT ?from ?fromLabel ?image1 ?to ?toLabel ?image2 ?edgeLabel 
 WITH {
@@ -69,4 +89,6 @@ UNION {
 }
       SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
      ?from rdfs:label ?fromLabel. ?edge rdfs:label ?edgeLabel.  ?to rdfs:label ?toLabel}
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,19 +1,18 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-e5cf01e860ea46ce3d42c3d499bfd74e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>,
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/de>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/es>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>;
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -28,12 +27,61 @@ SELECT
   ?item
   ?itemLabel
 {
-  INCLUDE %1.
-  INCLUDE %2.
-  INCLUDE %3.
+   {
+  SELECT DISTINCT ?item ?award {
+     {
+  SELECT DISTINCT ?item {
+    ?item
+      wdt:P19/wdt:P131* wd:Q419.
+  }
+}
+    ?item wdt:P166 ?award.
+  }
+}
+   {
+  SELECT DISTINCT ?institution ?award {
+     {
+  SELECT DISTINCT ?item ?award {
+     {
+  SELECT DISTINCT ?item {
+    ?item
+      wdt:P19/wdt:P131* wd:Q419.
+  }
+}
+    ?item wdt:P166 ?award.
+  }
+}
+    {?institution wdt:P5460 ?award}
+    UNION
+    {?award wdt:P1027 ?institution}.
+  }
+}
+   {
+  SELECT DISTINCT ?institution ?coordinates {
+     {
+  SELECT DISTINCT ?institution ?award {
+    INCLUDE %1.
+    {?institution wdt:P5460 ?award}
+    UNION
+    {?award wdt:P1027 ?institution}.
+  }
+}
+
+    OPTIONAL{?institution wdt:P625 ?P625}.
+    OPTIONAL{?institution wdt:P159/wdt:P625 ?P159_P625}.
+    OPTIONAL{?institution wdt:P131+/wdt:P625 ?P131_P625}.
+
+    BIND(COALESCE(IF(BOUND(?P625), ?P625, 1/0),
+                  IF(BOUND(?P159_P625), ?P159_P625, 1/0),
+                  IF(BOUND(?P131_P625), ?P131_P625, 1/0))
+         AS ?coordinates)
+
+    FILTER(BOUND(?coordinates))
+  }
+}
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\"}.
 }""";
-  <http://example.org/bigdata_select> """#defaultView:Map
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
 SELECT
   ?coordinates
   ?institution
@@ -83,4 +131,5 @@ WITH {
   INCLUDE %2.
   INCLUDE %3.
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\"}.
-}""" .
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

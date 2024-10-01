@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c2654cd732898326a6bd145cab5ba148> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/11>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -30,8 +29,60 @@ SELECT DISTINCT
 
 
 WHERE {  
-  INCLUDE %ministers_moves.
-  INCLUDE %ministers_total.
+   {
+  SELECT DISTINCT ?minister ?seq (COALESCE(?from1, ?place) AS ?from) ?place ?place_name ?StartTime WHERE {
+     {
+  SELECT DISTINCT ?minister (COUNT(DISTINCT(?rs1)) AS ?seq) ?place ?StartTime WHERE {
+    INCLUDE %ministers .
+    {
+      SELECT DISTINCT ?minister (?place AS ?pl1) (?StartTime AS ?st1) (?res_stmt AS ?rs1) WHERE {
+        INCLUDE %ministers .
+      }
+    }
+    FILTER ((?st1 < ?StartTime) || ((?st1 = ?StartTime) && (STR (?rs1) <= STR(?res_stmt)))) .
+  } GROUP BY ?minister ?place ?StartTime ?res_stmt
+  ORDER BY ?minister ?seq
+}.
+    BIND ((?seq) AS ?seq1) .
+    OPTIONAL {
+      SELECT ?minister (?seq + 1 AS ?seq1) (?place AS ?from1) WHERE {
+          {
+  SELECT DISTINCT ?minister (COUNT(DISTINCT(?rs1)) AS ?seq) ?place ?StartTime WHERE {
+    INCLUDE %ministers .
+    {
+      SELECT DISTINCT ?minister (?place AS ?pl1) (?StartTime AS ?st1) (?res_stmt AS ?rs1) WHERE {
+        INCLUDE %ministers .
+      }
+    }
+    FILTER ((?st1 < ?StartTime) || ((?st1 = ?StartTime) && (STR (?rs1) <= STR(?res_stmt)))) .
+  } GROUP BY ?minister ?place ?StartTime ?res_stmt
+  ORDER BY ?minister ?seq
+}.
+      }
+    }
+    FILTER (bound(?from1)|| bound(?place)) .
+    SERVICE wikibase:label {
+       bd:serviceParam wikibase:language \"en\".
+       ?place rdfs:label ?place_name .
+    }
+    
+  }
+}
+   {
+  SELECT ?minister (MAX(?seq) AS ?moves) WHERE {
+     {
+  SELECT DISTINCT ?minister (COUNT(DISTINCT(?rs1)) AS ?seq) ?place ?StartTime WHERE {
+    INCLUDE %ministers .
+    {
+      SELECT DISTINCT ?minister (?place AS ?pl1) (?StartTime AS ?st1) (?res_stmt AS ?rs1) WHERE {
+        INCLUDE %ministers .
+      }
+    }
+    FILTER ((?st1 < ?StartTime) || ((?st1 = ?StartTime) && (STR (?rs1) <= STR(?res_stmt)))) .
+  } GROUP BY ?minister ?place ?StartTime ?res_stmt
+  ORDER BY ?minister ?seq
+}  } GROUP BY ?minister
+}
   
   ?place p:P625 / psv:P625 / wikibase:geoLatitude ?lat .
   ?place p:P625 / psv:P625 / wikibase:geoLongitude ?lon . 
@@ -47,7 +98,7 @@ WHERE {
   }
 } 
 ORDER BY DESC(?moves) ?minister ?seq""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT
   ?name ?minister ?moves ?seq ?place_name ?from_lat ?from_lon ?lat ?lon
 
 WITH {
@@ -116,4 +167,5 @@ WHERE {
        ?minister rdfs:label ?name .
   }
 } 
-ORDER BY DESC(?moves) ?minister ?seq""" .
+ORDER BY DESC(?moves) ?minister ?seq""";
+  schema:target <https://query.wikidata.org/sparql> .

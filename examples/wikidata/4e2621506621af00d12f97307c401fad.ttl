@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-4e2621506621af00d12f97307c401fad> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jneubert/Special_queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -41,4 +40,29 @@ where {
   # add labels
   service wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en, de, fr, es, nl, pl, ru\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map{\"hide\":\"?geo\"}
+select ?image ?item ?itemLabel ?pobLabel ?viewer ?geo
+where {
+  ?item wdt:P106 ?occupation ;
+        # with PM20 id
+        wdt:P4293 ?pm20Id ;
+        # with place of birth
+        wdt:P19 ?pob .
+  # occupation: economist or business economist
+  filter(?occupation in (wd:Q188094, wd:Q1860032))
+  # restrict to items with online accessible articles
+  ?item p:P4293/pq:P5592 ?workCount .
+  filter(?workCount > 0)
+  # geo coordinates for pob
+  ?pob wdt:P625 ?geo .
+  # optional image
+  optional { ?item wdt:P18 ?image . }
+  # viewer link
+  bind(substr(?pm20Id, 4, 4) as ?numStub)
+  bind(substr(?pm20Id, 4, 6) as ?num)
+  bind(uri(concat('http://dfg-viewer.de/show/?tx_dlf[id]=http://zbw.eu/beta/pm20mets/pe/', ?numStub, 'xx/', ?num, '.xml')) as ?viewer)
+  # add labels
+  service wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en, de, fr, es, nl, pl, ru\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

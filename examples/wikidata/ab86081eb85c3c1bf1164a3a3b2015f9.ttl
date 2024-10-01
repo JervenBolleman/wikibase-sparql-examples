@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-ab86081eb85c3c1bf1164a3a3b2015f9> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Terrorism/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
@@ -49,4 +48,38 @@ WHERE {
   OPTIONAL {?item wdt:P4089 ?GDT_id.}
   #OPTIONAL {?item schema:description ?en_description. FILTER(LANG(?en_description) = \"en\"). ?item schema:description ?item_description}
 }
-GROUP BY ?item ORDER BY DESC(?date)""" .
+GROUP BY ?item ORDER BY DESC(?date)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT
+  (SAMPLE(?item) as ?item)
+  (SAMPLE(?class_en_label) as ?class)
+  (SAMPLE(COALESCE(?armament_en_label, ?armament_any_label)) as ?armament)
+  (SAMPLE(?date) as ?date)
+  (SAMPLE(?injured) as ?injured)
+  (SAMPLE(?deaths) as ?deaths)
+  (SAMPLE(?participant_en_label) as ?participant)
+  (SAMPLE(?target_en_label) as ?target)
+  (SAMPLE(?coordinates) as ?coordinates)
+  (SAMPLE(?location_en_label) as ?location)
+  (SAMPLE(?country_en_label) as ?country)
+  (SAMPLE(?image) as ?image)
+  (SAMPLE(COALESCE(?en_label, ?any_label)) as ?name)
+  #(SAMPLE(COALESCE(?en_description, ?item_description)) as ?description)
+WHERE {
+  ?item p:P31/ps:P31/wdt:P279* wd:Q5710433. # Terrorist attack and all of its sub-classes
+  ?item p:P31/ps:P31 ?class. OPTIONAL {?class rdfs:label ?class_en_label. FILTER(LANG(?class_en_label) = \"en\")}
+  OPTIONAL {?item wdt:P585 ?date}
+  OPTIONAL {?item wdt:P1339 ?injured}
+  OPTIONAL {?item wdt:P1120 ?deaths}
+  OPTIONAL {?item wdt:P710 ?participant. ?participant rdfs:label ?participant_en_label. FILTER(LANG(?participant_en_label) = \"en\")}
+  OPTIONAL {?item wdt:P533 ?target. ?target rdfs:label ?target_en_label. FILTER(LANG(?target_en_label) = \"en\")}
+  OPTIONAL {?item wdt:P625 ?coordinates}
+  OPTIONAL {?item wdt:P276 ?location. ?location rdfs:label ?location_en_label. FILTER(LANG(?location_en_label) = \"en\")}
+  OPTIONAL {?item wdt:P17 ?country. ?country rdfs:label ?country_en_label. FILTER(LANG(?country_en_label) = \"en\")}
+  OPTIONAL {?item wdt:P18 ?image.}
+  OPTIONAL {?item wdt:P520 ?armament. ?armament rdfs:label ?armament_en_label. FILTER(LANG(?armament_en_label) = \"en\").}
+  OPTIONAL {?item rdfs:label ?en_label. FILTER(LANG(?en_label) = \"en\")} OPTIONAL {?item rdfs:label ?any_label}
+  OPTIONAL {?item wdt:P4089 ?GDT_id.}
+  #OPTIONAL {?item schema:description ?en_description. FILTER(LANG(?en_description) = \"en\"). ?item schema:description ?item_description}
+}
+GROUP BY ?item ORDER BY DESC(?date)""";
+  schema:target <https://query.wikidata.org/sparql> .

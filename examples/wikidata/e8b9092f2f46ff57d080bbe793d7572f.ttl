@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-e8b9092f2f46ff57d080bbe793d7572f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/05>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -20,13 +19,28 @@ PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?count ?property ?propertyLabel ?value ?valueLabel
 WHERE {
-  INCLUDE %commonRealReferences.
+   {
+  SELECT * WHERE {
+     {
+  SELECT ?reference (COUNT(*) AS ?count) WHERE {
+    ?entity p:P569 ?statement.
+    ?statement prov:wasDerivedFrom ?reference.
+  }
+  GROUP BY ?reference
+  ORDER BY DESC(?count)
+  LIMIT 100
+}
+    MINUS { ?reference pr:P143/wdt:P31 wd:Q10876391. }
+  }
+  ORDER BY DESC(?count)
+  LIMIT 10
+}
   ?reference ?pr ?value.
   ?property wikibase:reference ?pr.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY DESC(?count) ASC(?propertyLabel)""";
-  <http://example.org/bigdata_select> """SELECT ?count ?property ?propertyLabel ?value ?valueLabel
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?count ?property ?propertyLabel ?value ?valueLabel
 WITH {
   SELECT ?reference (COUNT(*) AS ?count) WHERE {
     ?entity p:P569 ?statement.
@@ -50,4 +64,6 @@ WHERE {
   ?property wikibase:reference ?pr.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
-ORDER BY DESC(?count) ASC(?propertyLabel)""" .
+ORDER BY DESC(?count) ASC(?propertyLabel)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

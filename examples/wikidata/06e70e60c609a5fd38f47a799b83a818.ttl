@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-06e70e60c609a5fd38f47a799b83a818> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:HLa01>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -34,4 +33,23 @@ WHERE
 GROUP BY ?item ?applies_jurisdiction ?LabelEN ?LabelDE ?Label
 ORDER BY ?countryLabels ?item 
 #LIMIT 100""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#unicameral parliament legislature
+#unicameral parliament legislature
+SELECT ?item ?applies_jurisdiction ?LabelEN ?LabelDE ?Label
+(GROUP_CONCAT(?applies_jurisdictionLabel; separator=\", \") as ?applies_jurisdictionLabels)
+(GROUP_CONCAT(?countryLabel; separator=\", \") as ?countryLabels)
+WHERE
+{
+	?item wdt:P31 wd:Q140247 .
+    OPTIONAL{?item wdt:P1001 ?applies_jurisdiction .}
+    OPTIONAL{?item wdt:P17 ?country .}
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . ?item rdfs:label ?LabelEN } .
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" . ?item rdfs:label ?LabelDE } .
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,ar,be,bg,bn,ca,cs,da,de,el,en,es,et,fa,fi,he,hi,hu,hy,id,it,ja,jv,ko,nb,nl,eo,pa,pl,pt,ro,ru,sh,sk,sr,sv,sw,te,th,tr,uk,yue,vec,vi,zh\" 
+ . ?item rdfs:label ?Label . ?applies_jurisdiction rdfs:label ?applies_jurisdictionLabel . ?country rdfs:label ?countryLabel }
+}
+GROUP BY ?item ?applies_jurisdiction ?LabelEN ?LabelDE ?Label
+ORDER BY ?countryLabels ?item 
+#LIMIT 100""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

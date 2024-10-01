@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-7eb0b2015c4c8b8a0324aa08cb5ebe56> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/12>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -23,7 +22,43 @@ SELECT ?item ?itemLabel ?commune ?communeLabel ?start ?lp
 
 WHERE
 {                                    #select the commune and numberplate based on ?start match
-  {INCLUDE %i} UNION {INCLUDE %j}
+  { {                                 # items that have licence plates
+  SELECT ?item (MAX(?start_) as ?start)
+  WHERE
+  {
+    ?item wdt:P31 wd:Q747074.
+    OPTIONAL { ?item p:P131 ?stat .
+    ?stat ps:P131 ?commune . 
+    OPTIONAL { ?stat pq:P580 ?start_ . }
+    OPTIONAL { ?commune wdt:P395 ?lp . } }
+    BIND(IF(!BOUND(?start_),now(),?start_) as ?start_)
+    FILTER(BOUND(?lp))
+} GROUP BY ?item  }} UNION { {                                  # items that do not have licence plates
+    SELECT ?item (MAX(?start_) as ?start)
+  WHERE
+  {
+    ?item wdt:P31 wd:Q747074.
+    OPTIONAL { ?item p:P131 ?stat .
+    ?stat ps:P131 ?commune . 
+    OPTIONAL { ?stat pq:P580 ?start_ . }
+    OPTIONAL { ?commune wdt:P395 ?lp . } }
+    BIND(IF(!BOUND(?start_),now(),?start_) as ?start_)
+    FILTER(!BOUND(?lp))
+    MINUS                               # items that have licence plates
+    { 
+     SELECT ?item (MAX(?start_) as ?start)
+     WHERE
+     {
+       ?item wdt:P31 wd:Q747074.
+       OPTIONAL { ?item p:P131 ?stat .
+       ?stat ps:P131 ?commune . 
+       OPTIONAL { ?stat pq:P580 ?start_ . }
+       OPTIONAL { ?commune wdt:P395 ?lp . } }
+       BIND(IF(!BOUND(?start_),now(),?start_) as ?start_)
+       FILTER(BOUND(?lp))
+       } GROUP BY ?item 
+     }
+} GROUP BY ?item  }}
   ?item wdt:P31 wd:Q747074.
   OPTIONAL { ?item p:P131 ?stat .
   ?stat ps:P131 ?commune . 
@@ -34,7 +69,7 @@ WHERE
   FILTER(?start = ?start_)            
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }  
   }""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?commune ?communeLabel ?start ?lp 
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?commune ?communeLabel ?start ?lp 
 WITH {                                 # items that have licence plates
   SELECT ?item (MAX(?start_) as ?start)
   WHERE
@@ -86,4 +121,5 @@ WHERE
   BIND(IF(!BOUND(?lp_),\"NaN\",?lp_) as ?lp)
   FILTER(?start = ?start_)            
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }  
-  }""" .
+  }""";
+  schema:target <https://query.wikidata.org/sparql> .

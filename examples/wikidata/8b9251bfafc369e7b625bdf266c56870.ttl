@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8b9251bfafc369e7b625bdf266c56870> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:J_budissin/DPA/gmejny>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -48,4 +47,35 @@ WHERE {
   FILTER NOT EXISTS {?item wdt:P31 wd:Q54050} # ist kein Hügel
 }
 ORDER BY ?item""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#---------------------------------------------------------------------------------------
+# wšě objekty w Hodźiju
+#---------------------------------------------------------------------------------------
+#defaultView:Table;Map
+SELECT distinct ?item ?is ?isLabel ?itemLabel_hsb ?itemLabel_de ?itemLabel_dsb ?itemDescription ?image ?lat ?lon (year(?date) as ?year) ?adresa ?adresa2 ?DenkmalID ?napis ?Commonscat
+WHERE {    
+  ?item (wdt:P131/wdt:P279*) wd:Q93232 .  # Liegt in Verwaltungseinheit Göda (oder Unterklasse)
+  OPTIONAL { ?item wdt:P18 ?image . }
+  OPTIONAL {?item p:P625 ?coordinate.
+  ?coordinate psv:P625 ?coordinate_node.
+  ?coordinate_node wikibase:geoLatitude ?lat.
+  ?coordinate_node wikibase:geoLongitude ?lon. }
+  OPTIONAL { ?item wdt:P31 ?is . }
+  OPTIONAL { ?item wdt:P571 ?date . }
+  OPTIONAL { ?item wdt:P6375 ?adresa . }
+  OPTIONAL { ?item wdt:P969 ?adresa2 . }
+  OPTIONAL { ?item wdt:P1708 ?DenkmalID . }
+  OPTIONAL { ?item wdt:P1684 ?napis . }
+  OPTIONAL { ?item wdt:P373 ?Commonscat . }
+  OPTIONAL { ?item rdfs:label ?itemLabel_hsb . FILTER(lang(?itemLabel_hsb)='hsb') }
+  OPTIONAL { ?item rdfs:label ?itemLabel_de . FILTER(lang(?itemLabel_de)='de') }
+  OPTIONAL { ?item rdfs:label ?itemLabel_dsb . FILTER(lang(?itemLabel_dsb)='dsb') }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"hsb,de,[AUTO_LANGUAGE]\". }
+  FILTER NOT EXISTS {?item wdt:P31 wd:Q262166} # ist keine Gemeinde
+  FILTER NOT EXISTS {?item wdt:P31 wd:Q253019} # ist kein Gemeindeteil
+  FILTER NOT EXISTS {?item wdt:P31 wd:Q532} # ist kein Dorf
+  FILTER NOT EXISTS {?item wdt:P31 wd:Q4022} # ist kein Fluss
+  FILTER NOT EXISTS {?item wdt:P31 wd:Q54050} # ist kein Hügel
+}
+ORDER BY ?item""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

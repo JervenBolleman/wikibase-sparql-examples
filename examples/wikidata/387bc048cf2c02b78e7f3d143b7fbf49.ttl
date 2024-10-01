@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-387bc048cf2c02b78e7f3d143b7fbf49> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Succu/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX gas: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -35,5 +34,25 @@ SELECT ?item ?taxonName ?personLabel ?genderLabel WHERE {
    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY ASC(?taxonName)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?taxonName ?personLabel ?genderLabel WHERE {
+   SERVICE gas:service {
+     gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\" .
+     gas:program gas:in wd:Q756 . # Plantae
+     gas:program gas:out ?item . 
+     gas:program gas:maxIterations 20 . 
+     gas:program gas:maxVisited 2700000 .
+     gas:program gas:linkType wdt:P171 .
+     gas:program gas:traversalDirection \"Reverse\" .
+   }
+   #?item wdt:P105 wd:Q7432 .
+   ?item wdt:P225 ?taxonName .
+   OPTIONAL {?item wdt:P138 ?person} .
+   OPTIONAL {?item wdt:P138/wdt:P21 ?gender} .   
+   FILTER((STRENDS(?taxonName, \"i\") && !STRENDS(?taxonName, \"ii\")))
+   FILTER(bound(?person))
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ASC(?taxonName)""";
   <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>,
-    <http://wikiba.se/ontology#service> .
+    <http://wikiba.se/ontology#service>;
+  schema:target <https://query.wikidata.org/sparql> .

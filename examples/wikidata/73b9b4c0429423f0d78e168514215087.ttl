@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-73b9b4c0429423f0d78e168514215087> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Property_proposal/Identifiant_itch.io>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -19,7 +18,19 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 # All itch.io URLs 
 SELECT ?item ?itemLabel (SAMPLE(?typeLabel) as ?nature) ?propertyLabel ?url
 WHERE {
-  INCLUDE %items.
+   {
+  SELECT ?item ?url ?property WHERE {
+     {
+  SELECT ?property WHERE {
+    ?property rdf:type wikibase:Property.
+    ?property wikibase:propertyType wikibase:Url .
+  }
+}.
+    ?property wikibase:directClaim ?wdt.
+    ?item ?wdt ?url.
+    FILTER regex (STR(?url), \"itch.io\").
+  }
+}
   ?item wdt:P31 ?type.
   SERVICE wikibase:label {
     bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
@@ -28,7 +39,7 @@ WHERE {
     ?property rdfs:label ?propertyLabel.
   }
 } GROUP BY ?item ?itemLabel ?propertyLabel ?url""";
-  <http://example.org/bigdata_select> """# All itch.io URLs 
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# All itch.io URLs 
 SELECT ?item ?itemLabel (SAMPLE(?typeLabel) as ?nature) ?propertyLabel ?url
 WITH {
   SELECT ?property WHERE {
@@ -53,4 +64,6 @@ WHERE {
     ?item rdfs:label ?itemLabel.
     ?property rdfs:label ?propertyLabel.
   }
-} GROUP BY ?item ?itemLabel ?propertyLabel ?url""" .
+} GROUP BY ?item ?itemLabel ?propertyLabel ?url""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

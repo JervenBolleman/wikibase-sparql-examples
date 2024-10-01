@@ -1,26 +1,33 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-ecf0b4a2054266a7d9fa3b10ec6df44f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/redundant_religion_statements>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?religion1 ?religion1Label ?religion2Label ?count WHERE {
-  INCLUDE %results.
+   {
+  SELECT ?religion1 ?religion2 (COUNT(DISTINCT ?person) AS ?count) WHERE {
+    ?person wdt:P31 wd:Q5;
+            wdt:P140 ?religion1, ?religion2.
+    ?religion1 wdt:P279+ ?religion2.
+  }
+  GROUP BY ?religion1 ?religion2
+  HAVING(?count > 1)
+}
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY DESC(?count)""";
-  <http://example.org/bigdata_select> """SELECT ?religion1 ?religion1Label ?religion2Label ?count WITH {
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?religion1 ?religion1Label ?religion2Label ?count WITH {
   SELECT ?religion1 ?religion2 (COUNT(DISTINCT ?person) AS ?count) WHERE {
     ?person wdt:P31 wd:Q5;
             wdt:P140 ?religion1, ?religion2.
@@ -32,4 +39,6 @@ ORDER BY DESC(?count)""";
   INCLUDE %results.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
-ORDER BY DESC(?count)""" .
+ORDER BY DESC(?count)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

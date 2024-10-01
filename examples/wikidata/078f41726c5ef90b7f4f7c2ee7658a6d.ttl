@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-078f41726c5ef90b7f4f7c2ee7658a6d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/08>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX prov: <http://www.w3.org/ns/prov#>
 SELECT ?item ?statements_with_references ?total_statements  ?number_of_references  ?number_of_b_relationhsips  ?number_of_a_relationhsips  ?number_of_b_literals   WHERE {
@@ -53,4 +52,46 @@ SELECT ?item ?statements_with_references ?total_statements  ?number_of_reference
     } GROUP BY ?item
   }
 
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?statements_with_references ?total_statements  ?number_of_references  ?number_of_b_relationhsips  ?number_of_a_relationhsips  ?number_of_b_literals   WHERE {
+  BIND(wd:Q42 AS ?item).
+  
+  {
+    SELECT ?item (COUNT(*) AS ?total_statements) WHERE {
+      ?item ?p ?statement.
+    } GROUP BY ?item
+  }
+  {
+    SELECT ?item (COUNT(*) AS ?statements_with_references) WHERE {
+      ?item ?p ?statement.
+      ?statement prov:wasDerivedFrom ?reference.
+    } GROUP BY ?item
+  }
+  {
+    SELECT ?item (COUNT(DISTINCT ?reference) AS ?number_of_references) WHERE {
+       ?item ?p ?statement.
+       FILTER(!isLiteral(?statement)).
+       ?statement prov:wasDerivedFrom ?reference.
+    } GROUP BY ?item
+  }
+  {
+    SELECT ?item (COUNT(DISTINCT ?statement) AS ?number_of_a_relationhsips) WHERE {
+       ?statement ?p ?item.
+       FILTER(!isLiteral(?statement)).
+    } GROUP BY ?item
+  }
+  {
+    SELECT ?item (COUNT(DISTINCT ?statement) AS ?number_of_b_relationhsips) WHERE {
+       ?item ?p ?statement.
+       FILTER(!isLiteral(?statement)).
+    } GROUP BY ?item
+  }
+  {
+    SELECT ?item (COUNT(DISTINCT ?statement) AS ?number_of_b_literals) WHERE {
+       ?item ?p ?statement.
+       FILTER(isLiteral(?statement)).
+    } GROUP BY ?item
+  }
+
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

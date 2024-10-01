@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-ce5a745a9e85997a9158e90797e040cd> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Civil_Defense/List_of_aerodromes>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -37,4 +36,25 @@ SELECT DISTINCT ?item ?itemLabel ?itemDescription ?icao ?iata ?geo ?official_web
   OPTIONAL { ?item wdt:P856 ?official_website. }
 }
 ORDER BY  (?icao)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# instances_of=airport (Q1248784); country=Brazil (Q155);
+#defaultView:Map
+SELECT DISTINCT ?item ?itemLabel ?itemDescription ?icao ?iata ?geo ?official_website WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+  {
+    SELECT DISTINCT ?item WHERE {
+      ?item p:P31 ?statement0.
+      ?statement0 (ps:P31/(wdt:P279*)) wd:Q1248784.
+      ?item p:P17 ?statement1.
+      ?statement1 ps:P17 wd:Q155.  # Change country here
+      # MINUS { ?item wdt:P31 wd:Q861951. }
+    }
+  }
+  
+  OPTIONAL { ?item wdt:P239 ?icao. }
+  OPTIONAL { ?item wdt:P238 ?iata. }
+  OPTIONAL { ?item wdt:P625 ?geo. }
+  OPTIONAL { ?item wdt:P856 ?official_website. }
+}
+ORDER BY  (?icao)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

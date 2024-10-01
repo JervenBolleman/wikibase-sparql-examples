@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-7c0a84f33e7a8e53cb8fff0d8658c060> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infrastruktur/Sandbox1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -42,4 +41,26 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"nb,en\". }
 }
 ORDER BY xsd:integer(SUBSTR(STR(?item), 33))""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Norwegian properties
+SELECT
+  ?itemLabel ?itemDescription ?regex1 ?regex2 ?item #?modified
+  (URI(CONCAT(\"https://www.wikidata.org/wiki/Property_talk:\", SUBSTR(STR(?item), 32))) AS ?talkpage)
+  #(URI(CONCAT(\"https://www.wikidata.org/wiki/Wikidata:Database_reports/Constraint_violations/\", SUBSTR(STR(?item), 32))) AS ?crep)
+  #(URI(CONCAT(\"https://www.wikidata.org/wiki/Wikidata:Database_reports/Complex_constraint_violations/\", SUBSTR(STR(?item), 32))) AS ?ccrep)
+WHERE {
+  ?item rdf:type wikibase:Property;
+    wikibase:propertyType wikibase:ExternalId;
+    wdt:P17 wd:Q20;
+    schema:dateModified ?modified.
+  OPTIONAL { ?item wdt:P1793 ?regex1 . }
+  OPTIONAL {
+    ?item p:P2302 ?cst .
+    ?cst a wikibase:BestRank .
+    ?cst ps:P2302 wd:Q21502404 .
+    ?cst pq:P1793 ?regex2 .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"nb,en\". }
+}
+ORDER BY xsd:integer(SUBSTR(STR(?item), 33))""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

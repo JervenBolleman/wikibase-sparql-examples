@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-141435fec8f764c13d71a98f84b7df53> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Juliebirkholz>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -52,4 +51,41 @@ FILTER ( ?birthDate >= \"1800-01-01T00:00:00Z\"^^xsd:dateTime && ?deathDate <= \
 SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 
 } ORDER BY ?birthDate ?deathDate""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?o ?itemLabel  ?sibling ?spouse ?partner ?father ?mother ?child
+WHERE
+
+{
+# find occupation editors
+?item wdt:P106 wd:Q1607826.
+?item wdt:P7947 ?o .
+
+# that are female
+?item wdt:P21 wd:Q6581072.
+ 
+# that have a birth and death date
+?item wdt:P569 ?birthDate.
+?item wdt:P570 ?deathDate .
+  
+# with kinship: sibling
+OPTIONAL { ?item wdt:P3373 ?sibling .}
+# with kinship: spouse
+OPTIONAL { ?item wdt:P26 ?spouse .}
+# with kinship: unmarried partner
+OPTIONAL { ?item wdt:P451 ?partner .}
+
+# with kinship: father
+OPTIONAL { ?item wdt:P22 ?father .}
+# with kinship: mother
+OPTIONAL { ?item wdt:P25 ?mother .}
+# with kinship: child
+OPTIONAL { ?item wdt:P40 ?child .}
+
+# only active in the 19th century
+FILTER ( ?birthDate >= \"1800-01-01T00:00:00Z\"^^xsd:dateTime && ?deathDate <= \"1898-12-31T00:00:00Z\"^^xsd:dateTime )
+ 
+# labels
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+
+} ORDER BY ?birthDate ?deathDate""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

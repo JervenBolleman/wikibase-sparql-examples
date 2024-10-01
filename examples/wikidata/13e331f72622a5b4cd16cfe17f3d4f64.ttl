@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-13e331f72622a5b4cd16cfe17f3d4f64> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
@@ -28,4 +27,19 @@ WHERE {
     ?item rdfs:label ?deLabel FILTER(LANG(?deLabel) = \"de\") 
   }
   # at least one sitelink is a WP article in any language
-  filter exists { ?article schema:about ?item FILTER (SUBSTR(str(?article), 11, 15) = \".wikipedia.org/\") . }""" .
+  filter exists { ?article schema:about ?item FILTER (SUBSTR(str(?article), 11, 15) = \".wikipedia.org/\") . }""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# display item and label
+SELECT ?item ?enLabel ?enDescription ?deLabel ?deDescr
+WHERE {
+  # instance of standard Unix utility
+  ?item wdt:P31 wd:Q18343316. 
+  # missing description in english
+  filter not exists {
+    ?item schema:description ?enDescription FILTER(LANG(?enDescription) = \"en\") .
+    ?item rdfs:label ?enLabel FILTER(LANG(?enLabel) = \"en\") 
+    ?item schema:description ?deDescription FILTER(LANG(?deDescription) = \"de\") .
+    ?item rdfs:label ?deLabel FILTER(LANG(?deLabel) = \"de\") 
+  }
+  # at least one sitelink is a WP article in any language
+  filter exists { ?article schema:about ?item FILTER (SUBSTR(str(?article), 11, 15) = \".wikipedia.org/\") . }""";
+  schema:target <https://query.wikidata.org/sparql> .

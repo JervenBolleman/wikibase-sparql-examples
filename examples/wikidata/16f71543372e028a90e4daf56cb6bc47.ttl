@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-16f71543372e028a90e4daf56cb6bc47> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:danskvirksomhed>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX target: <http://www.wikidata.org/entity/Q3949497>
@@ -44,4 +43,37 @@ WHERE {
     BIND(CONCAT(\"https://scholia.toolforge.org/organization/\", ?q) AS ?værdiUrl)
   }
 } 
-ORDER BY ?order""" .
+ORDER BY ?order""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX target: <http://www.wikidata.org/entity/Q3949497>
+
+SELECT DISTINCT
+  ?beskrivelse ?værdi ?værdiUrl
+WHERE {
+  {
+    BIND(1 AS ?order)
+    BIND(\"Virksomhed\" AS ?beskrivelse)
+    BIND(target: AS ?iri)
+    BIND(SUBSTR(STR(?iri), 32) AS ?q) 
+    ?iri rdfs:label ?value_string . 
+    FILTER (LANG(?value_string) = 'da')
+    BIND(COALESCE(?value_string, ?q) AS ?værdi)
+  }
+  UNION
+  {
+    BIND(2 AS ?order)
+    BIND(\"CVR\" AS ?beskrivelse)
+    target: wdt:P1059 ?værdi_streng .
+    BIND(CONCAT(?værdi_streng, \" ↗\") AS ?værdi)
+    BIND(CONCAT(\"https://datacvr.virk.dk/enhed/virksomhed/\", ?værdi_streng) AS ?værdiUrl)
+  }
+  UNION
+  {
+    BIND(100 AS ?order)
+    BIND(\"\" AS ?beskrivelse)
+    BIND(SUBSTR(STR(target:), 32) AS ?q) 
+    BIND(\"Scholia ↗\" AS ?værdi)
+    BIND(CONCAT(\"https://scholia.toolforge.org/organization/\", ?q) AS ?værdiUrl)
+  }
+} 
+ORDER BY ?order""";
+  schema:target <https://query.wikidata.org/sparql> .

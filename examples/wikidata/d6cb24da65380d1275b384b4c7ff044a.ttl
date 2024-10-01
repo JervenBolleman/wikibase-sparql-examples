@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-d6cb24da65380d1275b384b4c7ff044a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/06>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -31,4 +30,21 @@ SELECT DISTINCT (?name AS ?Searched_name) (?title AS ?ENwiki_found_title) (?item
   }
 }
 ORDER BY ?name""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT (?name AS ?Searched_name) (?title AS ?ENwiki_found_title) (?item AS ?WD_item) ?incorp_date {
+  VALUES ?name {\"Elpida Memory\" \"Etron Technology\" \"Fairchild Semiconductor\" \"Freescale Semiconductor\" \"Fuji Film\" \"Genesys Logic\" \"CEC Huada Electronic Design\" \"Integrated Silicon Solution\" \"Intersil\" \"IXYS\" \"Linear Technology\" \"Lite-On Technology\" } 
+  BIND(CONCAT('intitle:\"', ?name, '\"' ) AS ?intitle)
+  OPTIONAL {?item wdt:P10786 ?incorp_date .}
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint \"en.wikipedia.org\";
+                    wikibase:api \"Generator\";
+                    mwapi:generator \"search\";
+                    mwapi:gsrsearch ?intitle;
+                    mwapi:gsrnamespace \"0\".
+    ?title wikibase:apiOutput mwapi:title .
+    ?item wikibase:apiOutputItem mwapi:item.
+  }
+}
+ORDER BY ?name""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

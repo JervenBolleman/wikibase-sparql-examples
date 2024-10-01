@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-cb3762e47b1fbac20c43224cdda4f0dc> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Video_games/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -42,4 +41,32 @@ SELECT DISTINCT ?item ?itemLabel ?rgb ?link ?linkLabel ?rgb2 WHERE {
   BIND(IF(BOUND(?property),\"FFA500\",\"\") AS ?rgb)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title: Graph of relationships between video game databases 
+#defaultView:Graph
+SELECT DISTINCT ?item ?itemLabel ?rgb ?link ?linkLabel ?rgb2 WHERE {
+  {
+    ?item wdt:P31/wdt:P279* wd:Q55341040; # ?item is a video games database
+      wdt:P10568 ?link.                    # which is linked to ?link
+  }
+  UNION
+  {
+    ?item ^wdt:P10568 ?vgd.                 # item is linked to from ?vgd
+    ?vgd wdt:P31/wdt:P279* wd:Q55341040.    # ?vgd is a video games database
+    OPTIONAL {
+               ?item wdt:P10568 ?link.      # item might be linked to ?link
+             }
+  }
+  UNION
+  {
+    ?item99 ^wdt:P10568 ?vgd.                 # item99 is linked to from ?vgd
+    ?vgd wdt:P31/wdt:P279* wd:Q55341040.    # ?vgd is a video games database
+    ?item99 wdt:P10568 ?item.      # item99 is linked to ?item
+  }
+  OPTIONAL {
+    ?item wdt:P1687 ?property.
+  }
+  BIND(IF(BOUND(?property),\"FFA500\",\"\") AS ?rgb)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

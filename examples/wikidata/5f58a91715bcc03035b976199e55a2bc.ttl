@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-5f58a91715bcc03035b976199e55a2bc> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/1/15>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX p: <http://www.wikidata.org/prop/>
@@ -40,10 +39,52 @@ SELECT
 # Concatenate the \"main subject\" statements
 #
 {
-  INCLUDE %3.
-  INCLUDE %4.
+   {
+  SELECT
+    ?image
+    (GROUP_CONCAT(DISTINCT CONCAT(?depictLabel, \" (\", ?depictQid, \")\"); SEPARATOR = ', ') AS ?depicts)
+  {
+     {
+  SELECT DISTINCT ?image ?depict {
+    INCLUDE %0.
+    ?image p:P180 [ps:P180 ?depict].
+  }
+}
+
+    BIND(SUBSTR(STR(?depict), 32) AS ?depictQid).
+
+    SERVICE <https://query.wikidata.org/sparql> {
+      SELECT ?depict ?depictLabel {
+        SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+      }
+    }
+  }
+  GROUP BY ?image
+}
+   {
+  SELECT
+    ?image
+    (GROUP_CONCAT(DISTINCT CONCAT(?mainSubjectLabel, \" (\", ?mainSubjectQid, \")\"); SEPARATOR = ', ') AS ?mainSubjects)
+  {
+     {
+  SELECT DISTINCT ?image ?mainSubject {
+    INCLUDE %0.
+    ?image p:P921 [ps:P921 ?mainSubject].
+  }
+}
+
+    BIND(SUBSTR(STR(?mainSubject), 32) AS ?mainSubjectQid).
+
+    SERVICE <https://query.wikidata.org/sparql> {
+      SELECT ?mainSubject ?mainSubjectLabel {
+        SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+      }
+    }
+  }
+  GROUP BY ?image
+}
 }""";
-  <http://example.org/bigdata_select> """SELECT
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT
   ?image
   ?mainSubjects
   ?depicts
@@ -123,4 +164,5 @@ WITH {
 {
   INCLUDE %3.
   INCLUDE %4.
-}""" .
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

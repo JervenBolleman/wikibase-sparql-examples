@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-67dacb5cb1eecb99882a972a2825e1c1> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:MTheiler>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -31,4 +30,20 @@ SELECT ?item ?itemLabel ?article ?typLabel ?ortLabel ?commonskat ?bild ?coordina
    # dieser SERVICE erzeugt die Ausgabe von ?itemLabel (also dem Namen vom item),
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de\". }
 } ORDER BY DESC(?typLabel)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?article ?typLabel ?ortLabel ?commonskat ?bild ?coordinate WHERE { 
+?item (wdt:P131 | wdt:1001) ?sub0 . 
+  ?tree0 (wdt:P150)* ?sub0 . 
+  ?tree0 (wdt:P131)* wd:Q8541 .   # Q8541 = Landkreis LB
+  OPTIONAL { ?article   schema:about   ?item   . ?article   schema:inLanguage 'de'  } .   # deutschsprachige Wikipediaseite
+   OPTIONAL {?item wdt:P373 ?commonskat } .  # item hat commons-kategorie
+   OPTIONAL {?item wdt:P18 ?bild } .
+   ?item wdt:P31 ?typ .
+   OPTIONAL { ?item wdt:P131 ?ort } .
+   OPTIONAL { ?item wdt:P625 ?coordinate } .
+  MINUS{ ?item wdt:P31  wd:Q21573182} # Ohne (Naturdenkmal in Deutschland)
+  
+   # dieser SERVICE erzeugt die Ausgabe von ?itemLabel (also dem Namen vom item),
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de\". }
+} ORDER BY DESC(?typLabel)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

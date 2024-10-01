@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-ee343f4d9236fd8f89bff08ef13c8ad9> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/12>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -22,7 +21,30 @@ SELECT DISTINCT ?item ?start ?end
       (SAMPLE (?positions) as ?position)
 WHERE
 {
-  {INCLUDE %i} UNION {INCLUDE %j} UNION {INCLUDE %k} 
+  { {
+  SELECT ?item ?instancelist ?thumbs WHERE 
+  {
+    ?item wdt:P17 wd:Q145 .
+    ?item wdt:P31/wdt:P279* wd:Q1785071 . 
+    BIND(\"fort\" as ?instancelist)
+    BIND(\"fort.png\" AS ?thumbs)
+  } }} UNION { {
+  SELECT ?item ?instancelist ?thumbs WHERE 
+  {
+    ?item wdt:P17 wd:Q145 .
+    { ?item wdt:P31/wdt:P279* wd:Q56344492 . }
+    UNION { ?item wdt:P31/wdt:P279* wd:Q90754 . } 
+    UNION { ?item wdt:P31/wdt:P279* wd:Q947103 . } 
+    BIND(\"tower\" as ?instancelist)
+    BIND(\"tower.png\" AS ?thumbs)
+  } }} UNION { {
+  SELECT ?item ?instancelist ?thumbs WHERE 
+  {
+    ?item wdt:P17 wd:Q145 .
+    ?item wdt:P31 wd:Q2772772 . 
+    BIND(\"museum\" as ?instancelist)
+    BIND(\"museum.png\" AS ?thumbs)
+  } }} 
   OPTIONAL {?item wdt:P3134 ?tripadvisor. BIND(CONCAT(\"[https://www.tripadvisor.com/\",?tripadvisor,\" tripadvisor]\") AS ?propertylist)}
   OPTIONAL {?item wdt:P625 ?position1}
   OPTIONAL {?item wdt:P276 ?locations. ?locations wdt:P625 ?position2}
@@ -42,7 +64,7 @@ WHERE
   
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
 } GROUP by ?item ?start ?end""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?start ?end
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?start ?end
       (GROUP_CONCAT(DISTINCT ?instancelist; SEPARATOR = \", \") AS ?instances)
       (GROUP_CONCAT(DISTINCT ?propertylist; SEPARATOR = \", \") AS ?properties)
       (SAMPLE (DISTINCT ?thumbs) as ?thumb) 
@@ -94,4 +116,6 @@ WHERE
   BIND(COALESCE(?serviceretirement,?abolished,?pointintime,?endtime) as ?end)
   
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
-} GROUP by ?item ?start ?end""" .
+} GROUP by ?item ?start ?end""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

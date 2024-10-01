@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-a57344d91b8de5b313ad4afcd953a364> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/09>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -35,4 +34,23 @@ SELECT ?item ?itemLabel ?articlename  WHERE {
   }
     optional {?item rdfs:label ?itemLabel . filter(lang(?itemLabel)=\"en\")}
    }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?articlename  WHERE {
+  values ?category {wd:Q7780302}.
+  ?link schema:about ?category; schema:isPartOf <https://sk.wikipedia.org/>; schema:name ?title .
+  SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:api \"Generator\" .
+     bd:serviceParam wikibase:endpoint \"sk.wikipedia.org\" .
+     bd:serviceParam mwapi:gcmtitle ?title .
+     bd:serviceParam mwapi:generator \"categorymembers\" .
+     bd:serviceParam mwapi:gcmprop \"title\" .
+     bd:serviceParam mwapi:gcmlimit \"max\" .
+    # out
+    ?articlename wikibase:apiOutput mwapi:title  .
+    ?ns wikibase:apiOutput \"@ns\" .
+    filter(?ns=\"0\")
+    ?item wikibase:apiOutputItem mwapi:item .
+  }
+    optional {?item rdfs:label ?itemLabel . filter(lang(?itemLabel)=\"en\")}
+   }""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

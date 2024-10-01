@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-5022014cac46fce13ecc194ecdff778a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Visual_arts/Getty_Vocabularies/Ontology_mapping>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
@@ -31,4 +30,20 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY ?gettyProp""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?wdProp ?wdPropLabel ?relationshipStProp ?relationshipPropLabel ?gettyProp
+# (URI(CONCAT(\"http://www.wikidata.org/entity/Q\", STR(ROUND(RAND()*1000000)))) AS ?item)
+# I didn't get the random item generator to work, that would enable the use of \"Template:Wikidata list\"
+WHERE {
+  VALUES ?relationshipStProp { ps:P1628 ps:P2235 ps:2236 }
+  { ?wdProp ?a [ ?relationshipStProp ?gettyProp ] .
+    FILTER(STRSTARTS(STR(?gettyProp), \"http://vocab.getty.edu/ontology#\"))
+  } UNION {
+    ?wdProp ?b [ ?relationshipStProp ?gettyProp ;
+                 pq:P1535 wd:Q5554720 ] .
+  }
+  ?relationshipProp wikibase:statementProperty ?relationshipStProp .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?gettyProp""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

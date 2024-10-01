@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-33bba6f5bbddac6ef88529fcfb78bb9e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/02>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -42,4 +41,31 @@ SELECT ?item ?itemLabel ?gender ?genderLabel ?profession ?professionText WHERE {
            ?female_form_of_label, ?professionLabel) AS ?professionText)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"ca,[AUTO_LANGUAGE]\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#female form of label
+SELECT ?item ?itemLabel ?gender ?genderLabel ?profession ?professionText WHERE {
+  ?item wdt:P106 wd:Q1281618;
+    wdt:P135 wd:Q34636.
+  OPTIONAL { ?item wdt:P21 ?gender. }
+  OPTIONAL { ?item wdt:P18 ?image. }
+  OPTIONAL { ?item wdt:P19 ?place. }
+  OPTIONAL { ?item wdt:P569 ?date. }
+  OPTIONAL
+  {
+    ?item wdt:P106 ?profession.
+    OPTIONAL
+    {
+      ?profession wdt:P2521 ?female_form_of_label.
+      FILTER (LANG(?female_form_of_label) = \"ca\")
+    }
+    OPTIONAL
+    {
+      ?profession rdfs:label ?professionLabel.      
+      FILTER (LANG(?professionLabel) = \"ca\")
+    }
+  }
+  BIND (IF(?gender IN (wd:Q6581072, wd:Q1052281, wd:Q43445) && BOUND(?female_form_of_label),
+           ?female_form_of_label, ?professionLabel) AS ?professionText)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"ca,[AUTO_LANGUAGE]\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

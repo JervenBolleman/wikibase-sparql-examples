@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-10eb1b18c7f08b22502d0ad9b764cb43> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/05>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
@@ -46,4 +45,33 @@ WHERE
   }
 }
 ORDER BY ?size""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?article_ko ?article_en ?size
+WHERE
+{
+  ?item wdt:P31 wd:Q5. # ?item is human
+  ?item wdt:P21 wd:Q6581072. # ?item is female
+  ?item wdt:P27 wd:Q884. # ?item is South Korean citizen
+  ?item wdt:P106/wdt:P279* wd:Q901. # ?item is scientist
+  ?article_ko schema:about ?item.
+  ?article_ko schema:isPartOf <https://ko.wikipedia.org/>.
+  OPTIONAL
+  {
+    ?article_en schema:about ?item.
+    ?article_en schema:isPartOf <https://en.wikipedia.org/>. 
+    ?article_en schema:name ?title_en. 
+    SERVICE wikibase:mwapi
+    {
+      bd:serviceParam wikibase:api \"Generator\".
+      bd:serviceParam wikibase:endpoint \"en.wikipedia.org\".
+      bd:serviceParam wikibase:limit \"once\".
+      bd:serviceParam mwapi:generator \"allpages\".
+      bd:serviceParam mwapi:gapfrom ?title_en.
+      bd:serviceParam mwapi:gaplimit \"1\".
+      ?sizestr wikibase:apiOutput \"@length\".
+    }
+    BIND ((xsd:integer(?sizestr)) AS ?size) # Convert from string to integer
+  }
+}
+ORDER BY ?size""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

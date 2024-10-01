@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8522df0febdf0c5049fd8e0967e227ed> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Aeroid/SPARQL_Notes>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -35,4 +34,24 @@ WHERE
 } ORDER BY ( ?eventLabel )
 # limit to 100 results so we don't timeout
 LIMIT 100""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?event ?eventLabel ?date
+WHERE
+{
+	# find admin territories of Germany
+	?event wdt:P31/wdt:P279* wd:Q387917.
+        # with founding/inception date
+	#OPTIONAL { ?event wdt:P571 ?date. }
+        # abolished date
+	OPTIONAL { ?event wdt:P576 ?date. }
+	# but at least one of those
+	FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+	# calculate age (days, negative are in the future)
+	BIND(NOW() - ?date AS ?age).
+	FILTER(0 <= ?age && ?age < 365).
+	# and get a label as well
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" }
+} ORDER BY ( ?eventLabel )
+# limit to 100 results so we don't timeout
+LIMIT 100""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

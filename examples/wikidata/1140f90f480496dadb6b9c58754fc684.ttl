@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-1140f90f480496dadb6b9c58754fc684> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Fnielsen/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Graph
@@ -36,5 +35,29 @@ select ?citing_paper_author ?citing_paper_authorLabel ?paper_author ?paper_autho
   ?citing_paper wdt:P50 ?citing_paper_author .
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"da,en\" .  } 
 }""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Graph
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+
+select ?citing_paper_author ?citing_paper_authorLabel ?paper_author ?paper_authorLabel where {
+  service gas:service {
+    gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\" ;
+                gas:in wd:Q23992764 ,
+                	   wd:Q24684259 ;
+                gas:traversalDirection \"Forward\" ;
+                gas:out ?paper ;
+                gas:out1 ?depth ;
+                gas:out2 ?citing_paper ;
+                gas:linkType wdt:P2860 ;
+                gas:maxIterations 5;
+                gas:maxVisited 200 .
+  }
+  ?citing_paper wdt:P2860 ?paper .
+  ?paper wdt:P50 ?paper_author .
+  ?citing_paper wdt:P50 ?citing_paper_author .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"da,en\" .  } 
+}""";
   <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>,
-    <http://www.bigdata.com/rdf/gas#service> .
+    <http://www.bigdata.com/rdf/gas#service>;
+  schema:target <https://query.wikidata.org/sparql> .

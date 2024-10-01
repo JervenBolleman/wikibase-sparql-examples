@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-80831d89c8db197fdb32d241d948c5e8> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Lockal/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -39,4 +38,27 @@ SELECT ?p ?kana ?wdkana
   FILTER( ?wdkana = REPLACE(STR(?kana), \"[\\\\s・]\", \"\") )
   FILTER( !REGEX(?wdkana, \"[\\\\s・]\") )
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <https://jpsearch.go.jp/rdf/sparql/> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX type: <https://jpsearch.go.jp/term/type/>
+
+SELECT ?p ?kana ?wdkana
+{
+  SERVICE <https://jpsearch.go.jp/rdf/sparql/> {
+    {
+      SELECT ?wd ?kana {
+        ?wd rdfs:isDefinedBy <http://www.wikidata.org/> .
+        ?wd owl:sameAs ?item .
+
+        ?item rdf:type type:Person .
+        ?item schema:name ?kana .
+        FILTER(LANG(?kana) = \"ja-kana\")
+      } LIMIT 10000 OFFSET 0 
+    }
+  }
+  
+  OPTIONAL { ?wd p:P1814 ?p . ?p ps:P1814 ?wdkana . }
+  FILTER( ?wdkana != STR(?kana) )
+  FILTER( ?wdkana = REPLACE(STR(?kana), \"[\\\\s・]\", \"\") )
+  FILTER( !REGEX(?wdkana, \"[\\\\s・]\") )
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <https://jpsearch.go.jp/rdf/sparql/>;
+  schema:target <https://query.wikidata.org/sparql> .

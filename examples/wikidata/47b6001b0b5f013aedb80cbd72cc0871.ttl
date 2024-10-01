@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-47b6001b0b5f013aedb80cbd72cc0871> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_Weather_observations>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -43,4 +42,30 @@ WHERE
 }
 ORDER BY DESC(?population)
 LIMIT 20""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Les plus grosses villes avec une femme maire
+#added before 2016-10
+#TEMPLATE={\"template\":\"Largest ?c with ?sex head of government\",\"variables\":{\"?sex\":{\"query\":\" SELECT ?id WHERE { ?id wdt:P31 wd:Q48264 .  } \"},\"?c\":{\"query\":\"SELECT DISTINCT ?id WHERE {  ?c wdt:P31 ?id.  ?c p:P6 ?mayor. }\"} } }
+SELECT DISTINCT ?cityLabel?mayorLabel ?population 
+WHERE
+{
+  BIND(wd:Q6581072 AS ?sex)
+  BIND(wd:Q515 AS ?c)
+
+	?city wdt:P31/wdt:P279* ?c .  # find instances of subclasses of city
+	?city p:P6 ?statement .            # with a P6 (head of goverment) statement
+	?statement ps:P6 ?mayor .          # ... that has the value ?mayor
+	?mayor wdt:P21 ?sex .       # ... where the ?mayor has P21 (sex or gender) female
+	FILTER NOT EXISTS { ?statement pq:P582 ?x }  # ... but the statement has no P582 (end date) qualifier
+	
+	# Now select the population value of the ?city
+	# (wdt: properties use only statements of \"preferred\" rank if any, usually meaning \"current population\")
+	?city wdt:P1082 ?population .
+	# Optionally, find English labels for city and mayor:
+	SERVICE wikibase:label {
+		bd:serviceParam wikibase:language \"fr\" .
+	}
+}
+ORDER BY DESC(?population)
+LIMIT 20""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

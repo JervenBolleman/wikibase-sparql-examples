@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-36d3c4d377e66a3a27f1abeae5a4646e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/02>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -108,4 +107,94 @@ WHERE
                             ?artist rdfs:label ?artistLabel .
                            }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT
+  (CONCAT(
+  \"{{Artwork\"
+  ,\"\\n|artist=\", IF(BOUND(?artistList), ?artistList, \"\")
+  ,\"\\n|title=\"
+    , IF(BOUND(?titleDe),(CONCAT(\"{{de|\", ?titleDe, \"}}\")), \"\")
+    , IF(BOUND(?titleEn),(CONCAT(\"{{en|\", ?titleEn, \"}}\")), \"\")
+    , IF(BOUND(?titleEs),(CONCAT(\"{{es|\", ?titleEs, \"}}\")), \"\")
+    , IF(BOUND(?titleFr),(CONCAT(\"{{fr|\", ?titleFr, \"}}\")), \"\")
+  ,\"\\n|date=\", IF(BOUND(?inceptionStr), ?inceptionStr, \"\")
+  ,\"\\n|medium=\", ?materialList
+  ,\"\\n}}\"
+  ) as ?outputStr)
+  ?templateArtwork
+#  ?inceptionStr
+WHERE
+{{
+  SELECT
+  ?item
+  ?titleDe
+  ?titleEn
+  ?titleEs
+  ?titleFr
+  ?inception
+  ?inceptionStr
+  (GROUP_CONCAT(?artistI; separator=\"; \") AS ?artistList)
+  (GROUP_CONCAT(?materialLabel; separator=\"; \") AS ?materialList)
+  WHERE
+  {
+    {
+    # PUT THE SEARCH QUERY HERE:
+    {?item wdt:P217 \"CE1131\"} UNION
+    {?item wdt:P170 wd:Q313163} . # should give 11 results
+    }
+    
+    # artist=
+    OPTIONAL { ?item wdt:P170 ?artist . ?artist rdfs:label ?artistLabel . FILTER(lang(?artistLabel)=\"en\") } .
+    OPTIONAL { ?artist wdt:P1472 ?creatorPage } .
+    BIND(IF(BOUND(?creatorPage),(CONCAT(\"{{Creator:\", STR(?creatorPage), \"}}\")), ?artistLabel) as ?artistI)
+
+    # date=
+    # TODO: precision &gt; 9, &lt;6 not yet implemented
+  	OPTIONAL { ?item wdt:P571 ?inception .
+               ?item p:P571 ?inceptionStatement .
+               ?inceptionStatement psv:P571/wikibase:timePrecision ?inceptionPrecision .
+               OPTIONAL { ?inceptionStatement pq:P1480 ?sourcingCircumstance . }
+               BIND(CONCAT(
+                 \"{{Complex date\"
+                 , \" |date1=\", CONCAT(STR(YEAR(?inception))
+                 , \" |precision1=\",
+                   IF(?inceptionPrecision = 9, \"year\",
+                     IF(?inceptionPrecision = 8, \"decade\",
+                       IF(?inceptionPrecision = 7, \"century\",
+                         IF(?inceptionPrecision = 6, \"millennium\",
+                           \"PRECISION &lt;6 IS NOT YET IMPLEMENTED!\"))))
+                 , IF(BOUND(?sourcingCircumstance) && ?sourcingCircumstance = wd:Q5727902, \" |adj1=ca\", \"\")
+                 , \"}}\"
+                 )) as ?inceptionStr)
+             } .
+
+    # title=
+    OPTIONAL { ?item rdfs:label ?titleDe . FILTER(lang(?titleDe)=\"de\") } .
+    OPTIONAL { ?item rdfs:label ?titleEn . FILTER(lang(?titleEn)=\"en\") } .
+    OPTIONAL { ?item rdfs:label ?titleEs . FILTER(lang(?titleEs)=\"es\") } .
+    OPTIONAL { ?item rdfs:label ?titleFr . FILTER(lang(?titleFr)=\"fr\") } .
+
+    # medium=
+    OPTIONAL { ?item wdt:P186 ?material . ?material rdfs:label ?materialLabel . FILTER(lang(?materialLabel)=\"en\") } .
+
+    # institution=
+    OPTIONAL { ?item wdt:P195 ?institution . ?institution rdfs:label ?institutionLabel . FILTER(lang(?institutionLabel)=\"en\") } .
+    OPTIONAL { ?institution wdt:P1612 ?institutionPage } .
+####    BIND(IF(BOUND(?institutionPage),(CONCAT(\"{{Institution:\", STR(?institutionPage), \"}}\")), ?institutionLabel) as ?institutionI)
+  }
+  GROUP BY
+  ?item
+  ?titleDe
+  ?titleEn
+  ?titleEs
+  ?titleFr
+  ?inception
+  ?inceptionStr
+  ORDER BY ?item
+  }
+#	?item wdt:P170 wd:Q313163 . # NO NEED FOR THIS!
+	SERVICE wikibase:label {bd:serviceParam wikibase:language \"en,de,es,fr\" .
+                            ?artist rdfs:label ?artistLabel .
+                           }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

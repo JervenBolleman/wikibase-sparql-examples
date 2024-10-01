@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-ce85862d6f87dc9b6fc8adc0dff067f5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/05>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -56,4 +55,46 @@ SELECT DISTINCT ?work ?workLabel ?worklangLabel ?authorLabel ?knownlanguagesLabe
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
 
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Books or suclasses of books (NOT editions) written in a language the author, supposedly, can't write
+SELECT DISTINCT ?work ?workLabel ?worklangLabel ?authorLabel ?knownlanguagesLabel ?nativelanguageLabel WHERE {
+  
+  #Work is an instance or any subclass of book 
+  ?work wdt:P31/wdt:P279* wd:Q571 .
+  
+  #Work is an instance of whatever
+  ?work wdt:P31 ?what .
+  
+  #BUT is not an instance of a version, translation or edition
+  FILTER ( ?what != wd:Q3331189 )  
+  
+  #Show inception date of the work if available
+  OPTIONAL { ?work wdt:P571 ?date . BIND(YEAR( ?date ) as ?year) }
+  
+  #Get the language of the work
+  ?work wdt:P407 ?worklang .
+  
+  #AND the author
+  ?work wdt:P50 ?author .
+  
+  # Be sure author has almost one value for native language OR language known, written, etc.
+  { ?author wdt:P1412 ?knownlanguages . } UNION { ?author wdt:P103 ?nativelanguage . }     
+
+  FILTER NOT EXISTS {
+  # Author doesn't know ?worklang
+  { ?author wdt:P1412 ?worklang . }
+  
+  # OR ?worklang is his native language
+  UNION { ?author wdt:P103 ?worklang . }
+    
+  # OR ?worklang is not a subclass of his known languages
+  UNION  { ?author wdt:P1412 ?knownlanguages . ?knownlanguages wdt:P279* ?worklang . } 
+    
+  # OR ?worklang is not a subclass of his native language
+  UNION  { ?author wdt:P103 ?nativelanguage . ?nativelanguage wdt:P279* ?worklang . }
+  }
+    
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-a82f60197c0a067042e7f75228bacce4> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/01>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -29,4 +28,16 @@ SELECT ?item ?itemLabel ?inventory_no ?url ?url2 WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],nl\". }
 }
 ORDER BY ?inventory_no""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?inventory_no ?url ?url2 WHERE {
+  ?item wdt:P31 wd:Q3305213 .
+  ?item wdt:P973 ?url .
+  ?item p:P217 ?inventory_no_stm .
+  ?inventory_no_stm ps:P217 ?inventory_no .
+  ?inventory_no_stm pq:P195 wd:Q18600731 . # filter out inventory numbers for \"Cultural Heritage Agency of the Netherlands Art Collection\" only 
+  FILTER(CONTAINS(str(?url), \"http://data.collectienederland.nl/resource/aggregation/rce-kunstcollectie/\") )
+  BIND(IRI(concat(\"http://data.collectienederland.nl/page/aggregation/rce-kunstcollectie/\",?inventory_no)) as ?url2)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],nl\". }
+}
+ORDER BY ?inventory_no""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

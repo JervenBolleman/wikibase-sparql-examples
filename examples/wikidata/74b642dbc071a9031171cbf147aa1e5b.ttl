@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-74b642dbc071a9031171cbf147aa1e5b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Project_chat/Archive/2016/09>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -32,4 +31,21 @@ WHERE {
   OPTIONAL {?item rdfs:label ?item_label}
 }
 GROUP BY ?item""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#box> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT
+  ?item
+  (SAMPLE(COALESCE(?en_label, ?item_label)) as ?label)
+  (SAMPLE(?location) as ?location)
+WHERE {
+  SERVICE wikibase:box {
+    ?item wdt:P625 ?location .
+    bd:serviceParam wikibase:cornerSouthWest \"Point(3 -90)\"^^geo:wktLiteral .
+    bd:serviceParam wikibase:cornerNorthEast \"Point(3.1 90)\"^^geo:wktLiteral .
+  }
+  MINUS {?item wdt:P18 ?image}
+  MINUS {?item wdt:P373 ?commonsCat}
+  OPTIONAL {?item rdfs:label ?en_label . FILTER(LANG(?en_label) = \"en\")}
+  OPTIONAL {?item rdfs:label ?item_label}
+}
+GROUP BY ?item""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#box>;
+  schema:target <https://query.wikidata.org/sparql> .

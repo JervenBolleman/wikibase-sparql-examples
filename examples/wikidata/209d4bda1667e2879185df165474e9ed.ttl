@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-209d4bda1667e2879185df165474e9ed> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:ProteinBoxBot/SPARQL_Examples>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -30,4 +29,17 @@ SELECT DISTINCT ?disease ?diseaseLabel ?drug ?drugLabel ?hasRef ?stated_inLabel 
             ?prov pr:P248 ?stated_in }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?disease ?diseaseLabel ?drug ?drugLabel ?hasRef ?stated_inLabel WHERE {
+  ?disease wdt:P31 wd:Q12136 ;  # find items that are in instance of disease
+        p:P2176 ?id .  # get \"drug used for treatment\" statements
+  ?id ?b ?drug .  # get the object used in these statements
+  FILTER(regex(str(?b), \"http://www.wikidata.org/prop/statement\" ))
+  # FILTER NOT EXISTS { ?id prov:wasDerivedFrom ?provenance }  # filter out statements with no references
+  # ?id prov:wasDerivedFrom ?provenance  # only keep statements with a references
+  BIND(EXISTS {?id prov:wasDerivedFrom ?provenance } as ?hasRef) # tag statements with whether or not a ref exists
+  OPTIONAL {?id prov:wasDerivedFrom ?prov .
+            ?prov pr:P248 ?stated_in }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

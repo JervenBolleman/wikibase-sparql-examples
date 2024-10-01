@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-4200f436c91b763741214a48ec167c56> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WP_OGyms/Query_examples>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -47,4 +46,36 @@ SELECT ?nrviews  (SAMPLE(?title) AS ?title)  WHERE {
   OPTIONAL { ?item wdt:P625 ?coord. }
 }
 GROUP BY ?youtube ?nrviews
-ORDER BY DESC (?nrviews)""" .
+ORDER BY DESC (?nrviews)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:BubbleChart
+#title:Outdoor gyms in Sweden with most viewed youtube videos as Bubble Chart
+SELECT ?nrviews  (SAMPLE(?title) AS ?title)  WHERE {
+  ?item wdt:P6104 wd:Q107186275;
+    wdt:P17 wd:Q34.
+  OPTIONAL {
+    ?item rdfs:label ?OutdoorGym.
+    FILTER((LANG(?OutdoorGym)) = \"sv\")
+  }
+  OPTIONAL { ?item wdt:P18 ?img. }
+  OPTIONAL {
+    ?item wdt:P131 ?adminId.
+    ?adminId rdfs:label ?admin.
+    FILTER((LANG(?admin)) = \"sv\")
+  }
+  OPTIONAL { ?item wdt:P856 ?www. }
+  {
+
+    {?item p:P1651 ?Pyoutubev.
+    ?Pyoutubev ps:P1651 ?youtubev.
+    OPTIONAL { ?Pyoutubev pq:P1810 ?title. }
+    OPTIONAL { ?Pyoutubev pq:P407 ?language. }
+    OPTIONAL { ?Pyoutubev pq:P5436 ?nrviews. }
+    OPTIONAL { ?Pyoutubev pq:P2047 ?length. }
+    }
+  }
+  BIND(URI(CONCAT(\"https://www.youtube.com/watch?v=\", ?youtubev)) AS ?youtube)
+  OPTIONAL { ?item wdt:P625 ?coord. }
+}
+GROUP BY ?youtube ?nrviews
+ORDER BY DESC (?nrviews)""";
+  schema:target <https://query.wikidata.org/sparql> .

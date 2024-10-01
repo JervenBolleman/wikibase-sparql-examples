@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-91dfbf51535f8e060900b204b60d07b8> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/08>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -39,4 +38,28 @@ SELECT DISTINCT ?référendum ?référendumLabel ?date
     FILTER(LANGMATCHES(LANG(?ressortLabel), \"[AUTO_LANGUAGE],fr,en\")).}
 } group by ?référendum ?référendumLabel ?date ?titre
 ORDER BY (?date)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?référendum ?référendumLabel ?date 
+(GROUP_CONCAT(?paysLabel; SEPARATOR=\", \") AS ?pay) 
+(GROUP_CONCAT(?ressortLabel; SEPARATOR=\", \") AS ?ressorts) 
+(GROUP_CONCAT(?sujetLabel; SEPARATOR=\", \") AS ?sujets) ?titre WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?référendum (wdt:P31/(wdt:P279*)) wd:Q43109 ; wdt:P585 ?date; wdt:P17 ?pays.
+     ?pays rdfs:label ?paysLabel.
+    VALUES ?not_refs {
+    wd:Q126723767
+    wd:Q126720322 
+   wd:Q2515494 wd:Q669262
+  }
+  MINUS { ?référendum (wdt:P31/(wdt:P279*)) ?not_refs. }  
+  OPTIONAL { ?référendum wdt:P921 ?sujet_principal.
+           ?sujet_principal rdfs:label ?sujetLabel.
+    FILTER(LANGMATCHES(LANG(?sujetLabel), \"[AUTO_LANGUAGE],fr,en\")).}
+  OPTIONAL {    
+    ?référendum wdt:P1476 ?titre.   
+    FILTER((LANG(?titre)) = \"[AUTO_LANGUAGE],fr\")
+  }       OPTIONAL { ?référendum wdt:P1001 ?ressort. ?ressort rdfs:label ?ressortLabel.
+    FILTER(LANGMATCHES(LANG(?ressortLabel), \"[AUTO_LANGUAGE],fr,en\")).}
+} group by ?référendum ?référendumLabel ?date ?titre
+ORDER BY (?date)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

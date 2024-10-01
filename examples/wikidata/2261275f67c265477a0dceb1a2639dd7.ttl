@@ -1,22 +1,21 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-2261275f67c265477a0dceb1a2639dd7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Typologies>,
-    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Typologies/nl>,
-    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Typologies/tr>,
     <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Typologies/da>,
-    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Typologies/pl>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Typologies/en>,
     <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Typologies/fr>,
-    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Typologies/en>;
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Typologies/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Typologies/pl>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Typologies/tr>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -40,4 +39,26 @@ GROUP BY ?type 						#List all the variables for which the values are not concat
   ?count
   ?Label_en 
 ORDER BY DESC(?count)
-LIMIT 10000""" .
+LIMIT 10000""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?type 
+ (COUNT(DISTINCT ?instance) AS ?count)
+ ?Label_en
+ (group_concat(distinct ?occupationType1_en;separator=\"; \") as ?occupationTypes1_en) 
+ (group_concat(distinct ?occupationType2_en;separator=\"; \") as ?occupationTypes2_en)
+ (group_concat(distinct ?occupationType3_en;separator=\"; \") as ?occupationTypes3_en)
+ (group_concat(distinct ?occupationType4_en;separator=\"; \") as ?occupationTypes4_en)
+WHERE {
+ ?type wdt:P31/wdt:P279* wd:Q15839299.
+ OPTIONAL { ?instance wdt:P106 ?type }  
+ OPTIONAL { ?type rdfs:label ?Label_en . FILTER (lang(?Label_en) = \"en\") }
+ OPTIONAL { ?type wdt:P279+ ?occupationType1 . ?occupationType1 wdt:P279/^wdt:P279 wd:Q15839299 . ?occupationType1 rdfs:label ?occupationType1_en . FILTER (lang(?occupationType1_en) = \"en\") }
+ OPTIONAL { ?type wdt:P279+ ?occupationType2 . ?occupationType2 wdt:P279 wd:Q15839299 . ?occupationType2 rdfs:label ?occupationType2_en . FILTER (lang(?occupationType2_en) = \"en\") }
+ OPTIONAL { ?type wdt:P279+ ?occupationType3 . ?occupationType3 wdt:P279/wdt:P279 wd:Q15839299 . ?occupationType3 rdfs:label ?occupationType3_en . FILTER (lang(?occupationType3_en) = \"en\") }
+ OPTIONAL { ?type wdt:P279+ ?occupationType4 . ?occupationType4 wdt:P279/wdt:P279/wdt:P279 wd:Q15839299 . ?occupationType4 rdfs:label ?occupationType4_en . FILTER (lang(?occupationType4_en) = \"en\") }
+}
+GROUP BY ?type 						#List all the variables for which the values are not concatenated!
+  ?count
+  ?Label_en 
+ORDER BY DESC(?count)
+LIMIT 10000""";
+  schema:target <https://query.wikidata.org/sparql> .

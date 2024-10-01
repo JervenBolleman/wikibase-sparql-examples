@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-868bb17abc8f93901fac4b1c7e6c1085> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Succu/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -28,4 +27,18 @@ SELECT DISTINCT ?item ?taxonName ?taxonRankLabel ?nomenclaturalType ?rankOfNomen
       SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
 }
 ORDER BY ASC(?taxonRankLabel) ASC(?taxonName)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?taxonName ?taxonRankLabel ?nomenclaturalType ?rankOfNomenclaturalTypeLabel ?lpsnUrl WHERE {
+      VALUES ?taxonRank {wd:Q3965313 wd:Q227936 wd:Q2455704 wd:Q35409 wd:Q5867959 wd:Q36602} .
+      ?item wdt:P225 ?taxonName .
+      ?item wdt:P105 ?taxonRank .
+      OPTIONAL {?item wdt:P427/wdt:P225 ?nomenclaturalType} .
+      OPTIONAL {?item wdt:P427/wdt:P105 ?rankOfnomenclaturalType} .
+      OPTIONAL {?item wdt:P1991 ?lpsnUrl} .
+      ?item (wdt:P171)* ?higherParent .
+      ?higherParent wdt:P944 wd:Q743780 .
+      FILTER(!bound(?nomenclaturalType)|| !sameTerm(?rankOfNomenclaturalType, wd:Q34740))
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ORDER BY ASC(?taxonRankLabel) ASC(?taxonName)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

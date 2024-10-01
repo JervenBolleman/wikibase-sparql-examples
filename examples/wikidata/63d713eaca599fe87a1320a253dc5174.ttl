@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-63d713eaca599fe87a1320a253dc5174> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/1/25>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT
@@ -18,11 +17,21 @@ SELECT
   ?propertyLabel
   ?count
 {
-  INCLUDE %1.
+   {
+  SELECT ?property ?count {
+     {
+  SELECT ?wdt (COUNT(*) AS ?count) {
+    [] ?wdt [].
+  }
+  GROUP BY ?wdt
+}
+    ?property wikibase:qualifier ?wdt.
+  }
+}
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\"}.
 }
 ORDER BY DESC(?count)""";
-  <http://example.org/bigdata_select> """SELECT
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT
   ?property
   ?propertyLabel
   ?count
@@ -42,4 +51,6 @@ WITH {
   INCLUDE %1.
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\"}.
 }
-ORDER BY DESC(?count)""" .
+ORDER BY DESC(?count)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

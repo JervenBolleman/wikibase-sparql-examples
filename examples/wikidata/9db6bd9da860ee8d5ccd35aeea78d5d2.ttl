@@ -1,18 +1,17 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-9db6bd9da860ee8d5ccd35aeea78d5d2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/12>,
-    <https://www.wikidata.org//wiki/Wikidata:Request_a_query/fr>, <https://www.wikidata.org//wiki/Wikidata:Request_a_query/en>,
-    <https://www.wikidata.org//wiki/Wikidata:Request_a_query/es>;
+    <https://www.wikidata.org//wiki/Wikidata:Request_a_query/en>, <https://www.wikidata.org//wiki/Wikidata:Request_a_query/es>,
+    <https://www.wikidata.org//wiki/Wikidata:Request_a_query/fr>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -31,4 +30,19 @@ SELECT ?place ?placeLabel ?placeDescription ?location ?tripadvisor
   }
 }
 GROUP BY ?place ?placeLabel ?placeDescription ?location ?tripadvisor""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?place ?placeLabel ?placeDescription ?location ?tripadvisor 
+  (GROUP_CONCAT(?categoryLabel; SEPARATOR = \", \") AS ?categories) WHERE {
+  {
+    SELECT ?place ?categoryLabel ?placeLabel ?placeDescription ?tripadvisor ?location WHERE {
+      ?place wdt:P131* wd:Q145 .
+      wd:Q23413 ^wdt:P279*/^wdt:P31 ?place .
+      ?place wdt:P31 ?category.
+      OPTIONAL { ?place wdt:P3134 ?tripadvisor.}
+      ?place wdt:P625 ?location.
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"en-GB,en\". }
+    }
+  }
+}
+GROUP BY ?place ?placeLabel ?placeDescription ?location ?tripadvisor""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

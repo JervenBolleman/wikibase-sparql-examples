@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b7335c823e42dc39b3d813131aa29cd7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -43,4 +42,30 @@ SELECT DISTINCT ?constituency ?constituencyLabel ?startyear ?endyear ?died ?tota
   bind ((?died/?total)*100 as ?percent_died_in_office)
 }
 ORDER BY desc(?percent_died_in_office)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# UK Parliament constituencies and the number of MPs who died in office
+# analysis restricted to \"since 1929\"
+#
+SELECT DISTINCT ?constituency ?constituencyLabel ?startyear ?endyear ?died ?total ?percent_died_in_office
+{
+ ?constituency wdt:P31 wd:Q27971968 . 
+  optional { ?constituency wdt:P571 ?start . bind(year(?start) as ?startyear)}
+  optional { ?constituency wdt:P576 ?end . bind(year(?end) as ?endyear)}
+ # find all constituencies
+  { SELECT ?constituency (COUNT (distinct ?member) AS ?died) WHERE {
+      ?constituency wdt:P31 wd:Q27971968 . 
+      ?member p:P39 ?positionStatement . ?positionStatement pq:P768 ?constituency . ?positionStatement pq:P1534 wd:Q5247364 .
+      ?positionStatement pq:P580 ?start . FILTER (?start >= \"1929-01-01T00:00:00Z\"^^xsd:dateTime) . 
+    } GROUP BY ?constituency }  
+  # find and count all people who died in office 
+  { SELECT ?constituency (COUNT (distinct ?member) AS ?total) WHERE {
+      ?constituency wdt:P31 wd:Q27971968 . 
+      ?member p:P39 ?positionStatement . ?positionStatement pq:P768 ?constituency .
+      ?positionStatement pq:P580 ?start . FILTER (?start >= \"1929-01-01T00:00:00Z\"^^xsd:dateTime) . 
+    } GROUP BY ?constituency }
+  # find and count all people elected 
+ SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+  bind ((?died/?total)*100 as ?percent_died_in_office)
+}
+ORDER BY desc(?percent_died_in_office)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

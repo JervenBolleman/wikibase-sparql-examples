@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-892e8ce88311cf35b722de780c0e26dd> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Trilotat/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -33,4 +32,23 @@ WHERE {
         wdt:P1476 ?title.
   FILTER CONTAINS(LCASE(?title), \"asteroseismology\").
 }
-# LIMIT 10000""" .
+# LIMIT 10000""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?title
+WHERE {
+  hint:Query hint:optimizer \"None\".
+{  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"\"asteroseismology\" haswbstatement:P31=Q13442814\".
+    ?page_title wikibase:apiOutput mwapi:title.
+  } }
+  
+  BIND(IRI(CONCAT(STR(wd:), ?page_title)) AS ?item)
+  FILTER NOT EXISTS { ?item wdt:P921 wd:Q94529. }
+  
+  ?item wdt:P31 wd:Q13442814;
+        wdt:P1476 ?title.
+  FILTER CONTAINS(LCASE(?title), \"asteroseismology\").
+}
+# LIMIT 10000""";
+  schema:target <https://query.wikidata.org/sparql> .

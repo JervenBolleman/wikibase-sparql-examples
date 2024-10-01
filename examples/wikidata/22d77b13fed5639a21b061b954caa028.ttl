@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-22d77b13fed5639a21b061b954caa028> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:XXN/q>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
@@ -32,4 +31,20 @@ SELECT ?item ?itemLabel
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
   FILTER(?cnt = 1)
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#... items without date, without description
+SELECT ?item ?itemLabel
+	{
+		{	
+    SELECT ?item (COUNT(?item) AS ?cnt) {
+      ?item p:P31 [ ps:P31 wd:Q7889 ] .
+      ?item p:P31 ?valueStatement .
+      MINUS { ?item p:P577 ?date . }
+	  OPTIONAL { ?item schema:description ?itemDescription FILTER(LANG(?itemDescription) = \"ro\").  }
+	  FILTER (!BOUND(?itemDescription))
+    } GROUP BY ?item
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+  FILTER(?cnt = 1)
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

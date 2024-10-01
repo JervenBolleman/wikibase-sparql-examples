@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-e07fec850d6b7596538de77e7fa0dfbd> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Contact_the_development_team/Query_Service_and_search/Archive/2021/02>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
@@ -50,5 +49,42 @@ WHERE
   }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi>,
-    <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Show the first 25 items from the delete log from before 8 Feb 2021 00:00:00
+SELECT ?item ?itemLabel ?statements ?sitelinks ?delete_user ?delete_timestamp ?delete_comment
+WHERE
+{
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+
+    # There is no \"list\" option for wikibase:api, but it is possible to combine
+    # a list and a generator in the same API call of type \"action=query\"
+    bd:serviceParam wikibase:api \"Generator\" . 
+    bd:serviceParam mwapi:generator \"allpages\" .
+    bd:serviceParam mwapi:gaplimit \"1\" .
+
+    # Get items from the delete log
+    bd:serviceParam mwapi:list \"logevents\" .
+    bd:serviceParam mwapi:letype \"delete\" .
+    bd:serviceParam mwapi:lenamespace \"0\" .
+    bd:serviceParam mwapi:lestart \"08 Feb 2021 00:00:00\" .
+    bd:serviceParam mwapi:lelimit \"1\" .
+    # It is not efficient, but as MWAPI consider this an \"allpages\" generator call, we can only get one item per call 
+    bd:serviceParam wikibase:limitContinuations \"24\". # Get 24 continuations for a total of 25 deleted items
+
+    # Output variables for the logevents list
+    ?item wikibase:apiOutputItem \"//api/query/logevents/item/@title\" .
+    ?delete_timestamp wikibase:apiOutput \"//api/query/logevents/item/@timestamp\" .
+    ?delete_comment wikibase:apiOutput \"//api/query/logevents/item/@comment\" .
+    ?delete_user wikibase:apiOutput \"//api/query/logevents/item/@user\" .
+  }
+  OPTIONAL
+  {
+    ?item wikibase:statements ?statements .
+    ?item wikibase:sitelinks ?sitelinks .    
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>,
+    <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

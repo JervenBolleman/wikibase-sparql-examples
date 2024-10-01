@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-9a4fdb91c0f4b6f6825946f5d67d7d6a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/06>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -30,4 +29,17 @@ WHERE
   FILTER (?year <= 1911)              # filter for dob prior to or equal to 1911
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],no,en\". } # get labels
 } ORDER BY ?dob""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?dob ?precision
+WHERE 
+{ ?item wdt:P27 wd:Q20.               # country of citizenship=Norway
+  ?item p:P569 ?p569stm .
+  ?p569stm ps:P569 ?dob .             # must have dob
+  ?p569stm psv:P569 [wikibase:timePrecision ?dp] . # find out time precision
+  BIND(IF(?dp=11,'day',IF(?dp=10,'month',IF(?dp=9,'year',IF(?dp=8,'decade',IF(?dp=7,'century','other'))))) AS ?precision) # convert code for time precision to English
+  BIND (year(?dob) as ?year)          # convert dob to years
+  FILTER (?year >= 1710)              # filter for dob later than or equal to 1710
+  FILTER (?year <= 1911)              # filter for dob prior to or equal to 1911
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],no,en\". } # get labels
+} ORDER BY ?dob""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

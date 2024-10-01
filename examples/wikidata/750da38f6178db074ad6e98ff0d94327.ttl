@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-750da38f6178db074ad6e98ff0d94327> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service/queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -36,4 +35,25 @@ WHERE {
   OPTIONAL {?expositions wdt:P1640 ?commissaires.}
 }
 GROUP BY ?expositions ?expositionsLabel ?titre ?date_de_debut ?date_de_fin ?sous_titre ?lieuLabel ?localisation_administrativeLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?expositions ?expositionsLabel ?titre ?date_de_debut ?date_de_fin ?sous_titre ?lieuLabel ?localisation_administrativeLabel (GROUP_CONCAT(DISTINCT ?commissairesLabel;separator=\", \") AS ?commissaires) 
+WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,en\".
+     ?expositions rdfs:label ?expositionsLabel.
+     ?lieu rdfs:label ?lieuLabel.
+     ?localisation_administrative rdfs:label ?localisation_administrativeLabel.
+     ?commissaires rdfs:label ?commissairesLabel.
+  }
+  ?expositions wdt:P664 wd:Q856640.
+  OPTIONAL { ?expositions wdt:P1476 ?titre. }
+  OPTIONAL { ?expositions wdt:P580 ?date_de_debut. }
+  OPTIONAL { ?expositions wdt:P582 ?date_de_fin. }
+  OPTIONAL { ?expositions wdt:P1132 ?nombre_de_participants. }
+  ?expositions wdt:P31 wd:Q29023906.
+  OPTIONAL { ?expositions wdt:P1680 ?sous_titre. }
+  OPTIONAL { ?expositions wdt:P276 ?lieu. }
+  OPTIONAL { ?expositions wdt:P131 ?localisation_administrative. }
+  OPTIONAL {?expositions wdt:P1640 ?commissaires.}
+}
+GROUP BY ?expositions ?expositionsLabel ?titre ?date_de_debut ?date_de_fin ?sous_titre ?lieuLabel ?localisation_administrativeLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

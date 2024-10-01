@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8a2ab8500f06288c557f699c9fdf2e32> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Bovlb/queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -106,4 +105,93 @@ SELECT ?x ?exists
      bd:serviceParam wikibase:language \"en\" .
   }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?x ?exists
+  ?notability1_strong ?notability2a_strong ?notability2b_strong ?notability3_strong ?notability_strong 
+  ?notability1_weak ?notability2a_weak ?notability2b_weak ?notability3_weak ?notability_weak 
+  ?xLabel ?xDescription WHERE {
+  VALUES ?x {wd:Q42 wd:Q48507154 wd:Q113547783 wd:Q107204561 wd:Q113547694 wd:Q113548247 wd:Q113548224 wd:Q113551800 wd:Q108218763 wd:Q58409749}
+  
+  BIND(exists {
+    ?x schema:version ?version .
+  } AS ?exists)
+    
+  # N1: It contains at least one valid sitelink ...
+  BIND(EXISTS { # ?notability1_strong
+    ?sitelink schema:about ?x .
+  } AS ?notability1_strong)
+
+  BIND(?notability1_strong as ?notability1_weak) # FUTURE
+  
+  # N2a: It refers to an instance of a clearly identifiable conceptual or material entity
+  BIND(EXISTS { # ?notability2a_weak
+    {
+      ?x ?p ?statement .
+      ?prop wikibase:claim ?p .
+      ?prop wikibase:propertyType <http://wikiba.se/ontology#ExternalId> . 
+    } UNION {
+      ?x p:P856 ?statement . # official website
+    }
+  } AS ?notability2a_weak)
+
+  BIND(EXISTS { # ?notability2a_strong
+    {
+      ?x ?p ?statement .
+      ?prop wikibase:claim ?p .
+      ?prop wikibase:propertyType <http://wikiba.se/ontology#ExternalId> . 
+    } MINUS {
+      ?prop wdt:P279*/wdt:P31 wd:Q105388954 . # Wikidata property to identify online accounts 
+    }
+  } AS ?notability2a_strong)
+
+  #N2b: The entity must be notable, in the sense that it can be described using serious and publicly available references.
+  BIND(EXISTS { # ?notability2b_weak
+    {
+      ?x ?p ?statement .
+      ?statement prov:wasDerivedFrom ?ref . 
+    } UNION {
+      ?x ?p ?statement .
+      ?prop wikibase:claim ?p .
+      ?prop wdt:Q31 wd:Q62589316 . # Wikidata property for an identifier that suggests notability
+    } UNION {
+      ?x p:P973 ?statement . # described at URL
+    }
+  } AS ?notability2b_weak)
+
+  BIND(EXISTS { # ?notability2b_strong
+    {
+      {
+        ?x ?p ?statement .
+        ?statement prov:wasDerivedFrom ?ref . 
+      } MINUS {
+        ?ref ?pr ?source .
+        ?prop wikibase:reference ?pr .
+        ?prop wdt:P31 wd:Q113558322 . # Wikidata property that suggests a reference is weak
+      }
+    } UNION {
+      ?x ?p ?statement .
+      ?prop wikibase:claim ?p .
+      ?prop wdt:Q31 wd:Q62589316 . # Wikidata property for an identifier that suggests notability
+    } UNION {
+      ?x p:P973 ?statement . # described at URL
+    }
+  } AS ?notability2b_strong)
+
+  # N3: It fulfills a structural need, for example: it is needed to make statements made in other items more useful.
+  BIND(EXISTS { # ?notability3_strong
+    ?statement ?ps ?x .
+    ?other ?p ?statement .
+    ?prop wikibase:claim ?p .
+    FILTER(?other != ?x)
+  } AS ?notability3_strong)
+    
+  BIND(?notability3_strong as ?notability3_weak) # FUTURE
+  
+  BIND((?notability1_strong|| (?notability2a_strong && ?notability2b_strong) || ?notability3_strong) AS ?notability_strong)
+  BIND((?notability1_weak || (?notability2a_weak && ?notability2b_weak) || ?notability3_weak) AS ?notability_weak)
+
+  SERVICE wikibase:label {
+     bd:serviceParam wikibase:language \"en\" .
+  }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

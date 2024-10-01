@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c9981d83bf8384dc9ed908b93c95f87d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Daniel_Mietchen/FSCI_2018>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -42,4 +41,32 @@ WHERE{
   }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#source: https://gist.github.com/floatingpurr/490df22fdbeff0f127f71f83eff6a284
+#defaultView:Map{\"layer\":\"?topicsBin\"}
+SELECT ?topic ?topicLabel ?geoloc ?topicsBin ?topicCitations
+WHERE{
+   BIND(
+      IF(?topicCitations < 10, \"Log < 1\",
+            IF(?topicCitations < 100, \"Log < 2\",
+                IF(?topicCitations < 1000, \"Log < 3\",
+                    \"Log >= 3\")))
+    AS ?topicsBin)
+
+  {
+  SELECT ?topic ?geoloc (count(?topic) as ?topicCitations) 
+  
+  WHERE {
+    
+  ?paper wdt:P921 ?topic ; 
+         wdt:P31 wd:Q13442814 .
+  ?topic wdt:P625 ?geoloc.
+  } 
+
+  GROUP BY ?topic ?geoloc
+   
+                
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

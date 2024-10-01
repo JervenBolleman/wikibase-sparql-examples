@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b16afc4a00ad2cfceb0e2e5b3271c71b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:YanikB>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -33,4 +32,19 @@ WHERE {
   }
 GROUP BY ?locationLabel 
 LIMIT 1500""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?locationLabel (SUM(?population) AS ?totalPopulation)
+WHERE {
+       {?item wdt:P31 wd:Q104782082} union {?item wdt:P31 wd:Q204613}
+       {?item p:P1082 [ ps:P1082 ?population; pq:P459 wd:Q29051383; pq:P585 ?date ] }
+       FILTER (?date  >= \"2020-07-01T00:00:00Z\"^^xsd:dateTime )
+       ?item wdt:P131 ?loc .
+       ?loc wdt:P31 ?nat .
+       ?loc wdt:P131 ?loc2 .
+       FILTER (?nat = wd:Q55998242 || ?nat = wd:Q2826814 )
+       BIND(IF(?nat = wd:Q2826814,?loc2,?loc ) as ?location) 
+       SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\" }
+  }
+GROUP BY ?locationLabel 
+LIMIT 1500""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

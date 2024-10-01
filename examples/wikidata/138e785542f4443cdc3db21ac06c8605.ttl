@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-138e785542f4443cdc3db21ac06c8605> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Property_talk:P9487>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
@@ -27,4 +26,15 @@ SELECT ?co ?jurLabel ?ral ?item ?itemLabel  WHERE {
   bind(coalesce(?jur1,?jur2) as ?jur)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,de,bg,no,nn,nb\" } .
 } order by ?co ?ral ?jurLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?co ?jurLabel ?ral ?item ?itemLabel  WHERE {
+  ?item p:P9487 ?stat.
+  ?stat ps:P9487 ?ral
+  optional {?item wdt:P17/wdt:P297 ?co}
+  filter(!bound(?co) || ?co=\"DE\")
+  optional {?stat pq:P1001 ?jur1}
+  optional {?item wdt:P1001 ?jur2}
+  bind(coalesce(?jur1,?jur2) as ?jur)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,de,bg,no,nn,nb\" } .
+} order by ?co ?ral ?jurLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

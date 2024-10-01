@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-367fc5c95a24d5dc91a04f660e558182> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Collection_highlights_National_Library_of_the_Netherlands/Flora_Batava/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -65,4 +64,54 @@ WHERE {
 }
 GROUP BY ?plate ?plateLabel ?plantDecpicted ?dutchTrivialNameInFB  ?scientificNameInFB ?historicalPlantIllustration ?dutchTrivialNameModern ?scientificNameModern ?VerspreidingsatlasID ?historicalDistMapURL ?currentDistMapURL
 ORDER BY ?plateLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Historical vs. modern images and distribution maps of plants
+#
+# 1) Historical illustration vs. modern photo of plant (image URLs)
+#  - Historical illustration: Illustration/plate in Flora Batava
+#  - Modern image: P18 in the Qitem of the related plant
+# 2) Map of historical vs. current distributions of plant (map URLs)
+#  - Historical plant distribution map (at time of publication of the FB volume the plant is listed in, ±20 years): https://www.verspreidingsatlas.nl/verspreidingskaart.aspx?size=large&soortcode=1351&jaar=1800&jaartot=1820
+#  - Current plant distribution map (2023): https://www.verspreidingsatlas.nl/verspreidingskaart.aspx?size=large&soortcode=1351&jaar=2023
+#
+# Example: ''Veronica chamaedrys'' (P6142 = 1351): 
+# - Historical illustration (https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Veronica_chamaedrys_-_Pl0001_-_FloraBatava-KB-v01.jpg/782px-Veronica_chamaedrys_-_Pl0001_-_FloraBatava-KB-v01.jpg) vs. 
+# - modern photo of plant (https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/%28MHNT%29_Veronica_chamaedrys_-_Plant_Habit.jpg/751px-%28MHNT%29_Veronica_chamaedrys_-_Plant_Habit.jpg)
+# and
+# - Map of historical distribution (https://www.verspreidingsatlas.nl/verspreidingskaart.aspx?size=large&soortcode=1351&jaar=1800&jaartot=1820) vs. 
+# - map of current distribution of this plant (https://www.verspreidingsatlas.nl/verspreidingskaart.aspx?size=large&soortcode=1351&jaar=2023) 
+
+SELECT DISTINCT 
+?plate ?plateLabel 
+?plantDecpicted 
+?dutchTrivialNameInFB  ?scientificNameInFB ?historicalPlantIllustration 
+?dutchTrivialNameModern ?scientificNameModern (SAMPLE(?plantDecpictedImage) AS ?modernPlantImage)
+?VerspreidingsatlasID
+?historicalDistMapURL ?currentDistMapURL
+WHERE {
+  wd:Q117860156 wdt:P527 ?volume.
+  ?volume wdt:P577 ?pubdate.
+  ?volume wdt:P527 ?plate.
+ 
+  ?plate wdt:P1476 ?scientificNameInFB. FILTER(lang(?scientificNameInFB)='la')
+  ?plate wdt:P1476 ?dutchTrivialNameInFB. FILTER(lang(?dutchTrivialNameInFB)='nl')
+  OPTIONAL{?plate wdt:P18 ?historicalPlantIllustration.}
+  ?plate wdt:P180 ?plantDecpicted.
+  ?plantDecpicted rdfs:label ?scientificNameModern. FILTER(lang(?scientificNameModern)='la')
+  ?plantDecpicted rdfs:label?dutchTrivialNameModern. FILTER(lang(?dutchTrivialNameModern)='nl')
+
+  OPTIONAL{?plantDecpicted wdt:P18 ?plantDecpictedImage.}
+  
+  OPTIONAL{  ?plantDecpicted wdt:P6142 ?VerspreidingsatlasID. }#Verspreidingsatlas.nl ID
+    BIND(YEAR(?pubdate) AS ?pubdateyear). # year of publication of FB volume
+    BIND(STR(?pubdateyear + 20) AS ?untildate). # publicationdateyear + 25 years
+    BIND(URI(CONCAT(\"https://www.verspreidingsatlas.nl/verspreidingskaart.aspx?size=large&soortcode=\",STR(?VerspreidingsatlasID),\"&jaar=\", STR(?pubdateyear),\"&jaartot=\",STR(?untildate))) AS ?historicalDistMapURL) # Historical distribution map URL 
+  
+    BIND(STR(YEAR(NOW())) AS ?currentyear) # year it is now
+    BIND(URI(CONCAT(\"https://www.verspreidingsatlas.nl/verspreidingskaart.aspx?size=large&soortcode=\",STR(?VerspreidingsatlasID),\"&jaar=\", STR(?currentyear))) AS ?currentDistMapURL)
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],nl\". } 
+}
+GROUP BY ?plate ?plateLabel ?plantDecpicted ?dutchTrivialNameInFB  ?scientificNameInFB ?historicalPlantIllustration ?dutchTrivialNameModern ?scientificNameModern ?VerspreidingsatlasID ?historicalDistMapURL ?currentDistMapURL
+ORDER BY ?plateLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

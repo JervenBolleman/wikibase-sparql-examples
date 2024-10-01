@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8d92284d51cb84797bdd0d7dd97c9f7c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/Queries>, <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/sandbox>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -44,4 +43,30 @@ WHERE {
 GROUP BY ?i ?iLabel ?iDescription ?nickname
  ?P19Label ?P20Label ?P21Label
  ?P569p ?P569v ?P570p ?P570v ?P18""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT 
+ ?i ?iLabel ?iDescription ?nickname
+ (GROUP_CONCAT(DISTINCT ?iAlias; SEPARATOR=\", \") AS ?iAliases)
+ ?P19Label ?P20Label ?P21Label
+ ?P569p ?P569v ?P570p ?P570v ?P18
+ (GROUP_CONCAT(DISTINCT ?okkMa; SEPARATOR=\", \") AS ?okkupMas)
+ (GROUP_CONCAT(DISTINCT ?okkFe; SEPARATOR=\", \") AS ?okkupFes)
+WHERE {
+ BIND(wd:Q1616094 AS ?i)
+ OPTIONAL { ?i wdt:P21 ?P21 . } # genere
+ OPTIONAL { ?i wdt:P18 ?P18 . } # foto
+ OPTIONAL { ?i wdt:P19 ?P19 . } # luogo nascita
+ OPTIONAL { ?i wdt:P20 ?P20 . } # luogo morte
+ OPTIONAL { ?i p:P569 [ a wikibase:BestRank ; psv:P569 [ wikibase:timePrecision ?P569p ; wikibase:timeValue ?P569v ] ] . } # data nascita
+ OPTIONAL { ?i p:P570 [ a wikibase:BestRank ; psv:P570 [ wikibase:timePrecision ?P570p ; wikibase:timeValue ?P570v ] ] . } # data morte
+ OPTIONAL { ?i wdt:P1449 ?nickname . } # soprannome
+ OPTIONAL { ?i skos:altLabel ?iAlias . } # aliases
+ OPTIONAL { ?i wdt:P106 ?okkup . ?okkup rdfs:label ?okkMa . FILTER(LANG(?okkMa) = \"it\")
+   OPTIONAL { ?okkup wdt:P2521 ?okkFe . FILTER(LANG(?okkFe) = \"it\") }
+ }
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"it,en\". }
+}
+GROUP BY ?i ?iLabel ?iDescription ?nickname
+ ?P19Label ?P20Label ?P21Label
+ ?P569p ?P569v ?P570p ?P570v ?P18""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

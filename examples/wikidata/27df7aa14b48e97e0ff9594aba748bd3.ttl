@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-27df7aa14b48e97e0ff9594aba748bd3> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_PCC_Wikidata_Pilot/UNLV/SPARQL_Examples_and_Concepts>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -33,4 +32,22 @@ WHERE
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 }
 ORDER BY ?itemLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Graph
+SELECT ?item ?itemLabel ?itemDescription ?orcidIdURL ?image ?occupation ?occupationLabel (\"CF0A2C\" as ?rgb)
+WHERE 
+{
+  ?item wdt:P31 wd:Q5 ; # instance of a human
+        rdfs:label ?itemLabel .
+  ?item wdt:P108 wd:Q2302311 ; # University of Nevada, Las Vegas
+        wdt:P108 ?employer .
+  ?item wdt:P106 ?occupation .
+  OPTIONAL { ?item wdt:P18 ?image . }
+  OPTIONAL {?item wdt:P496 ?orcidId . }
+  BIND (URI(CONCAT(\"https://orcid.org/\", ENCODE_FOR_URI (?orcidId))) AS ?orcidIdURL)
+  FILTER (?employer IN (wd:Q2302311)) # Filter out employers NOT the University of Nevada, Las Vegas
+  FILTER (lang(?itemLabel) = \"en\") # Display English label
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY ?itemLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

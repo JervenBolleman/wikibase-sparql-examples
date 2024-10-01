@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-caffdabb6ed5c896feb3b105c6774031> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:MKar/TimeQuery>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -40,4 +39,29 @@ WHERE {
 }
 GROUP BY ?item ?statements ?linkcount ?itemLabel ?itemDescription ?dob ?dod
 ORDER BY DESC (?linkcount)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?statements ?linkcount ?itemLabel ?itemDescription ?dob ?dod (GROUP_CONCAT(DISTINCT ?awd_label ;separator=', ') AS ?awards)
+WHERE {
+  ?item wdt:P31 wd:Q5 . 	# item = humans only
+   ?item wdt:P103 wd:Q33810 .
+  #?item wdt:P27 wd:Q668.
+  
+#___BIRTH AND DEATH___
+  BIND(NOW() as $today)
+  BIND(YEAR($today) AS $today_year)
+  BIND(MONTH($today) AS $today_month)
+  OPTIONAL { ?item wdt:P569 ?dob }
+  OPTIONAL { ?item wdt:P570 ?dod }
+  FILTER( $today_month = MONTH(?dob) ||  $today_month = MONTH(?dod) )	
+ #___ AWARDS ___
+ ?item wdt:P166 ?award .
+	?award rdfs:label ?awd_label 
+          FILTER (lang(?awd_label) = \"or\") . # to get only Odia labels
+  
+  ?item wikibase:statements ?statements . # for counting statements
+  OPTIONAL { ?item wikibase:sitelinks ?linkcount. }  #count sitelinks
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE], en\".}	# for generating label	
+}
+GROUP BY ?item ?statements ?linkcount ?itemLabel ?itemDescription ?dob ?dod
+ORDER BY DESC (?linkcount)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

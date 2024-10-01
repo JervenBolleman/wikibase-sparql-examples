@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-31771c4a98ddfc9f6df43a9dcdfd523b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:ProteinBoxBot/SPARQL_Examples>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -30,4 +29,19 @@ SELECT ?operon ?operonLabel (if(?label = \"Forward Strand\"@en, '+', '-') as ?st
    ?strand rdfs:label ?label . filter(lang(?label) = 'en')
 } GROUP BY ?operonLabel ?strandLabel ?label ?operon
 ORDER BY ?operonLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Request all operons and their genes for Listeria monocytogenes EGD-e
+SELECT ?operon ?operonLabel (if(?label = \"Forward Strand\"@en, '+', '-') as ?strand)
+ (group_concat(distinct ?locustag; separator=\" \") as ?locustagG) WHERE {
+  ?strain wdt:P685 \"169963\". # NCBI Taxonomy ID for Listeria monocytogenes EGD-e
+  ?operon wdt:P703 ?strain; # get operon that is found in that genome
+          wdt:P2548 ?strand; # get strand orientation
+          wdt:P31 wd:Q139677; #instance of operon
+          wdt:P527 ?gene. # has part gene (gets all genes in operon)
+  ?gene wdt:P2393 ?locustag; # get ncbi locus tag for genes in operon
+        wdt:P351 ?entrez.  # get ncbi entrez id for genes in operon
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+   ?strand rdfs:label ?label . filter(lang(?label) = 'en')
+} GROUP BY ?operonLabel ?strandLabel ?label ?operon
+ORDER BY ?operonLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

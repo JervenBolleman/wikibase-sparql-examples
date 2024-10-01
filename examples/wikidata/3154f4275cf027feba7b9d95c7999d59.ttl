@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-3154f4275cf027feba7b9d95c7999d59> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/02>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -29,4 +28,18 @@ SELECT ?item ?itemLabel ?cnt WHERE {
 }
 SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,fr\" }  
 } ORDER BY DESC (?cnt)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?cnt WHERE {
+{
+  SELECT ?item (COUNT(?sitelink) AS ?cnt) WHERE {
+  ?item wdt:P27|wdt:P205|wdt:P17 wd:Q16 .
+  ?sitelink schema:about ?item .
+  FILTER NOT EXISTS {
+    ?article schema:about ?item .
+    ?article schema:isPartOf <https://en.wikipedia.org/> .
+  }
+  } GROUP BY ?item ORDER BY DESC (?cnt) LIMIT 1000
+}
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,fr\" }  
+} ORDER BY DESC (?cnt)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-3ca0ebf32c51a5c86d9f06612d138847> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_LGBT/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -42,4 +41,31 @@ WHERE {
 GROUP BY ?topic ?topicLabel
 ORDER BY DESC(?count)
 LIMIT 1000""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT 
+?topic
+?topicLabel
+(group_concat(if(bound(?personName), ?personName, ?personEnglishLabel); separator=\", \") as ?authors)
+(COUNT(?topic) AS ?count) 
+WHERE {
+  {
+    ?person wdt:P91 ?orientation . 
+    FILTER (?orientation != wd:Q1035954 )
+  } UNION {
+    ?person wdt:P21 ?gender .
+    VALUES ?gender { wd:Q1097630 wd:Q303479 wd:Q189125 wd:Q1052281 wd:Q2449503 wd:Q48270 wd:Q1399232 wd:Q3277905 wd:Q746411 wd:Q350374 wd:Q660882 }
+  }
+  ?work wdt:P50 ?person ; wdt:P921 ?topic .
+  OPTIONAL {
+    ?person wdt:P1559 ?personName
+  }
+  OPTIONAL {
+    ?person rdfs:label ?personEnglishLabel
+    FILTER (lang(?personEnglishLabel) = \"en\")
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} 
+GROUP BY ?topic ?topicLabel
+ORDER BY DESC(?count)
+LIMIT 1000""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

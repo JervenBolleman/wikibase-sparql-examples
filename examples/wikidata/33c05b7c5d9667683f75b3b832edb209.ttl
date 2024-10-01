@@ -1,17 +1,16 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-33c05b7c5d9667683f75b3b832edb209> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service/Wikidata_Query_Help>,
-    <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service>;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service>,
+    <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service/Wikidata_Query_Help>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -37,4 +36,25 @@ SELECT ?item ?itemLabel ?image ?placeofbirth ?placeofbirthLabel ?coord ?dob ?sit
   OPTIONAL { ?item wdt:P569 ?dob. }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?image ?placeofbirth ?placeofbirthLabel ?coord ?dob ?sitelink ?clickable_url WHERE {
+  ?item wdt:P27 ?nationality.
+  wd:Q27394 wdt:P527 ?nationality.
+  ?item wdt:P21 wd:Q6581072.
+  ?item wdt:P31 wd:Q5.
+  ?item (wdt:P106/wdt:P279*) wd:Q36180.
+  ?sitelink schema:about ?item; 
+  schema:isPartOf <https://en.wikipedia.org/> .
+  OPTIONAL {
+    ?item wdt:P19 ?placeofbirth.
+    ?placeofbirth wdt:P625 ?coord.
+    ?item wdt:P1006 ?National_Thesaurus_for_Author_Names_ID.
+    ?item wdt:P244 ?Library_of_Congress_authority_ID.
+    bind(if(strstarts(?Library_of_Congress_authority_ID,\"nb\"),strafter(?Library_of_Congress_authority_ID,\"nb\"),if(strstarts(?Library_of_Congress_authority_ID,\"nr\"),strafter(?Library_of_Congress_authority_ID,\"nr\"),if(strstarts(?Library_of_Congress_authority_ID,\"no\"),strafter(?Library_of_Congress_authority_ID,\"no\"),strafter(?Library_of_Congress_authority_ID,\"n\")))) as ?loc)
+    BIND(IRI(CONCAT(\"http://catalogue.leidenuniv.nl/primo_library/libweb/action/dlSearch.do?vid=UBL_V1&institution=UBL&tab=leiden&search_scope=lib_asc&query=any,contains,\", ?National_Thesaurus_for_Author_Names_ID, \"OR\",?loc)) AS ?clickable_url)
+  }
+  OPTIONAL { ?item wdt:P18 ?image. }
+  OPTIONAL { ?item wdt:P569 ?dob. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

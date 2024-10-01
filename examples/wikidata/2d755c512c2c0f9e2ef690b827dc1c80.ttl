@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-2d755c512c2c0f9e2ef690b827dc1c80> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/05>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -26,4 +25,17 @@ SELECT DISTINCT ?item ?itemLabel ?count ?sample ?valueList
 	} .
 	FILTER( ?count > 1 ) .
 	SERVICE wikibase:label { bd:serviceParam wikibase:language \"{{int:lang}},en\" } .
-} ORDER BY DESC(?count) LIMIT 1000""" .
+} ORDER BY DESC(?count) LIMIT 1000""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?itemLabel ?count ?sample ?valueList
+{
+	{
+		SELECT ?item (COUNT(?val) AS ?count) (SAMPLE(?value) AS ?sample) (GROUP_CONCAT(?value; separator=\", \") AS ?valueList) {
+			?item wdt:{{PAGENAME}} ?val .
+			OPTIONAL { wd:{{PAGENAME}} wdt:P1630 ?formatter } .
+			BIND( IF( BOUND( ?formatter ), URI( REPLACE( ?formatter, '\\\\$1', ?val ) ), ?val ) AS ?value ) .
+		} GROUP BY ?item
+	} .
+	FILTER( ?count > 1 ) .
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"{{int:lang}},en\" } .
+} ORDER BY DESC(?count) LIMIT 1000""";
+  schema:target <https://query.wikidata.org/sparql> .

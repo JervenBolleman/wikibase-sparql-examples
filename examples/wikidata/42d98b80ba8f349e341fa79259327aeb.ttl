@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-42d98b80ba8f349e341fa79259327aeb> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Amadalvarez/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX prov: <http://www.w3.org/ns/prov#>
@@ -64,4 +63,56 @@ WHERE
     ?ref ?pr ?rval .
     [] wikibase:reference ?pr
   }
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title tots els continguts d'uns items, unes propietats i filtrable per un valor específic
+
+
+SELECT distinct ?item ?property ?value ?unit ?pq ?qualifier_value ?qualifier_unit ?ref ?pr ?rval
+WHERE
+{
+  VALUES ?item { wd:Q515526 }       # obligatori, es pot posar una llista
+  VALUES ?property { wd:P39 }       # obligatori, pot ser més d'una propietat
+  VALUES ?value { wd:Q110546839 }   # opcional. Si no s'informa extraurà tots els valors que tingui la property 
+
+  ?property wikibase:claim ?claim .
+
+  # Get amount and unit for the statement
+  ?item ?claim ?statement .
+  {
+    ?property wikibase:propertyType ?property_type .
+    FILTER (?property_type != wikibase:Quantity)
+    ?property wikibase:statementProperty ?propertyStatement .
+    ?statement ?propertyStatement ?value .
+  }
+  UNION
+  {
+    ?property wikibase:statementValue ?statementValue .
+    ?statement ?statementValue [wikibase:quantityAmount ?value; wikibase:quantityUnit ?unit] .
+  }
+
+  # Get qualifiers
+  OPTIONAL
+  {
+    {
+      # Get simple values for qualifiers which are not of type quantity
+      ?statement ?propQualifier ?qualifier_value .
+      ?pq wikibase:qualifier ?propQualifier .
+      ?pq wikibase:propertyType ?qualifer_property_type .
+      FILTER (?qualifer_property_type != wikibase:Quantity)
+    }
+    UNION
+    {
+      # Get amount and unit for qualifiers of type quantity
+      ?statement ?pqv [wikibase:quantityAmount ?qualifier_value; wikibase:quantityUnit ?qualifier_unit] .
+      ?pq wikibase:qualifierValue ?pqv .
+    }
+  }
+
+  # get references
+  OPTIONAL {
+    ?statement prov:wasDerivedFrom ?ref .
+    ?ref ?pr ?rval .
+    [] wikibase:reference ?pr
+  }
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

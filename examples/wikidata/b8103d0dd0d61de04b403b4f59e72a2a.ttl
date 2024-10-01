@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b8103d0dd0d61de04b403b4f59e72a2a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:CamelCaseNick/Stolpersteine>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
@@ -47,4 +46,36 @@ select ?stolperstein ?image with {
     ?fileMatch wikibase:apiOutput mwapi:title.
   }
 }
-order by asc(xsd:integer(replace(str(?stolperstein), str(wd:Q), \"\")))""" .
+order by asc(xsd:integer(replace(str(?stolperstein), str(wd:Q), \"\")))""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#by CamelCaseNick
+prefix commons:<http://commons.wikimedia.org/wiki/Special:FilePath/>
+
+select ?stolperstein ?image with {
+  select ?stolperstein ?image ?title where {
+    ?stolperstein wdt:P31 wd:Q26703203;
+                  wdt:P131/wdt:P131 wd:Q1055;
+                  wdt:P18 ?image.
+
+    bind(wikibase:decodeUri(replace(str(?image), str(commons:), \"\")) as ?title)
+
+    filter(regex(?title, \"^(?:Stolpersteine? )?((?:(?:\\\\p{L}+\\\\.?[ \\\\-/])*\\\\p{L}+\\\\.?(?: ?\\\\d+(?: ?[a-zA-Z]|[\\\\-–]\\\\d+)?)?)) \\\\( *((?:[\\\\p{L}\\\\d]+[\\\\-\\\\.,]? ?)*[\\\\p{L}\\\\d]+) *\\\\)(?: ?[Ii]n)? ([\\\\p{L}\\\\. \\\\-]+?)(?: ?\\\\(\\\\d+\\\\)| ?\\\\d+)?(?: ShiftN)?\\\\.(jpg|JPG)$\")
+           || regex(?title, \"^((?:[\\\\p{L}\\\\d\\\\.]+[\\\\- ])*[\\\\p{L}\\\\d]+) ?[\\\\-–] ((?:(?:\\\\p{L}+\\\\.?[ \\\\-/])*\\\\p{L}+\\\\.?(?: \\\\d+(?:[a-z]| ?[\\\\-–] ?\\\\d+)?)?)) \\\\(([\\\\p{L}\\\\- \\\\.]+)\\\\)(?:\\\\.| )Stolperstein(e| 20\\\\d{2}|\\\\-\\\\d{4}\\\\-\\\\d{2}\\\\-\\\\d{2})?(\\\\.\\\\d+)?(\\\\.(nnw|(crop\\\\.)?ajb|ccn))?\\\\.jpg$\"))
+  }
+  order by asc(xsd:integer(replace(str(?stolperstein), str(wd:Q), \"\")))
+  limit 400
+  offset 2400
+} as %stolpersteine where {
+  include %stolpersteine.
+
+  bind(concat(\"intitle:\"\", ?title, \"\" -haswbstatement:P180=\", replace(str(?stolperstein), str(wd:), \"\")) as ?fileSearch)
+  service wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"commons.wikimedia.org\";
+                    mwapi:srsearch ?fileSearch;
+                    mwapi:srlimit \"1\"^^xsd:integer;
+                    mwapi:srnamespace \"6\".
+    ?fileMatch wikibase:apiOutput mwapi:title.
+  }
+}
+order by asc(xsd:integer(replace(str(?stolperstein), str(wd:Q), \"\")))""";
+  schema:target <https://query.wikidata.org/sparql> .

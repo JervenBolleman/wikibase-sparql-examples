@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b319aa033aeeb0677b885c15f8583f85> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/10>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -36,4 +35,24 @@ SELECT ?deathdate ?person ?personLabel ?painting ?paintingLabel ?image ?coll ?co
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,nl,pl,ca\". }
 }
 ORDER BY ?tv ?personLabel ?paintingLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Selects all human who died in 1948 and shows 
+#their paintings that are part of a collection (with possible coordinates) as well as the possible placement with country and possible image 
+SELECT ?deathdate ?person ?personLabel ?painting ?paintingLabel ?image ?coll ?collLabel ?collcoord ?collcountryLabel ?placeLabel ?placecountryLabel WHERE {
+  VALUES ?year { 1948 }  # add more years like VALUES ?year { 1948 1949 }
+  ?person wdt:P31 wd:Q5.
+  ?person p:P570/psv:P570 [wikibase:timeValue ?tv; wikibase:timePrecision ?tp] .
+  FILTER(year(?tv)=?year)
+#truncate the display of dates given with year och month precision
+  BIND(IF(?tp=9,substr(?tv,1,4),IF(?tp=10,substr(str(?tv),1,7),substr(str(?tv),1,10))) AS ?deathdate)
+  ?painting wdt:P170 ?person .
+  ?painting wdt:P195 ?coll .
+  OPTIONAL { ?painting wdt:P18 ?image }
+#  FILTER(!BOUND(?image))  # uncommment this if only paintings without image are wanted
+  OPTIONAL { ?coll wdt:P625 ?collcoord }
+  OPTIONAL { ?coll wdt:P17 ?collcountry }
+  OPTIONAL { ?coll wdt:P276 ?place . OPTIONAL { ?place wdt:P17 ?placecountry } }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,nl,pl,ca\". }
+}
+ORDER BY ?tv ?personLabel ?paintingLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

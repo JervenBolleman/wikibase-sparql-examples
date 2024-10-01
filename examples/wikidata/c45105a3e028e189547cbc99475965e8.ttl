@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c45105a3e028e189547cbc99475965e8> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stefan_K%C3%BChn/Dresden>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -29,4 +28,19 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
 }
 ORDER BY ?itemLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#-----------------------------------------------------------------------
+# Straßen in Deutschland ohne Stadt
+#-----------------------------------------------------------------------
+#defaultView:map;Table
+SELECT ?item ?itemLabel ?image ?coordinates
+WHERE {
+  ?item (wdt:P31/wdt:P279*) wd:Q79007.      # Innerortsstraßen
+  ?item wdt:P17 wd:Q183.                    # in Deutschland
+  MINUS { ?item wdt:P131 _:b1. }            # ohne \"liegt in Verwaltungseinheit\" P131
+  OPTIONAL { ?item wdt:P18 ?image. }        # Bild
+  OPTIONAL { ?item wdt:P625 ?coordinates. } # Koordinate  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+}
+ORDER BY ?itemLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

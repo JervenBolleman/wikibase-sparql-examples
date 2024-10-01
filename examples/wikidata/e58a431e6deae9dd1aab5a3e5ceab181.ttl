@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-e58a431e6deae9dd1aab5a3e5ceab181> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Mzaki>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -47,4 +46,36 @@ SELECT DISTINCT ?school ?schoolLabel ?sitelink ?class ?classLabel ?city ?cityLab
   }
 }
 LIMIT 1000""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?school ?schoolLabel ?sitelink ?class ?classLabel ?city ?cityLabel ?prefLabel ?chu ?chuLabel ?chuCode ?ko ?koLabel ?koCode ?code WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"ja\". }
+  {?school wdt:P31 wd:Q21655594. BIND(wd:Q21655594 AS ?class) }
+  UNION
+  {?school wdt:P31 wd:Q97379116. BIND(wd:Q97379116 AS ?class) }
+  UNION
+  {?school wdt:P31 wd:Q11484207. BIND(wd:Q11484207 AS ?class) }
+  OPTIONAL {
+    ?sitelink schema:about ?school; schema:isPartOf <https://ja.wikipedia.org/>.
+  }
+  OPTIONAL {
+    ?school (wdt:P131+) ?city.
+    ?city (wdt:P31/(wdt:P279*)) wd:Q1054813.
+  }
+  OPTIONAL {
+    ?school (wdt:P131+) ?pref.
+    ?pref wdt:P31 wd:Q50337.
+  }
+  OPTIONAL {
+    ?school wdt:P527 ?chu.
+    ?chu wdt:P31 wd:Q55521176.
+    OPTIONAL { ?chu wdt:P11127 ?chuCode. }
+  }
+  OPTIONAL {
+    ?school wdt:P527 ?ko.
+    ?ko wdt:P31 wd:Q56351315.
+    OPTIONAL { ?ko wdt:P11127 ?koCode. }
+    OPTIONAL { ?ko wdt:P1386 ?code. }
+  }
+}
+LIMIT 1000""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

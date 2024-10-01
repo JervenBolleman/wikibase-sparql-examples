@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-216cefbac8966b68ad96a5fe854da95d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Talk:Q1747944>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -60,4 +59,43 @@ SELECT ?station ?stationLabel ?subwayLine ?coords ?line ?layer ?rgb WHERE {
     ?pred rdfs:label ?predLabel.
     ?station rdfs:label ?stationLabel .
   } } GROUP BY ?station ?stationLabel ?subwayLine ?rgb ?predLabel ?layer ?coords ?line order by xsd:integer(?line_number) ?line_number ?subwayLine""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title: Carte des réseaux d'Île-de-France avec en vert, les fonctionnels et en jaune les en cours de construction
+#defaultView:Map{\"hide\":[\"?coords\", \"?line\",\"?rgb\"]}
+SELECT ?station ?stationLabel ?subwayLine ?coords ?line ?layer ?rgb WHERE {
+ VALUES ?search {   wd:Q1142114 wd:Q389554 wd:Q50716 wd:Q216125  #critère de recherche de système de tramway
+  }
+     ?search wdt:P527 ?lignes.#quelles sont les lignes de ce tramway
+     ?lignes wdt:P559 ?termini.#quels sont les terminus de ce tramway
+ ?station wdt:P31/wdt:P279* wd:Q548662;  #de type poteau d'arrêt ou plus précis
+          wdt:P361|wdt:P16 ?search;#qui font partie du réseau recherché
+   wdt:P625 ?coords;
+    wdt:P81|wdt:P1192 ?subwayLine;
+   wdt:P197 ?pred.
+ ?pred wdt:P625 ?coords_pred;
+   wdt:P81|wdt:P1192 ?subwayLine_pred.  ?station p:P197 _:b1.
+  _:b1 ps:P197 ?pred ;    pq:P5051 ?towards;    pq:P81|pq:P1192 ?line_pq .  
+  ?subwayLine wdt:P1671 ?line_number.
+  FILTER(?subwayLine_pred = ?lignes)#on ne prend les LIGNES que si la correspondance est sur la même ligne
+  FILTER(?subwayLine = ?lignes)
+  FILTER(?towards = ?termini) 
+ ?pred  p:P625 ?node_pred .
+  ?node_pred psv:P625/wikibase:geoLatitude ?lat1 ;psv:P625/wikibase:geoLongitude ?lon1 .
+  ?node_pred a wikibase:BestRank.
+  ?station p:P625 ?node_station.
+ ?node_station psv:P625/wikibase:geoLatitude ?lat2 ;psv:P625/wikibase:geoLongitude ?lon2.
+ ?node_station a wikibase:BestRank.
+  BIND(CONCAT(\"LINESTRING(\", STR(?lon1), \" \", STR(?lat1),  \",\", STR(?lon2), \" \", STR(?lat2), \")\") AS ?str)
+  BIND(STRDT(?str, geo:wktLiteral) AS ?line)
+  ?subwayLine wdt:P5817 ?etat_ligne.
+  ?etat_ligne wdt:P465 ?rgb_ligne.
+  ?station wdt:P5817 ?etat_station.
+  ?etat_station wdt:P465 ?rgb_station.
+  BIND(COALESCE(?rgb_station, ?rgb_ligne) AS ?rgb).
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" .
+    ?subwayLine rdfs:label ?layer.
+    ?pred rdfs:label ?predLabel.
+    ?station rdfs:label ?stationLabel .
+  } } GROUP BY ?station ?stationLabel ?subwayLine ?rgb ?predLabel ?layer ?coords ?line order by xsd:integer(?line_number) ?line_number ?subwayLine""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

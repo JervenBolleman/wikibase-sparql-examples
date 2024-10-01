@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-41ec9ee867a6d3961b6b518c40626699> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/11>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -53,4 +52,42 @@ SELECT DISTINCT ?item ?itemLabel ?place ?placeLabel ?id ?coords ?article ?mapfla
                                                              # assign some colours based on state            
   BIND( IF(BOUND(?article),   IF(BOUND(?ns), \"009500\" , \"FFF000\" )  ,  \"FF0000\"   )  AS ?rgb).  
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
+SELECT DISTINCT ?item ?itemLabel ?place ?placeLabel ?id ?coords ?article ?mapflags ?rgb WHERE {
+  ?place wdt:P131* wd:Q1223 . hint:Prior hint:gearing \"forward\".
+                                              # ?place is in a specific state, or is in a place that is in that state,
+                                              # or is in a place which is within a place which is within that state, &c
+                                               #(replace the wd: value on this line for other states)
+  ?item wdt:P291|wdt:P159|wdt:P131 ?place .   # ?item is published in, or has its HQ in, or is located in a ?place 
+                                              # (which per the above is within the state)
+  ?item wdt:P31 / wdt:P279* wd:Q11032 . hint:Prior hint:gearing \"forward\".
+                                              # get all items on the subclass tree of newspaper (I don't understand this part)
+  ?place wdt:P625 ?coords.                    # the ?place must have coordinates 
+  OPTIONAL {                                  # go off & get articles that have infobox newspaper
+    SELECT ?item ?pageid ?ns WHERE {
+      SERVICE wikibase:mwapi {
+        bd:serviceParam wikibase:endpoint \"en.wikipedia.org\" .
+        bd:serviceParam wikibase:api \"Generator\" .
+        bd:serviceParam mwapi:generator \"search\" .
+        bd:serviceParam mwapi:gsrsearch \"hastemplate:\"Infobox newspaper\"\" .
+        bd:serviceParam mwapi:gsrlimit \"max\" .
+        ?item wikibase:apiOutputItem mwapi:item .
+        ?ns wikibase:apiOutput \"@ns\" .
+       }
+    } LIMIT 10000                             # MVAPI gives max 10000 results anyway, and the query seems more
+                                              # effiencient if the optimizer knows the maximum number of results.
+  }
+     OPTIONAL {                               # ?item might have an EN wiki article
+      ?article schema:about ?item .
+      ?article schema:isPartOf <https://en.wikipedia.org/> .
+  }
+                                       # Lord knows. Some sort of colour coding logic. Too tired.
+  BIND(IF(BOUND(?ns),\"_infobox\",\"_noinfobox\") AS ?infobox).  # there is or is not an infobox
+  BIND(IF(BOUND(?article),\"enwiki\",\"noenwiki\") AS ?onwiki).  # there is or is not an enwiki article
+  BIND(CONCAT(?onwiki,?infobox) as ?layer) .                 # concatenate those twoas a key (?)
+                                                             # assign some colours based on state            
+  BIND( IF(BOUND(?article),   IF(BOUND(?ns), \"009500\" , \"FFF000\" )  ,  \"FF0000\"   )  AS ?rgb).  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

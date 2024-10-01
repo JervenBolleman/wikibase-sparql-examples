@@ -1,26 +1,47 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-1685cd91f188b3d89819b7a18a0cde00> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/family_names_shared_by_several_astronauts_ordered_by_overall_prevalence_in_Wikidata>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 SELECT (SAMPLE(?familyNameLabel_) AS ?familyNameLabel) ?astronauts ?items (CONCAT(SUBSTR(STR(?astronauts / ?items * 100), 1, 5), \"%\") AS ?percent) WHERE {
-  INCLUDE %astronautNames.
-  INCLUDE %names.
+   {
+  SELECT ?familyName (COUNT(DISTINCT ?astronaut) AS ?astronauts) WHERE {
+    ?astronaut wdt:P31 wd:Q5;
+               wdt:P450 ?mission;
+               wdt:P734 ?familyName.
+  }
+  GROUP BY ?familyName
+  HAVING(?astronauts > 1)
+}
+   {
+  SELECT ?familyName (COUNT(*) AS ?items) WHERE {
+     {
+  SELECT ?familyName (COUNT(DISTINCT ?astronaut) AS ?astronauts) WHERE {
+    ?astronaut wdt:P31 wd:Q5;
+               wdt:P450 ?mission;
+               wdt:P734 ?familyName.
+  }
+  GROUP BY ?familyName
+  HAVING(?astronauts > 1)
+}
+    ?item wdt:P734 ?familyName.
+  }
+  GROUP BY ?familyName
+}
   ?familyName wdt:P1705 ?familyNameLabel_.
 }
 GROUP BY ?familyName ?astronauts ?items
 ORDER BY DESC(?astronauts / ?items) ?familyNameLabel""";
-  <http://example.org/bigdata_select> """SELECT (SAMPLE(?familyNameLabel_) AS ?familyNameLabel) ?astronauts ?items (CONCAT(SUBSTR(STR(?astronauts / ?items * 100), 1, 5), \"%\") AS ?percent) WITH {
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT (SAMPLE(?familyNameLabel_) AS ?familyNameLabel) ?astronauts ?items (CONCAT(SUBSTR(STR(?astronauts / ?items * 100), 1, 5), \"%\") AS ?percent) WITH {
   SELECT ?familyName (COUNT(DISTINCT ?astronaut) AS ?astronauts) WHERE {
     ?astronaut wdt:P31 wd:Q5;
                wdt:P450 ?mission;
@@ -40,4 +61,5 @@ ORDER BY DESC(?astronauts / ?items) ?familyNameLabel""";
   ?familyName wdt:P1705 ?familyNameLabel_.
 }
 GROUP BY ?familyName ?astronauts ?items
-ORDER BY DESC(?astronauts / ?items) ?familyNameLabel""" .
+ORDER BY DESC(?astronauts / ?items) ?familyNameLabel""";
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-ca8aac7eaffe3a3ddc24dfa49934cbc9> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Kbseah/Link_taxa_to_publications>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -41,4 +40,25 @@ SELECT DISTINCT ?taxon ?taxon_name ?author_citation ?ref ?refLabel ?author ?ord 
   BIND (YEAR(xsd:dateTime(?pubdate)) AS ?year )
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }
 } ORDER BY ?taxon xsd:integer(?ord) # add qualifiers in order of taxon author""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?taxon ?taxon_name ?author_citation ?ref ?refLabel ?author ?ord ?year WHERE { # use this line to check reference items first
+  ?taxon wdt:P171* wd:Q264543. # Chlorophyta
+  # ?taxon wdt:P105 wd:Q34740. # genus rank
+  ?taxon p:P225 ?s.
+  ?s ps:P225 ?taxon_name.
+  # check: some taxon names have authors that are different from the authors of the containing publication
+  OPTIONAL { ?taxon wdt:P6507 ?author_citation. } 
+  FILTER NOT EXISTS { ?s pq:P405 ?taxon_author. }
+  ?s prov:wasDerivedFrom ?r. 
+  ?r pr:P248 ?ref. 
+  ?r pr:P6184 wd:Q1361864. # first valid description
+  # all authors reconciled
+  ?ref p:P50 ?au .
+  ?au ps:P50 ?author .
+  OPTIONAL { ?au pq:P1545 ?ord. }
+  ?ref wdt:P577 ?pubdate .
+  FILTER NOT EXISTS { ?ref wdt:P2093 ?namestring. } 
+  BIND (YEAR(xsd:dateTime(?pubdate)) AS ?year )
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }
+} ORDER BY ?taxon xsd:integer(?ord) # add qualifiers in order of taxon author""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

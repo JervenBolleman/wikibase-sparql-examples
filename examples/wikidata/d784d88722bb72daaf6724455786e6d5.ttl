@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-d784d88722bb72daaf6724455786e6d5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_PCC_Wikidata_Pilot/UC_Davis/Example_Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -44,5 +43,34 @@ SELECT ?item ?itemLabel WHERE {# (group_concat(?instanceLabel;SEPARATOR=\";\") a
 }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 } limit 20 #group by ?item ?itemLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi>,
-    <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel WHERE {# (group_concat(?instanceLabel;SEPARATOR=\";\") as ?org_types) WHERE {
+  filter(NOT EXISTS {?item  wdt:P361 wd:Q129421.} )
+  filter(EXISTS{?item  wdt:P31/wdt:P279* wd:Q43229})
+{
+  SELECT ?item WHERE {
+  {
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+                    wikibase:api \"Generator\";
+                    mwapi:generator \"search\";
+                    mwapi:gsrsearch \"inlabel:university of California, davis\"@en;
+                    mwapi:gsrlimit \"max\".
+      ?item wikibase:apiOutputItem mwapi:title.
+    }
+  } UNION {
+    SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+                    wikibase:api \"Generator\";
+                    mwapi:generator \"search\";
+                    mwapi:gsrsearch \"inlabel:UC Davis\"@en;
+                    mwapi:gsrlimit \"max\".
+    ?item wikibase:apiOutputItem mwapi:title.
+    }
+  }
+}
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} limit 20 #group by ?item ?itemLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>,
+    <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

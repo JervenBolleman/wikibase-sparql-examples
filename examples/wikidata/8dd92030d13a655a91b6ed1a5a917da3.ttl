@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8dd92030d13a655a91b6ed1a5a917da3> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Wiljes/2021-05-21_Kolloquium_Wissensinfrastruktur_UniBI>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -30,4 +29,20 @@ WHERE {
 } 
 GROUP BY ?person ?personLabel
 ORDER BY ?born""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?person ?personLabel (SAMPLE(?birth) AS ?born) (SAMPLE(?death) AS ?died) (SAMPLE(?picture) AS ?pic)
+#SELECT ?person ?personLabel (SAMPLE(?birth) AS ?born) (SAMPLE(?death) AS ?end)
+WHERE {
+  {{?person wdt:P106 wd:Q593644} UNION {?person wdt:P101 wd:Q593644}}   #Chemiker
+  {?person wdt:P21 wd:Q6581072} # Frau
+  #{{?person wdt:P103 wd:Q188 } UNION {?person wdt:P27 wd:Q183}}   #deutsch
+  #?person wdt:P103 wd:Q188 .
+  OPTIONAL { ?person wdt:P18 ?picture }
+  ?person wdt:P569 ?birth .
+  OPTIONAL {?person wdt:P570 ?death .}
+  #FILTER(YEAR(?death)<=1900).   # died before …
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+} 
+GROUP BY ?person ?personLabel
+ORDER BY ?born""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

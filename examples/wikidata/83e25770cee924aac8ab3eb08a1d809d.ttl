@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-83e25770cee924aac8ab3eb08a1d809d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Knowledge_Organization_Systems/Mappings>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -29,4 +28,18 @@ WHERE
 	SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\" }
      BIND(IRI(CONCAT(\"http://bartoc.org/en/\",?id)) as ?bartoc)
 } ORDER BY ?kos""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?bartoc ?kos ?de ?en ?prop ?propLabel
+WHERE
+{
+	?kos wdt:P31/wdt:P279* wd:Q6423319 .
+    { 
+      { ?kos wdt:P1687 ?prop } UNION { ?prop wdt:P1629 ?kos }
+    }
+    OPTIONAL { ?kos rdfs:label ?en . FILTER (lang(?en) = 'en') }
+    OPTIONAL { ?kos rdfs:label ?de . FILTER (lang(?de) = 'de') }
+    OPTIONAL { ?kos wdt:P2689 ?id }
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\" }
+     BIND(IRI(CONCAT(\"http://bartoc.org/en/\",?id)) as ?bartoc)
+} ORDER BY ?kos""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-4f591f1bf99e1f21fa304e2fac35e18f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/3/13>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -25,9 +24,58 @@ SELECT
   ?software
   ?softwareLabel
 {
-  INCLUDE %1.
-  INCLUDE %3.
-  INCLUDE %4.
+   {
+  SELECT ?year ?yearLabel {
+     {
+  SELECT DISTINCT ?year
+  {
+    # \"2010\" (Q1995) is an instance of \"calendar year\" (Q3186692), but is not an instance of \"year\" (Q577)
+    {?year wdt:P31 wd:Q3186692}
+    UNION
+    # \"1582\" (Q6719) is an instance of \"year\" (Q577), but is not an instance of \"calendar year\" (Q3186692)
+    {?year wdt:P31 wd:Q577}.
+  }
+}
+    ?year rdfs:label ?yearLabelWithLang.
+    FILTER(LANG(?yearLabelWithLang) = \"en\").
+    # Initially, the label of a year item is a monolingual string. We need to convert it to a string, in order to compare it with the year which is obtained by using YEAR(...) in the inception date of the item of free software.
+    BIND(STR(?yearLabelWithLang) AS ?yearLabel).
+  }  
+}
+   {
+  SELECT ?software ?yearLabel ?P31 {
+     {
+  SELECT DISTINCT ?software ?P571 ?P31 {
+     {
+  SELECT DISTINCT ?license {
+    ?license wdt:P629*/wdt:P31/wdt:P279* wd:Q3943414.
+  }
+}
+    {?software wdt:P31/wdt:P279* wd:Q341}
+    UNION
+    {?software wdt:P275 ?license}
+    ?software wdt:P571 ?P571;
+              wdt:P31 ?P31.
+  }
+}
+    BIND(STR(YEAR(?P571)) AS ?yearLabel).
+    # Filter out \"unknown value\"
+    FILTER(!wikibase:isSomeValue(?P571))
+  }
+}
+   {
+  SELECT DISTINCT ?P31 (COUNT(DISTINCT ?yearLabel) AS ?count) {
+     {
+  SELECT ?software ?yearLabel ?P31 {
+    INCLUDE %2.
+    BIND(STR(YEAR(?P571)) AS ?yearLabel).
+    # Filter out \"unknown value\"
+    FILTER(!wikibase:isSomeValue(?P571))
+  }
+}
+  }
+  GROUP BY ?P31
+}
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\"}.
 }
 ORDER BY
@@ -35,7 +83,7 @@ ORDER BY
   ASC(?P31Label)
   ASC(?yearLabel)
   ASC(?softwareLabel)""";
-  <http://example.org/bigdata_select> """#defaultView:Tree
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Tree
 SELECT
   ?P31
   ?P31Label
@@ -101,4 +149,5 @@ ORDER BY
   DESC(?count)
   ASC(?P31Label)
   ASC(?yearLabel)
-  ASC(?softwareLabel)""" .
+  ASC(?softwareLabel)""";
+  schema:target <https://query.wikidata.org/sparql> .

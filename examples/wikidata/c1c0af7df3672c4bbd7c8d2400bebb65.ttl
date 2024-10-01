@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c1c0af7df3672c4bbd7c8d2400bebb65> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Symac>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -40,4 +39,31 @@ SELECT DISTINCT ?item ?itemLabel ?image ?commune ?communeLabel ?religionLabel ?c
   }
 }
 GROUP BY ?item ?itemLabel ?image ?commune ?communeLabel ?religionLabel ?coordinates ?idcdf ?messes ?odprs ?merimees
-ORDER BY ?communeLabel""" .
+ORDER BY ?communeLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?itemLabel ?image ?commune ?communeLabel ?religionLabel ?coordinates ?idcdf ?messes 
+(GROUP_CONCAT(?odpr; separator=\";\") AS ?odprs) (GROUP_CONCAT(?merimee; separator=\";\") AS ?merimees) (MIN(?codepostal) AS ?CP) WHERE 
+{
+  { ?item wdt:P31/wdt:P279* wd:Q16970 . }
+  # Église
+  UNION { ?item wdt:P31/wdt:P279* wd:Q34627 . } # Synagogue
+  UNION { ?item wdt:P31/wdt:P279* wd:Q32815 . } # Mosquée
+  UNION { ?item wdt:P31/wdt:P279* wd:Q56242063 . } # temple protestant
+
+  ?item wdt:P131/wdt:P131 wd:Q12526 .
+  ?item wdt:P131 ?commune .
+  OPTIONAL{?commune wdt:P281 ?codepostal .}
+  OPTIONAL{?item wdt:P140 ?religion .}
+  OPTIONAL{?item wdt:P625 ?coordinates .}
+  OPTIONAL{?item wdt:P3963 ?idcdf .}
+  OPTIONAL{?item wdt:P380 ?merimee .}
+  OPTIONAL{?item wdt:P1644 ?messes .}
+  OPTIONAL{?item wdt:P3371 ?odpr .}
+  OPTIONAL{?item wdt:P18 ?image .}
+    
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,en\"
+  }
+}
+GROUP BY ?item ?itemLabel ?image ?commune ?communeLabel ?religionLabel ?coordinates ?idcdf ?messes ?odprs ?merimees
+ORDER BY ?communeLabel""";
+  schema:target <https://query.wikidata.org/sparql> .

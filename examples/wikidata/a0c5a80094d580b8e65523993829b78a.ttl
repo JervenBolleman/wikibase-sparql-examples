@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-a0c5a80094d580b8e65523993829b78a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_Ontology/Archive_for_2023>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -30,8 +29,54 @@ select ?class ?rgb ?classLabel ?img
       ?size
 
 {
-  {#{select * { include %edges} }
-  {select (?class as ?parent) { include %edges} }
+  {#{select * {  {
+  select distinct ?class 
+                  (sample(?rgb_) as ?rgb) 
+                  (concat(?classLabel_, \" : \",group_concat(distinct ?violatedLabel_;separator=\", \")) as ?classLabel) 
+                  (group_concat(distinct ?violatedLabel_;separator=\", \") as ?edgeLabel) 
+                  {
+  
+    instance: wdt:P31 ?baseclass.
+  
+    ?baseclass wdt:P279* ?class .
+    ?class wdt:P279* ?violated .
+    values (?violated ?rgb_) {
+      (violated_1: \"223311\")
+      (violated_2: \"447711\")
+    }
+  
+    SERVICE wikibase:label { 
+      ?class rdfs:label ?classLabel_ .
+      ?violated rdfs:label ?violatedLabel_ .
+      bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+    }
+  
+  } group by ?class ?classLabel_
+}} }
+  {select (?class as ?parent) {  {
+  select distinct ?class 
+                  (sample(?rgb_) as ?rgb) 
+                  (concat(?classLabel_, \" : \",group_concat(distinct ?violatedLabel_;separator=\", \")) as ?classLabel) 
+                  (group_concat(distinct ?violatedLabel_;separator=\", \") as ?edgeLabel) 
+                  {
+  
+    instance: wdt:P31 ?baseclass.
+  
+    ?baseclass wdt:P279* ?class .
+    ?class wdt:P279* ?violated .
+    values (?violated ?rgb_) {
+      (violated_1: \"223311\")
+      (violated_2: \"447711\")
+    }
+  
+    SERVICE wikibase:label { 
+      ?class rdfs:label ?classLabel_ .
+      ?violated rdfs:label ?violatedLabel_ .
+      bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+    }
+  
+  } group by ?class ?classLabel_
+}} }
    {
   select distinct ?class 
                   (sample(?rgb_) as ?rgb) 
@@ -82,7 +127,7 @@ select ?class ?rgb ?classLabel ?img
     }
     }
 }""";
-  <http://example.org/bigdata_select> """#defaultView:Graph
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Graph
 
 prefix violated_top: <http://www.wikidata.org/entity/Q35120>
 prefix violated_1:  <http://www.wikidata.org/entity/Q488383>
@@ -148,4 +193,5 @@ with {
       (violated_top: \"FF0000\" \"10\"^^xsd:number \"Top !!\")
     }
     }
-}""" .
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

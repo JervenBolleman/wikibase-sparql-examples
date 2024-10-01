@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-a47869445d9061132147dd981995b1e9> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Italy/Queries/Monumenti_Liguria_con_identificatori.sparql>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -145,4 +144,129 @@ SELECT ?itemLabel ?itemDescription ?istanze ?designazione_del_patrimonioLabel ?c
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"it,en\". }
 }
 ORDER BY ?itemLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?itemLabel ?itemDescription ?istanze ?designazione_del_patrimonioLabel ?comuneLabel ?provinciaLabel ?indirizzo ?coordinate ?coordinateCount ?proprietarioLabel ?gestoreLabel ?item ?wikipedia ?commons ?cat_commons ?immagine ?wlmid ?approvatoLabel ?data_inizio ?data_fine ?data_unica ?applicaLabel ?mibactid ?vincoli_in_rete ?ICCD_S ?ICCD_CF ?ICCD_CG ?ICCD_sito ?ICCD_BC WHERE {
+  {
+    # sub-query without any automatic label (only manual labels)
+    SELECT
+      ?item
+      (GROUP_CONCAT(DISTINCT ?istanza_diNome; SEPARATOR = \"; \") AS ?istanze)
+      (SAMPLE( ?designazione_del_patrimonio ) AS ?designazione_del_patrimonio )
+      (SAMPLE( ?comune )          AS ?comune )
+      (SAMPLE( ?provincia )       AS ?provincia )
+      (SAMPLE( ?indirizzo )       AS ?indirizzo )
+      (COUNT(DISTINCT ?coordinate)AS ?coordinateCount )
+      (SAMPLE( ?coordinate )      AS ?coordinate )
+      (SAMPLE( ?proprietario )    AS ?proprietario )
+      (SAMPLE( ?gestore )         AS ?gestore )
+      (SAMPLE( ?wikipedia )       AS ?wikipedia )
+      (SAMPLE( ?commons )         AS ?commons )
+      (SAMPLE( ?cat_commons )     AS ?cat_commons )
+      (SAMPLE( ?immagine )        AS ?immagine )
+      (SAMPLE( ?wlmid )           AS ?wlmid )
+      (SAMPLE( ?approvato )       AS ?approvato )
+      (SAMPLE( ?data_inizio )     AS ?data_inizio )
+      (SAMPLE( ?data_fine )       AS ?data_fine )
+      (SAMPLE( ?data_unica )      AS ?data_unica )
+      (SAMPLE( ?applica )         AS ?applica )
+      (SAMPLE( ?mibactid )        AS ?mibactid )
+      (SAMPLE( ?vincoli_in_rete ) AS ?vincoli_in_rete )
+      (SAMPLE( ?ICCD_S )          AS ?ICCD_S )
+      (SAMPLE( ?ICCD_CF )         AS ?ICCD_CF )
+      (SAMPLE( ?ICCD_CG )         AS ?ICCD_CG )
+      (SAMPLE( ?ICCD_sito )       AS ?ICCD_sito )
+      (SAMPLE( ?ICCD_BC )         AS ?ICCD_BC )
+    WHERE {
+
+      # only requirement: stuff in Liguria
+      ?item (wdt:P131*) wd:Q1256.
+
+      # remove some unuseful stuff
+      MINUS {
+        VALUES ?denylist {
+          wd:Q3914     # school
+          wd:Q2824645  # administrative divisions of Italy
+          wd:Q26907166 # temporal entity
+        }
+        ?item (wdt:P31/(wdt:P279*)) ?denylist.
+      }
+
+      # basically everything is optional
+      OPTIONAL {
+        ?item p:P2186 ?wlmst.
+        ?wlmst ps:P2186 ?wlmid.
+        OPTIONAL {
+          ?wlmst pqv:P580 _:b48.
+          _:b48 wikibase:timeValue ?data_inizio.
+        }
+        OPTIONAL {
+          ?wlmst pqv:P582 _:b49.
+          _:b49 wikibase:timeValue ?data_fine.
+        }
+        OPTIONAL {
+          ?wlmst pqv:P585 _:b50.
+          _:b50 wikibase:timeValue ?data_unica.
+        }
+        OPTIONAL { ?wlmst pq:P518 ?applica. }
+        OPTIONAL { ?wlmst pq:P790 ?approvato. }
+      }
+      OPTIONAL {
+        ?item wdt:P31 ?istanza_di.
+        ?istanza_di rdfs:label ?istanza_diNome.
+        FILTER(LANGMATCHES(LANG(?istanza_diNome), \"it\"))
+      }
+      OPTIONAL { ?item wdt:P5782 ?mibactid. }
+      OPTIONAL { ?item wdt:P4249 ?vincoli_in_rete. }
+      OPTIONAL { ?item wdt:P6286 ?ICCD_S. }
+      OPTIONAL { ?item wdt:P6287 ?ICCD_CF. }
+      OPTIONAL { ?item wdt:P6288 ?ICCD_CG. }
+      OPTIONAL { ?item wdt:P9050 ?ICCD_sito. }
+      OPTIONAL { ?item wdt:P9051 ?ICCD_BC. }
+      OPTIONAL { ?item wdt:P1435 ?designazione_del_patrimonio. }
+      OPTIONAL { ?item wdt:P131  ?comune. }
+      OPTIONAL {
+        VALUES ?typeProvincia {
+          wd:Q15089
+          wd:Q15110
+        }
+        ?item     (wdt:P131*) ?provincia.
+        ?provincia wdt:P31    ?typeProvincia.
+      }
+      OPTIONAL { ?item wdt:P6375 ?indirizzo. }
+      OPTIONAL { ?item wdt:P625  ?coordinate. }
+      OPTIONAL { ?item wdt:P127  ?proprietario. }
+      OPTIONAL { ?item wdt:P126  ?gestore. }
+      OPTIONAL {
+        ?wikipedia schema:about ?item;
+          schema:isPartOf <https://it.wikipedia.org/>.
+      }
+      OPTIONAL {
+        ?commons schema:about ?item;
+          schema:isPartOf <https://commons.wikimedia.org/>.
+      }
+      OPTIONAL { ?item wdt:P373 ?cat_commons. }
+      OPTIONAL { ?item wdt:P18  ?immagine. }
+
+      # and must have at least one of these important fields
+      BIND( COALESCE(
+        ?wlmid,
+        ?mibactid,
+        ?ICCD_S,
+        ?ICCD_CF,
+        ?ICCD_CG,
+        ?ICCD_sito,
+        ?ICCD_BC
+      ) AS ?whatever_important_field )
+
+      # no important field, no party
+      FILTER( ?whatever_important_field != \"\" )
+    }
+
+    GROUP BY ?item
+  }
+
+  # apply the label service only after the subquery is resolved
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"it,en\". }
+}
+ORDER BY ?itemLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

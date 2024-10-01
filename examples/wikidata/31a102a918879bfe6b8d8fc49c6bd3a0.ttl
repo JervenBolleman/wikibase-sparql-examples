@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-31a102a918879bfe6b8d8fc49c6bd3a0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -38,4 +37,27 @@ SELECT ?item ?itemLabel ?taxonname ?count ?langExample ?langExampleLabel (SAMPLE
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 GROUP BY ?item ?itemLabel ?taxonname ?count ?langExample ?langExampleLabel ?lemmaExample
-ORDER BY DESC(?count)""" .
+ORDER BY DESC(?count)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title: Taxa within scope of WikiProject Invasion biology, sorted by number of languages with associated lexemes
+# adapted from https://w.wiki/5H28
+SELECT ?item ?itemLabel ?taxonname ?count ?langExample ?langExampleLabel (SAMPLE(?lexeme) AS ?lexemeExample) (SAMPLE(?lemma) AS ?lemmaExample) (SAMPLE(?sens) AS ?sense) {
+  {
+    SELECT ?item ?taxonname (COUNT(DISTINCT ?lang) AS ?count) (SAMPLE(?lang) AS ?langExample) {
+      ?sens wdt:P5137 ?item .
+      ?lexeme ontolex:sense ?sens ;
+              dct:language ?lang .
+      ?item wdt:P6104 wd:Q56241615 ;
+            wdt:P225 ?taxonname .
+    } 
+    GROUP BY ?item ?taxonname
+  }
+  
+  ?lexeme ontolex:sense ?sens ;
+          dct:language ?langExample ;
+          wikibase:lemma ?lemma .
+  ?sens wdt:P5137 ?item .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?item ?itemLabel ?taxonname ?count ?langExample ?langExampleLabel ?lemmaExample
+ORDER BY DESC(?count)""";
+  schema:target <https://query.wikidata.org/sparql> .

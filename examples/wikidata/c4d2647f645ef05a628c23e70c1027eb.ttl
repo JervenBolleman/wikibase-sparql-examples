@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c4d2647f645ef05a628c23e70c1027eb> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:MTheiler>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -35,4 +34,24 @@ SELECT ?year (COUNT (DISTINCT ?statement) AS ?countTownInUSA) WHERE {
 
    BIND(year(?date) AS ?year)
 } GROUP BY ?year
-ORDER BY ?year""" .
+ORDER BY ?year""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Diese Abfrage selektiert für alle Orte in den Vereinigten Staaten die Jahreszahl zu der die Einwohnerzahl ermittelt worden ist.
+# Die Anzahl der Orte wird pro Jahreszahl aufsummiert.
+# Lesebeispiel des Abfrageergebnisses:
+# Die Einwohnerzahl eines Datensatzes (=Ort) ist vom Jahr 1698 .
+# Die Einwohnerzahl von 24587 Datensätzen (=Orten) ist vom Jahr 2010.
+# Die Einwohnerzahl von 852   Datensätzen (=Orten) ist vom Jahr 2020. (Stand 16.1.2022)  
+#
+SELECT ?year (COUNT (DISTINCT ?statement) AS ?countTownInUSA) WHERE {
+  
+     VALUES ?itemList {wd:Q3327870 wd:Q498162 wd:Q15127012 wd:Q1093829 }  
+     ?town wdt:P31 ?itemList     .   # ?town ist eine City in den Vereinigten Staaten, Town, etc. 
+     ?town p:P1082 ?statement    .   # ?town hat ?statement
+     ?statement ps:P1082 ?anzahl .   # ?statement hat Einwohner ?anzahl
+#     ?statement wikibase:rank wikibase:PreferredRank  .
+     ?statement pq:P585 ?date .
+
+   BIND(year(?date) AS ?year)
+} GROUP BY ?year
+ORDER BY ?year""";
+  schema:target <https://query.wikidata.org/sparql> .

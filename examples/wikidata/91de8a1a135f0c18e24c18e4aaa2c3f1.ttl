@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-91de8a1a135f0c18e24c18e4aaa2c3f1> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Project_chat/Archive/2018/02>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -23,8 +22,40 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 # population of New York City, including sources
 #defaultView:LineChart
 SELECT ?time ?population (\" \" AS ?dummy) ?sources WHERE {
-  INCLUDE %results.
-  INCLUDE %sources.
+   {
+  SELECT ?time ?population ?source WHERE {
+    wd:Q60 p:P1082 [
+      ps:P1082 ?population;
+      pq:P585 ?time;
+      prov:wasDerivedFrom ?reference
+    ].
+    OPTIONAL { ?reference pr:P248 ?statedIn. }
+    OPTIONAL { ?reference pr:P854 ?referenceUrl. }
+    BIND(COALESCE(?statedIn, ?referenceUrl) AS ?source)
+    FILTER(BOUND(?source)) # we don’t want references which have neither “stated in” nor “reference URL”
+  }
+}
+   {
+  SELECT (GROUP_CONCAT(DISTINCT ?sourceLabel; separator = \"; \") AS ?sources_) WHERE {
+     {
+  SELECT ?time ?population ?source WHERE {
+    wd:Q60 p:P1082 [
+      ps:P1082 ?population;
+      pq:P585 ?time;
+      prov:wasDerivedFrom ?reference
+    ].
+    OPTIONAL { ?reference pr:P248 ?statedIn. }
+    OPTIONAL { ?reference pr:P854 ?referenceUrl. }
+    BIND(COALESCE(?statedIn, ?referenceUrl) AS ?source)
+    FILTER(BOUND(?source)) # we don’t want references which have neither “stated in” nor “reference URL”
+  }
+}
+    SERVICE wikibase:label {
+      bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+      ?source rdfs:label ?sourceLabel.
+    }
+  }
+}
   # change “source; source; source” to “source; source; and source”, and “source; source” to “source and source”
   BIND(
     IF(REGEX(?sources_, \"; .*;\"),
@@ -32,7 +63,7 @@ SELECT ?time ?population (\" \" AS ?dummy) ?sources WHERE {
        REPLACE(?sources_, \"(.*); (.*)\", \"$1 and $2\"))
     AS ?sources)
 }""";
-  <http://example.org/bigdata_select> """# population of New York City, including sources
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# population of New York City, including sources
 #defaultView:LineChart
 SELECT ?time ?population (\" \" AS ?dummy) ?sources WITH {
   SELECT ?time ?population ?source WHERE {
@@ -63,4 +94,6 @@ SELECT ?time ?population (\" \" AS ?dummy) ?sources WITH {
        REPLACE(?sources_, \"(.*); (.*)\", \"$1; and $2\"), # the first .* is greedy, so this replaces the last ;
        REPLACE(?sources_, \"(.*); (.*)\", \"$1 and $2\"))
     AS ?sources)
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

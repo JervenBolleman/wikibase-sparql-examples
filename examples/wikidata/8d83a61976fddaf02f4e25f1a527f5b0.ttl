@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8d83a61976fddaf02f4e25f1a527f5b0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Tkarcher/SPARQL-Abfragen>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -116,4 +115,102 @@ WHERE
 }
 GROUP BY ?item ?itemLabel ?safeFlaggenDatei ?safeKartenDatei ?titel_im_klexikon
 ORDER BY ?itemLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Länder-Infoboxen im Klexikon
+SELECT
+ ?item
+ ?itemLabel
+ (MAX(?ew_in_millionen) as ?max_ew_in_mio)
+ (GROUP_CONCAT(DISTINCT (IF(BOUND(?asklextitel),CONCAT('[[',?asklextitel,'|',?amtssprachenLabel,']]'),?amtssprachenLabel)); SEPARATOR=\", \") as ?amtssprachen)
+ (MAX(?flaeche_rund) as ?max_flaeche_rund)
+ (GROUP_CONCAT(DISTINCT (IF(BOUND(?hsklextitel),CONCAT('[[',REPLACE(?hsklextitel, \"_\", \" \"),']]'),?hauptstadtLabel)); SEPARATOR=\", \") as ?hauptstaedte)
+ (GROUP_CONCAT(DISTINCT (COALESCE (?oberhaupt_titel_ausnahme, ?oberhaupt_bezLabel)); SEPARATOR=\", \") as ?oberhaupt_bezeichnung)
+ (GROUP_CONCAT(DISTINCT (IF(BOUND(?ohklextitel),CONCAT('[[',?ohklextitel,'|',?oberhauptLabel,']]'),?oberhauptLabel)); SEPARATOR=\", \") as ?oberhaeupter)
+ (GROUP_CONCAT(DISTINCT (CONCAT('[[',?kontinentLabel,']]')); SEPARATOR=\" und \") as ?kontinente)
+ ?safeFlaggenDatei
+ ?safeKartenDatei
+ ?titel_im_klexikon
+WHERE
+{
+ ?item p:P31 [ps:P31 wd:Q6256]. # Finde alle Länder
+ ?item wdt:P6573 ?titel_im_klexikon. # die es im Klexikon gibt
+ ?item wdt:P1082 ?ewzahl. # und zeige ihre Einwohnerzahl
+ BIND (STR(ROUND(?ewzahl / 1000) / 1000) as ?ew_in_millionen) # in Millionen
+ ?item wdt:P2046 ?flaeche. # ihre Fläche
+ BIND (STR(IF(?flaeche > 999, ROUND(?flaeche / 1000) * 1000,ROUND(?flaeche))) as ?flaeche_rund) # gerundet
+ ?item wdt:P37 ?amtssprache. # ihre Amtssprache
+ OPTIONAL {?amtssprache wdt:P6573 ?asklextitel}
+ OPTIONAL { # Optional wg. Vatikanstadt
+  ?item wdt:P36 ?hauptstadt. # ihre Hauptstädte
+  OPTIONAL {?hauptstadt wdt:P6573 ?hsklextitel}
+ }
+ ?item wdt:P35 ?oberhaupt. # das Staatsoberhaupt
+ OPTIONAL {?oberhaupt wdt:P6573 ?ohklextitel}
+ OPTIONAL {
+  ?item wdt:P1906/wdt:P279* ?oberhaupt_titel.
+  FILTER (?oberhaupt_titel IN ( # einschränken auf bekannte / kinderverständliche Titel
+  wd:Q30461, # Präsident
+  wd:Q116, # Monarch
+  wd:Q7645115, # Oberster Führer
+  wd:Q166382, # Emir
+  wd:Q683337, # Kofürst von Andorra
+  wd:Q258045, # Capitano Reggente
+  wd:Q844944 # Präsidium von Bosnien und Herzegowina
+  ))
+  OPTIONAL {?oberhaupt_titel wdt:P2521 ?oberhaupt_titel_weiblich.}
+ }
+ OPTIONAL {?oberhaupt wdt:P21 ?geschlecht.}
+ FILTER (!BOUND(?oberhaupt_titel_weiblich) || LANG(?oberhaupt_titel_weiblich) = \"de\").
+ BIND (IF (BOUND(?oberhaupt_titel_weiblich) && BOUND(?geschlecht) && (?geschlecht = wd:Q6581072),
+  IF(STR(?oberhaupt_titel_weiblich) = \"Monarchin\", wd:Q16511993, ?oberhaupt_titel_weiblich),
+  IF(?oberhaupt_titel = wd:Q116, wd:Q12097, ?oberhaupt_titel)) as ?oberhaupt_bez
+ )
+ OPTIONAL { # Länderspezifische Titel
+  VALUES (?item ?oberhaupt_titel_ausnahme) {
+   (wd:Q794 \"Religionsführer\") # Iran
+   (wd:Q17 \"Kaiser\") # Japan
+   (wd:Q40 \"Bundespräsident\") # Österreich
+   (wd:Q183 \"Bundespräsident\") # Deutschland
+   (wd:Q32 \"Großherzog\") # Luxemburg
+   (wd:Q237 \"Papst\") # Vatikan
+   (wd:Q347 \"Fürst\") # Liechtenstein
+   (wd:Q683 \"Häuptling\") #Samoa
+  }
+ }
+ ?item wdt:P41 ?flagge.
+ BIND(REPLACE(wikibase:decodeUri(STR(?flagge)), \"http://commons.wikimedia.org/wiki/Special:FilePath/\", \"\") as ?flaggenDatei).
+ BIND(REPLACE(?flaggenDatei, \" \", \"_\") as ?safeFlaggenDatei)
+ ?item wdt:P30 ?kontinent_alt.
+ OPTIONAL {
+  ?item wdt:P361*/wdt:P706*/wdt:P361* wd:Q27611
+  BIND (wd:Q29876 as ?mittelamerika)
+ }
+ BIND (COALESCE(?mittelamerika, ?kontinent_alt) as ?kontinent)
+  
+ OPTIONAL { # Lagekarte: Grünes Land auf dem Globus
+  ?item p:P242 ?p_karte1.
+  ?p_karte1 pq:P195 wd:Q21167586.
+  ?p_karte1 ps:P242 ?karte1.
+ }
+ OPTIONAL { # Lagekarte: Rotes Land auf dem Globus
+  ?item p:P242 ?p_karte2.
+  ?p_karte2 pq:P195 wd:Q47008743.
+  ?p_karte2 ps:P242 ?karte2.
+ }
+ # Nimm Globus, falls vorhanden, sonst 2:1-Ausschnitt
+ BIND(REPLACE(wikibase:decodeUri(STR(COALESCE(?karte1, ?karte2))), \"http://commons.wikimedia.org/wiki/Special:FilePath/\", \"\") as ?kartenDatei).
+ BIND(REPLACE(?kartenDatei, \" \", \"_\") as ?safeKartenDatei)
+
+ SERVICE wikibase:label {
+  bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de\".
+  ?item rdfs:label ?itemLabel.
+  ?amtssprache rdfs:label ?amtssprachenLabel.
+  ?hauptstadt rdfs:label ?hauptstadtLabel.
+  ?oberhaupt_bez rdfs:label ?oberhaupt_bezLabel.
+  ?oberhaupt rdfs:label ?oberhauptLabel.
+  ?kontinent rdfs:label ?kontinentLabel.
+ }
+}
+GROUP BY ?item ?itemLabel ?safeFlaggenDatei ?safeKartenDatei ?titel_im_klexikon
+ORDER BY ?itemLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

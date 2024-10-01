@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-2f3ff33bf896df4c7efb566ed69967a3> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:HLa01>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -35,4 +34,24 @@ WHERE
 }
 GROUP BY ?item ?inception ?place ?LabelEN ?LabelDE ?Label
 order by ?inception""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Councils in Bergen, Norway P1001
+SELECT ?item ?inception ?place ?LabelEN ?LabelDE ?Label (SAMPLE(?Website) AS ?Website) (COUNT(?Website) AS ?nWebsites) (SAMPLE(?nSeats) AS ?nSeats)
+WHERE
+{
+	?item wdt:P31 wd:Q3154693 .
+    ?item wdt:P361 wd:Q26793 .
+    ?item wdt:P571 ?inception .
+	OPTIONAL{?item wdt:P1001 ?place .}
+    #OPTIONAL{?place rdfs:label ?placeLabel .}
+    OPTIONAL{?item wdt:P856 ?Website .}
+    OPTIONAL{?item wdt:P1342 ?nSeats .}
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"hu\". ?item rdfs:label ?LabelHU } .
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . ?item rdfs:label ?LabelEN } .
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" . ?item rdfs:label ?LabelDE } .
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,ar,be,bg,bn,ca,cs,da,de,el,en,es,et,fa,fi,he,hi,hu,hy,id,it,ja,jv,ko,nb,nl,eo,pa,pl,pt,ro,ru,sh,sk,sr,sv,sw,te,th,tr,uk,yue,vec,vi,zh\" 
+ . ?item rdfs:label ?Label }
+}
+GROUP BY ?item ?inception ?place ?LabelEN ?LabelDE ?Label
+order by ?inception""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

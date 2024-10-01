@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-bf05ce102fdc4dc521c0a7bbb50105e9> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -27,4 +26,17 @@ WHERE {
   
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }  # get their names
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?victim ?victimLabel ?killer ?killerLabel ?died
+WHERE {
+          ?victim wdt:P31 wd:Q5 ; wdt:P157 ?killer .    # person was killed by a known person
+  
+        { ?killer wdt:P39 [ wdt:P279* wd:Q16707842 ] }  # killer was a UK MP
+  UNION { ?killer wdt:P39 [ wdt:P279* wd:Q18015642 ] }  # or a British MP (to 1801)
+  UNION { ?killer wdt:P39 [ wdt:P279* wd:Q18018860 ] }  # or an English MP (to 1707)
+  
+  OPTIONAL { ?victim wdt:P570 ?died }                   # date of death if known
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }  # get their names
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

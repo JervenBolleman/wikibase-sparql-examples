@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-cc0c8e8ed769461543a6e9c11d934a39> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Nehemie.strupler/sparql_beta>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -34,4 +33,21 @@ WHERE {
      SERVICE wikibase:label { bd:serviceParam wikibase:language \"fa\".
             ?city rdfs:label ?city_FA.
      } hint:Prior hint:runLast false.
- } GROUP BY ?city ?city_FA ?city_EN ?pop ?coordinates ?date""" .
+ } GROUP BY ?city ?city_FA ?city_EN ?pop ?coordinates ?date""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Iranian cities, Max pop from last point in time
+SELECT ?city ?city_FA ?city_EN (MAX(?population) AS ?pop) ?coordinates ?date
+             
+WHERE {
+  ?city wdt:P31/wdt:P279* wd:Q515;
+        wdt:P17 wd:Q794;
+        wdt:P625 ?coordinates;
+        p:P1082 [pq:P585 ?date; ps:P1082 ?population].
+   FILTER NOT EXISTS {?city p:P1082 [pq:P585 ?date_] FILTER (?date_ > ?date)}
+     SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\".
+            ?city rdfs:label ?city_EN.
+     }
+     SERVICE wikibase:label { bd:serviceParam wikibase:language \"fa\".
+            ?city rdfs:label ?city_FA.
+     } hint:Prior hint:runLast false.
+ } GROUP BY ?city ?city_FA ?city_EN ?pop ?coordinates ?date""";
+  schema:target <https://query.wikidata.org/sparql> .

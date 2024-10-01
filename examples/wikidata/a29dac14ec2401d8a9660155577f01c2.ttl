@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-a29dac14ec2401d8a9660155577f01c2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/10>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -35,5 +34,25 @@ WHERE {
                             ?director rdfs:label ?directorLabel .
                             ?screenwriter rdfs:label ?screenwriterLabel.} 
 } group by ?item ?itemLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi>,
-    <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel (group_concat(distinct ?publication_date;separator=\"; \") as ?pd) (group_concat(distinct ?imdb_code;separator=\"; \") as ?imdb) (GROUP_CONCAT(distinct ?directorLabel;separator=\"; \") AS ?directors) (GROUP_CONCAT(distinct ?screenwriterLabel;separator=\"; \") AS ?screenwriter) 
+WHERE {
+ SERVICE wikibase:mwapi
+ {
+   bd:serviceParam wikibase:api \"Search\" .
+   bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+   bd:serviceParam mwapi:srnamespace \"0\" .
+   bd:serviceParam mwapi:srsearch \"haswbstatement:P31=Q11424 inlabel:'three men and a leg'@en\" .
+   ?item wikibase:apiOutputItem mwapi:title.
+ }
+  OPTIONAL {?item wdt:P577 ?publication_date . }
+  OPTIONAL {?item wdt:P345 ?imdb_code .}
+  OPTIONAL {?item wdt:P57 ?director .}
+  OPTIONAL {?item wdt:P58 ?screenwriter .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,it,es,de,fr,hu,ro\" . 
+                            ?item rdfs:label ?itemLabel .
+                            ?director rdfs:label ?directorLabel .
+                            ?screenwriter rdfs:label ?screenwriterLabel.} 
+} group by ?item ?itemLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>,
+    <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

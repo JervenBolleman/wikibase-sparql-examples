@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-aa84ff851e7bbd883c5bc3d1d170cbe0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -52,4 +51,42 @@ UNION
   BIND(CONCAT(?title_ , \" | \" , ?venue_title)  AS ?title)
   FILTER REGEX(LCASE(?title), \"\\\\b(using|utilizing|with|through|via|by|(us((ag)?)e|application(s?)) of\\\\b)(.)environmental(.)dna\").
 
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title: QuickStatements for method tagging via P4510
+SELECT 
+  DISTINCT
+  ?item ?title
+  (REPLACE(STR(?item), \".*Q\", \"Q\") AS ?qid) 
+  (\"P4510\" AS ?property)
+  (\"Q4115189\" AS ?ReplaceWithYourTargetID)
+  (\"S887\" AS ?heuristic)
+  (\"Q69652283\" AS ?deduced)
+
+WHERE {
+  hint:Query hint:optimizer \"None\".
+  
+{  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"\"using\" environmental dna haswbstatement:P31=Q13442814 -haswbstatement:P4510=Q4115189\". 
+      ?page_title wikibase:apiOutput mwapi:title.
+  }
+ }
+UNION
+{  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"\"utilizing\" environmental dna haswbstatement:P31=Q13442814 -haswbstatement:P4510=Q4115189\". 
+      ?page_title wikibase:apiOutput mwapi:title.
+  }
+ }
+  BIND(IRI(CONCAT(STR(wd:), ?page_title)) AS ?item)
+  
+  ?item wdt:P1476 ?title_.
+  ?item wdt:P1433 ?venue.
+  ?venue wdt:P1476 ?venue_title.
+  BIND(CONCAT(?title_ , \" | \" , ?venue_title)  AS ?title)
+  FILTER REGEX(LCASE(?title), \"\\\\b(using|utilizing|with|through|via|by|(us((ag)?)e|application(s?)) of\\\\b)(.)environmental(.)dna\").
+
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

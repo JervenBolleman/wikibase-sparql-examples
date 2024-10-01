@@ -1,17 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-db90ae48b6a23431e6a51807dcf7b4c3> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/02>,
-    <https://www.wikidata.org//wiki/User:Amadalvarez/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Amadalvarez/Queries>, <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/02>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -37,4 +35,26 @@ WHERE
     \"Unhandled precision\"
     ) AS ?dob_edited)
 }
-Limit 5000""" .
+Limit 5000""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?dob ?dob_precision ?dob_edited
+WHERE
+{
+  ?item wdt:P31 wd:Q5 . # Humans
+  ?item wdt:P19 wd:Q1492 . # born in Barcelona
+  ?item p:P569 ?dob_statement .
+  ?dob_statement a wikibase:BestRank .
+  ?dob_statement psv:P569 ?dob_value .
+  ?dob_value wikibase:timeValue ?dob .
+  ?dob_value wikibase:timePrecision ?dob_precision .
+  BIND (COALESCE(
+    IF(?dob_precision = 11, CONCAT(STR(DAY(?dob)), \"-\", STR(MONTH(?dob)), \"-\", STR(YEAR(?dob))), 1/0),
+    IF(?dob_precision = 10, CONCAT(STR(MONTH(?dob)), \"-\", STR(YEAR(?dob))), 1/0),
+    IF(?dob_precision =  9, STR(YEAR(?dob)), 1/0),
+    IF(?dob_precision =  8, CONCAT(STR(FLOOR(YEAR(?dob)/10)*10), \"s\"), 1/0),
+    IF(?dob_precision =  7, CONCAT(STR(FLOOR((YEAR(?dob)+99)/100)), \" century\"), 1/0),
+    IF(?dob_precision =  6, CONCAT(STR(FLOOR((YEAR(?dob)+999)/1000)), \" milleium\"), 1/0),
+    \"Unhandled precision\"
+    ) AS ?dob_edited)
+}
+Limit 5000""";
+  schema:target <https://query.wikidata.org/sparql> .

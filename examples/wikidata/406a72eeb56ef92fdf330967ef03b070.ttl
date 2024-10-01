@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-406a72eeb56ef92fdf330967ef03b070> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Toni_001>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -43,4 +42,35 @@ where {
   optional { ?song wdt:P51 ?audio . }
 }
 group by ?song
-order by ?firstYear""" .
+order by ?firstYear""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """select
+  ?song
+  (sample(?songLabel) as ?songLabel)
+  (group_concat(distinct ?genreLabel; separator = \"; \") as ?genres)
+  (group_concat(distinct ?composerLabel; separator = \"; \") as ?composers)
+  (group_concat(distinct ?lyricistLabel; separator = \"; \") as ?lyricists)
+  (year(min(?date)) as ?firstYear)
+  (sample(?mbID) as ?mbID)
+  (sample(?ttID) as ?ttID)
+  (sample(?audio) as ?audio)
+where {
+  ?song wdt:P31 / wdt:P279* wd:Q2188189 . # musical work
+  {
+    { ?song wdt:P136 wd:Q14390274 . } # tango
+    union
+    { ?song wdt:P136 wd:Q942955 . } # milonga
+    union
+    { ?song wdt:P136 wd:Q61891621 . } # vals
+  }
+  optional { ?song rdfs:label ?songLabel . filter(lang(?songLabel) = \"es\") }
+  optional { ?song wdt:P136 / rdfs:label ?genreLabel . filter(lang(?genreLabel) = \"es\") }
+  optional { ?song wdt:P86 / rdfs:label ?composerLabel . filter (lang(?composerLabel) = \"es\") }
+  optional { ?song wdt:P676 / rdfs:label ?lyricistLabel . filter (lang(?lyricistLabel) = \"es\") }
+  optional { ?song wdt:P577 ?date . }
+  optional { ?song wdt:P435 ?mbID . }
+  optional { ?song wdt:P4932 ?ttID . }
+  optional { ?song wdt:P51 ?audio . }
+}
+group by ?song
+order by ?firstYear""";
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-85e65325f34b93b617b932d3f24f85fa> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -31,4 +30,21 @@ WHERE {
   BIND(xsd:integer(STRAFTER(STR(?item), 'Q')) as ?qid)
 }
 GROUP BY ?qid ?lexemes ?ordia
-ORDER BY ASC(?qid)""" .
+ORDER BY ASC(?qid)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title: Lexemes associated with topics that occur in the invasion biology literature
+SELECT 
+DISTINCT ?qid
+(GROUP_CONCAT(DISTINCT ?lemma; separator=\" // \") AS ?lexemes)
+(CONCAT(\"https://ordia.toolforge.org/Q\", STR(?qid ) ) AS ?ordia)
+
+WHERE {
+  { ?invasion_biology_item wdt:P6104 wd:Q56241615 ;
+                           wdt:P921 ?item . }
+  ?item ^wdt:P5137 ?sense .
+  ?sense ^ontolex:sense ?lexeme .
+  ?lexeme wikibase:lemma ?lemma .
+  BIND(xsd:integer(STRAFTER(STR(?item), 'Q')) as ?qid)
+}
+GROUP BY ?qid ?lexemes ?ordia
+ORDER BY ASC(?qid)""";
+  schema:target <https://query.wikidata.org/sparql> .

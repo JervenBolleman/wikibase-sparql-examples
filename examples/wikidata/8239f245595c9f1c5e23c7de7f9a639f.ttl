@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8239f245595c9f1c5e23c7de7f9a639f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service/queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -45,4 +44,33 @@ WHERE {
 }
 
 LIMIT 100""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT 
+?participant ?participantLabel 
+?datenaissance ?annee_naissance ?mois_naissance ?jour_naissance ?precision_naissance
+
+WHERE {
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+ ?La_Revue_LGBT_BD wdt:P361 wd:Q57925218.
+ ?La_Revue_LGBT_BD wdt:P710 ?participant.
+ 
+ OPTIONAL{
+ ?participant p:P569 ?statement.
+ ?statement psv:P569 ?full_value.
+ ?full_value wikibase:timeValue ?datenaissance.
+ ?full_value wikibase:timePrecision ?precision_naissance.
+ BIND( IF(?precision_naissance >=  9, YEAR(?datenaissance),  \"\") AS ?annee_naissance)
+ BIND( IF(?precision_naissance >= 10, MONTH(?datenaissance), \"\") AS ?mois_naissance)
+ BIND( IF(?precision_naissance >= 11, DAY(?datenaissance),   \"\") AS ?jour_naissance)
+
+ # Use only truthy statements
+ ?statement wikibase:rank ?rank.
+ FILTER (?rank = wikibase:PreferredRank ||
+         (?rank = wikibase:NormalRank && NOT EXISTS { ?participant p:P69/wikibase:rank wikibase:PreferredRank. } )
+        )
+ 
+ }
+}
+
+LIMIT 100""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

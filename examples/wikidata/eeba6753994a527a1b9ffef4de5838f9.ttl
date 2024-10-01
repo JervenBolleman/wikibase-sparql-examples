@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-eeba6753994a527a1b9ffef4de5838f9> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Wikimedia_Hackathon_2021_Data_Challenge/11._Showcase_a_timeline_of_the_films_that_Leonardo_DiCaprio_has_cast_in_before_the_movie_Titanic_(1997)%3F>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -22,12 +21,23 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 # (and I’m sure the Titanic film was also re-released theatrically, and maybe somebody added that as a statement too)
 SELECT ?film ?filmLabel ?filmPublished
 WHERE {
-  INCLUDE %films.
-  INCLUDE %titanic.
+   {
+  SELECT ?film (MIN(?filmPublished_) AS ?filmPublished) WHERE {
+    ?film wdt:P31/wdt:P279* wd:Q11424;
+          p:P161/ps:P161 wd:Q38111;
+          wdt:P577 ?filmPublished_.
+  }
+  GROUP BY ?film
+}
+   {
+  SELECT (MIN(?titanicPublished_) AS ?titanicPublished) WHERE {
+    wd:Q44578 wdt:P577 ?titanicPublished_.
+  }
+}
   FILTER(?filmPublished < ?titanicPublished)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <http://example.org/bigdata_select> """#defaultView:Timeline
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Timeline
 # use the earliest publication date in case a film has multiple publication dates, e.g. in different markets
 # (and I’m sure the Titanic film was also re-released theatrically, and maybe somebody added that as a statement too)
 SELECT ?film ?filmLabel ?filmPublished
@@ -49,4 +59,6 @@ WHERE {
   INCLUDE %titanic.
   FILTER(?filmPublished < ?titanicPublished)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

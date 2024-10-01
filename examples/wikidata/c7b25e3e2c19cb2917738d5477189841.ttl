@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c7b25e3e2c19cb2917738d5477189841> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/10>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -52,4 +51,37 @@ SELECT DISTINCT ?coordinates ?line ?item ?itemLabel ?image ?opening WHERE {
   
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
   }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\"]}
+SELECT DISTINCT ?coordinates ?line ?item ?itemLabel ?image ?opening WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q55488 ; # we get train stations
+        wdt:P361 wd:Q260870 ;         # … that are part of the amsterdam metro
+        wdt:P625 ?coordinates  ;      # … their coordinate
+        wdt:P1619 ?opening  ;         # … and their opening date
+        p:P197 ?nextstationstatement ;# …     the statements of their neighboor station(s)
+        # (could be factorized
+        #p:P197 [ ps:P197 ?nextstation ;           # … we also get all the neighboorstation(s) of one station
+        #         pq:P81 / wdt:P361 wd:Q260870  ]. # … who have a transport line that is a part of the amsterdam metro       )
+        
+  OPTIONAL { ?item wdt:P18 ?image }.  # … and its image if he has one
+  
+  # (part that would be removed if factorized)
+  ?nextstationstatement ps:P197 ?nextstation ; 
+                        pq:P81 / wdt:P361 wd:Q260870  .
+  
+  FILTER(STR(?item) < STR(?nextstation)) . # making sure we draw only one line for each pair of neighboor station, 
+                                           # (as P197 (neighboor station) is symmetric, we could have two results for each line :
+                                           # 1) ?item = Qaaa and ?nextstation = Qbbb 
+                                           # 2) ?item = Qbbb and ?nextstation = Qaaa
+                                           # so we choose to keep only (arbitrarily) the first one to draw only one line
+  
+  ?item p:P625 / psv:P625 [ wikibase:geoLatitude ?lat1 ;  wikibase:geoLongitude ?lon1 ].      # the coordinates of one end of the line
+  ?nextstation p:P625 / psv:P625 [ wikibase:geoLatitude ?lat2 ; wikibase:geoLongitude ?lon2 ].#               … of one the other end of the line
+  
+  # Building the « LINESTRING » instruction that will ask the view to draw a line frome one station to another, 
+  # with the appropriate datatype (thanks to strdt : https://www.w3.org/TR/sparql11-query/#func-strdt )
+  BIND(STRDT(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')'), geo:wktLiteral) AS ?line)
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  }""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-f196cbf309dddbd669799bece6936a81> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Archival_Description/Use_cases>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -31,4 +30,21 @@ WHERE
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 GROUP BY ?items ?total ?natures ?ArchivesLabel ?Archives ?paysLabel
-ORDER BY ?paysLabel""" .
+ORDER BY ?paysLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Liste des institution d'archives ayant délivré (ou étant élément associé à) des identifiants externes (trié par pays)
+SELECT ?paysLabel ?ArchivesLabel ?Archives (COUNT(distinct (?item)) AS ?total) (GROUP_C, on entend de manière généraleONCAT(DISTINCT ?itemLabel; separator=\", \") as ?items) (GROUP_CONCAT(DISTINCT ?natureLabel; separator=\", \") as ?natures) 
+WHERE 
+{
+  {?item wdt:P2378 ?Archives.}
+  UNION {?item wdt:P1629 ?Archives.}
+    ?item wdt:P31 ?nature.
+
+  OPTIONAL {?nature rdfs:label ?natureLabel. filter(lang(?natureLabel)=\"fr\") }
+  OPTIONAL {?item rdfs:label ?itemLabel. filter(lang(?itemLabel)=\"fr\") }
+  ?Archives wdt:P31/wdt:P279* wd:Q166118;
+            wdt:P17 ?pays.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?items ?total ?natures ?ArchivesLabel ?Archives ?paysLabel
+ORDER BY ?paysLabel""";
+  schema:target <https://query.wikidata.org/sparql> .

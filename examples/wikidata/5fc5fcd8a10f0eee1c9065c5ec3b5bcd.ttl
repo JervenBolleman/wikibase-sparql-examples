@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-5fc5fcd8a10f0eee1c9065c5ec3b5bcd> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_Food>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -100,4 +99,87 @@ WHERE
   OPTIONAL { ?cocktail wdt:P18 ?image. }
 }
 GROUP BY ?cocktail ?cocktailLabel
-ORDER BY DESC(MAX(?count)""" .
+ORDER BY DESC(MAX(?count)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:ImageGrid
+SELECT ?cocktail ?cocktailLabel (SAMPLE(?recipe) AS ?recipe) (SAMPLE(?image) AS ?image)
+WHERE
+{
+  {
+    SELECT ?cocktail ?cocktailLabel (GROUP_CONCAT(DISTINCT ?ingredient; separator=\", \") AS ?ingredientsList) (GROUP_CONCAT(DISTINCT ?garnishLabel; separator=\", \") AS ?garnishList) (COUNT(DISTINCT ?ingredient) + COUNT(DISTINCT ?garnishLabel) AS ?count)
+    WHERE
+    {
+      ?cocktail wdt:P31/wdt:P279* wd:Q134768;
+                p:P186 ?materialStat.
+      MINUS { ?materialStat pq:P518/wdt:P279* wd:Q2453629. }
+      MINUS { ?materialStat ps:P186 wd:Q488463; pq:P366 wd:Q26876981. }
+      MINUS { ?materialStat pq:P366 wd:Q59541. }
+      ?materialStat ps:P186/rdfs:label ?materialLabel.
+      FILTER(LANG(?materialLabel) = \"en\").
+      BIND(?materialLabel AS ?ingredientSolo).
+      OPTIONAL {
+        ?materialStat ps:P186/rdfs:label ?materialLabel;
+                      pq:P1114 ?quantity.
+        FILTER(LANG(?materialLabel) = \"en\").
+        BIND(CONCAT(STR(?quantity), \" \", ?materialLabel) AS ?ingredientWithQuantity).
+        OPTIONAL {
+          ?materialStat pq:P1114 ?quantity;
+                        ps:P186/rdfs:label ?materialLabel;
+                        pqv:P1114/wikibase:quantityUnit ?unit.
+          FILTER(LANG(?materialLabel) = \"en\").
+          FILTER(?unit != wd:Q199).
+          ?unit rdfs:label ?unitLabel.
+          FILTER(LANG(?unitLabel) = \"en\").
+          BIND(CONCAT(STR(?quantity), \" \", IF(?quantity = 1, ?unitLabel, CONCAT(?unitLabel, IF(STRENDS(?unitLabel, \"sh\"), \"es\", \"s\"))), \" \", ?materialLabel) AS ?ingredientWithUnit).
+        }
+      }
+      BIND(COALESCE(?ingredientWithUnit, ?ingredientWithQuantity, ?ingredientSolo) AS ?ingredient).
+      OPTIONAL {
+        ?cocktail p:P186 [ ps:P186 ?garnish; pq:P366 wd:Q59541 ].
+        ?garnish rdfs:label ?garnishLabel.
+        FILTER(LANG(?garnishLabel) = \"en\").
+      }
+      ?cocktail rdfs:label ?cocktailLabel.
+      FILTER(LANG(?cocktailLabel) = \"en\").
+    }
+    GROUP BY ?cocktail ?cocktailLabel
+  }
+  BIND(
+    IF(REGEX(?ingredientsList, \", .*,\"),
+       REPLACE(?ingredientsList, \"(.*), (.*)\", \"$1, and $2\"),
+       REPLACE(?ingredientsList, \"(.*), (.*)\", \"$1 and $2\"))
+    AS ?ingredients).
+  BIND(
+    IF(REGEX(?garnishList, \", .*,\"),
+       REPLACE(?garnishList, \"(.*), (.*)\", \"$1, and $2\"),
+       REPLACE(?garnishList, \"(.*), (.*)\", \"$1 and $2\"))
+    AS ?garnishes).
+  OPTIONAL {
+    ?cocktail p:P186 [ ps:P186 ?glass; pq:P518/wdt:P279* wd:Q2453629 ].
+    ?glass rdfs:label ?glassLabel.
+    FILTER(LANG(?glassLabel) = \"en\").
+    BIND(IF(REGEX(?glassLabel, \"^[AEIOUaeiou]\"), \"an\", \"a\") AS ?article).
+    BIND(CONCAT(\" in \", ?article, \" \", ?glassLabel) AS ?container).
+    BIND(\", served\" AS ?served).
+  }
+  OPTIONAL {
+    ?cocktail p:P186 [ ps:P186 wd:Q488463; pq:P366 wd:Q26876981 ].
+    BIND(\" on the rocks\" AS ?onTheRocks).
+    BIND(\", served\" AS ?served).
+  }
+  OPTIONAL {
+    FILTER(STRLEN(STR(?garnishes)) > 1).
+    BIND(CONCAT(\" with \", ?garnishes) AS ?garnish).
+    BIND(\", served\" AS ?served).
+  }
+  BIND(CONCAT(
+    ?ingredients,
+    COALESCE(?served, \"\"),
+    COALESCE(?onTheRocks, \"\"),
+    COALESCE(?garnish, \"\"),
+    COALESCE(?container, \"\"))
+    AS ?recipe).
+  OPTIONAL { ?cocktail wdt:P18 ?image. }
+}
+GROUP BY ?cocktail ?cocktailLabel
+ORDER BY DESC(MAX(?count)""";
+  schema:target <https://query.wikidata.org/sparql> .

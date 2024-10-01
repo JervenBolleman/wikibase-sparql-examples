@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-e4822e10f75aded4ce20913341513bf2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -42,4 +41,32 @@ WHERE {
   # show label in auto language as default, and English when no default label exists
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# title of the query (my first time using title)
+#title: line chart of population and eligible voters in Taiwanese presidential elections
+# viewed as line chart (also viewable as table)
+#defaultView:LineChart
+# select \"?vote ?time ?number ?peopleLabel\" to view ?time as X-axis, ?number as Y-axis,
+# and ?peopleLabel as groups of coordinates
+SELECT DISTINCT ?vote ?time ?number ?peopleLabel
+WHERE {
+  # ?vote is instance of (P31) \"subclass of (P279)\" [ZeroOrMorePath (*)] presidential election (Q858439)
+  ?vote wdt:P31/wdt:P279* wd:Q858439;
+        # ?vote applies to jurisdiction (P1001): Taiwan (Q865)
+        wdt:P1001 wd:Q865;
+        # ?vote's point in time (P585) is ?time
+        wdt:P585 ?time;
+        # ?vote's voting system (P8196) is subclass of (P279) [ZeroOrMorePath (*)] direct election (Q1196727)
+        wdt:P8196/wdt:P279* wd:Q1196727;
+        # ?vote's has the relation (?relation) with ?number
+        ?relation ?number
+  # define ?relation as population (P1082) or eligible voter (P1867)
+  ### Note: Other properties (ballots cast (P1868), total valid votes (P1697), number of spoilt votes (P5044),
+  ### number of blank votes (P5045), etc.) can be added to VALUES.
+  VALUES ?relation {wdt:P1082 wdt:P1867}
+  # get ?relation's property label by ?people
+  ?people wikibase:directClaim ?relation
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

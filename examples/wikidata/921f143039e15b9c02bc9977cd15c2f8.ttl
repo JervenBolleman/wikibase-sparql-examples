@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-921f143039e15b9c02bc9977cd15c2f8> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Forum/Archiv/2020/04>, <https://www.wikidata.org//wiki/Wikidata:WikiProject_Bau-_und_Kulturdenkmale/state/Bayern>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -31,4 +30,23 @@ SELECT ?item ?de_label ?dewiki_lemma ?gkz (GROUP_CONCAT(?district_label; SEPARAT
               schema:isPartOf <https://de.wikipedia.org/>;
               schema:name ?dewiki_lemma .
   }
-} GROUP BY ?item ?de_label ?dewiki_lemma ?gkz""" .
+} GROUP BY ?item ?de_label ?dewiki_lemma ?gkz""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?de_label ?dewiki_lemma ?gkz (GROUP_CONCAT(?district_label; SEPARATOR=', ') AS ?districts) WHERE {
+  ?item wdt:P439 ?gkz .
+  FILTER(STRSTARTS(?gkz, '09') || STRSTARTS(?gkz, '9')) .
+  OPTIONAL {
+    ?item wdt:P131 ?district .
+    ?district rdfs:label ?district_label .
+    FILTER(LANG(?district_label) = 'de') .
+  }
+  OPTIONAL {
+    ?item rdfs:label ?de_label .
+    FILTER(LANG(?de_label) = 'de') .
+  }
+  OPTIONAL {
+    ?sitelink schema:about ?item;
+              schema:isPartOf <https://de.wikipedia.org/>;
+              schema:name ?dewiki_lemma .
+  }
+} GROUP BY ?item ?de_label ?dewiki_lemma ?gkz""";
+  schema:target <https://query.wikidata.org/sparql> .

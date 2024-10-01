@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8aab8d4fd9db088936a523d7c821e4e1> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Weather_observations/en/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -32,4 +31,19 @@ SELECT ?item ?itemLabel ?coord ?starttime ?endtime WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
   OPTIONAL { ?item wdt:P625 ?coord. }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# NB stations with hourly observation during [1975,2000]
+#defaultView:Map
+SELECT ?item ?itemLabel ?coord ?starttime ?endtime WHERE {
+  ?item (wdt:P31/wdt:P279*) wd:Q190107.
+  ?item wdt:P131 wd:Q1965 .
+  ?item wdt:P6339 wd:Q59657010 .
+  ?item p:P6339 ?daily_obs .
+  ?daily_obs pq:P580 ?starttime.
+  ?daily_obs pq:P582 ?endtime.
+  FILTER (?starttime < \"1975-01-02T00:00:00Z\"^^xsd:dateTime) .
+  FILTER (?endtime > \"2000-01-01T00:00:00Z\"^^xsd:dateTime) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  OPTIONAL { ?item wdt:P625 ?coord. }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

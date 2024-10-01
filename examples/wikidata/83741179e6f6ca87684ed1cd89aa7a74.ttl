@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-83741179e6f6ca87684ed1cd89aa7a74> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/06>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -20,7 +19,16 @@ SELECT DISTINCT ?item ?type
       (SAMPLE (DISTINCT ?sta) as ?subtypeLabel)
 WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en-GB,en,fr,de,es,pt,pl,nl,cs\". }
-  {INCLUDE %i}
+  { {SELECT ?classes1# ?classes2 #?range ?props
+                       WHERE {
+VALUES ?classes1 {
+  wd:Q1785071  # fort
+}
+VALUES ?classes2 {
+  wd:Q91122    # bunker
+}
+VALUES ?range {\"15\"}
+} }}
   wd:Q1180981 wdt:P17 ?country.
   ?item wdt:P17 ?country.
         {?item wdt:P31/wdt:P279* ?classes1}
@@ -38,7 +46,7 @@ OPTIONAL {?item wdt:P1448 ?labellist. FILTER (lang(?labellist) = \"mul\")} # off
     }
     #GROUP by ?item ?starts ?ends ?dist ?label1 ?type
     GROUP by ?item ?type ?label1""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?type 
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?type 
       (SAMPLE (DISTINCT ?sta) as ?subtypeLabel)
 WITH {SELECT ?classes1# ?classes2 #?range ?props
                        WHERE {
@@ -69,4 +77,7 @@ OPTIONAL {?item wdt:P1448 ?labellist. FILTER (lang(?labellist) = \"mul\")} # off
 {SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\" . ?item rdfs:label ?label1} }
     }
     #GROUP by ?item ?starts ?ends ?dist ?label1 ?type
-    GROUP by ?item ?type ?label1""" .
+    GROUP by ?item ?type ?label1""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#around>,
+    <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

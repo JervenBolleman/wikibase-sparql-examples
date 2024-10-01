@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-0ea6b06d27c740737faa839ad35ae7cf> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/02>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -36,4 +35,22 @@ SELECT ?s ?desc ?dob ?dobvalue WHERE {
 }
  GROUP BY ?s ?desc ?dob ?dobvalue            # right now the group by serves no purpose whatsoever - there are to aggregates in the select
 ORDER BY ?dobvalue
-# LIMIT 100                                    # obvs, only give me 100 results""" .
+# LIMIT 100                                    # obvs, only give me 100 results""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?s ?desc ?dob ?dobvalue WHERE {
+  ?s wdt:P31 wd:Q5.                           # must be human
+  ?s  p:P569/psv:P569 [wikibase:timePrecision ?precision; wikibase:timeValue ?birth] .
+  ?s  p:P569/ps:P569 ?dobvalue .
+  bind(if(?precision=11,?birth,if(?precision=10,concat(month(?birth),\" \",year(?birth)),if(?precision<9,concat(STR(?birth),' precision=',STR(?precision)),year(?birth)))) as ?dob)                
+  ?s wdt:P19 ?place.                         # must have a place of birth
+  ?place (wdt:P131*/wdt:P706*) wd:Q5705.     # place of birth must be located within or on Catelonia
+  MINUS { ?s wdt:P570 _:b5. }                # must be alive - no date of death
+  ?s rdfs:label ?desc.                       # must have a label ...
+  FILTER((LANG(?desc)) = \"ca\")               # label must be in Catalan
+  ?article schema:about ?s.                  # must have a sitelink
+  ?article schema:inLanguage \"ca\".           # sitelink must be (by inference) to the Catalan wikipedia
+  FILTER((?birth > \"1898-01-01\"^^xsd:dateTime) && (?birth < \"1918-01-01\"^^xsd:dateTime)|| ?precision<9 )
+}
+ GROUP BY ?s ?desc ?dob ?dobvalue            # right now the group by serves no purpose whatsoever - there are to aggregates in the select
+ORDER BY ?dobvalue
+# LIMIT 100                                    # obvs, only give me 100 results""";
+  schema:target <https://query.wikidata.org/sparql> .

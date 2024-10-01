@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-84e0b96dd903ddda5d995ba53092128d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Events/Belgium/Wikimedia_Belgium/Erfgoed/Randfenomenen_locaties>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -40,4 +39,28 @@ SELECT ?item ?itemLabel ?itemDescription ?alias ?instanceLabel ?cityLabel ?place
   }
 }
 ORDER BY (?layerLabel)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
+# Objecten in de Brusselse Rand per thema
+SELECT ?item ?itemLabel ?itemDescription ?alias ?instanceLabel ?cityLabel ?placeLabel ?layerLabel ?geolocation ?linkcount ?itemArticle ?image WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],nl,fr,de,en,es,it,no,se,fi\". }
+  ?item wdt:P2354 ?layer;
+    wikibase:sitelinks ?linkcount.
+  ?layer wdt:P6104 wd:Q96072031, ?project.
+  OPTIONAL { ?item wdt:P18 ?image. }
+  OPTIONAL { ?item wdt:P31 ?instance. }
+  OPTIONAL { ?item wdt:P131 ?city. }
+  OPTIONAL { ?item wdt:P276 ?place. }
+  OPTIONAL { ?item wdt:P625 ?geolocation. }
+  OPTIONAL {
+    ?item skos:altLabel ?alias.
+    FILTER((LANG(?alias)) = \"nl\")
+  }
+  OPTIONAL {
+    ?itemArticle schema:about ?item;
+      schema:inLanguage \"nl\";
+      schema:isPartOf <https://nl.wikipedia.org/>.
+  }
+}
+ORDER BY (?layerLabel)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b5d3f20cbb86ef0983c33721e8f03600> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/10>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -31,4 +30,18 @@ WHERE
   {?fedSubject wdt:P31 wd:Q41162. }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,ru\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT distinct ?company ?companyLabel ?town ?revenue ?revDate ?fedSubjectLabel ?rank
+WHERE 
+{
+  ?company wdt:P31/wdt:P279* wd:Q4830453. #all businesses
+  ?company p:P2139 [ ps:P2139 ?revenue; pq:P585 ?revDate; wikibase:rank ?rank].
+   minus {?company p:P2139 / wikibase:rank wikibase:DeprecatedRank .}    
+  ?company wdt:P159 ?town.
+  ?town wdt:P131* ?fedSubject.
+  {?fedSubject wdt:P31 wd:Q835714.} 
+  union
+  {?fedSubject wdt:P31 wd:Q41162. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,ru\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-01cb77ec939979f6c4cc84aeb3f4cbd7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -42,4 +41,31 @@ WHERE {
  }
   ?item ^wdt:P921 ?work .
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title: Invasive species items without Scholia template on the English Wikipedia
+
+SELECT 
+  DISTINCT ?item ?taxonname
+WHERE {
+ ?item wdt:P225 ?taxonname ;
+       wdt:P105 wd:Q7432 .
+  ?item wdt:P6104 wd:Q56241615.
+    
+  {   
+   SELECT ?item ?pageid 
+                ?ns WHERE {
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:endpoint \"en.wikipedia.org\" .
+      bd:serviceParam wikibase:api \"Generator\" .
+      bd:serviceParam mwapi:generator \"search\" .
+      bd:serviceParam mwapi:gsrsearch \"-hastemplate:Scholia\" .
+      bd:serviceParam mwapi:gsrlimit \"max\" .
+      ?item wikibase:apiOutputItem mwapi:item .
+      ?pageid wikibase:apiOutput \"@pageid\" .
+      ?ns wikibase:apiOutput \"@ns\" .
+    }
+  } LIMIT 10000
+ }
+  ?item ^wdt:P921 ?work .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

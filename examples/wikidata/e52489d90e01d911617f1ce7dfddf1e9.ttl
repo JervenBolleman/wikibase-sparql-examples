@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-e52489d90e01d911617f1ce7dfddf1e9> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:MKar/MLA>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -32,4 +31,19 @@ WHERE {
 }
 GROUP by ?item ?wikis ?itemLabel ?genderLabel 
 ORDER BY DESC(?terms)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Members of Odisha Vidhan Sabha
+#title:Members of Odisha Vidhan Sabha with no. of terms elected
+SELECT DISTINCT ?item ?wikis ?itemLabel ?genderLabel (count(?term)as ?terms)  
+WHERE {
+  ?item wdt:P31 wd:Q5.    #<<< human
+  ?item p:P39 ?statement.
+  ?statement (ps:P39/wdt:P279*) wd:Q24546266.
+  OPTIONAL { ?item wdt:P21 ?gender. }
+  OPTIONAL { ?statement pq:P2937 ?term. }
+  OPTIONAL { ?item wikibase:sitelinks ?wikis. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE], en\". }
+}
+GROUP by ?item ?wikis ?itemLabel ?genderLabel 
+ORDER BY DESC(?terms)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

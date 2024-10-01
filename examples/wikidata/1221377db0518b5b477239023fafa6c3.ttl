@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-1221377db0518b5b477239023fafa6c3> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Liridon/Descriptions>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -32,4 +31,21 @@ optional{ ?item wdt:P39 ?position.}
   })
 }
 order by ?itemLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Search for missing descriptions in a target language.
+#Can be input for Q29032512
+SELECT ?item ?itemLabel ?genderLabel ?occupationLabel ?domainLabel ?positionLabel ?itemDescription WHERE {
+  ?item wdt:P31 wd:Q5.  # instance of human
+  ?item wdt:P27 wd:Q31. # country of citizenship Belgium
+optional{ ?item wdt:P21 ?gender.}
+optional{ ?item wdt:P106 ?occupation.}
+optional{ ?item wdt:P101 ?domain.}
+optional{ ?item wdt:P39 ?position.}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,de,it,nl,fr,es,no,pt\". }
+  FILTER(NOT EXISTS {
+    ?item schema:description ?itemdesc.
+    FILTER(LANG(?itemdesc) = \"sq\") # with missing Albanian description
+  })
+}
+order by ?itemLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

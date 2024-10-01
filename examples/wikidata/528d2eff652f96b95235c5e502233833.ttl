@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-528d2eff652f96b95235c5e502233833> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/10>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -38,4 +37,23 @@ SELECT DISTINCT ?coordinates ?line ?item ?itemLabel ?image ?opening WHERE {
   BIND(STRDT(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')'), geo:wktLiteral) AS ?line)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
   }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\"]}
+SELECT DISTINCT ?coordinates ?line ?item ?itemLabel ?image ?opening WHERE {
+  ?item wdt:P361 wd:Q260870 .
+  ?item wdt:P31/wdt:P279* wd:Q55488 .
+  ?item wdt:P625 ?coordinates  .
+  OPTIONAL { ?item wdt:P18 ?image }.
+  ?item wdt:P1619 ?opening  .
+  ?item p:P197 ?nextstationstatement .
+  ?nextstationstatement ps:P197 ?nextstation .
+  ?nextstationstatement pq:P81 ?connect . ?connect wdt:P361 wd:Q260870  . 
+  FILTER(STR(?item) < STR(?nextstation)) . 
+  ?item p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 .
+  ?item p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
+  ?nextstation p:P625 / psv:P625 / wikibase:geoLatitude ?lat2 .
+  ?nextstation p:P625 / psv:P625 / wikibase:geoLongitude ?lon2 .        
+  BIND(STRDT(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')'), geo:wktLiteral) AS ?line)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  }""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

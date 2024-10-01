@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b45a6d2873cbfb52de4bdd8eaf0da018> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/Queries>, <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/sandbox>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX prov: <http://www.w3.org/ns/prov#>
 PREFIX pr: <http://www.wikidata.org/prop/reference/>
@@ -23,4 +22,14 @@ WHERE {
   ?st ps:P570 ?date ; prov:wasDerivedFrom ?ref, ?ref2 . ?ref2 pr:P648 ?v . ?st2 ps:P570 ?date2 .
 }
 GROUP BY ?item ?date
-HAVING(?nref = 1)""" .
+HAVING(?nref = 1)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title:Items with redundant dates of death referenced only with Open Library, to be removed (note: run on QLever)
+SELECT ?item ?date (COUNT(DISTINCT ?ref) AS ?nref)
+WHERE {
+  ?item p:P570 ?st, ?st2 . ?st2 prov:wasDerivedFrom ?ref3 . MINUS { ?ref3 pr:P143 ?wp } .
+  FILTER(?st != ?st2 && YEAR(?date) = YEAR(?date2))
+  ?st ps:P570 ?date ; prov:wasDerivedFrom ?ref, ?ref2 . ?ref2 pr:P648 ?v . ?st2 ps:P570 ?date2 .
+}
+GROUP BY ?item ?date
+HAVING(?nref = 1)""";
+  schema:target <https://query.wikidata.org/sparql> .

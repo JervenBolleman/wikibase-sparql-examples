@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b56a732a202c95dd3fddc529dcf4f8b8> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Tagishsimon/SPARQL_Report>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -50,4 +49,37 @@ SELECT (?student as ?writer) (concat('Writer: ',str(?studentLabel)) as ?writerLa
 }
 
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title:Student-teacher/influencer relationships, lineage starting with Socrates, located by place of birth.
+#defaultView:Map{\"hide\":[\"?line\",\"?cds\"],\"layer\":\"?teacher_or_influencerLabel\"}
+SELECT (?student as ?writer) (concat('Writer: ',str(?studentLabel)) as ?writerLabel) (?teacher_or_infl as ?teacher_or_influencer) (concat('Teacher or Influencer: ',str(?teacher_or_inflLabel)) as ?teacher_or_influencerLabel) ?image ?location (concat('Writer place of birth: ',?spobLabel ) as ?locationLabel) ?line 
+  {
+  SELECT distinct ?student ?studentLabel ?teacher_or_infl ?teacher_or_inflLabel ?cds ?image (?spob as ?location) ?spobLabel ?line {
+ {
+   VALUES ?person {wd:Q913} 
+   ?person wdt:P802* ?academyrelated .
+   ?academyrelated wdt:P1066* ?student . 
+ } union {
+   VALUES ?person {wd:Q913} 
+   ?person wdt:P802* ?academyrelated . 
+   ?academyrelated wdt:P737* ?student . 
+ }
+
+ ?student  wdt:P1066|wdt:P737 ?teacher_or_infl . 
+ 
+ ?teacher_or_infl wdt:P19 ?tpob .
+ ?teacher_or_infl wdt:P802 ?student .
+ ?student  wdt:P19 ?spob .
+ ?spob wdt:P625 ?cds.
+                          
+ ?tpob p:P625/psv:P625/wikibase:geoLatitude ?lat1 ; p:P625/psv:P625/wikibase:geoLongitude ?lon1 .
+ ?spob p:P625/psv:P625/wikibase:geoLatitude ?lat2 ; p:P625/psv:P625/wikibase:geoLongitude ?lon2 .
+ BIND(CONCAT('LINESTRING(', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) . BIND(STRDT(?str, geo:wktLiteral) AS ?line) .
+ 
+ OPTIONAL { ?student wdt:P18 ?image .}
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+
+}
+
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

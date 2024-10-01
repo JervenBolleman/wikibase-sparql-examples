@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-cc6b4f653561c9e5663bae66e5f70326> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Govdirectory/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -26,4 +25,16 @@ SELECT DISTINCT ?item ?itemLabel (IRI(CONCAT(SUBSTR(?searchEndpoint,1,STRLEN(?se
   MINUS { ?item wdt:P576 [] }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],nl,en\". }
 } ORDER BY ?itemLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title: Dutch government organizations missing Facebook with a link to search Facebook directly from WDQS
+SELECT DISTINCT ?item ?itemLabel (IRI(CONCAT(SUBSTR(?searchEndpoint,1,STRLEN(?searchEndpoint)-2), ?itemLabel)) AS ?URL) WHERE {
+  wd:P2013 wikibase:directClaim ?wdt; # wd:P2013 == External identifier for Facebook
+           wdt:P4354 ?searchEndpoint .
+  ?item wdt:P31/wdt:P279* wd:Q2659904 ;
+        wdt:P17 wd:Q55 . # wd:Q55 == The Netherlands
+  MINUS { ?item ?wdt [] }
+  MINUS { ?item wdt:P1366 [] }
+  MINUS { ?item wdt:P576 [] }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],nl,en\". }
+} ORDER BY ?itemLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

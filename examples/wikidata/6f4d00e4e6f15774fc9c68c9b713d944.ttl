@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-6f4d00e4e6f15774fc9c68c9b713d944> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Touam>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -70,4 +69,58 @@ WHERE {
     ?linkes schema:isPartOf <https://es.wikipedia.org/> .
   }  
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT
+  ?item
+  ?itemLabel
+  ?deathPlaceLabel
+  (concat(str(geof:latitude(?coords)), ',', str(geof:longitude(?coords))) as ?latlng)
+  (if(?gender = wd:Q6581072, '#993300', '#009933') as ?color)
+  (if(BOUND(?linkfr), 'circle', '') as ?symbol)
+  (if(BOUND(?linkfr), concat('[[', substr(str(?linkfr),31,500),  '|', ?itemLabel, ']]'), ?itemLabel) 
+   as ?title)
+  (concat(
+    'décès en ', 
+    str(YEAR(?death)), 
+    ' à ', 
+    ?deathPlaceLabel, 
+    '\\n\\n', 
+    if(BOUND(?image), concat('[[File:', substr(str(?image), 52, 500), '|200px]]'), ''),
+    if (BOUND(?linken), concat(' [[:en:', substr(str(?linken),31,500),  '|(en)]]'), ''),
+    if (BOUND(?linkde), concat(' [[:de:', substr(str(?linkde),31,500),  '|(de)]]'), ''),
+    if (BOUND(?linkes), concat(' [[:es:', substr(str(?linkes),31,500),  '|(es)]]'), '')
+  ) 
+   as ?description)
+  ('1000' as ?randomise)
+  ?linkfr
+  ?linkde
+  ?linken
+  ?linkes
+WHERE {
+  { ?item wdt:P1399 wd:Q259745. }
+  UNION
+  { ?item wdt:P1595 wd:Q259745. }
+  ?item wdt:P20 ?deathPlace.
+  ?deathPlace wdt:P625 ?coords.
+  OPTIONAL { ?item wdt:P21 ?gender. }
+  OPTIONAL { ?item wdt:P570 ?death. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\". }
+  OPTIONAL { ?item wdt:P18 ?image. }
+  OPTIONAL {
+    ?linkfr schema:about ?item .
+    ?linkfr schema:isPartOf <https://fr.wikipedia.org/> .
+  }
+  OPTIONAL {
+    ?linkde schema:about ?item .
+    ?linkde schema:isPartOf <https://de.wikipedia.org/> .
+  }  
+  OPTIONAL {
+    ?linken schema:about ?item .
+    ?linken schema:isPartOf <https://en.wikipedia.org/> .
+  }
+  OPTIONAL {
+    ?linkes schema:about ?item .
+    ?linkes schema:isPartOf <https://es.wikipedia.org/> .
+  }  
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

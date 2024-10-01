@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-575ccb748c6a5510b04679654c66f397> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Ancient_Rome/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
@@ -36,4 +35,27 @@ WHERE
 }
 GROUP BY ?item ?itemLabel
 ORDER BY ?itemLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Latin authors, as in PHI + DigilibLT + Musisque Deoque
+SELECT ?item ?itemLabel 
+  (GROUP_CONCAT(DISTINCT ?phi1; separator=\", \") as ?Phi)
+  (GROUP_CONCAT(DISTINCT ?digilib1; separator=\", \") as ?Digilib)
+  (GROUP_CONCAT(DISTINCT ?mqdq1; separator=\", \") as ?Mqdq)
+  (GROUP_CONCAT(DISTINCT ?cc1; separator=\", \") as ?Corpuscorporum)
+  (GROUP_CONCAT(DISTINCT ?ciris1; separator=\", \") as ?Ciris)
+  (GROUP_CONCAT(DISTINCT ?dll1; separator=\", \") as ?Dll)
+  (GROUP_CONCAT(DISTINCT ?pc1; separator=\", \") as ?Perseuscatalog)
+  (GROUP_CONCAT(DISTINCT ?viaf1; separator=\", \") as ?Viaf)
+WHERE
+{
+   { ?item wdt:P6941 ?phi1 . } UNION { ?item wdt:P6862 ?digilib1 . } UNION { ?item wdt:P6999 ?mqdq1 . }
+   OPTIONAL { ?item wdt:P7935 ?cc1 . }
+   OPTIONAL { ?item wdt:P8065 ?ciris1 . }
+   OPTIONAL { ?item wdt:P8122 ?dll1 . }
+   OPTIONAL { ?item wdt:P7041 ?pc1 . }
+   OPTIONAL { ?item wdt:P214 ?viaf1 . }
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"it,en\" . }
+}
+GROUP BY ?item ?itemLabel
+ORDER BY ?itemLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

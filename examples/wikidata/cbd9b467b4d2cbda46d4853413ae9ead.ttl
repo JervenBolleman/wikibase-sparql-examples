@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-cbd9b467b4d2cbda46d4853413ae9ead> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_20th_Century_Press_Archives/Use_cases>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
@@ -32,4 +31,20 @@ where {
 }
 group by ?country ?countryLabel
 order by desc(?count)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """select (count(?item) as ?count) ?country ?countryLabel
+where {
+  # company items (directly linked)
+  ?statement ps:P4293 ?pm20Id .
+  filter(strstarts(?pm20Id, 'co/'))
+  ?item p:P4293 ?statement .
+  filter (not exists {
+      ?statement pq:P4390 [] .
+    })
+  #
+  ?item wdt:P17 ?country .
+  service wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de,fr\". }
+}
+group by ?country ?countryLabel
+order by desc(?count)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

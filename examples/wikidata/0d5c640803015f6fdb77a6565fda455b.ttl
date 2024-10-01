@@ -1,26 +1,39 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-0d5c640803015f6fdb77a6565fda455b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/12>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?item ?itemLabel ?town ?town_name 
 WHERE {
-   {INCLUDE %councils} 
+   { { 
+  SELECT ?item ?itemLabel ?town ?town_name WHERE {
+    ?item wdt:P31 wd:Q3507268.
+    ?item rdfs:label ?itemLabel . filter(lang(?itemLabel)=\"en\")
+    ?item wdt:P17 wd:Q145  .
+    FILTER NOT EXISTS { ?item wdt:P1001 []. }
+    BIND(REPLACE( ?itemLabel, \" Town Council\",\"\") as ?town_name)
+  } }} 
    UNION 
-   {INCLUDE %towns}
+   { {
+  SELECT DISTINCT ?town ?town_name WHERE {
+    ?town wdt:P17 wd:Q145 .
+    {?town wdt:P31 wd:Q1115575.}
+    UNION
+    {?town wdt:P31 wd:Q3957 .}
+    ?town rdfs:label ?town_name . filter(lang(?town_name)=\"en\")
+  } }}
 }""";
-  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?town ?town_name 
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?town ?town_name 
 WITH { 
   SELECT ?item ?itemLabel ?town ?town_name WHERE {
     ?item wdt:P31 wd:Q3507268.
@@ -41,4 +54,5 @@ WHERE {
    {INCLUDE %councils} 
    UNION 
    {INCLUDE %towns}
-}""" .
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

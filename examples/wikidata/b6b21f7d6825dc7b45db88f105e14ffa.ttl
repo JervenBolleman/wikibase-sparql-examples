@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b6b21f7d6825dc7b45db88f105e14ffa> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:AllyD/sandbox>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -46,4 +45,36 @@ WHERE
   OPTIONAL {?subj wdt:P571 ?startdt.}.
   #OPTIONAL {?subj wdt:P573 ?enddt.}.
 } ORDER BY ?subjLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Timeline
+SELECT DISTINCT ?subj ?subjLabel  ?pubplace1Label ?pubplace2Label ?startdt 
+WHERE
+{
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  VALUES ?bustypes {
+    wd:Q11032 #wd:Q2302208 #wd:Q1002697 #
+  }
+  ?subj wdt:P31/wdt:P279* ?bustypes .
+  OPTIONAL {?subj wdt:P159 ?pubplace1.}
+  OPTIONAL {?subj wdt:P291 ?pubplace2.}
+  {
+    SELECT DISTINCT ?town WHERE
+           {
+             VALUES ?typesOfPlaces { wd:Q3957 wd:Q515 wd:Q532 wd:Q7543008 wd:Q3257686 }
+             ?town (wdt:P31/(wdt:P279*)) ?typesOfPlaces.
+             ?town wdt:P131 ?cooncil.
+             {
+               SELECT DISTINCT ?cooncil WHERE 
+                    { 
+                      ?cooncil wdt:P31 wd:Q15060255.
+                    }
+              }
+             ?town wdt:P1082 ?population.
+             FILTER (?population >3000).
+            } 
+    }
+  { ?subj wdt:P159 ?town} UNION { ?subj wdt:P291 ?town}.
+  OPTIONAL {?subj wdt:P571 ?startdt.}.
+  #OPTIONAL {?subj wdt:P573 ?enddt.}.
+} ORDER BY ?subjLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

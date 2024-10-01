@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-6469d700dbedcc28ad6a29273fecb548> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -77,4 +76,70 @@ WHERE {
     bd:serviceParam wikibase:language \"en\" .
   }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+SELECT DISTINCT ?country_label ?capital_label ?currency_label ?population
+                ?flag_label ?flag_image ?determination_method_label ?flagStatement
+        ?anthem_audio ?official_language_label ?continent_label ?highest_point_label
+                ?determination_method_population_label #?endTime2_label
+WHERE {
+  ?country wdt:P31 wd:Q3624078 .
+  FILTER NOT EXISTS { ?country wdt:P31 wd:Q3024240 }
+  FILTER NOT EXISTS { ?country wdt:P31 wd:Q28171280 }
+  OPTIONAL { ?country wdt:P36 ?capital } .
+  OPTIONAL {
+    ?country p:P36 ?capitalStatement .
+    ?capitalStatement ps:P36 ?capital .
+    ?capitalStatement pq:P459 ?determination_method .
+    ?determination_method rdfs:label ?determination_method_label .
+#    ?capitalStatement pq:P582 ?endTime2 .
+#    ?endTime2 rdfs:label ?endTime2_label .
+    FILTER (LANG(?determination_method_label) = \"en\" )
+   
+#    FILTER NOT EXISTS { ?capitalStatement pq:P582 ?endTime . }
+   
+  } .
+  OPTIONAL { ?country wdt:P38 ?currency } .
+  OPTIONAL { ?country wdt:P1082 ?population } .
+  OPTIONAL {
+    ?country p:P1082 ?populationStatement .
+    ?populationStatement ps:P1082 ?population .
+    ?populationStatement pq:P459 ?determination_method_population .
+    ?determination_method_population rdfs:label ?determination_method_population_label .
+    FILTER (LANG(?determination_method_population_label) = \"en\" )
+  } .
+  OPTIONAL {
+    ?country p:P41 ?flagStatement .
+    ?flagStatement ps:P41 ?flag_image .
+    ?flagStatement wikibase:rank wikibase:PreferredRank .
+    FILTER NOT EXISTS { ?flagStatement pq:P582 ?endTime . }
+  } .
+  OPTIONAL { ?country wdt:P85 ?anthem .
+             ?anthem wdt:P51 ?anthem_audio .
+  } .
+ 
+  OPTIONAL { ?country p:P37 ?official_languageStatement .
+             ?official_languageStatement ps:P37 ?official_language .
+             ?official_languageStatement wikibase:rank wikibase:PreferredRank .
+  } .
+  OPTIONAL { ?country wdt:P30 ?continent } .
+  OPTIONAL { ?country wdt:P610 ?highest_point } .
+ 
+  SERVICE wikibase:label {
+    ?country rdfs:label ?country_label .
+    ?capital rdfs:label ?capital_label .
+    ?currency rdfs:label ?currency_label .
+    ?country rdfs:label ?flag_label .
+    ?official_language rdfs:label ?official_language_label .
+    ?continent rdfs:label ?continent_label .
+    ?highest_point rdfs:label ?highest_point_label .
+    bd:serviceParam wikibase:language \"en\" .
+  }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

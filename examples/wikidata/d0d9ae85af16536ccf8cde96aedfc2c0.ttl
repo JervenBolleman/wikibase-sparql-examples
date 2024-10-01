@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-d0d9ae85af16536ccf8cde96aedfc2c0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Anthere/Divers>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -41,4 +40,30 @@ UNION
  	SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
  }
  LIMIT 100""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?itemLabel ?FAsitelink ?WQsitelink
+WHERE
+ {
+   ?item wdt:P31 wd:Q5.
+   ?item wdt:P21 wd:Q6581072 .
+     ?FAsitelink # There is a Wikipedia Featured article
+     schema:about ?item;
+     wikibase:badge wd:Q17437796 . # Sitelink is badged as a Featured Article
+   {
+     ?FAsitelink schema:isPartOf <https://fr.wikipedia.org/> .
+     }
+UNION
+   {
+    ?FAsitelink schema:isPartOf <https://en.wikipedia.org/> .
+     }
+
+   MINUS
+   {
+   ?WQsitelink # And a sitelink to a frwq page
+     schema:about ?item ;
+     schema:isPartOf <https://fr.wikiquote.org/>.  
+     }
+ 	SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+ }
+ LIMIT 100""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

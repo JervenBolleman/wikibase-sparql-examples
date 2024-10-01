@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-eebdd806780e727ed7e44d935463fbc2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_France/Organisations>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -29,4 +28,18 @@ SELECT DISTINCT ?item ?itemLabel ?itemDescription ?search WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
 }
 ORDER BY DESC (?sitelinks)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title: List of firms in France without any value for P1616
+SELECT DISTINCT ?item ?itemLabel ?itemDescription ?search WHERE {
+  ?item (wdt:P31/(wdt:P279*)) wd:Q6881511;
+    wdt:P17 wd:Q142;
+    rdfs:label ?itemLabel;
+    wikibase:sitelinks ?sitelinks.
+  FILTER((LANG(?itemLabel)) = \"fr\")
+  MINUS { ?item wdt:P576 _:b10. }
+  MINUS { ?item wdt:P1616 _:b11. }
+  BIND(URI(CONCAT(\" https://annuaire-entreprises.data.gouv.fr/rechercher?terme=\", ENCODE_FOR_URI(?itemLabel))) AS ?search)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+}
+ORDER BY DESC (?sitelinks)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-3517393a3134fe080b6559b331c2d096> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Biography/Query>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -35,4 +34,27 @@ WHERE
   OPTIONAL { ?person wdt:P178+ ?value4 .
            ?value4 rdfs:label ?developed . FILTER(LANG(?developed)='en') }
 }
-GROUP BY ?person ?personLabel ?sexorgender ?religion ?sexuality ?developed""" .
+GROUP BY ?person ?personLabel ?sexorgender ?religion ?sexuality ?developed""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT
+  ?person ?personLabel ?sexorgender (GROUP_CONCAT(DISTINCT ?ethnicityLabel;SEPARATOR=', ') AS ?ethnicity) 
+  (GROUP_CONCAT(DISTINCT ?citizenshipLabel;SEPARATOR=', ') AS ?citizenship) ?religion 
+  ?sexuality ?developed
+WHERE
+{
+  ?person wdt:P108 wd:Q213439 .
+  ?person rdfs:label ?personLabel . FILTER(LANG(?personLabel)='en')
+  OPTIONAL { ?person wdt:P21 ?value .
+           ?value rdfs:label ?sexorgender . FILTER(LANG(?sexorgender)='en') }
+  OPTIONAL { ?person wdt:P172 ?ethnicity .
+           ?ethnicity rdfs:label ?ethnicityLabel . FILTER(LANG(?ethnicityLabel)='en') }
+  OPTIONAL { ?person wdt:P27 ?citizenship .
+           ?citizenship rdfs:label ?citizenshipLabel . FILTER(LANG(?citizenshipLabel)='en') }
+  OPTIONAL { ?person wdt:P140 ?value2 .
+           ?value2 rdfs:label ?religion . FILTER(LANG(?religion)='en') }
+  OPTIONAL { ?person wdt:P91 ?value3 .
+           ?value3 rdfs:label ?sexuality . FILTER(LANG(?sexuality)='en') }
+  OPTIONAL { ?person wdt:P178+ ?value4 .
+           ?value4 rdfs:label ?developed . FILTER(LANG(?developed)='en') }
+}
+GROUP BY ?person ?personLabel ?sexorgender ?religion ?sexuality ?developed""";
+  schema:target <https://query.wikidata.org/sparql> .

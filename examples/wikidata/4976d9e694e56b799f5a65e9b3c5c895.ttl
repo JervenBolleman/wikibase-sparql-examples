@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-4976d9e694e56b799f5a65e9b3c5c895> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/06>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -32,4 +31,21 @@ SELECT (GROUP_CONCAT(DISTINCT ?songdesc; separator=\"; \") as ?s)
   }
   GROUP BY ?song ?songLabel
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT (GROUP_CONCAT(DISTINCT ?songdesc; separator=\"; \") as ?s)
+{
+  SELECT ?song ?songLabel
+    (GROUP_CONCAT(DISTINCT ?composerLabel; separator=\" and \") as ?comp)
+    (GROUP_CONCAT(DISTINCT ?lyrics_byLabel; separator=\" and \") as ?lyri)
+    (CONCAT('\"', str(?songLabel), '\" by ', str(?comp), \" (comp.), \", str(?lyri), \" (lyrics)\") as ?songdesc)
+  WHERE
+  {
+    BIND(wd:Q530546 AS ?item) # this is the item of the album
+    ?item wdt:P658 ?song.
+    ?song wdt:P86 ?composer. # need concatenate all the composer
+    ?song wdt:P676 ?lyrics_by # need concatenate all the lyrics by
+     SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,it\" .  ?composer rdfs:label ?composerLabel . ?lyrics_by rdfs:label ?lyrics_byLabel . ?song rdfs:label ?songLabel }
+  }
+  GROUP BY ?song ?songLabel
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-a00a2d157955dcf0a21b8cfbd390acdc> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_COVID-19/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -35,4 +34,22 @@ SELECT DISTINCT ?item ?title ?topicLabel ?taxonLabel ?protLabel
 }
 GROUP BY ?item ?title ?topicLabel ?taxonLabel ?protLabel
 ORDER BY ?pubdate""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?title ?topicLabel ?taxonLabel ?protLabel
+  (MIN(?pdate) AS ?pubdate)
+{
+  VALUES ?topic { wd:Q908902 wd:Q7202 } 
+  ?item p:P921 [ ps:P921 ?topic; pq:P642 ?taxon ].
+  ?taxon wdt:P171 wd:Q278567.
+  ?item wdt:P1476 ?title.
+  ?item wdt:P577 ?pdate.
+  OPTIONAL { 
+    ?item wdt:P921 ?prot.
+    ?prot wdt:P31 wd:Q8054
+    { ?prot wdt:P703 ?taxon } UNION { ?prot wdt:P703 wd:Q278567 }
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+}
+GROUP BY ?item ?title ?topicLabel ?taxonLabel ?protLabel
+ORDER BY ?pubdate""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

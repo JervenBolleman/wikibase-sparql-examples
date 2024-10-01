@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8feae7c6a15f0258b20c8ea4b04be4b2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Lexicographical_data/Documentation/Languages/zh>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -43,4 +42,33 @@ WITH {
   ?lexemeZh ontolex:sense/wdt:P5137 ?sense.
   ?lexemeJp ontolex:sense/wdt:P5137 ?sense.
 }
-ORDER BY DESC(STRLEN(?lemmaStr)""" .
+ORDER BY DESC(STRLEN(?lemmaStr)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT
+  ?lexemeZh
+  ?lexemeJp
+  ?lemmaStr
+  ?sense
+WITH {
+  SELECT ?lexemeZh ?lemmaStr {
+    ?lexemeZh
+      dct:language wd:Q727694;
+      wikibase:lemma ?lemma.
+    BIND(STR(?lemma) AS ?lemmaStr)
+  }
+} AS %0
+WITH {
+  SELECT ?lexemeJp ?lemmaStr {
+    ?lexemeJp
+      dct:language wd:Q5287;
+      wikibase:lemma ?lemma.
+    BIND(STR(?lemma) AS ?lemmaStr)
+  }
+} AS %1
+{
+  INCLUDE %0.
+  INCLUDE %1.
+  ?lexemeZh ontolex:sense/wdt:P5137 ?sense.
+  ?lexemeJp ontolex:sense/wdt:P5137 ?sense.
+}
+ORDER BY DESC(STRLEN(?lemmaStr)""";
+  schema:target <https://query.wikidata.org/sparql> .

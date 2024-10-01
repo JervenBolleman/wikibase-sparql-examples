@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-21b5454670e7c013a944d1dad8384f02> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Arjunaraoc/parliament,_assembly,_old_districts>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
@@ -40,4 +39,29 @@ SELECT DISTINCT  ?assembly  ?assemblyLabel ?olddistrict ?olddistrictLabel ?loksa
   BIND(IF(BOUND(?enddate), \"yes\", \"no\") AS ?endflag_)
   BIND(IF(BOUND(?startdate), YEAR(?startdate), 0 ) AS ?startyear)
   BIND(IF(BOUND(?enddate), YEAR(?enddate), 0 ) AS ?endyear)
-  FILTER ((?startflag_ =\"no\" && ?endflag_=\"yes\"  &&year(?enddate) =2022 )|""" .
+  FILTER ((?startflag_ =\"no\" && ?endflag_=\"yes\"  &&year(?enddate) =2022 )|""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Get parliament consituency in Andhra Padesh with its assembly, old districts prior to 2022 reorg
+SELECT DISTINCT  ?assembly  ?assemblyLabel ?olddistrict ?olddistrictLabel ?loksabha ?loksabhaLabel
+   WHERE {
+  ?assembly wdt:P31 wd:Q54375413.
+  ?assembly    p:P131 ?districtnode.
+  ?districtnode ps:P131 ?olddistrict.
+  ?olddistrict wdt:P131    wd:Q1159.
+  ?tewikilink schema:about ?assembly;
+    schema:isPartOf <https://te.wikipedia.org/>;
+    schema:name ?page_titleTE.
+  ?tewikilink_dist schema:about ?olddistrict;
+    schema:isPartOf <https://te.wikipedia.org/>;
+    schema:name ?page_titleTE_dist.
+
+    ?loksabha wdt:P31 wd:Q47481352;
+            wdt:P131 wd:Q1159;
+            wdt:P527  ?assembly.
+  
+  OPTIONAL { ?districtnode pq:P580 ?startdate. }
+  BIND(IF(BOUND(?startdate), \"yes\", \"no\") AS ?startflag_)
+  BIND(IF(BOUND(?enddate), \"yes\", \"no\") AS ?endflag_)
+  BIND(IF(BOUND(?startdate), YEAR(?startdate), 0 ) AS ?startyear)
+  BIND(IF(BOUND(?enddate), YEAR(?enddate), 0 ) AS ?endyear)
+  FILTER ((?startflag_ =\"no\" && ?endflag_=\"yes\"  &&year(?enddate) =2022 )|""";
+  schema:target <https://query.wikidata.org/sparql> .

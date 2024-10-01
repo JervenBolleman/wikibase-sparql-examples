@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-858f1cb67e565bb6901673899e4a7694> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Charles_Matthews/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -42,7 +41,15 @@ WHERE {
    {
   # count of ODNB entries in each parliament
   SELECT ?parliament (COUNT(DISTINCT ?mp) AS ?odnb) WHERE {
-    INCLUDE %MPsWithParliament.
+     {
+  # all MPs with their associated parliament
+  SELECT DISTINCT ?mp ?parliament WHERE {
+    ?mp wdt:P31 wd:Q5.
+      # using the new data model - so limits how far back it goes
+      ?mp p:P39/ps:P39 ?position . 
+      ?position wdt:P279 wd:Q16707842; p:P279/pq:P2937|wdt:P2937 ?parliament.
+    }
+}
     ?mp wdt:P1415 ?odnb
   }
   GROUP BY ?parliament
@@ -57,7 +64,15 @@ WHERE {
 }   {
   # count of dead MPs in each parliament
   SELECT ?parliament (COUNT(DISTINCT ?mp) AS ?died) WHERE {
-    INCLUDE %MPsWithParliament.
+     {
+  # all MPs with their associated parliament
+  SELECT DISTINCT ?mp ?parliament WHERE {
+    ?mp wdt:P31 wd:Q5.
+      # using the new data model - so limits how far back it goes
+      ?mp p:P39/ps:P39 ?position . 
+      ?position wdt:P279 wd:Q16707842; p:P279/pq:P2937|wdt:P2937 ?parliament.
+    }
+}
     ?mp wdt:P570 ?died . 
   }
   GROUP BY ?parliament
@@ -74,7 +89,7 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY ?start""";
-  <http://example.org/bigdata_select> """#Andrew Gray
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Andrew Gray
 # For a given UK parliament, find
 # - how many MPs sat in it
 # - how many of those have died
@@ -140,4 +155,6 @@ WHERE {
   # add labels
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
-ORDER BY ?start""" .
+ORDER BY ?start""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

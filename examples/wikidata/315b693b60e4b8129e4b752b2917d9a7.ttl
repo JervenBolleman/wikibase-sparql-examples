@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-315b693b60e4b8129e4b752b2917d9a7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/08>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -41,4 +40,29 @@ WHERE
     SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 LIMIT 1000""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT
+  ?item ?itemLabel 
+  ?mp ?mpunit ?mpunitLabel 
+  ?bp ?bpunit ?bpunitLabel 
+  ?colorLabel 
+  ?img 
+WHERE
+{
+    ?item wdt:P31 wd:Q11173 .
+
+    ?item p:P2101/psv:P2101 [ wikibase:quantityAmount ?mp ; wikibase:quantityUnit ?mpunit ] .
+    FILTER ( ( ?mp <  30 && ?mpunit = wd:Q25267 ) \\u007C\\u007C ( ?mp <  86 && ?mpunit = wd:Q42289 )  ) 
+
+    ?item p:P2102/psv:P2102 [ wikibase:quantityAmount ?bp ; wikibase:quantityUnit ?bpunit ] .
+    FILTER ( ( ?bp < 250 && ?bpunit = wd:Q25267 ) \\u007C\\u007C ( ?bp < 482 && ?mpunit = wd:Q42289 )  ) 
+
+    OPTIONAL { ?item wdt:P462 ?color } 
+    FILTER ( ?color != wd:Q23444 \\u007C\\u007C !BOUND(?color) )
+
+    OPTIONAL { ?item wdt:P18 ?img }
+
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+LIMIT 1000""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

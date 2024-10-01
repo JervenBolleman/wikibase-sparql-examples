@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-376d87657892736394b05ba57370b17e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Chris_Mytton/prompts/Argentina/Chamber_of_Deputies_dates>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -31,4 +30,16 @@ SELECT DISTINCT ?name (SUBSTR(str(?start),1,10) AS ?mandate_start) (SUBSTR(str(?
       ?wikidata rdfs:label ?name .
     }
  }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?name (SUBSTR(str(?start),1,10) AS ?mandate_start) (SUBSTR(str(?mem_end),1,10) AS ?mandate_end) WHERE {
+    ?wikidata p:P39 ?statement .
+    ?statement ps:P39 [ wdt:P279* wd:Q18229570 ] ; pq:P580 ?start .
+    OPTIONAL { ?statement pq:P582 ?mem_end }
+    BIND(COALESCE(?mem_end, \"3001-01-01T00:00:00Z\"^^xsd:dateTime) as ?end)
+    FILTER (?end > NOW())
+    SERVICE wikibase:label { 
+      bd:serviceParam wikibase:language \"es,en\". 
+      ?wikidata rdfs:label ?name .
+    }
+ }""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

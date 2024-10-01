@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-130a902b7a068298237d607e812ac083> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Every-leaf-that-trembles/sandbox>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -35,4 +34,25 @@ WHERE {
       SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 }
 ORDER BY ASC(?regionLabel)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Query to list oblasts and republics of Russia
+PREFIX schema: <http://schema.org/>	# remember to add this
+SELECT DISTINCT ?region ?regionLabel ?wplink
+WHERE {
+      {?region wdt:P31 wd:Q835714} UNION {?region wdt:P31 wd:Q41162} UNION {?region wdt:P31 wd:Q831740} union {?region wdt:P31 wd:Q184122} 
+           UNION {?region wdt:P31 wd:Q183342} . 
+                    # region - is an instance of an oblast, republic, or krai of - Russia
+      ?region wdt:P131 wd:Q159 .        # region - is in administrative district of - Russia
+      # BIND (wd:Q2753 AS ?region) .       # Limits results to Ryazan Oblast (Q2753)
+      # OPTIONAL {?dist wdt:P625 ?coord }   # district - has geographic coordinates of - ?coord (if added column for items that exist)
+      # OPTIONAL {?dist wdt:P18 ?pic } .        # add a column for pics (p18) if there is one in WD   (toggle w/next line) 
+      #MINUS {?dist wdt:P18 ?pic} .           # use this instead of previous line to see items with NO PIC
+      OPTIONAL {
+         ?wplink schema:about ?region .   # WP link - is about - ?region
+         ?wplink schema:inLanguage \"en\" .
+         ?wplink schema:isPartOf <https://en.wikipedia.org/> .
+      }
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY ASC(?regionLabel)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

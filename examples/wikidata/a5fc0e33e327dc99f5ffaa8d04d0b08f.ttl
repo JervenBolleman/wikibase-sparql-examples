@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-a5fc0e33e327dc99f5ffaa8d04d0b08f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/09>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -49,4 +48,37 @@ WHERE
 }
 GROUP BY ?battle ?battleLabel  ?type ?typeLabel ?wikipedia_link_en ?wikipedia_link_ja ?year ?typeBattle
 ORDER BY (?year)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?battle ?battleLabel 
+  ?type ?typeLabel 
+  ?wikipedia_link_en ?wikipedia_link_ja 
+  (YEAR(?year) as ?someyear)
+  (SAMPLE(?coordinates) as ?some_coordinates)
+  (GROUP_CONCAT(DISTINCT ?participantLabel; SEPARATOR = \" // \") AS ?participants)
+  (SAMPLE(?image) as ?some_image)
+WHERE
+{
+  { ?battle (wdt:P361 | wdt:P2348) wd:Q204023. }
+  FILTER NOT EXISTS {  ?battle wdt:P31 wd:Q5 } #exclude people
+  # ?battle wdt:P31/wdt:P279* wd:Q645883 .     #only military operations or subtypes 
+  OPTIONAL { ?battle wdt:P31 ?type }
+  OPTIONAL { ?battle wdt:P710 ?participant. 
+              OPTIONAL { ?participant wdt:P18 ?image }
+           
+           }
+  ?battle (wdt:P585 | wdt:P580) ?year. 
+  OPTIONAL { ?battle wdt:P625 ?coordinates0. }
+  OPTIONAL { ?battle wdt:P276 / wdt:P625 ?coordinates1. }
+  BIND( COALESCE(?coordinates0, ?coordinates1) as ?coordinates)
+  OPTIONAL { ?wikipedia_link_en schema:about ?battle ; schema:isPartOf <https://en.wikipedia.org/>. }
+  OPTIONAL { ?wikipedia_link_ja schema:about ?battle ; schema:isPartOf <https://ja.wikipedia.org/>. } 
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,ja\".
+    ?battle rdfs:label ?battleLabel.
+    ?participant rdfs:label ?participantLabel.
+    ?type rdfs:label ?typeLabel.
+  }
+}
+GROUP BY ?battle ?battleLabel  ?type ?typeLabel ?wikipedia_link_en ?wikipedia_link_ja ?year ?typeBattle
+ORDER BY (?year)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

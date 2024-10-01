@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-60ae284bda97b6f16592474b3dfd1ade> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:MichaelSchoenitzer/FLOSS>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -51,4 +50,38 @@ SELECT distinct ?floss ?flossLabel ?count WHERE {
      bd:serviceParam wikibase:language \"en\" .
    }
 } order by DESC(?count)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT distinct ?floss ?flossLabel ?count WHERE {
+   {
+   SELECT ?floss (COUNT (DISTINCT ?labels) as ?count) WHERE {
+     {
+       ?floss p:P31 ?val.
+       ?val ps:P31/wdt:P279* wd:Q506883.
+     } Union {
+       ?floss p:P31 ?val.
+       ?val ps:P31/wdt:P279* wd:Q341.
+     } Union {
+       ?floss p:P31 ?val.
+       ?val ps:P31/wdt:P279* wd:Q1130645.
+     } Minus {
+       ?floss wdt:P275 ?license
+     }
+     
+     Filter Not Exists {
+       ?floss p:P31 ?val2.
+       ?val2 ps:P31 wd:Q131669.
+     }
+          
+     ?floss rdfs:label ?labels .
+     
+     SERVICE wikibase:label {
+         bd:serviceParam wikibase:language \"en\" .
+     }  
+   } group by ?floss order by desc(?count)
+   } .
+     
+   SERVICE wikibase:label {
+     bd:serviceParam wikibase:language \"en\" .
+   }
+} order by DESC(?count)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

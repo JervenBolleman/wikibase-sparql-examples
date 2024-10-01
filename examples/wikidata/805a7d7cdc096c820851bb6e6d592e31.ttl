@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-805a7d7cdc096c820851bb6e6d592e31> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:scientificeventseries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
@@ -46,4 +45,36 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\". }
   }
 GROUP BY ?event ?year ?eventLabel ?proceedings ?proceedingsLabel
-ORDER BY DESC(?year)""" .
+ORDER BY DESC(?year)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX target: <http://www.wikidata.org/entity/Q17012957>
+
+SELECT DISTINCT 
+  (SAMPLE(?years) AS ?year)
+  (SAMPLE(?ordinal) AS ?ordinal)
+  (SAMPLE(?short_names) AS ?short_name)
+
+  ?event ?eventLabel (CONCAT(\"#scientificevent/\", SUBSTR(STR(?event), 32)) AS ?eventUrl)
+
+  ?proceedings ?proceedingsLabel (CONCAT(\"#venue/\", SUBSTR(STR(?proceedings), 32)) AS ?proceedingsUrl)
+WHERE {
+  {
+    ?event wdt:P179| wdt:P31 target: .
+    OPTIONAL {
+      ?event wdt:P585 | wdt:P580 ?datetime .
+      BIND(YEAR(?datetime) AS ?years)
+    }
+    OPTIONAL {
+      ?event wdt:P1813 ?short_names
+    }
+    OPTIONAL {
+      ?proceedings wdt:P4745 ?event
+    }
+    OPTIONAL{
+      ?event p:P179/pq:P1545 ?ordinal
+    }
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,de,es,fr,jp,nl,no,ru,sv,zh\". }
+  }
+GROUP BY ?event ?year ?eventLabel ?proceedings ?proceedingsLabel
+ORDER BY DESC(?year)""";
+  schema:target <https://query.wikidata.org/sparql> .

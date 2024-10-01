@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-cc13800de148a8dacd94fe440eea3910> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/09>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
@@ -35,4 +34,26 @@ SELECT * WHERE {
   }
 }
 LIMIT 10""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT * WHERE {
+  BIND (URI(CONCAT('https://commons.wikimedia.org/entity/M', ?pageid)) AS ?file)
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Generator\";
+                    wikibase:endpoint \"commons.wikimedia.org\";
+                    mwapi:gcmtitle \"Category:1930s photographs in Auckland Museum\";
+                    mwapi:generator \"categorymembers\";
+                    mwapi:gcmtype \"file\";
+                    mwapi:gcmlimit \"10\";
+                    mwapi:prop \"revisions\";
+                    mwapi:rvslots \"main\";
+                    mwapi:rvprop \"content\";
+                    wikibase:limit \"once\".
+    ?title wikibase:apiOutput mwapi:title.
+    ?pageid wikibase:apiOutput mwapi:pageid.
+    ?contentmodel wikibase:apiOutput 'revisions/rev/slots/slot/@contentmodel'.
+    ?contentformat wikibase:apiOutput 'revisions/rev/slots/slot/@contentformat'.
+    ?content wikibase:apiOutput 'revisions/rev/slots/slot/text()'.
+  }
+}
+LIMIT 10""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,26 +1,25 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-f20586aa3ef8bce5973c877765999109> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/khalili>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/cs>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/ja>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/nl>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/pl>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/ja>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/cs>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/uk>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/fr>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/sv>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/es>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/en>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance>;
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/uk>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
@@ -28,17 +27,25 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 #title:Non-English labels for Khalili Collections items
 SELECT ?lang ?count WHERE { {
   SELECT ?lang (COUNT(?label) AS ?count) WHERE {
-    INCLUDE %core.
+     {
+  SELECT ?work ?label WHERE {
+    ?work wdt:P195?/wdt:P361? wd:Q63160499. # Khalili Collections, or individual collections, or objects within collections
+    ?work (rdfs:label|skos:altLabel) ?label
+    FILTER(lang(?label) != \"en\") } }
     BIND(lang(?label) AS ?langcode).
     OPTIONAL { ?language wdt:P218 ?langcode; rdfs:label ?langname FILTER(lang(?langname) = \"en\")}
     BIND(IF (BOUND(?langname), ?langname, ?langcode) AS ?lang) 
     } GROUP BY ?lang
  } UNION {
     SELECT (\"TOTAL\" AS ?lang) (COUNT(?label) AS ?count) WHERE {
-    INCLUDE %core.
+     {
+  SELECT ?work ?label WHERE {
+    ?work wdt:P195?/wdt:P361? wd:Q63160499. # Khalili Collections, or individual collections, or objects within collections
+    ?work (rdfs:label|skos:altLabel) ?label
+    FILTER(lang(?label) != \"en\") } }
     } }
 } order BY DESC(?count) ?lang""";
-  <http://example.org/bigdata_select> """#title:Non-English labels for Khalili Collections items
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title:Non-English labels for Khalili Collections items
 SELECT ?lang ?count WITH {
   SELECT ?work ?label WHERE {
     ?work wdt:P195?/wdt:P361? wd:Q63160499. # Khalili Collections, or individual collections, or objects within collections
@@ -55,4 +62,5 @@ WHERE { {
     SELECT (\"TOTAL\" AS ?lang) (COUNT(?label) AS ?count) WHERE {
     INCLUDE %core.
     } }
-} order BY DESC(?count) ?lang""" .
+} order BY DESC(?count) ?lang""";
+  schema:target <https://query.wikidata.org/sparql> .

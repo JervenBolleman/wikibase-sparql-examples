@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c17b6dd52f4831ef5256902b0875488a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Herzi_Pinki/Sparql>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -74,4 +73,61 @@ SELECT DISTINCT ?item ?itemQid
            #?dl ?dlQids ?dlLink ?dlUrl
            #?articleLink 
            ?articleName ?articleUrl
-           ?lat ?lon""" .
+           ?lat ?lon""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title: Objekte mit HERIS-ID, url in Denkmalliste, ev. url auf Artikel, Koordinaten
+SELECT DISTINCT ?item ?itemQid 
+                (GROUP_CONCAT(DISTINCT ?HERISId; SEPARATOR=', ') AS ?HERISIds) ?url
+                #?dl (GROUP_CONCAT(DISTINCT ?dlQid; SEPARATOR=', ') AS ?dlQids) ?dlLink ?dlUrl
+                #?articleLink
+                ?articleName ?articleUrl
+                ?lat ?lon
+   WHERE {
+   ?item wdt:P17 wd:Q40 . # Österreich
+    
+   ?item wdt:P131*/wdt:P279* wd:Q41967. # Oberösterreich
+   ?item wdt:P9154 ?HERISId. # BDA HERIS-ID
+   ?item wdt:P1435 wd:Q1188447. # Denkmalgeschütztes Objekt in Österreich (to be sure)
+   ?item p:P1435 ?protection .
+     FILTER NOT EXISTS {?protection pq:P582 ?x . } # check if still a protected object (protection is finished setting qualifier P582 to enddate.
+   ?item wdt:P2817 ?dl. ?dl wdt:P17 wd:Q40. # Denkmalliste in Österreich
+
+   optional {
+   ?item p:P625 [
+           psv:P625 [
+             wikibase:geoLatitude ?lat ;
+             wikibase:geoLongitude ?lon ;
+           ] ;
+         ]
+  }
+
+  optional {
+    ?dlLink schema:about ?dl . # wikipedia link to the Denkmalliste in the German speaking Wikipedia
+    ?dlLink schema:inLanguage \"de\" .
+  }
+
+  optional {
+    ?articleLink schema:about ?item . # optional name of an Wikipedia article describing the object in the Denkmalliste in more detail (in the German speaking Wikipedia)
+    ?articleLink schema:inLanguage \"de\" .
+  }
+
+   # get the plain wikidata id in string format for the protected object
+   bind (replace(xsd:string(?item),\"http://www.wikidata.org/entity/\",\"\") as ?itemQid)
+   # get the plain wikidata id in string format for the Denkmalliste, the protected object is listed in
+   bind (replace(xsd:string(?dl),\"http://www.wikidata.org/entity/\",\"\") as ?dlQid)
+   # convert the link to the denkmalliste to url as plain text (with escaped umlauts)
+   bind (xsd:string(?dlLink) as ?dlUrl)
+   
+   # convert the article stuff 
+   # convert the link to an article to url as plain text (with escaped umlauts)
+   bind (xsd:string(?articleLink) as ?articleUrl)
+   # grep the article name (still with escaped umlauts)
+   bind (replace(replace(xsd:string(?articleLink),\"https://de.wikipedia.org/wiki/\",\"\"),\"_\",\" \") as ?articleName)
+   # provide the link to an item as a table entry in a denkmalliste. This is the main entry point from Doris.
+   bind(concat(?dlUrl, \"#\", ?itemQid) AS ?url ) .
+} GROUP BY ?item ?itemQid
+           ?HERISIds ?url
+           #?dl ?dlQids ?dlLink ?dlUrl
+           #?articleLink 
+           ?articleName ?articleUrl
+           ?lat ?lon""";
+  schema:target <https://query.wikidata.org/sparql> .

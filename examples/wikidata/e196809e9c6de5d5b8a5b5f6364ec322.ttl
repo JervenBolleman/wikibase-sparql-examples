@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-e196809e9c6de5d5b8a5b5f6364ec322> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/02>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
@@ -30,4 +29,18 @@ WHERE
                                                            # and hence ?propertyQualifier is the Property for this Qualifier
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?property ?propertyLabel ?propertyQualifier ?propertyQualifierLabel ?qualifier_value
+WHERE 
+{
+  wd:Q76 ?propertyStatement ?statement.
+  ?property wikibase:claim ?propertyStatement.             # find the Property for the Predicate ?propertyStatement and 
+                                                           # constrain ?propertyStatement to the p: class of Predicates
+  ?property wikibase:statementProperty ?statementProperty. # assign the ps: Predicate for the Property to ?statementProperty
+  ?statement ?statementProperty wd:Q1297.                  # now apply ?statementProperty exactly as if it was ps:Pnnn
+  OPTIONAL {?statement ?qualifier ?qualifier_value.        # find another triple hanging off the ?statement 
+  ?propertyQualifier wikibase:qualifier ?qualifier.}       # constrain the Predicate of this triple to be of the class pq:
+                                                           # and hence ?propertyQualifier is the Property for this Qualifier
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

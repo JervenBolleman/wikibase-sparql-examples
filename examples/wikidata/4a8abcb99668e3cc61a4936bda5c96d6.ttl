@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-4a8abcb99668e3cc61a4936bda5c96d6> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:Events/AAFSaint%C3%8919>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -34,4 +33,23 @@ WHERE
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,en\".}
 }
 ORDER BY ?mort""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# liste des personnes, connues de Wikidata, de sexe ou genre féminin nées ou mortes dans un périmètre géographique défini
+# qui sont mortes il y a plus de 70 ans (->oeuvres dans le domaine public)
+# avec l'affichage de l'institution qui conserve leurs archives et de leur page Wikipédia en français si elle existe
+SELECT DISTINCT ?personne ?personneLabel ?personneDescription ?mort ?archives ?archivesLabel ?articleFr
+WHERE 
+{
+  ?personne wdt:P19/wdt:P131*|wdt:P20/wdt:P131* wd:Q12771.#lieu de naissance ou de mort dans un périmètre défini
+  ?personne wdt:P21 wd:Q6581072. #de sexe ou genre féminin
+  ?personne wdt:P570 ?mort 
+  FILTER (year(?mort) < 1948).#morte avant 1948 (2019-71 ans)
+  OPTIONAL {?personne wdt:P485 ?archives .}
+  OPTIONAL {
+    ?articleFr schema:about ?personne.
+    ?articleFr schema:isPartOf <https://fr.wikipedia.org/>.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,en\".}
+}
+ORDER BY ?mort""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

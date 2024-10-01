@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-f999e409a4226f8bd38bbb817570d08c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Realworldobject>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -67,4 +66,57 @@ WHERE {
 }
 GROUP BY ?type ?info_ns ?info_label ?link ?wd ?wdLabel ?wdDescription
 ORDER BY DESC(?type) ?info_ns""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?info_ns ?info_label (URI(REPLACE(\"https://oclc-research.github.io/infoURI-Frozen/info-uri.info/$1reg.html\", \"\\\\$1\", ?info_ns)) AS ?info_spec) (\"\" AS ?x) ?type (\"\" AS ?y) ?wd ?wdLabel ?wdDescription (GROUP_CONCAT(DISTINCT ?rdfFormatter;SEPARATOR=\" | \") AS ?rdfFormatters) (GROUP_CONCAT(DISTINCT ?pageFormatter;SEPARATOR=\" | \") AS ?pageFormatters)
+WHERE {
+  VALUES (?info_ns ?info_label ?wd) {
+    (\"info:ark/\" \"Archival Resource Keys\" wd:P8091)
+    (\"info:arxiv/\" \"arXiv.org identifiers\" wd:P818)
+    (\"info:bibcode/\" \"Astrophysics Data System bibcodes\" wd:P819)
+    (\"info:bnf/\" \"identifiers used by the Bibliothèque nationale de France\" wd:P268)
+    (\"info:ddbj-embl-genbank/\" \"identifiers for sequence records in DDBJ/EMBL/GenBank\" wd:P4333)
+    (\"info:dlf/\" \"Digital Library Federation Identifiers\" wd:Q5275906)
+    (\"info:doi/\" \"Digital Object Identifiers\" wd:P356)
+    (\"info:eu-repo/\" \"identifiers used by the European Repository Systems for describing semantic relationships in Compound and Complex documents.\" \"\")
+    (\"info:fedora/\" \"Fedora Digital Objects and Disseminations\" wd:P3463)
+    (\"info:hdl/\" \"Handles\" wd:P1184)
+    (\"info:inchi/\" \"IUPAC International Chemical Identifiers (InChI)\" wd:P234)
+    (\"info:lanl-repo/\" \"identifiers used in the Repository of the LANL Research Library\" wd:Q6457034)
+    (\"info:lc/\" \"Library of Congress Identifiers\" \"\")
+    (\"info:lccn/\" \"Library of Congress Control Numbers\" wd:P244)
+    (\"info:ncid/\" \"NACSIS-CAT Identification Numbers\" wd:Q11234325)
+    (\"info:netref/\" \"NISO Standard for Network Reference Services\" \"\")
+    (\"info:nla/\" \"identifiers for the National Library of Australia's digital & digitised collections\" wd:P5603)
+    (\"info:nyu/\" \"Identifiers for New York University Digital Objects\" \"\")
+    (\"info:oclcnum/\" \"OCLC Worldcat Control Numbers\" wd:P243)
+    (\"info:ofi/\" \"Registry Identifiers used by the NISO OpenURL Framework Registry\" \"\")
+    (\"info:pmid/\" \"identifiers of PubMed records\" wd:P698)
+    (\"info:pronom/\" \"PRONOM Unique Identifiers\" wd:P2748)
+    (\"info:pronom/\" \"PRONOM Unique Identifiers\" wd:P2749)
+    (\"info:pronom/\" \"PRONOM Unique Identifiers\" wd:Q7120402)
+    (\"info:refseq/\" \"identifiers for RefSeq reference sequence record\" wd:Q7307074)
+    (\"info:rfa/\" \"Registry Framework Architecture Identifiers (RFA)\" \"\")
+    (\"info:rlgid/\" \"RLG Database Record identifiers\" \"\")
+    (\"info:sici/\" \"Serial Item and Contribution Identifiers\" wd:Q3479782)
+    (\"info:sid/\" \"Source Identifiers used in the NISO OpenURL Framework\" \"\")
+    (\"info:srw/\" \"Search/Retrieve Web Services\" \"\")
+    (\"info:ugent-repo/\" \"identifiers for the University Library Ghent information assets\" wd:Q611001)
+  }
+  OPTIONAL {?wd wdt:P1921 ?rdfFormatter}
+  OPTIONAL {?wd wdt:P1630 ?pageFormatter}
+  OPTIONAL {
+    ?wd a wikibase:Property .
+    BIND(\"=\" AS ?type)
+  }
+  OPTIONAL {
+    ?wd wikibase:sitelinks [].
+    BIND(\"in collection\" AS ?type)
+  }
+  OPTIONAL {
+    BIND(\"unreconciled\" AS ?type)
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?type ?info_ns ?info_label ?link ?wd ?wdLabel ?wdDescription
+ORDER BY DESC(?type) ?info_ns""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

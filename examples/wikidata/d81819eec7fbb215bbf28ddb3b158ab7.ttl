@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-d81819eec7fbb215bbf28ddb3b158ab7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:FHd/Listes>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -60,4 +59,46 @@ SELECT DISTINCT ?item ?itemLabel ?articleWikipédia ?villeLabel ?departLabel ?re
                ?articleWikipédia schema:isPartOf <https://fr.wikipedia.org/>. }
     SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\" } .
     }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?itemLabel ?articleWikipédia ?villeLabel ?departLabel ?regionLabel ?protectionLabel ?merimeeLabel ?coord ?pic ?protDate WHERE {
+    # ?item wdt:P131/wdt:P131/wdt:P131 wd:Q18678265 . # en Occ
+    # ?item p:P380 [] . #immeubles
+    ?item p:P1435 ?stat .
+	{ ?stat ps:P1435 wd:Q10387575 ; pq:P580 ?protDate . } UNION { ?stat ps:P1435 wd:Q10387684 ; pq:P580 ?protDate  . } #MH
+    ?stat ps:P1435 ?protection ;
+    FILTER(year(?protDate) = 2023 )     
+    ?item wdt:P380 ?merimee ;
+          wdt:P131 ?ville ;
+          wdt:P131/wdt:P131 ?depart .    
+    { ?depart wdt:P31 wd:Q6465 ; 
+            wdt:P131 ?region ;
+            wdt:P131/wdt:P31 wd:Q36784 . # region
+    }
+    UNION 
+    { ?depart wdt:P31 wd:Q56061 ; # entité Alsace
+            wdt:P131 ?region  . 
+    }
+    UNION 
+    { ?depart wdt:P31 wd:Q202216 ; # DOM
+            wdt:P131 ?region  . 
+    }
+    UNION 
+
+     { ?depart wdt:P131 wd:Q90 ;
+               wdt:P131/wdt:P131/wdt:P131 ?region . 
+     } 
+     UNION 
+     { ?ville wdt:P131 wd:Q90 ;
+               wdt:P131/wdt:P131/wdt:P131 ?region . 
+     } # departement ou Paris
+     UNION 
+     { ?item wdt:P131 wd:Q90 ;
+               wdt:P131/wdt:P131/wdt:P131 ?region . 
+     } # departement ou Paris
+     OPTIONAL {?item wdt:P625 ?coord.}
+     OPTIONAL {?item wdt:P18 ?pic.}
+     OPTIONAL {?articleWikipédia schema:about ?item .
+               ?articleWikipédia schema:isPartOf <https://fr.wikipedia.org/>. }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\" } .
+    }""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

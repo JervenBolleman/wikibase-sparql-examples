@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-eee302f5a72c9614da8aa34d47f3819f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:YanikB/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -34,4 +33,22 @@ SELECT DISTINCT ?item ?itemLabel ?typeLabel ?massifLabel ?altitude ?localisation
 }
 ORDER BY (?massifLabel) 
 LIMIT 1000""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Montagnes des Collines de l'Oka
+SELECT DISTINCT ?item ?itemLabel ?typeLabel ?massifLabel ?altitude ?localisationLabel ?coord 
+  WHERE { ?item (wdt:P4552)* wd:Q9195483 .
+          ?item wdt:P31 ?type .
+          ?item wdt:P4552 ?massif .
+          OPTIONAL {?item p:P2044 ?alt_statement .
+              ?alt_statement psv:P2044 ?alt_node .
+              ?alt_node wikibase:quantityAmount ?alt .  
+              ?alt_node wikibase:quantityUnit ?unit .
+              ?unit wdt:P2370 ?conversionSI . 
+              BIND(ROUND(?alt*?conversionSI) AS ?altitude)} 
+          OPTIONAL { ?item wdt:P131 ?localisation }
+          OPTIONAL { ?item wdt:P625 ?coord } .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\" . }  # français sinon anglais
+}
+ORDER BY (?massifLabel) 
+LIMIT 1000""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-3a0cba3bcff1c8be0a72336f6ba0ae9e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Gnoeee/Query>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX geo: <http://www.opengis.net/ont/geosparql#>
@@ -37,4 +36,28 @@ WHERE {
   BIND(IRI(CONCAT(\"https://www.openstreetmap.org/relation/\", ?osm_relation)) AS ?osm_relationLink)
   BIND( ?osm_relationLink = ?osmId AS ?sameWikidata)
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <https://sophox.org/sparql> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Query by User:Gnoeee
+#Wards of Kerala in OSM - Wikidata - Maintainence 
+PREFIX osmt: <https://wiki.openstreetmap.org/wiki/Key:>
+PREFIX osmm: <https://www.openstreetmap.org/meta/>
+PREFIX osmrel: <https://www.openstreetmap.org/relation/>
+SELECT DISTINCT ?item ?ward_name ?osm_relationLink ?loc ?osmId ?sameWikidata
+WHERE {
+  ?item wdt:P31 wd:Q1195098;
+        wdt:P17 wd:Q668;
+        wdt:P131/wdt:P131* wd:Q1186;
+        wdt:P402 ?osm_relation .
+   SERVICE <https://sophox.org/sparql> {
+    ?osmId osmt:wikidata ?item .
+    ?osmId osmt:admin_level \"10\" ;
+           osmt:boundary \"local_authority\" ;
+           osmt:name ?ward_name ;
+           osmm:loc ?loc ;
+           osmm:type \"r\".
+           # FILTER ( ?loc < \"POINT(77.41445 8.07876)\"^^geo:wktLiteral && ?loc > \"POINT(76.08419 8.98918)\"^^geo:wktLiteral ) .
+  }
+  BIND(IRI(CONCAT(\"https://www.openstreetmap.org/relation/\", ?osm_relation)) AS ?osm_relationLink)
+  BIND( ?osm_relationLink = ?osmId AS ?sameWikidata)
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <https://sophox.org/sparql>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-fc7181c59a6e95e2d0fb7d9bbbb61b6d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Mike_Kr%C3%BCger/Abfragen>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -32,5 +31,22 @@ SELECT DISTINCT ?place ?placeLabel ?placeDescription ?location ?dist ?article ?B
   OPTIONAL { ?place wdt:P31 ?is_a . }
 } ORDER BY ASC(?dist)
 # LIMIT 1000 beim Testen""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?place ?placeLabel ?placeDescription ?location ?dist ?article ?Bild ?is_aLabel WHERE
+{
+  wd:Q502668 wdt:P625 ?arcLoc . # Wikidata-Objekt zur Umkreissuche, z.B. Rosenbach
+  SERVICE wikibase:around {
+      ?place wdt:P625 ?location .
+      bd:serviceParam wikibase:center ?arcLoc .
+      bd:serviceParam wikibase:radius \"30\" . # Entfernungsangabe in km
+      bd:serviceParam wikibase:distance ?dist .
+                          }
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"de\" .}
+  # FILTER EXISTS { ?place wdt:P31/wdt:P279* wd:Q3947 } optional falls z.B. nur Häuser gewünscht sind
+  OPTIONAL { ?article schema:about ?place; schema:isPartOf <https://de.wikipedia.org/> . }
+  OPTIONAL { ?place wdt:P18 ?Bild . }
+  OPTIONAL { ?place wdt:P31 ?is_a . }
+} ORDER BY ASC(?dist)
+# LIMIT 1000 beim Testen""";
   <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#around>,
-    <http://wikiba.se/ontology#label> .
+    <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

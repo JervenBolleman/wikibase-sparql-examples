@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-49c51e44f111d146c73d74dde018edb8> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX schema: <http://schema.org/>
 SELECT (COUNT(DISTINCT ?wikidataItem) AS ?totalArticlesWithEnglishPlusOneOtherLanguage) WHERE {
   # Find articles linked to the Wikidata item in English Wikinews
@@ -24,4 +23,18 @@ FILTER NOT EXISTS {
     ?enArticle schema:name ?enName.
     FILTER(CONTAINS(?enName, \"Template:\")|| CONTAINS(?enName, \"Category:\") || CONTAINS(?enName, \"Portal:\") || CONTAINS(?enName, \"Page:\"))
   }
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT (COUNT(DISTINCT ?wikidataItem) AS ?totalArticlesWithEnglishPlusOneOtherLanguage) WHERE {
+  # Find articles linked to the Wikidata item in English Wikinews
+  ?enArticle schema:about ?wikidataItem;
+             schema:isPartOf <https://en.wikinews.org/>.
+  # Find articles linked to the same Wikidata item in any other language
+  ?otherArticle schema:about ?wikidataItem;
+                schema:isPartOf ?otherWikinewsSite.
+  FILTER (?otherWikinewsSite != <https://en.wikinews.org/>)
+FILTER NOT EXISTS {
+    ?enArticle schema:name ?enName.
+    FILTER(CONTAINS(?enName, \"Template:\")|| CONTAINS(?enName, \"Category:\") || CONTAINS(?enName, \"Portal:\") || CONTAINS(?enName, \"Page:\"))
+  }
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

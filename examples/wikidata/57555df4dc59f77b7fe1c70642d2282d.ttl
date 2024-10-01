@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-57555df4dc59f77b7fe1c70642d2282d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/08>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -35,4 +34,23 @@ WHERE {
     BIND (?yield * ?conversion_to_SI / 4184000000000.0  AS ?equivalent_nergie_kT)
   }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?essai_nucl_aire ?essai_nucl_aireLabel ?date ?op_rateur ?op_rateurLabel  ?tnt ?equivalent_nergie_kT
+WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?essai_nucl_aire (wdt:P31/wdt:P279*) wd:Q210112.
+  MINUS { ?essai_nucl_aire (wdt:P31/wdt:P279*) wd:Q98391050. } #série d'essais nucléaires
+  OPTIONAL { ?essai_nucl_aire wdt:P585 ?date. }
+  OPTIONAL { ?essai_nucl_aire wdt:P137 ?op_rateur. }
+    OPTIONAL { ?essai_nucl_aire wdt:P2145 ?tnt. }
+  OPTIONAL {
+    ?essai_nucl_aire p:P2145 ?yield_statement.
+    ?yield_statement a wikibase:BestRank. # Use only best rank, like if using the wdt:P2145 predicate
+    ?yield_statement psv:P2145 ?yield_value.
+    ?yield_value wikibase:quantityAmount ?yield.
+    ?yield_value wikibase:quantityUnit ?unit.
+    ?unit wdt:P2370 ?conversion_to_SI.
+    BIND (?yield * ?conversion_to_SI / 4184000000000.0  AS ?equivalent_nergie_kT)
+  }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

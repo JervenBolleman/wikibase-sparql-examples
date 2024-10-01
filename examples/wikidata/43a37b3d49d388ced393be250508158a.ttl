@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-43a37b3d49d388ced393be250508158a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/09>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -35,4 +34,25 @@ SELECT ?age (sum(?countmale) as ?male) (sum(?countfemale) as ?female) WHERE {
   FILTER(?age < 100) .
      }
   GROUP BY ?age
-  ORDER BY ?age""" .
+  ORDER BY ?age""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?age (sum(?countmale) as ?male) (sum(?countfemale) as ?female) WHERE {
+  ?actor p:P569/psv:P569 [ wikibase:timePrecision ?tp; wikibase:timeValue ?dob ]. 
+  FILTER(?tp>8) 
+  ?actor wdt:P21 ?genre .
+  {
+    SELECT distinct ?actor WHERE {
+        ?actor wdt:P106/wdt:P279* wd:Q33999 .   #include subclasses of \"actors\" such as \"child actors\"
+      }
+    }
+  ?actor wdt:P27 wd:Q142 .
+  ?movie wdt:P161 ?actor .
+  ?movie wdt:P577 ?dateMovie .
+  BIND(YEAR(?dateMovie)-YEAR(?dob) as ?age) . 
+  BIND(if(?genre=wd:Q6581072,1,0) as ?countfemale)
+  BIND(if(?genre=wd:Q6581097,1,0) as ?countmale)
+  FILTER(?age > 0) .
+  FILTER(?age < 100) .
+     }
+  GROUP BY ?age
+  ORDER BY ?age""";
+  schema:target <https://query.wikidata.org/sparql> .

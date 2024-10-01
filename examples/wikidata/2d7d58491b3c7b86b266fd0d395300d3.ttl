@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-2d7d58491b3c7b86b266fd0d395300d3> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Deansfa/SPARQL>, <https://www.wikidata.org//wiki/User:Deansfa>;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Deansfa>, <https://www.wikidata.org//wiki/User:Deansfa/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -35,4 +34,24 @@ SELECT ?q ?qLabel ?death_date ?obi_date ?diff ?obituary ?obituaryLabel  WHERE {
 }
 GROUP BY ?q ?qLabel ?death_date ?obi_date ?diff ?obituary ?obituaryLabel
 ORDER BY DESC(?diff)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# good query to check errors. 
+# provides the difference (in days) between obituary publication date and death date (can be filtered against a given value).
+SELECT ?q ?qLabel ?death_date ?obi_date ?diff ?obituary ?obituaryLabel  WHERE {
+  ?q wdt:P31 wd:Q5 ; wdt:P1343 ?obituary .
+  ?obituary wdt:P31 wd:Q309481 ; wdt:P1433 wd:Q9684 .
+  ?obituary wdt:P577 ?obi_date .
+  OPTIONAL { ?q wdt:P570 ?death_date } .
+  
+  FILTER(BOUND(?death_date)) . # FILTER(!BOUND(?death_date)) will filter only the ones who have no date of death 
+  
+  ?obituary rdfs:label ?label .  
+  FILTER(!STRSTARTS(?label, \"Overlooked\") ) . # this is because there's an obituary's series called \"Overlooked No More\" about past personalities.
+  
+  BIND((?obi_date - ?death_date) as ?diff).
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,fr\". }
+}
+GROUP BY ?q ?qLabel ?death_date ?obi_date ?diff ?obituary ?obituaryLabel
+ORDER BY DESC(?diff)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

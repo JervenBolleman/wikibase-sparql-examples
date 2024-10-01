@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c76b1b7c2d88c65d7cc2fae993dd7a14> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:JAn>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -43,5 +42,31 @@ SELECT ?item ?itemLabel ?place ?placeLabel ?distance WHERE {
   } .
   FILTER( SUBSTR( STR( ?itemLabel ), 1, 1 ) = SUBSTR( STR( ?placeLabel ), 1, 1 ) ) .
 } ORDER BY ?itemLabel ?placeLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?place ?placeLabel ?distance WHERE {
+  {
+    SELECT ?item ?itemLabel ?place ?placeLabel ?distance WHERE {
+      {
+        SELECT ?item ?coord {
+          BIND( (19 - 12) * RAND() + 12 AS ?rand ) .
+          ?item wdt:P6736 []; p:P625 [ ps:P625 ?coord; psv:P625/wikibase:geoLongitude ?long ] .
+          bind(substr(str(?item),33) as ?no ) filter((xsd:integer(?no)) > 111268976).
+          
+          FILTER ( ABS( ?long - ?rand ) < 1 ) . # feel free to play with this...
+        } 
+      } .
+      SERVICE wikibase:around {
+        ?place wdt:P625 ?location .
+        bd:serviceParam wikibase:center ?coord .
+        bd:serviceParam wikibase:radius \"0.05\" .
+        bd:serviceParam wikibase:distance ?distance .
+      } .
+      minus {?place wdt:P6736 [] . }
+      FILTER ( ?item != ?place ) .
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"cs\" } .
+    }
+  } .
+  FILTER( SUBSTR( STR( ?itemLabel ), 1, 1 ) = SUBSTR( STR( ?placeLabel ), 1, 1 ) ) .
+} ORDER BY ?itemLabel ?placeLabel""";
   <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#around>,
-    <http://wikiba.se/ontology#label> .
+    <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

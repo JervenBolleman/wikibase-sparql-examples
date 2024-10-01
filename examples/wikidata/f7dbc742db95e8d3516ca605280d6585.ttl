@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-f7dbc742db95e8d3516ca605280d6585> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/05>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -29,4 +28,18 @@ SELECT DISTINCT ?itemLabel ?item ?itemDescription ?extra WHERE {
     GROUP BY ?item
   }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?itemLabel ?item ?itemDescription ?extra WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en-GB,en\". }
+  { SELECT DISTINCT ?item (GROUP_CONCAT(DISTINCT ?extralist; SEPARATOR = \"#\") AS ?extra) WHERE {
+      VALUES ?item {wd:Q7534755}. # Sketchfab
+      ?item wikibase:statements ?statements.
+      OPTIONAL {
+          {?item wdt:P17 ?extra} # country
+           ?extra rdfs:label ?extralist. FILTER (LANG(?extralist) = \"en\")
+          }
+    }
+    GROUP BY ?item
+  }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

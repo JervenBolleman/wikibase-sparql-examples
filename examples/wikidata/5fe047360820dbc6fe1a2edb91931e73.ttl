@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-5fe047360820dbc6fe1a2edb91931e73> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiFactMine/Core_SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -50,4 +49,39 @@ WHERE {
   VALUES ?ms2 { \"Q788926\" \"Q162555\" \"Q162606\" \"Q101929\" \"Q103824\" \"Q7867\" \"Q83042\" \"Q10379\" \"Q203337\" \"Q120569\" \"Q105650\" \"Q5284418\" \"Q171171\" \"Q327657\" \"Q1071953\" \"Q2861470\"}
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
       }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#ICD9 handling. This query does a case analysis with 16 cases. Output in columns is adapted to QuickStatements input.
+SELECT DISTINCT ?item ?itemLabel ?ms1 ?ms2
+WHERE {
+ ?item wdt:P31 wd:Q12136 .
+  ?item wdt:P493 ?icd  .
+  OPTIONAL { ?item wdt:P1995 ?dummy0 }
+  FILTER(!bound(?dummy0))
+  
+  BIND(xsd:integer(CONCAT(\"1\",SUBSTR(?icd,1,3))) AS ?icd1)
+  #One-line processing of ICD-9 code into integer. Currently fails in a few alphanumeric cases.
+  BIND((IF (1000 < ?icd1 && ?icd1 <1140, \"Q788926\",1/0)) AS ?spec1) #infectious disease specialty
+  #Dividing by zero, deliberate introduction of error in the \"else\" part of IF. This causes a desired fallback in COALESCE.
+  BIND((IF (1139 < ?icd1 && ?icd1 <1240, \"Q162555\",1/0)) AS ?spec2) #oncology
+  BIND((IF (1239 < ?icd1 && ?icd1 <1260, \"Q162606\",1/0)) AS ?spec3a) #endocrinology
+  BIND((IF (1278 < ?icd1 && ?icd1 <1280, \"Q101929\",1/0)) AS ?spec3b) #immunology
+  BIND((IF (1279 < ?icd1 && ?icd1 <1290, \"Q103824\",1/0)) AS ?spec4) #hematology
+  BIND((IF (1289 < ?icd1 && ?icd1 <1320, \"Q7867\",1/0)) AS ?spec5) #psychiatry
+  BIND((IF (1319 < ?icd1 && ?icd1 <1390, \"Q83042\",1/0)) AS ?spec6) #neurology
+  BIND((IF (1389 < ?icd1 && ?icd1 <1460, \"Q10379\",1/0)) AS ?spec7) #cardiology
+  BIND((IF (1459 < ?icd1 && ?icd1 <1520, \"Q203337\",1/0)) AS ?spec8) #pulmonology
+  BIND((IF (1519 < ?icd1 && ?icd1 <1580, \"Q120569\",1/0)) AS ?spec9) #gastroenterology
+  BIND((IF (1579 < ?icd1 && ?icd1 <1630, \"Q105650\",1/0)) AS ?spec10) #urology
+  BIND((IF (1629 < ?icd1 && ?icd1 <1680, \"Q5284418\",1/0)) AS ?spec11) #obstetrics
+  BIND((IF (1679 < ?icd1 && ?icd1 <1710, \"Q171171\",1/0)) AS ?spec12) #dermatology
+  BIND((IF (1709 < ?icd1 && ?icd1 <1740, \"Q327657\",1/0)) AS ?spec13) #rheumatology
+  BIND((IF (1739 < ?icd1 && ?icd1 <1760, \"Q1071953\",1/0)) AS ?spec14) #medical genetics
+  BIND((IF (1799 < ?icd1 && ?icd1 <2000, \"Q2861470\",1/0)) AS ?spec15) #emergency medicine
+  
+  BIND(COALESCE(?spec1,?spec2,?spec3a,?spec3b,?spec4,?spec5,?spec6,?spec7,?spec8,?spec9,?spec10,?spec11,?spec12,?spec13,?spec14,?spec15,000000) AS ?ms2)
+
+  VALUES ?ms1 { \"P1995\" }
+  VALUES ?ms2 { \"Q788926\" \"Q162555\" \"Q162606\" \"Q101929\" \"Q103824\" \"Q7867\" \"Q83042\" \"Q10379\" \"Q203337\" \"Q120569\" \"Q105650\" \"Q5284418\" \"Q171171\" \"Q327657\" \"Q1071953\" \"Q2861470\"}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+      }""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

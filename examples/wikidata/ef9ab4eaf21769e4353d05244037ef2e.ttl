@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-ef9ab4eaf21769e4353d05244037ef2e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/UK_statues_and_whether_they_are_of_nobles_and/or_women>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -34,4 +33,24 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 GROUP BY ?statue ?statueLabel ?person ?personLabel ?female ?hasNobleTitle""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map{\"hide\": [\"?layer\"]}
+SELECT
+?statue ?statueLabel (SAMPLE(?statueLocation) AS ?statueLocation_) (SAMPLE(?statueImage) AS ?statueImage_)
+?person ?personLabel
+(IF(?female, \"female\"@en, \"not female\"@en) AS ?femaleLabel)
+(IF(?hasNobleTitle, \"has noble title\"@en, \"has no noble title\"@en) AS ?hasNobleTitleLabel)
+(CONCAT(?femaleLabel, \", \"@en, ?hasNobleTitleLabel) AS ?layer)
+WHERE {
+  ?statue wdt:P31/wdt:P279* wd:Q860861;
+          wdt:P17 wd:Q145;
+          wdt:P180|wdt:P547 ?person.
+  ?person wdt:P31 wd:Q5.
+  BIND(EXISTS { ?person wdt:P21/wdt:P279* wd:Q6581072. } AS ?female)
+  BIND(EXISTS { ?person wdt:P97 ?nobleTitle. } AS ?hasNobleTitle)
+  OPTIONAL { ?statue wdt:P625 ?statueLocation. }
+  OPTIONAL { ?statue wdt:P18 ?statueImage. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?statue ?statueLabel ?person ?personLabel ?female ?hasNobleTitle""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

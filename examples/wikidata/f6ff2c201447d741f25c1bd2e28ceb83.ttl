@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-f6ff2c201447d741f25c1bd2e28ceb83> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Doc_Taxon/Gambier>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -31,4 +30,22 @@ where {
   } hint:Prior hint:runLast false.
   bind(coalesce(?p27_Label, \"style=\"background:#ff0000;\"|\"@en) as ?p21lLabel)
 }
-group by ?item""" .
+group by ?item""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """select
+  ?item
+  (group_concat(distinct ?p21lLabel; separator=\", \") as ?p21Label) 
+  (group_concat(distinct ?p27lLabel; separator=\", \") as ?p27Label) 
+where {
+  hint:Query hint:optimizer \"None\".
+  values ?item {%s}
+  optional {?item wdt:P21 ?p21_.}
+  optional {?item wdt:P27 ?p27_.}
+  service wikibase:label {
+    bd:serviceParam wikibase:language \"de,[AUTO_LANGUAGE]\".
+    ?p21_ rdfs:label ?p21_Label.
+    ?p27_ rdfs:label ?p27_Label.
+  } hint:Prior hint:runLast false.
+  bind(coalesce(?p27_Label, \"style=\"background:#ff0000;\"|\"@en) as ?p21lLabel)
+}
+group by ?item""";
+  schema:target <https://query.wikidata.org/sparql> .

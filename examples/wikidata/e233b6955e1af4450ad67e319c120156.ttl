@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-e233b6955e1af4450ad67e319c120156> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -45,4 +44,35 @@ WHERE {
   # show label in simplified Chinese (zh-hans) as default, and English when no default label exists
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"zh-hans,en\". } 
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# find lineal blood relatives of Daoguang Emperor
+#defaultView:Graph
+SELECT DISTINCT ?lineal ?linealLabel ?birthdate ?image ?parent ?parentLabel ?edgeLabel
+WHERE {
+  # define Daoguang (Q334351)'s ?lineal as
+  # any father (P22) or mother (P25)'s father or mother's..., i.e., lineal ancestors,
+  # or any child (P40)'s child's..., i.e., lineal descendants 
+  wd:Q334351 ((wdt:P22|wdt:P25)*|wdt:P40*) ?lineal
+  # optional: define ?lineal's father (P22) or mother (P25) as ?parent
+  OPTIONAL {?lineal (wdt:P22|wdt:P25) ?parent
+           # To eliminate lineal descendant's parent who is not Doguang's lineal blood relative,
+           # require that Daoguang (Q334351) is among ?parent's lineal ancestors
+           {?parent (wdt:P22|wdt:P25)* wd:Q334351}
+           # OR among ?parent's lineal descendants 
+           UNION {?parent wdt:P40* wd:Q334351}
+           # To avoid showing any other relation than P22 (father) and P25 (mother),
+           # define ?relation as P22 or P25
+           VALUES ?relation {wdt:P22 wdt:P25} 
+           # and ?relation is from ?lineal to ?parent,
+           ?lineal ?relation ?parent.
+           # then show ?relation on graph edges 
+           ?edge wikibase:directClaim ?relation;
+               a wikibase:Property}
+  # optional: show ?lineal's birthdate (P569), which only appears in table, not graph 
+  OPTIONAL {?lineal wdt:P569 ?birthdate}
+  # optional: show ?lineal's image (P18), which appears directly in graph, and as link in table
+  OPTIONAL {?lineal wdt:P18 ?image}
+  # show label in simplified Chinese (zh-hans) as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"zh-hans,en\". } 
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

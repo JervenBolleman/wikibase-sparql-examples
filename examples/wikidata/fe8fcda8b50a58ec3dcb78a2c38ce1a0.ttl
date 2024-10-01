@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-fe8fcda8b50a58ec3dcb78a2c38ce1a0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1.1>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query>;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1.1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -73,4 +72,60 @@ WHERE {
 }
 # order layer by ?partyLabel
 ORDER BY ?partyLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """### Note: Cf. Nos. 29, 30, and 31.
+# title of the query
+#title: map of successful/all candidates' electoral districts in the 2020 Taiwanese legislative election
+# viewed as map, layered by ?partyLabel (also viewable as table and image grid)
+#defaultView:Map{\"layer\":\"?partyLabel\"}
+SELECT DISTINCT ?candidate ?candidateLabel ?resultLabel ?ranking ?jurisdictionLabel ?coord ?partyLabel ?candidate_number
+                ?votes_received ?percentage ?image ?genderLabel ?birth_date ?age
+WHERE {
+  # ?candidate is instance of (P31) human (Q5)
+  ?candidate wdt:P31 wd:Q5;
+             # ?candidate's \"candidacy in election\" (P3602) statement is ?x_election
+             p:P3602 ?x_election.
+  # ?x_election's value is ?election
+  ?x_election ps:P3602 ?election.
+  # ?election is part of (P361) [OneOrMorePath (+)] 2020 Taiwanese legislative election (Q60287334)
+  ?election wdt:P361+ wd:Q60287334;
+            # ?election is instance of (P31) \"subclass of (P279)\" [ZeroOrMorePath (*)] election in a constituency (Q112611340)
+            wdt:P31/wdt:P279* wd:Q112611340
+  # optional: ?x_election's qualifier \"results\" (P2501) is ?result
+  OPTIONAL {?x_election pq:P2501 ?result}
+  # ?result is elected (Q20826785)
+  ### Note: This line can be removed so that ALL, not only SUCCESSFUL, candidates are queried.
+  FILTER (?result = wd:Q20826785)
+  # optional: ?election applies to jurisdiction (P1001): ?jurisdiction
+  OPTIONAL {?election wdt:P1001 ?jurisdiction
+            # optional: ?jurisdiction's coordinate location (P625) is ?coord
+            OPTIONAL {?jurisdiction wdt:P625 ?coord} }
+  # optional: ?x_election's qualifier \"represents\" (P1268) is ?party
+  OPTIONAL {?x_election pq:P1268 ?party}
+  # optional: ?x_election's qualifier \"ranking\" (P1352) is ?ranking
+  OPTIONAL {?x_election pq:P1352 ?ranking}
+  # optional: ?x_election's qualifier \"candidate number\" (P4243) is ?candidate_number
+  OPTIONAL {?x_election pq:P4243 ?candidate_number}
+  # optional: ?x_election's qualifier \"votes received\" (P1111) is ?votes_received
+  OPTIONAL {?x_election pq:P1111 ?votes_received}
+  # optional: ?election's total valid votes (P1697) is ?total_valid_votes
+  OPTIONAL {?election wdt:P1697 ?total_valid_votes}
+  # calculate the percentage, and bind the percentage as ?percentage
+  BIND(?votes_received/?total_valid_votes*100 AS ?percentage)
+  # optional: ?candidate's image (P18) is ?image
+  OPTIONAL {?candidate wdt:P18 ?image}
+  # optional: ?candidate's gender (P21) is ?gender
+  OPTIONAL {?candidate wdt:P21 ?gender}
+  # optional: ?candidate's date of birth (P569) is ?birth_date
+  OPTIONAL {?candidate wdt:P569 ?birth_date}
+  # optional: ?election's point in time (P585) is ?election_date
+  OPTIONAL {?election wdt:P585 ?election_date}
+  # use IF to calculate the age, and bind the age as ?age
+  BIND(IF(MONTH(?election_date)>MONTH(?birth_date) || (MONTH(?election_date)=MONTH(?birth_date) && DAY(?election_date)>=DAY(?birth_date)),
+       YEAR(?election_date)-YEAR(?birth_date), YEAR(?election_date)-YEAR(?birth_date)-1) AS ?age)
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+# order layer by ?partyLabel
+ORDER BY ?partyLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

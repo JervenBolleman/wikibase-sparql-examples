@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-def8973fc820c1d1da0bad5005aa812c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Charles_Matthews/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -20,11 +19,31 @@ PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #Andrew Gray, version of the above,  includes the MPs who were the first of their given name 
 SELECT ?givenName ?givenNameLabel ?firstDate ?mp ?mpLabel WHERE {
-  INCLUDE %mps.
+   {
+  SELECT DISTINCT ?givenName ?firstDate ?mp WHERE {
+     {
+  SELECT ?givenName (MIN(?date) AS ?firstDate) WHERE {
+    { ?mpStatement ps:P39/wdt:P279? wd:Q16707842. } UNION
+    { ?mpStatement ps:P39/wdt:P279? wd:Q18015642. } UNION
+    { ?mpStatement ps:P39/wdt:P279? wd:Q18018860. }
+    ?mpStatement pq:P580 ?date.
+    ?mp p:P39 ?mpStatement;
+        wdt:P735 ?givenName.
+  }
+  GROUP BY ?givenName
+}
+    ?mpStatement pq:P580 ?firstDate.
+    { ?mpStatement ps:P39/wdt:P279? wd:Q16707842. } UNION
+    { ?mpStatement ps:P39/wdt:P279? wd:Q18015642. } UNION
+    { ?mpStatement ps:P39/wdt:P279? wd:Q18018860. }
+    ?mp p:P39 ?mpStatement;
+        wdt:P735 ?givenName.
+  }
+}
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY ?firstDate ?givenNameLabel""";
-  <http://example.org/bigdata_select> """#Andrew Gray, version of the above,  includes the MPs who were the first of their given name 
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Andrew Gray, version of the above,  includes the MPs who were the first of their given name 
 SELECT ?givenName ?givenNameLabel ?firstDate ?mp ?mpLabel WITH {
   SELECT ?givenName (MIN(?date) AS ?firstDate) WHERE {
     { ?mpStatement ps:P39/wdt:P279? wd:Q16707842. } UNION
@@ -49,4 +68,6 @@ SELECT ?givenName ?givenNameLabel ?firstDate ?mp ?mpLabel WITH {
   INCLUDE %mps.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
-ORDER BY ?firstDate ?givenNameLabel""" .
+ORDER BY ?firstDate ?givenNameLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

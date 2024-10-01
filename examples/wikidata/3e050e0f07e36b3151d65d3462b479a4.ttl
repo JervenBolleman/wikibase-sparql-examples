@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-3e050e0f07e36b3151d65d3462b479a4> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/tennis/queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -30,4 +29,20 @@ SELECT ?tour ?tourLabel ?year ?tourClass ?tourClassLabel ?start ?end ?early ?lat
   FILTER(?tourClass NOT IN (wd:Q2537906, wd:Q50549235, wd:Q7934510)) . # womens tours; complicated
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 } ORDER BY ASC(?tourClass) ASC(?year)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?tour ?tourLabel ?year ?tourClass ?tourClassLabel ?start ?end ?early ?late WHERE {
+  ?tour wdt:P31 wd:Q47358534 .
+  OPTIONAL { ?tour wdt:P585 ?pit . BIND(YEAR(?pit) AS ?year) }
+  OPTIONAL {
+    ?tour wdt:P3450 ?tourClass .
+    OPTIONAL { ?tourClass wdt:P571 ?inception . BIND(YEAR(?inception) AS ?start) }
+    OPTIONAL { ?tourClass wdt:P576 ?abolished . BIND(YEAR(?abolished) AS ?end) }
+  }
+  BIND(IF(BOUND(?year) && BOUND(?start) && ?year < ?start, 'too early', '') AS ?early) .
+  BIND(IF(BOUND(?year) && BOUND(?end) && ?year > ?end, 'too late', '') AS ?late) .
+  FILTER(?tourClass NOT IN (wd:Q50658948, wd:Q300029, wd:Q4535172, wd:Q300008, wd:Q299345, wd:Q41000, wd:Q127678, wd:Q3775082, wd:Q1991741, wd:Q671970, wd:Q4017355, wd:Q1193885, wd:Q299363)) . # complete tours
+  FILTER(?tourClass NOT IN (wd:Q1563479, wd:Q128471, wd:Q50574730, wd:Q2701085, wd:Q1334786, wd:Q3789061, wd:Q50657938, wd:Q50658266, wd:Q6978903, wd:Q50658729, wd:Q4824513)) . # incomplete tours
+  FILTER(?tourClass NOT IN (wd:Q2537906, wd:Q50549235, wd:Q7934510)) . # womens tours; complicated
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY ASC(?tourClass) ASC(?year)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

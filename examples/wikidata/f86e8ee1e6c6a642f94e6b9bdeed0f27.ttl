@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-f86e8ee1e6c6a642f94e6b9bdeed0f27> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Toni_001>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
@@ -32,4 +31,23 @@ where {
 
   { ?unit wdt:P7007 ?wl } union { ?unit wdt:P7825 ?ucum }
   union { ?unit wdt:P2968 ?qudt } union { ?unit wdt:P8769 ?om } union { ?unit wdt:P6512 ?un }
-} group by ?unit""" .
+} group by ?unit""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """select
+  ?unit
+  (sample(?label) as ?label) (sample(?desc) as ?desc)
+  (group_concat(distinct ?symbol; separator = \", \") as ?symbols)
+  (group_concat(distinct ?quantity; separator = \", \") as ?quantities)
+  (sample(?wl) as ?wl) (group_concat(distinct ?ucum; separator = \"; \") as ?ucums)
+  (sample(?qudt) as ?qudt) (sample(?om) as ?om) (sample(?un) as ?un)
+where {
+  ?unit wdt:P31 / wdt:P279* wd:Q47574 .  # unit of measurement
+  optional { ?unit rdfs:label ?label . filter (lang(?label) = \"en\") }
+  optional { ?unit schema:description ?desc . filter (lang(?desc) = \"en\") }
+
+  optional { ?unit wdt:P5061 ?symbol . filter (lang(?symbol) = \"en\") }
+  optional { ?unit wdt:P111 / rdfs:label ?quantity . filter (lang(?quantity) = \"en\") }
+
+  { ?unit wdt:P7007 ?wl } union { ?unit wdt:P7825 ?ucum }
+  union { ?unit wdt:P2968 ?qudt } union { ?unit wdt:P8769 ?om } union { ?unit wdt:P6512 ?un }
+} group by ?unit""";
+  schema:target <https://query.wikidata.org/sparql> .

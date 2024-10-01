@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-ec3edfb0f975accf835b6db4938fdffa> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Every-leaf-that-trembles/sandbox>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -31,5 +30,21 @@ WHERE
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
   BIND(geof:distance(?loc, ?location) as ?dist)
 } ORDER BY ?dist""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?place ?placeLabel ?pic ?location ?instanceLabel
+WHERE
+{
+  wd:Q462042 wdt:P625 ?loc .         # <-- Change the Q-Code to a geographic entiry
+  SERVICE wikibase:around {
+      ?place wdt:P625 ?location .
+      bd:serviceParam wikibase:center ?loc .
+      bd:serviceParam wikibase:radius \"100\" .    # <--  Specify a distance 
+  }
+  OPTIONAL {  	?place wdt:P31 ?instance  }
+  #OPTIONAL {?place wdt:P18 ?pic}                # toggle comment character to see all links in radius
+  ?place wdt:P18 ?pic
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+  BIND(geof:distance(?loc, ?location) as ?dist)
+} ORDER BY ?dist""";
   <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#around>,
-    <http://wikiba.se/ontology#label> .
+    <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

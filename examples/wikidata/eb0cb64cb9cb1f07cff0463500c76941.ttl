@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-eb0cb64cb9cb1f07cff0463500c76941> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/twins_at_Eurovision>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -36,4 +35,24 @@ SELECT ?entry ?entryLabel ?artist ?artistLabel (MIN(?date) AS ?date_) (SAMPLE(?i
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 GROUP BY ?entry ?entryLabel ?artist ?artistLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Timeline
+SELECT ?entry ?entryLabel ?artist ?artistLabel (MIN(?date) AS ?date_) (SAMPLE(?image) AS ?image_) WHERE {
+  {
+    ?entry wdt:P1344 ?contest.
+    ?contest wdt:P31 wd:Q110288240.
+  } UNION {
+    ?entry wdt:P31 wd:Q63481999.
+  }
+  ?entry wdt:P585|wdt:P577 ?date;
+         wdt:P175 ?artist.
+  OPTIONAL { ?artist wdt:P18 ?image. }
+  {
+    ?artist (wdt:P527|^wdt:P361)?/wdt:P361?/(wdt:P31|wdt:P1552)/wdt:P279* wd:Q14756018.
+  } UNION {
+    ?artist (wdt:P527|^wdt:P361|^wdt:P463)?/p:P3373/pq:P1039/wdt:P279* wd:Q159979.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?entry ?entryLabel ?artist ?artistLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

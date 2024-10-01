@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-336b84bd79c91849690fe2c7797a4cba> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Glrx>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -85,4 +84,72 @@ SELECT DISTINCT ?person ?personLabel ?occupationLabel ?branchLabel ?birthDate ?r
      bd:serviceParam wikibase:language \"en\" .} .
   
 } ORDER BY ?birthDate""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# rank implies branch
+SELECT DISTINCT ?person ?personLabel ?occupationLabel ?branchLabel ?birthDate ?rankLabel ?rankDate ?threeID
+{ 
+  # military rank -- should have a start time
+
+  # select a rank
+
+  # admiral of the fleet wd:Q842486 .
+  # admiral of the fleet (Royal Navy) wd:Q2501631
+  BIND (wd:Q2501631 AS ?rank) .
+
+  # admiral
+  # admiral (Royal Navy) wd:Q2916006
+  # BIND (wd:Q2916006 AS ?rank) .
+
+  # vice admiral wd:Q214443 .
+  # vice admiral (Royal Navy) wd:Q4902790
+  # BIND (wd:Q4902790 AS ?rank) .
+
+  # rear admiral wd:Q156945
+  # rear admiral (Royal Navy) wd:Q15615347
+  # BIND (wd:Q15615347 AS ?rank) .
+
+  # captain
+  # captain (Royal Navy) wd:Q5036514
+  # BIND (wd:Q5036514 AS ?rank) .
+
+  # flag officer (watch out: rear admiral is an instance of military rank) wd:Q977459 .
+
+  # human instead of fictional
+  ?person wdt:P31 wd:Q5 .
+  
+  # person has that rank
+  ?person p:P410 ?stmtRank .
+  ?stmtRank ps:P410 ?rank .
+  optional {
+    # date of rank if known
+    ?stmtRank pq:P580 ?rankDate .
+  }
+  
+  # person in Royal Navy
+  # FILTER not exists {?person wdt:P241 wd:Q172771 .}.
+  optional {
+    ?person wdt:P241 ?branch .
+  }
+  
+  # occupation is naval officer
+  # FILTER not exists {?person wdt:P106 wd:Q10669499 .}.
+  optional {
+    # occupation
+    ?person wdt:P106 ?occupation .
+  }
+
+  # get the Three Decks people Id if available
+  optional {
+    ?person wdt:P7389 ?threeID .
+  } .
+
+  # order by birthdate
+  optional {
+    ?person wdt:P569 ?birthDate .
+  }
+
+  SERVICE wikibase:label {
+     bd:serviceParam wikibase:language \"en\" .} .
+  
+} ORDER BY ?birthDate""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

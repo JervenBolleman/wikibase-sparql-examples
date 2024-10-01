@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-d92dc5232000170e68b98414e8540784> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -38,4 +37,24 @@ select distinct ?seatLabel ?seat ?coord (count(distinct ?mp) as ?count) ?class ?
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 } group by ?seat ?seatLabel ?coord ?class ?rgb
 #defaultView:Map""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """select distinct ?seatLabel ?seat ?coord (count(distinct ?mp) as ?count) ?class ?rgb
+(GROUP_CONCAT(DISTINCT ?mpn;separator=\", \") AS ?names)  where
+{ 
+  VALUES ?term {wd:Q60576698} . # 1394 MP
+  { ?mp p:P39 ?ps . ?ps ps:P39 ?term . ?ps pq:P768 ?seat . optional { ?seat wdt:P625 ?coord }
+    ?mp rdfs:label ?mpn . filter(lang(?mpn) = \"en\") .   
+    optional { ?seat wdt:P131 ?parent .
+    optional { ?parent wdt:P31 wd:Q1138494 . bind(\"county\" as ?class) . bind(\"0000FF\" as ?rgb) } 
+    optional { ?parent wdt:P31 wd:Q98558416 . bind(\"county\" as ?class) . bind(\"0000FF\" as ?rgb) } 
+    optional { ?parent wdt:P31 ?type . ?type wdt:P279* wd:Q486972 . bind(\"borough\" as ?class) . bind(\"FF0000\" as ?rgb)  } } 
+  } # find all MPs that year + seat types
+  union { ?mp2 p:P39 ?ps2 . ?ps2 ps:P39 ?s2 . ?s2 wdt:P156+ ?term . 
+          ?s2 wdt:P571 ?y2 . ?term wdt:P571 ?y1 . bind(year(?y1) - year(?y2) as ?diff) . filter (?diff <= 5) .
+          ?ps2 pq:P768 ?seat . ?seat wdt:P625 ?coord . bind(\"not represented\" as ?class) . bind(\"000000\" as ?rgb) .
+          filter not exists { ?mp p:P39 ?ps . ?ps ps:P39 ?term . ?ps pq:P768 ?seat } }
+  # find all those represented at some point in previous five years
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} group by ?seat ?seatLabel ?coord ?class ?rgb
+#defaultView:Map""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

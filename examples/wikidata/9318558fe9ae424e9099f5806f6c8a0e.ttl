@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-9318558fe9ae424e9099f5806f6c8a0e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service/queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
@@ -33,4 +32,20 @@ WHERE {
     SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,it,de,nl,en\". }
 }
 GROUP BY ?item ?itemLabel ?itemDescription ?referentiels
-ORDER BY  ?itemDescription ?itemLabel""" .
+ORDER BY  ?itemDescription ?itemLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#afficher tous les éléments (ID, Label, Description, référentiels), connus de Wikidata, qui dipose de la propriété \"archivé par\" (P485) pour une institution donnée.
+#regouper tous les référentiels dans une même cellule.
+#classer les éléments trouvés par genre ou sexe puis par ordre alphabéthique de Description et de Label.
+SELECT DISTINCT ?item ?itemLabel ?itemDescription  (GROUP_CONCAT(DISTINCT(?referentiel); separator=\", \") as ?referentiels)
+                (GROUP_CONCAT(DISTINCT(?reference_URL); separator=\", \") as ?reference_URLs) (SAMPLE(?reference_URL) as ?one_of_them)
+WHERE {
+    ?item p:P485 ?statement. 
+    ?statement ps:P485 ?archives. #option avoir déposé ses archives dans une institution
+    FILTER(?archives=wd:Q856640)  # \"only\" La contemporaine  
+    OPTIONAL {?statement pq:P217 ?referentiel.} #option avoir pour qualificatif un numéro d'inventaire.
+    OPTIONAL {?statement prov:wasDerivedFrom/pr:P854 ?reference_URL.}       
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,it,de,nl,en\". }
+}
+GROUP BY ?item ?itemLabel ?itemDescription ?referentiels
+ORDER BY  ?itemDescription ?itemLabel""";
+  schema:target <https://query.wikidata.org/sparql> .

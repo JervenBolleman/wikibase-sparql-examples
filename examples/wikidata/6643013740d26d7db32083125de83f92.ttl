@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-6643013740d26d7db32083125de83f92> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/Queries>, <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/sandbox>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -38,4 +37,27 @@ select ?person ?linkedPerson ?linkedPersonLabel ?type ?personLabel (?type as ?ed
 FILTER (\"1850-01-01\"^^xsd:dateTime > ?datafine) 
 SERVICE wikibase:label { bd:serviceParam wikibase:language \"it,en\" . }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title:Interpersonal relations of typographers active in Venice until 1850
+#defaultView:Graph
+select ?person ?linkedPerson ?linkedPersonLabel ?type ?personLabel (?type as ?edgeLabel) {
+   ?person wdt:P937 wd:Q641;
+           wdt:P106 ?activity .
+  
+  values ?activity { 
+    wd:Q175151 wd:Q1229025 wd:Q998550 wd:Q2516866 wd:Q40881196
+  }
+  
+  ?person wdt:P2032|wdt:P570 ?datafine .
+  
+{ ?person wdt:P1327 ?linkedPerson .  bind(\"business partner\" as ?type) } union 
+{ ?person wdt:P802 ?linkedPerson .  bind(\"student\" as ?type) } union 
+{ ?person wdt:P1066 ?linkedPerson .  bind(\"teacher\" as ?type) } union 
+{ ?person wdt:P22 ?linkedPerson .  bind(\"father\" as ?type) } union 
+{ ?person wdt:P23 ?linkedPerson .  bind(\"mother\" as ?type)  } union 
+{ ?person wdt:P40 ?linkedPerson .  bind(\"son\" as ?type) } union 
+{ ?person wdt:P26 ?linkedPerson .  bind(\"partner\" as ?type) }
+FILTER (\"1850-01-01\"^^xsd:dateTime > ?datafine) 
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"it,en\" . }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

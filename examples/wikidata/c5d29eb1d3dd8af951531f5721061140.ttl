@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c5d29eb1d3dd8af951531f5721061140> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_France/Communes/Liste_des_communes_avec_les_divisions_administratives>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -55,4 +54,44 @@ WHERE {
     FILTER ( !BOUND(?dateDébutNom) || ?dateDébutNom <= ?dateRecherche ) # ancien nom
     FILTER ( !BOUND(?dateFinNom) || ?dateFinNom > ?dateRecherche ) # futur nom
 }
-ORDER BY (?insee)""" .
+ORDER BY (?insee)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Communes avec les arrondissements. Au 1er janvier 2006, il y avait 36 685 communes en France.
+SELECT ?insee ?commune ?nom ?inseeArrondissement ?arrondissement
+WHERE {
+  BIND ( \"2006-01-01\"^^xsd:dateTime as ?dateRecherche ) # Au 1er janvier 2006
+  ?commune p:P374 ?P374node . # existence d'un code Insee
+    ?P374node ps:P374 ?insee . # valeur du code Insee
+    OPTIONAL { ?P374node pq:P580 ?dateDébutCode . } # date de début du code Insee
+    OPTIONAL { ?P374node pq:P582 ?dateFinCode . } # date de fin du code Insee
+    FILTER ( !BOUND(?dateDébutCode) || ?dateDébutCode <= ?dateRecherche ) # ancien code Insee
+    FILTER ( !BOUND(?dateFinCode) || ?dateFinCode > ?dateRecherche ) # futur code Insee
+  {
+    ?commune wdt:P31 wd:Q484170 .  # nature de commune
+    OPTIONAL { ?commune wdt:P571 ?dateCréation . } # date de création
+    OPTIONAL { ?commune wdt:P576 ?dateDissolution . } # date de dissolution
+     
+    OPTIONAL { # pas d'arrondissements à Mayotte
+    ?arrondissement wdt:P3423 ?inseeArrondissement. # code Insee de l'arrondissement
+    ?commune p:P131 ?P131nodeArrondissement .
+    ?P131nodeArrondissement ps:P131 ?arrondissement .  # valeur de l'arrondissement
+    OPTIONAL { ?P131nodeArrondissement pq:P580 ?dateDébutArrondissement . } # date de l'arrondissement
+    OPTIONAL { ?P131nodeArrondissement pq:P582 ?dateFinArrondissement . } # date de l'arrondissement
+      }  
+  }   
+    UNION { VALUES (?commune ?inseeDépartement ?inseeArrondissement ) {(wd:Q90 \"75\" \"751\")} } # Paris
+    FILTER ( !BOUND(?dateCréation) || ?dateCréation <= ?dateRecherche ) # communes futures
+    FILTER ( !BOUND(?dateDissolution) || ?dateDissolution > ?dateRecherche ) # communes passées 
+    FILTER ( !BOUND(?dateDébutArrondissement) || ?dateDébutArrondissement <= ?dateRecherche ) # ancien arrondissement
+    FILTER ( !BOUND(?dateFinArrondissement) || ?dateFinArrondissement > ?dateRecherche ) # futur arrondissement 
+
+  ?commune p:P1448 ?P1448node . # existence d'un nom
+    ?P1448node ps:P1448 ?nom . # valeur du nom
+    FILTER( lang(?nom)=\"fr\" ). # nom en français
+    MINUS { ?P1448node pq:P2241 ?dépréciationNom . } # nom erroné
+    OPTIONAL { ?P1448node pq:P580 ?dateDébutNom . } # date de début du nom
+    OPTIONAL { ?P1448node pq:P582 ?dateFinNom . } # date de fin du nom
+    FILTER ( !BOUND(?dateDébutNom) || ?dateDébutNom <= ?dateRecherche ) # ancien nom
+    FILTER ( !BOUND(?dateFinNom) || ?dateFinNom > ?dateRecherche ) # futur nom
+}
+ORDER BY (?insee)""";
+  schema:target <https://query.wikidata.org/sparql> .

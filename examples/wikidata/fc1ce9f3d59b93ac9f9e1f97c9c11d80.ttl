@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-fc1ce9f3d59b93ac9f9e1f97c9c11d80> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/05>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -44,4 +43,32 @@ SELECT DISTINCT ?item ?itemLabel ?coords ?coordsApprox ?image ?location WHERE {
     LIMIT 500
   }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
+SELECT DISTINCT ?item ?itemLabel ?coords ?coordsApprox ?image ?location WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr,de\". }
+  {
+    SELECT DISTINCT ?item (sample(?coords_) as ?coords) (sample(?coordsApprox_) as ?coordsApprox) (sample(?image_) as ?image) ?location ?place WHERE {
+      ?item p:P180 ?depict.
+      { ?depict (ps:P180/wdt:P31*/wdt:P279*) wd:Q7559. }
+      UNION
+      { ?depict (ps:P180/wdt:P31*/wdt:P279*) wd:Q30170627. }
+      
+      OPTIONAL {
+        ?item p:P625 ?statement1.
+        ?statement1 (ps:P625) ?coords_.
+        } 
+      OPTIONAL {
+        ?item p:P276 ?statement2.
+        ?statement2 (ps:P276) ?place.
+        ?place p:P625 ?statement3.
+        ?statement3 (ps:P625) ?coordsApprox_.
+      }
+      
+      OPTIONAL { ?item wdt:P18 ?image_. }
+      
+    } group by ?item  ?location ?place
+    LIMIT 500
+  }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

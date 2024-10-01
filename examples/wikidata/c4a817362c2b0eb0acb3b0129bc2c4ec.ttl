@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c4a817362c2b0eb0acb3b0129bc2c4ec> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/ambassadors>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -28,4 +27,17 @@ select distinct ?item ?category ?categoryLabel ?P31Label ?topic ?topicLabel ?lis
           schema:isPartOf <https://commons.wikinedia.org/> . }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Category metadata
+select distinct ?item ?category ?categoryLabel ?P31Label ?topic ?topicLabel ?list ?listLabel ?commons_sitelink where
+{
+  { ?item wdt:P31 wd:Q18115939 . } union { ?item wdt:P31 wd:Q56760832 } . # ambassador or high commissioner
+  ?item wdt:P910 ?category .
+  optional { ?category wdt:P31 ?P31 . }
+  optional { ?category wdt:P301 ?topic . }
+  optional { ?category wdt:P1753 ?list . }
+  optional { ?commons_sitelink schema:about ?category ;
+          schema:isPartOf <https://commons.wikinedia.org/> . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

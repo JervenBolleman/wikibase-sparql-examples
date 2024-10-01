@@ -1,19 +1,18 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-6b17353a87886589be94a8923ef58b6c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Tools_%26_tasks/nl>,
-    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Tools_%26_tasks/fr>,
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Tools_%26_tasks>,
     <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Tools_%26_tasks/en>,
-    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Tools_%26_tasks>;
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Tools_%26_tasks/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Tools_%26_tasks/nl>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -34,4 +33,20 @@ WHERE
 group by ?item                          #List all the variables for which the values are not concatenated!
          ?itemLabel
          ?birthplaceLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item 
+       ?itemLabel 
+       ?birthplaceLabel 
+       (group_concat(distinct ?citizenshipLabel_en;separator=\"; \") as ?citizenshipLabels_en)    #Concatenate the values in order not to get several rows per item.
+WHERE 
+{
+  ?item wdt:P106 wd:Q33999.
+  { ?item (wdt:P19/wdt:P131*/wdt:P17) wd:Q39 } UNION { ?item wdt:P27 wd:Q39 }.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } # Helps get the label in your language, if not, then en language
+  OPTIONAL {?item wdt:P19 ?birthplace} .
+  OPTIONAL {?item wdt:P27/rdfs:label ?citizenshipLabel_en . FILTER (lang(?citizenshipLabel_en) = \"en\") }
+}
+group by ?item                          #List all the variables for which the values are not concatenated!
+         ?itemLabel
+         ?birthplaceLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

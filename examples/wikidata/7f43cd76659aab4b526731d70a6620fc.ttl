@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-7f43cd76659aab4b526731d70a6620fc> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Una_tantum>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -59,4 +58,45 @@ SELECT DISTINCT ?item ?itemLabel WHERE {
     LIMIT 100
   }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#artisti nati o morti a Bologna, le cui opere siano nel Pubblico Dominio al 1° gennaio 2024
+SELECT DISTINCT ?item ?itemLabel WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+  {
+    SELECT DISTINCT ?item WHERE {
+      ?item p:P31 ?statement0.
+      ?statement0 (ps:P31/(wdt:P279*)) wd:Q5.
+      ?item p:P570 ?statement_1.
+      ?statement_1 psv:P570 ?statementValue_1.
+      ?statementValue_1 wikibase:timePrecision ?precision_1.
+      FILTER(?precision_1 >= 11 )
+      ?statementValue_1 wikibase:timeValue ?P570_1.
+      FILTER(?P570_1 < \"+1953-12-31T00:00:00Z\"^^xsd:dateTime)
+      {
+        ?item p:P19 ?statement2.
+        ?statement2 (ps:P19/(wdt:P279*)) wd:Q1891.
+      }
+      UNION
+      {
+        ?item p:P20 ?statement3.
+        ?statement3 (ps:P20/(wdt:P279*)) wd:Q1891.
+      }
+      {
+        ?item p:P106 ?statement4.
+        ?statement4 (ps:P106/(wdt:P279*)) wd:Q483501.
+      }
+      UNION
+      {
+        ?item p:P106 ?statement5.
+        ?statement5 (ps:P106/(wdt:P279*)) wd:Q1281618.
+      }
+      UNION
+      {
+        ?item p:P106 ?statement6.
+        ?statement6 (ps:P106/(wdt:P279*)) wd:Q1028181.
+      }
+    }
+    LIMIT 100
+  }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

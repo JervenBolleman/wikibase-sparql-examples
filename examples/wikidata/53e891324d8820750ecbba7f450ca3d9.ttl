@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-53e891324d8820750ecbba7f450ca3d9> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -35,4 +34,21 @@ OPTIONAL{ ?english schema:about ?work ; schema:isPartOf <https://en.wikipedia.or
 SERVICE wikibase:label {bd:serviceParam wikibase:language \"fr,en,de\"} # Prefer labels in French but fall back to English and German
 ?type rdfs:label ?typelabel FILTER(lang(?typelabel) =\"en\") # English labels for the types
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?workLabel ?pubdate ?pubdatePrecision ?image ?typelabel ?english  
+(URI(CONCAT(\"https://tools.wmflabs.org/reasonator/?q=\", SUBSTR(STR(?work),32) )) as ?reasonator) #build a reasonator link
+(IF(BOUND(?english), ?english, ?reasonator) as ?link) # link to English Wikipedia article, if available
+WHERE {
+?work wdt:P50 wd:Q9068; # author: Voltaire
+   wdt:P31 ?type; # What is the work? poem, play, historical work etc.? 
+   p:P577/psv:P577 ?pubdateStatementNode
+MINUS {?work wdt:P31 wd:Q3331189} # exclude editions
+MINUS {?work wdt:P31 wd:Q105420} # exclude anthologies
+?pubdateStatementNode wikibase:timeValue ?pubdate ;
+   wikibase:timePrecision ?pubdatePrecision # get precision of the publication date
+OPTIONAL {?work wdt:P18 ?image}
+OPTIONAL{ ?english schema:about ?work ; schema:isPartOf <https://en.wikipedia.org/> }
+SERVICE wikibase:label {bd:serviceParam wikibase:language \"fr,en,de\"} # Prefer labels in French but fall back to English and German
+?type rdfs:label ?typelabel FILTER(lang(?typelabel) =\"en\") # English labels for the types
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

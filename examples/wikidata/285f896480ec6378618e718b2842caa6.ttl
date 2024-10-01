@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-285f896480ec6378618e718b2842caa6> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Cmuelle8>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -37,4 +36,24 @@ WHERE {
     ?desc2 rdfs:label ?desc2Label. ?layer rdfs:label ?layerLabel.
   }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
+SELECT ?coord (CONCAT(IF(BOUND(?d),?d,\"\"),
+                      IF(BOUND(?s),CONCAT(\" \",?s),\"\"),
+                      IF(BOUND(?c),CONCAT(\" \",?c),\"\")) AS ?desc1Label)
+       ?desc2 ?desc2Label ?layer ?layerLabel ?pic
+WHERE {
+  BIND(?l AS ?layer).
+  { SELECT ?l WHERE { ?l wdt:P31/wdt:P279* wd:Q353027. } } ?l wdt:P131+ wd:Q1206.
+  OPTIONAL { ?l (p:P559|p:P609) [ ?ps1 ?desc2; pq:P625 ?coord ].  [] wikibase:statementProperty ?ps1. }.
+  OPTIONAL { ?l ?__             [ ?ps2 ?desc1; pq:P131 ?desc2 ].  [] wikibase:statementProperty ?ps2. }. 
+  OPTIONAL { ?l ?__             [ ?ps2 ?desc1; ?_pq    ?pqv   ].  [] wikibase:statementProperty ?ps2.
+                                        FILTER(?_pq != pq:P131). ?pq wikibase:qualifier         ?_pq. }.
+  OPTIONAL { ?l wdt:P625 ?coord. }.
+  OPTIONAL { ?l wdt:P18 ?pic. }.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de\".
+    ?desc1 rdfs:label ?d. ?pq rdfs:label ?s. ?pqv rdfs:label ?c.
+    ?desc2 rdfs:label ?desc2Label. ?layer rdfs:label ?layerLabel.
+  }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

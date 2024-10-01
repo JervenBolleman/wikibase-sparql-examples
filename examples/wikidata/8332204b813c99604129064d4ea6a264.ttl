@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8332204b813c99604129064d4ea6a264> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Aeroid/SPARQL_Notes>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -41,4 +40,30 @@ SELECT DISTINCT ?item ?itemLabel WHERE {
   }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" }
 } ORDER BY ( ?itemLabel )""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?itemLabel WHERE {
+  ## only upward relation P131 which might miss items if the P131-tree is incomplete
+  ?territory (wdt:P131)* wd:Q5907 .
+  ## alternative: also use downward relation P150 which might lead to unwanted items from former adminstrative relations
+  # ?adminTree (wdt:P131)* wd:Q5907 .
+  # ?adminTree (wdt:P150)* ?territory .
+  ##
+  {  
+    ?item wdt:P131 ?territory # anything located in 
+  } UNION { 
+    ?item wdt:P1001 ?territory # or within territorial jurisdiction
+  } UNION {
+    ?item wdt:P31 wd:Q4167836 . # categories
+    {
+      ?item wdt:P301 ?territory # with topic
+    } UNION {
+      ?item wdt:P971 ?territory # or combining topic with something
+    }
+  } UNION {
+    ?item wdt:P31 wd:Q13406463 . #lists
+    ?item ?p ?statement .
+    ?statement pq:P131 ?territory # with statements having qualifiers located in 
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" }
+} ORDER BY ( ?itemLabel )""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

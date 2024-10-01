@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-57da19db0e2a5e5991cc62515209f0ac> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Difool/queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdtn: <http://www.wikidata.org/prop/direct-normalized/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -21,10 +20,33 @@ PREFIX dcterms: <http://purl.org/dc/terms/>
       
       SELECT ?item ?ulanuri ?rkdartistsid
                   WHERE {
-        INCLUDE %wikidata.
-        INCLUDE %ulan.
+         {
+        SELECT ?item ?ulanuri ?rkdartistsid WHERE {
+        ?item wdtn:P245 ?ulanuri .
+       ?item p:P245 ?statement0.
+                                          ?statement0 ps:P245 _:anyValueP245;
+                                              wikibase:rank ?rank.
+         FILTER(?rank != wikibase:DeprecatedRank)
+        MINUS { ?item wdtn:P650 ?rkdartistsid } .
+        MINUS { ?item p:P650 ?statement1. ?statement1 (ps:P650) _:anyValueP650. }
+        }
+      }
+         {
+        SELECT * {
+        SERVICE <http://vocab.getty.edu/sparql.json> {
+      
+       SELECT ?ulanuri ?rkdartistsid WHERE {
+            ?ulanuri rdf:type <http://vocab.getty.edu/ontology#PersonConcept> .
+            ?ulanuri dcterms:source ?source .
+            ?source dcterms:isPartOf <http://vocab.getty.edu/ulan/source/2100183444> .
+            ?source bibo:locator ?rkdartistsid
+            }
+      
+        }
+      }
+      }
       } LIMIT 500""";
-  <http://example.org/bigdata_select> """PREFIX dcterms: <http://purl.org/dc/terms/>
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX dcterms: <http://purl.org/dc/terms/>
       PREFIX bibo: <http://purl.org/ontology/bibo/>
       
       SELECT ?item ?ulanuri ?rkdartistsid
@@ -56,4 +78,6 @@ PREFIX dcterms: <http://purl.org/dc/terms/>
       WHERE {
         INCLUDE %wikidata.
         INCLUDE %ulan.
-      } LIMIT 500""" .
+      } LIMIT 500""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://vocab.getty.edu/sparql.json>;
+  schema:target <https://query.wikidata.org/sparql> .

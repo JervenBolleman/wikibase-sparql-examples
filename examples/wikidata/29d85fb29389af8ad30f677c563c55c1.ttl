@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-29d85fb29389af8ad30f677c563c55c1> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/01>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -33,4 +32,20 @@ SELECT ?item ?itemLabel (count(?colour) as ?count) WHERE {
          filter(?item=?value)
   }
 group by ?item ?itemLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel (count(?colour) as ?count) WHERE {
+  ?item wdt:P31 wd:Q39715 . #instance of lighthouse
+  ?item wdt:P17 wd:Q34 . #country of Sweden
+  ?item wdt:P462 ?colour . #must have a colour
+  
+  OPTIONAL {?item p:P462 ?mem . #item has a colour
+  ?mem ps:P462 ?colour2; pq:P518 ?qual . } # colour has a P518 qualifier
+
+  FILTER(!BOUND(?qual)) # qualifier is null
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"se,en,fr,nl,de,it,es\". }
+
+  values ?value {wd:Q40125473}
+         filter(?item=?value)
+  }
+group by ?item ?itemLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

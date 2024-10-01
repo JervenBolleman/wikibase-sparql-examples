@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-deea4d1e8ebd411fdff51e11832cfcef> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_PCC_Wikidata_Pilot/UNLV>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -37,4 +36,27 @@ UNION
  }
 SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
 }ORDER BY ASC (?itemLabel)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Timeline
+SELECT DISTINCT  ?item ?itemLabel ?itemDescription ?ownedByLabel ?dateOfOpening ?dateOfClosure 
+WHERE
+{
+ {VALUES (?itemType) {(wd:Q1043639)(wd:Q51167626)(wd:Q115628485)(wd:Q115689759)(wd:Q106634743)(wd:Q1531507)(wd:Q115777618)(wd:Q115769587)(wd:Q105321449)(wd:Q30324198)(wd:Q116167940)(wd:Q52815)(wd:Q116543473)(wd:Q116546701)(wd:Q116547044)} # -- ADD P31 VALUES HERE --
+  ?item wdt:P31/wdt:P279* ?itemType .
+  ?item wdt:P5008 wd:Q100202113 .
+  OPTIONAL {?item wdt:P1619 ?dateOfOpening ; wdt:P3999 ?dateOfClosure  } .
+  OPTIONAL {?item wdt:P127 ?ownedBy}.
+ }
+UNION
+ {
+  {VALUES (?itemType) {(wd:Q11707) (wd:Q30022)(wd:Q622425) }
+   ?item wdt:P31/wdt:P279* ?itemType .
+   ?item wdt:P5008 wd:Q100202113 .
+   OPTIONAL {?item wdt:P1619 ?dateOfOpening ; wdt:P3999 ?dateOfClosure  } .
+   OPTIONAL {?item wdt:P1552 wd:Q661717 ; wdt:P1552 ?hasQuality } .
+   FILTER (!EXISTS {?West_Las_Vegas wdt:P276 wd:Q7985710})
+  }
+ }
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+}ORDER BY ASC (?itemLabel)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

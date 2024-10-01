@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-48ad0e348b6f387d3954c3c1af72a60d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:AllyD/sandbox>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -49,4 +48,39 @@ WHERE
           \"Scot\" ) ) ) ) ) ) ) ) ) ) ) ) ) ) ) )
       ) AS ?typeLabel). 
   FILTER(?typeLabel != \"Scot\").
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
+SELECT DISTINCT (?typeLabel AS ?layer) ?label ?loc ?place ?picURI ?extURI ?tDesc
+WHERE
+{
+   { { ?place wdt:P31 wd:Q532 .} UNION { ?place wdt:P31 wd:Q3957 .} 
+       ?place wdt:P131/wdt:P31 ?where . FILTER (?where = wd:Q15060255 )  
+   }.
+   ?place wdt:P31 ?tLabel. ?tLabel rdfs:label ?tDesc filter (lang(?tDesc) = \"en\"). #Place name
+   ?place      
+      wdt:P625 ?loc ; # location to plot on map
+          p:P625/psv:P625 ?coord; # coordinate-location statement    
+      rdfs:label ?label filter (lang(?label) = \"en\"). #Place name
+  OPTIONAL { ?place wdt:P18 ?picURI } .
+  BIND(IF( regex(?label, \"^Pit.*\") , \"Pict\",
+       IF( regex(?label, \"^Aber.*\") , \"Pict\", 
+       IF( regex(?label, \"^*.cardin.*\") , \"Pict\", 
+       IF( regex(?label, \"^*.carden\") , \"Pict\", 
+       IF( regex(?label, \"^Inver.*\") , \"Gael\",   
+       IF( regex(?label, \"^Dun.*\") , \"Gael\",
+       IF( regex(?label, \"^Bal.*\") , \"Gael\",
+       IF( regex(?label, \"^Glen.*\") , \"Gael\",
+       IF( regex(?label, \"^Strath.*\") , \"Gael\",
+       IF( regex(?label, \"^Stran.*\") , \"Gael\",
+       IF( regex(?label, \"^Stron.*\") , \"Gael\",
+       IF( regex(?label, \"^Tigh.*\") , \"Gael\",
+       IF( regex(?label, \"^Kil.*\") , \"Gael\",
+       IF( regex(?label, \"^*.dale\") , \"Norse\",    
+       IF( regex(?label, \"^*.dair\") , \"Norse\",
+       IF( regex(?label, \"^*.firth\") , \"Norse\",    
+       IF( regex(?label, \"^*.forth\") , \"Norse\",        
+          \"Scot\" ) ) ) ) ) ) ) ) ) ) ) ) ) ) ) )
+      ) AS ?typeLabel). 
+  FILTER(?typeLabel != \"Scot\").
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

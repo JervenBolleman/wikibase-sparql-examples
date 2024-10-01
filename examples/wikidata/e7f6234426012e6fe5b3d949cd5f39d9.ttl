@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-e7f6234426012e6fe5b3d949cd5f39d9> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Looniverse/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -45,4 +44,35 @@ WHERE {
 ORDER BY DESC (?population) (?cityLabel)
 LIMIT 1000
 # Limit auf 100 - kann bis 5000 erhöht werden, dann als Karte oder Liste darstellen""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Largest cities of Germany ab 10.000 Einwohner
+# !defaultView:Map - wenn gleich als Karte dargestellt werden soll 
+#defaultView:BubbleChart - wenn gleich als Bubble dargestellt werden soll
+SELECT DISTINCT ?city ?cityLabel ?website 
+            ?population
+# ?area
+            ?location
+            ?layer
+WHERE {
+            ?city wdt:P31/wdt:P279* wd:Q515;
+                  wdt:P17 wd:Q183 .
+            ?city wdt:P1082 ?population .
+ # !            ?city wdt:P2046 ?area .
+            ?city wdt:P625 ?location .
+            ?city wdt:P856 ?website .
+    FILTER(?population >= 10000).
+  BIND(
+    IF(?population < 10000, \"<10k\",
+    IF(?population < 50000, \"10k-50k\",
+    IF(?population < 100000, \"50k-100k\",
+    IF(?population < 200000, \"100k-200k\",
+    IF(?population < 500000, \"200k-500k\",
+    IF(?population < 1000000, \"500k-1M\",
+    \">1M\"))))))
+    AS ?layer).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+  }
+ORDER BY DESC (?population) (?cityLabel)
+LIMIT 1000
+# Limit auf 100 - kann bis 5000 erhöht werden, dann als Karte oder Liste darstellen""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

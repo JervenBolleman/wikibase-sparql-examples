@@ -1,26 +1,25 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-123bff00ee796255b782f892e4da05f5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -74,4 +73,53 @@ WHERE {
   }
 }
 GROUP BY ?item""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# This query collects data related to entities on Barbara Harris. 
+# It demonstrates collecting individual attributes and concatenating them for easier post processing. 
+
+SELECT 
+  ?item
+(SAMPLE(?itemLabel) AS ?itemLabel) 
+(SAMPLE(?itemDescription) AS ?itemDescription) 
+  (SAMPLE(?pic) AS ?pic) 
+(SAMPLE(?date_of_birth) AS ?date_of_birth) 
+(GROUP_CONCAT(DISTINCT ?country_of_citizenship; SEPARATOR=\", \") AS ?country_of_citizenships)
+(GROUP_CONCAT(DISTINCT ?country_of_citizenshipLabel; SEPARATOR=\", \") AS ?country_of_citizenshipLabels)
+
+(GROUP_CONCAT(DISTINCT ?occupation; SEPARATOR=\", \") AS ?occupations)
+(GROUP_CONCAT(DISTINCT ?occupationLabel; SEPARATOR=\", \") AS ?occupationLabels)
+
+(GROUP_CONCAT(DISTINCT ?country; SEPARATOR=\", \") AS ?countries)
+(GROUP_CONCAT(DISTINCT ?countryLabel; SEPARATOR=\", \") AS ?countryLabels)
+
+
+WHERE {
+  VALUES ?item {
+    wd:Q269809
+    wd:Q274590
+    wd:Q24576851
+    wd:Q807461
+    wd:Q4858963
+    wd:Q27954833
+    wd:Q4859015
+    wd:Q826930
+  }
+  OPTIONAL { ?item wdt:P18 ?pic. }
+  OPTIONAL { ?item wdt:P27 ?country_of_citizenship. }
+  OPTIONAL { ?item wdt:P106 ?occupation. }
+  OPTIONAL { ?item wdt:P17 ?country. }
+  OPTIONAL { ?item wdt:P569 ?date_of_birth. }
+  OPTIONAL { ?item wdt:P31 ?instance_of. }
+  OPTIONAL { ?item wdt:P17 ?country. }
+  OPTIONAL { ?item wdt:P569 ?date_of_birth. }
+  SERVICE wikibase:label { 
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+    ?item rdfs:label ?itemLabel.
+    ?item rdfs:description ?itemDescription.
+    ?country_of_citizenship rdfs:label ?country_of_citizenshipLabel.
+    ?occupation rdfs:label ?occupationLabel.
+    ?country rdfs:label ?countryLabel.
+  }
+}
+GROUP BY ?item""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

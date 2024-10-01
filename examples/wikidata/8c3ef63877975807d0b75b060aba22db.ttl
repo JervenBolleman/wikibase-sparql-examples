@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8c3ef63877975807d0b75b060aba22db> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Marsupium/BStGS>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -37,4 +36,23 @@ WHERE
 }
 GROUP BY ?item ?itemLabel ?invno
 ORDER BY DESC(?sitelinkno)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# List of works in the collection of the Bavarian State Painting Collections or a part thereof
+SELECT ?item ?itemLabel (COUNT(DISTINCT ?sitelink) AS ?sitelinkno) ?invno # ?itemDescription # <- does not work, if activated and grouped by reduces the number of results
+WHERE
+{
+  { ?item wdt:P195 wd:Q812285. }
+  UNION
+  { ?item wdt:P195 [ wdt:P361 wd:Q812285 ]. }
+  OPTIONAL { ?sitelink schema:about ?item. }
+#  OPTIONAL { ?item schema:description ?itemDescription. }
+  OPTIONAL {
+    ?item p:P217 ?invnostatement.
+    ?invnostatement ps:P217 ?invno.
+    ?invnostatement pq:P195 wd:Q812285.
+  } # BStGS invnos
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,de,fr,it,es,pt,ca,la\" . }
+}
+GROUP BY ?item ?itemLabel ?invno
+ORDER BY DESC(?sitelinkno)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

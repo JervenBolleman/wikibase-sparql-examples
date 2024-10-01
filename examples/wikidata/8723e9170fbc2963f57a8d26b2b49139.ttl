@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8723e9170fbc2963f57a8d26b2b49139> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/12>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -52,4 +51,38 @@ SELECT ?item ?date1 ?p1 ?c1 ?r1 ?refurl1 ?angesi1Label ?i1 ?date2 ?p2 ?c2 ?r2 ?r
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"sv,en\". }
 }
 ORDER BY ?item ?refurl1 ?refurl2""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?date1 ?p1 ?c1 ?r1 ?refurl1 ?angesi1Label ?i1 ?date2 ?p2 ?c2 ?r2 ?refurl2 ?angesi2Label ?i2 WHERE
+{
+  ?item wdt:P3217 ?sbl .
+  ?item p:P569 ?date1stm .
+  ?date1stm psv:P569 ?date1node .
+  ?date1node wikibase:timeValue ?date1 .
+  ?date1node wikibase:timePrecision ?p1 .
+  ?date1node wikibase:timeCalendarModel ?cal1 .
+  BIND(IF(?cal1=wd:Q1985727,'G',IF(?cal1= wd:Q1985786, 'J', '?')) AS ?c1) 
+  ?date1stm wikibase:rank ?rank1 .
+  BIND(IF(?rank1=wikibase:PreferredRank,'P',IF(?rank1= wikibase:NormalRank, 'N', 'D')) AS ?r1) 
+  OPTIONAL { ?date1stm prov:wasDerivedFrom ?ref1.
+     OPTIONAL { ?ref1 pr:P854 ?refurl1 . }
+     OPTIONAL { ?ref1 pr:P248 ?angesi1 . }
+     OPTIONAL { ?ref1 pr:P143/wdt:P424 ?i1 . }
+  }
+  ?item p:P569 ?date2stm .
+  ?date2stm psv:P569 ?date2node .
+  ?date2node wikibase:timeValue ?date2 . 
+  ?date2node wikibase:timePrecision ?p2 .
+  ?date2node wikibase:timeCalendarModel ?cal2 .
+  BIND(IF(?cal2=wd:Q1985727,'G',IF(?cal2= wd:Q1985786, 'J', '?')) AS ?c2) 
+  ?date2stm wikibase:rank ?rank2 .
+  BIND(IF(?rank2=wikibase:PreferredRank,'P',IF(?rank2= wikibase:NormalRank, 'N', 'D')) AS ?r2)
+  OPTIONAL { ?date2stm prov:wasDerivedFrom ?ref2 .
+     OPTIONAL { ?ref2 pr:P854 ?refurl2 . }
+     OPTIONAL { ?ref2 pr:P248 ?angesi2 . }
+     OPTIONAL { ?ref2 pr:P143/wdt:P424 ?i2 . }
+  }
+  FILTER(?date1<?date2)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"sv,en\". }
+}
+ORDER BY ?item ?refurl1 ?refurl2""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

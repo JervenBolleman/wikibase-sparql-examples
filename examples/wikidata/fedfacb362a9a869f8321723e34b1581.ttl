@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-fedfacb362a9a869f8321723e34b1581> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Birk_Weiberg/Self-determination_of_Ethnic_Groups>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
@@ -47,4 +46,38 @@ SELECT DISTINCT ?group ?selfidentified ?nonselfidentified (GROUP_CONCAT(DISTINCT
     ?group skos:altLabel ?label .
   }
   FILTER(lang(?label)=?lang)  
-} GROUP BY ?group ?selfidentified ?nonselfidentified""" .
+} GROUP BY ?group ?selfidentified ?nonselfidentified""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?group ?selfidentified ?nonselfidentified (GROUP_CONCAT(DISTINCT ?label; SEPARATOR=\", \") AS ?labels) WHERE {
+  # set language
+  BIND('en' AS ?lang)
+  # ?group instance/subclass of group of humans
+  ?group wdt:P31/wdt:P279* wd:Q16334295.
+  # find groups with either self-identified or non-self-identified names
+  {
+	# self-indentified name
+  	?group wdt:P12089 ?temp.
+  } UNION {
+	# non-self-indentified name
+    ?group wdt:P12090 ?temp.
+  }  
+  FILTER(lang(?temp)=?lang)
+  # find the names again
+  OPTIONAL {
+	# self-indentified name
+  	?group wdt:P12089 ?selfidentified.
+    FILTER(lang(?selfidentified)=?lang)    
+  }
+  OPTIONAL {
+	# non-self-indentified name
+    ?group wdt:P12090 ?nonselfidentified.
+    FILTER(lang(?selfidentified)=?lang)
+  }
+  # find labels
+  {
+    ?group rdfs:label ?label .
+  } UNION {
+    ?group skos:altLabel ?label .
+  }
+  FILTER(lang(?label)=?lang)  
+} GROUP BY ?group ?selfidentified ?nonselfidentified""";
+  schema:target <https://query.wikidata.org/sparql> .

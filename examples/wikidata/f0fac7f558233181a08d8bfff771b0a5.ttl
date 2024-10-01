@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-f0fac7f558233181a08d8bfff771b0a5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Terrorism/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -38,4 +37,26 @@ WHERE {
   OPTIONAL {?item wdt:P18 ?image}
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 }
-GROUP BY ?item ORDER BY DESC(?inception)""" .
+GROUP BY ?item ORDER BY DESC(?inception)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT
+  (SAMPLE(?item) as ?item)
+  (SAMPLE(COALESCE(?en_label, ?any_label)) as ?name)
+  (SAMPLE(?inception) as ?inception)
+  (SAMPLE(?end) as ?end)
+  (SAMPLE(?organization) as ?organization)
+  (SAMPLE(?allegiance) as ?allegiance)
+  (SAMPLE(?image) as ?image)
+  (SAMPLE(?class) as ?class)
+WHERE {
+  ?class wdt:P279* wd:Q17127659.
+  ?item p:P31/ps:P31 ?class. # Occupation: terrorist organization and its potential sub-classes.
+  OPTIONAL {?item rdfs:label ?en_label. FILTER(LANG(?en_label) = \"en\")} OPTIONAL {?item rdfs:label ?any_label}
+  OPTIONAL {?item wdt:P571 ?inception}
+  OPTIONAL {?item wdt:P582 ?end}
+  OPTIONAL {?item wdt:P463 ?organization}
+  OPTIONAL {?item wdt:P945 ?allegiance}
+  OPTIONAL {?item wdt:P18 ?image}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+GROUP BY ?item ORDER BY DESC(?inception)""";
+  schema:target <https://query.wikidata.org/sparql> .

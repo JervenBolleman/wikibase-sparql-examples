@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-25c736392043c46225f2ef5561f00733> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/04>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -28,4 +27,17 @@ SELECT DISTINCT ?item ?item_label ?last_name_label (lang(?last_name_label) AS ?l
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } .
 } 
 ORDER BY ?last_name_label""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?item_label ?last_name_label (lang(?last_name_label) AS ?lang) ?last_name ?last_nameLabel
+{
+  ?item wdt:P5008 wd:Q51682734;
+        rdfs:label ?item_label .
+  FILTER( LANG( ?item_label ) = 'en' && REGEX( ?item_label, \"^.+ \" ) ) . # label in English and contains a space
+  BIND( REPLACE( ?item_label, \"^.+ \", \"\" ) as ?last_name_label ) . # replace anything before the last space to have surname label
+  OPTIONAL { ?last_name_label ^rdfs:label ?last_name } . # the trick I describe below
+  ?last_name_label ^rdfs:label ?last_name . # label is on an item (inverse to \"an item has a label)
+  ?last_name wdt:P31 wd:Q101352 . # is a surname
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } .
+} 
+ORDER BY ?last_name_label""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-539df8518a0671182cc10fbfbfc8709e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Requests_for_permissions/Bot/WhidouBot>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
@@ -37,4 +36,28 @@ SELECT DISTINCT ?album ?artist WHERE
   ?artist rdfs:label ?artistLabel .
   FILTER( LANG( ?artistLabel ) = \"fr\" ) .
 }
-LIMIT 100""" .
+LIMIT 100""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?album ?artist WHERE
+{
+  {
+    SELECT ?album ( COUNT(DISTINCT ?artist ) as ?nArtists ) WHERE
+    {
+        ?album wdt:P31 wd:Q482994 .
+        ?album wdt:P175 ?artist .
+
+        MINUS
+        {
+            ?album schema:description ?description .
+            FILTER( LANG( ?description ) = \"fr\" ) .
+        }
+    }
+    GROUP BY ?album
+    HAVING(?nArtists = 1)
+  }
+
+  ?album wdt:P175 ?artist .
+  ?artist rdfs:label ?artistLabel .
+  FILTER( LANG( ?artistLabel ) = \"fr\" ) .
+}
+LIMIT 100""";
+  schema:target <https://query.wikidata.org/sparql> .

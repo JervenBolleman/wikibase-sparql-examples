@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b05122531072fc4c069d9568bbe92492> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Pere_prlpz>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -88,5 +87,78 @@ WHERE
   BIND(geof:distance(?loc, ?location) as ?dist)
 } ORDER BY ?dist
 #defaultView:Map""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# topònims sense divisió administrativa al voltant d'un punt
+SELECT ?item ?itemLabel ?location ?layerLabel ?dist
+WHERE
+{
+  wd:Q190385 wdt:P625 ?loc . #lloc central
+  SERVICE wikibase:around {
+      ?item wdt:P625 ?location .
+      bd:serviceParam wikibase:center ?loc .
+      bd:serviceParam wikibase:radius \"40\" .
+  }
+  MINUS {?item wdt:P131 [].}
+  OPTIONAL {?item wdt:P31 ?layer  }
+  # Aquí comencen els MINUS de la llista       
+
+  MINUS { ?item wdt:P31/wdt:P279* wd:Q7075.
+         MINUS {?item wdt:P149 []}
+        }
+  MINUS { ?item wdt:P31/wdt:P279* wd:Q5341295.
+         MINUS {?item wdt:P31/wdt:P279* wd:Q811979}
+        } 
+  MINUS { ?item wdt:P31 wd:Q1076486.
+         MINUS {?item wdt:P31 wd:Q182676} 
+         MINUS {?item wdt:P31 wd:Q1193438.}
+         MINUS {?item wdt:P31 wd:Q483110.}
+         MINUS {?item wdt:P31/wd:P279* wd:Q44782.}
+         MINUS {?item wdt:P912 wd:Q721207}
+         MINUS {?item wdt:P31/wd:P279* wd:Q20719696.}        
+        }
+  MINUS { ?item wdt:P31 wd:Q27686. }
+  MINUS { ?item wdt:P31 wd:Q11919491. }
+  MINUS { ?item wdt:P31/wdt:P279* wd:Q847017. }
+   MINUS { ?item wdt:P31 wd:Q11919687. }
+   MINUS { ?item wdt:P31 wd:Q33506. }
+   MINUS { ?item wdt:P1435 wd:Q61058403.
+           MINUS {?item wdt:P625 [].}
+          }
+   MINUS { ?item wdt:P1435 wd:Q61058419.
+           MINUS {?item wdt:P625 [].}
+          }
+   MINUS { ?item wdt:P31 wd:Q30114662.}
+   MINUS { ?item wdt:P31 wd:Q20860083.}
+   MINUS { ?item wdt:P31 wd:Q119739087.}
+   MINUS { ?item wdt:P31 wd:Q83554028.}
+   MINUS { ?item wdt:P366 wd:Q569500.}
+   MINUS { ?item wdt:P366 wd:Q124727760.}
+   MINUS { ?item wdt:P31 wd:Q3578324.}
+   MINUS { ?item wdt:P31 wd:Q41253.}
+   MINUS { ?item wdt:P31 wd:Q179700.
+           ?item wdt:P186 wd:Q287.
+           MINUS {?item wdt:P625 [].}
+          }
+   MINUS { ?item wdt:P31 wd:Q187456.}
+   MINUS { ?item wdt:P31 wd:Q15275719.}
+   MINUS { ?item wdt:P31 wd:Q14645593.}
+   MINUS { ?item wdt:P31 wd:Q43229.}
+   MINUS { ?item wdt:P31 wd:Q18127.}
+   MINUS { ?item wdt:P31 wd:Q131734.}
+   MINUS { ?item wdt:P31 wd:Q1774898.}
+   MINUS { ?item wdt:P31 wd:Q321839.}
+   MINUS { ?item wdt:P31 wd:Q4618.}
+   MINUS { ?item wdt:P31 wd:Q200538.}
+   MINUS { ?item wdt:P31 wd:Q27968055.}
+   MINUS { ?item wdt:P31 wd:Q169950.}
+   MINUS { ?item wdt:P31 wd:Q1078765.}
+   MINUS { ?item wdt:P31 wd:Q51785152.}
+   MINUS { ?item wdt:P31 wd:Q483242.}
+   MINUS { ?item wdt:P31 wd:Q30014735.}
+   # fins aquí els MINUS de la llista
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"ca, en\" }
+  BIND(geof:distance(?loc, ?location) as ?dist)
+} ORDER BY ?dist
+#defaultView:Map""";
   <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#around>,
-    <http://wikiba.se/ontology#label> .
+    <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

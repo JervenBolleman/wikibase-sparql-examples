@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-99ac30e48b26a06452e8204d68f594ae> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -33,4 +32,25 @@ SELECT
     #?pq ^wikibase:qualifier [ a wikibase:Property ] .
   
 } GROUP BY ?property ?propertyLabel ?qval
-  VALUES (?company) {(wd:Q95)}""" .
+  VALUES (?company) {(wd:Q95)}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT
+?property
+?propertyLabel
+?qval
+(GROUP_CONCAT(DISTINCT ?val_Label; separator=\"; \") AS ?val_Label) WHERE {
+    ?property a wikibase:Property; wikibase:claim ?p; wikibase:statementProperty ?ps. #; #wikibase:qualifier ?pq.
+    ?property rdfs:label ?propertyLabel . FILTER (LANG(?propertyLabel) = 'en' )
+    ?company ?p ?statement . ?statement wikibase:rank ?rank .
+    FILTER (?rank IN (wikibase:NormalRank, wikibase:PreferredRank))
+    ?statement ?ps ?value . # URI, literal or blank node
+    OPTIONAL {?value rdfs:label ?valueLabel . FILTER (LANG(?valueLabel) = 'en')}
+	BIND (COALESCE(?valueLabel, ?value) AS ?val_Label)
+  
+    OPTIONAL { ?statement ?pq ?qval .
+               ?pq ^wikibase:qualifier [ a wikibase:Property ] . 
+             }
+    #?pq ^wikibase:qualifier [ a wikibase:Property ] .
+  
+} GROUP BY ?property ?propertyLabel ?qval
+  VALUES (?company) {(wd:Q95)}""";
+  schema:target <https://query.wikidata.org/sparql> .

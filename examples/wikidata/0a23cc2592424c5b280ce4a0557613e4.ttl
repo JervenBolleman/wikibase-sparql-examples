@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-0a23cc2592424c5b280ce4a0557613e4> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:ProteinBoxBot/SPARQL_Examples>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -38,4 +37,24 @@ WHERE {
   }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Find drugs that treat a disease and show a link for each supporting reference
+SELECT ?disease ?diseaseLabel ?diseaseDescription ?drug ?drugLabel ?drugDescription ?link
+WHERE {
+ ?disease wdt:P1748 'C3243' . #multiple sclerosis 
+ ?disease p:P2176 ?disease_drug .  #statement about drug used for treatment
+ ?disease_drug ps:P2176 ?drug . #which drug was it in that statement...  
+ ?disease_drug prov:wasDerivedFrom ?reference . #chemblid pr:P592 , #NDF-RT P2115        
+ optional { 
+   ?reference pr:P592 ?chemblid . 
+   wd:P592 wdt:P1630 ?url .
+   BIND (replace(?url, \"\\\\$1\", ?chemblid) AS ?link)           
+ }
+ optional {
+  ?reference pr:P2115 ?NDF_RT_ID .  
+  wd:P2115 wdt:P1630 ?url .
+  BIND (replace(?url, \"\\\\$1\", ?NDF_RT_ID ) AS ?link) 
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

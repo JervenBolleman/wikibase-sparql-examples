@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-d953d867af5de7f699698a84228b4b21> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Daniel_Mietchen/TAU_people/Query>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
@@ -45,4 +44,35 @@ SELECT ?day ?count
   BIND (IF(CONTAINS(?r1, ?p), xsd:integer(?AfterString), -1) AS ?count)
   FILTER (?count > 0 )
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Stats for people from Tel Aviv University, as per 
+# https://www.wikidata.org/wiki/User:Daniel_Mietchen/TAU_people
+# which is updated about once a day by ListeriaBot
+
+#defaultView:LineChart
+SELECT ?day ?count 
+{
+  BIND (CONCAT(\" items\") AS ?p)
+#  BIND (CONCAT(\"&sum; \") AS ?r)
+  SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:api \"Generator\" ; 
+                      wikibase:endpoint \"www.wikidata.org\" ; 
+                      mwapi:generator \"allpages\" ; 
+                      mwapi:gapfrom \"Daniel_Mietchen/TAU_people\" ; 
+                      mwapi:gapto \"Daniel_Mietchen/TAU_people\" ; 
+                      mwapi:gapnamespace \"2\" ; 
+                      mwapi:prop \"revisions\" ; 
+                      mwapi:rvprop \"content|timestamp\" ; 
+                      mwapi:rvlimit \"1\" ; 
+                      mwapi:rvuser \"ListeriaBot\" .
+      ?t1 wikibase:apiOutput \"revisions/rev[1]/@timestamp\" . ?r1 wikibase:apiOutput \"revisions/rev[1]/text()\" .
+  }
+  BIND (xsd:dateTime(?t1) AS ?day)
+  FILTER (?day >= \"2018-12-31T00:00:00Z\"^^xsd:dateTime) .
+  FILTER (?day <= \"2019-02-01T00:00:00Z\"^^xsd:dateTime) .
+  BIND (STRAFTER(?r1, \"&sum; \") AS ?BeforeString) 
+  BIND (STRBEFORE(?BeforeString, ?p) AS ?AfterString) 
+  BIND (IF(CONTAINS(?r1, ?p), xsd:integer(?AfterString), -1) AS ?count)
+  FILTER (?count > 0 )
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

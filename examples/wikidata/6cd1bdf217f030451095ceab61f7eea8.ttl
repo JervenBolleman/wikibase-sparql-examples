@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-6cd1bdf217f030451095ceab61f7eea8> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -37,4 +36,27 @@ WHERE {
   # show label in simplified Chinese (zh-hans) as default, and English when no default label exists
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"zh-hans,en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# find matrilineal ancestors and matrilineal descendants of Empress Elisabeth of Austria (Sissi)
+#defaultView:Graph
+SELECT DISTINCT ?maternal ?maternalLabel ?birthdate ?image ?mother ?motherLabel ?edgeLabel
+WHERE {
+  # define ?maternal as Sissi (Q150782)'s matrilineal ancestors (any mother (P25)'s mother's...),
+  {wd:Q150782 wdt:P25* ?maternal}
+  # OR matrilineal descendants (those whose any mother (P25)'s mother's... is Sissi (Q150782))
+  UNION {?maternal wdt:P25* wd:Q150782;
+                  # and gender (P21) is female (Q6581072)
+                   wdt:P21 wd:Q6581072}
+  # optional: define ?maternal's mother (P25) as ?mother
+  OPTIONAL {?maternal wdt:P25 ?mother.
+           # show mother (P25) on graph edges
+           ?edge wikibase:directClaim wdt:P25;
+               a wikibase:Property}
+  # optional: show ?maternal's birthdate (P569), which only appears in table, not graph
+  OPTIONAL {?maternal wdt:P569 ?birthdate}
+  # optional: show ?maternal's image (P18), which appears directly in graph, and as link in table
+  OPTIONAL {?maternal wdt:P18 ?image}
+  # show label in simplified Chinese (zh-hans) as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"zh-hans,en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

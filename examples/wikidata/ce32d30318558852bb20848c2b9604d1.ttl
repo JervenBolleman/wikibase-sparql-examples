@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-ce32d30318558852bb20848c2b9604d1> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Toni_001>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdtn: <http://www.wikidata.org/prop/direct-normalized/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -61,4 +60,49 @@ where {
   }
   optional { ?const wdt:P7007 ?wl . }
   optional { ?const wdt:P7825 ?ucum . }
-} group by ?const""" .
+} group by ?const""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """select
+  ?const
+  (sample(?label) as ?label)
+  (sample(?symbol) as ?symbol)
+  (sample(?value) as ?value)
+  (sample(?unit) as ?unit)
+  (sample(?codata) as ?codata)
+  (sample(?qudt) as ?qudt)
+  (sample(?wl) as ?wl)
+  (sample(?ucum) as ?ucum)
+where {
+  ?const wdt:P31 wd:Q173227 .
+  optional { ?const rdfs:label ?label . filter (lang(?label) = \"en\") }
+  optional { ?const wdt:P7973 ?symbol . }
+  optional {
+    ?const p:P1181 [
+      a wikibase:BestRank ;
+      psv:P1181 [ wikibase:quantityAmount ?value ; wikibase:quantityUnit / wdt:P5061 ?unit ] ;
+    ] .
+    filter (lang(?unit) = \"en\")
+  }
+  optional {
+    ?const wdt:P1645 ?codataVal .
+    wd:P1645 wdt:P1630 ?codataTemplate .
+    bind (
+      strdt(
+        concat(\"<\", \"math><mtext href='\", replace(?codataTemplate, \"\\\\$1\", ?codataVal), \"'>\", ?codataVal, \"</mtext></math>\"),
+        <http://www.w3.org/1998/Math/MathML>
+      ) as ?codata
+    )
+  }
+  optional {
+    ?const wdt:P2968 ?qudtVal .
+    ?const wdtn:P2968 ?qudtURI .
+    bind (
+      strdt(
+        concat(\"<\", \"math><mtext href='\", str(?qudtURI), \"'>\", ?qudtVal, \"</mtext></math>\"),
+        <http://www.w3.org/1998/Math/MathML>
+      ) as ?qudt
+    )
+  }
+  optional { ?const wdt:P7007 ?wl . }
+  optional { ?const wdt:P7825 ?ucum . }
+} group by ?const""";
+  schema:target <https://query.wikidata.org/sparql> .

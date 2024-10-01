@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-fcdbb76bea7a57a82ef66880390ca4ce> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Dipsacus_fullonum>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -61,4 +60,51 @@ include %files
 optional {?file wdt:P1259 ?coord1 .}
 optional {?file wdt:P9149 ?coord2 .}
 bind((coalesce(?coord2,?coord1)) as ?coord ) filter(bound(?coord)) .
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?file ?coord WITH {
+SELECT ?out ?depth WHERE {
+  SERVICE <https://query.wikidata.org/bigdata/namespace/categories/sparql>
+  {
+    SERVICE mediawiki:categoryTree
+     { bd:serviceParam mediawiki:start <https://commons.wikimedia.org/wiki/Category:Schools_in_Liberec_District> .
+       bd:serviceParam mediawiki:direction \"Reverse\" .
+       bd:serviceParam mediawiki:depth 3 .} 
+  } 
+} ORDER BY ASC(?depth) } as %categories WITH {
+  
+  SELECT ?out ?depth ?title ?member ?ns ?contentUrl WHERE {
+    
+include %categories
+        
+SERVICE <https://query.wikidata.org/sparql> {  
+?out schema:name ?title .
+SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:endpoint \"commons.wikipedia.org\";
+                     wikibase:api \"Generator\";
+                     mwapi:generator \"categorymembers\";
+                     mwapi:gcmtitle ?title;
+                     mwapi:gcmlimit \"max\".
+    
+     ?member wikibase:apiOutput mwapi:title.
+     ?ns wikibase:apiOutput \"@ns\".
+                        }
+    BIND (CONCAT(\"http://commons.wikimedia.org/wiki/Special:FilePath/\",REPLACE(SUBSTR(STR(?member),6),\" \",\"_\")) as ?image) .
+    BIND (REPLACE(wikibase:decodeUri(SUBSTR(STR(?image), 52)), \" \", \"_\") AS ?filename)
+    BIND (REPLACE(SUBSTR(STR(?image), 52), \"%20\", \"_\") AS ?filenameUnencoded)
+    BIND (MD5(?filename) AS ?MD5)
+    BIND (URI(CONCAT(\"https://upload.wikimedia.org/wikipedia/commons/\", SUBSTR(?MD5, 1, 1), \"/\", SUBSTR(?MD5, 1, 2), \"/\", ?filenameUnencoded)) As ?contentUrl)
+FILTER (?ns = \"6\")
+ } } } as %images WITH {
+  select * WHERE {
+include %images  
+
+?file schema:contentUrl ?contentUrl .
+
+  } } as %files where {
+  
+include %files
+optional {?file wdt:P1259 ?coord1 .}
+optional {?file wdt:P9149 ?coord2 .}
+bind((coalesce(?coord2,?coord1)) as ?coord ) filter(bound(?coord)) .
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

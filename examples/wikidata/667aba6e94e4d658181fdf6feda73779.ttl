@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-667aba6e94e4d658181fdf6feda73779> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Luckyz/MilanParks>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -41,4 +40,30 @@ WHERE
 }
 GROUP BY ?item ?itemLabel 
 ORDER BY ?prize_date_""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT
+  ?item ?itemLabel 
+  (GROUP_CONCAT(DISTINCT ?countryLabel; separator=\", \") as ?country_ ) 
+  (GROUP_CONCAT(DISTINCT ?coordLabel; separator=\", \") as ?coord_ )
+  (GROUP_CONCAT(DISTINCT ?nameAfterLabel; separator=\", \") as ?nameAfter_ ) 
+
+WHERE
+{
+   
+    ?item  wdt:P31 wd:Q22746 . 
+    ?item wdt:P131 wd:Q490 .
+    OPTIONAL { ?item wdt:P138 ?nameAfter }  
+    OPTIONAL { ?item  wdt:P625 ?coord } 
+    OPTIONAL { ?item  wdt:P17  ?country } 
+ 
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"it,[AUTO_LANGUAGE],en\" .
+                           ?item rdfs:label ?itemLabel .
+                           ?occupation rdfs:label ?occupationLabel .
+                           ?coord rdfs:label ?coordLabel .
+                           ?country rdfs:label ?countryLabel . 
+                           ?nameAfter rdfs:label ?nameAfterLabel . 
+                           }
+}
+GROUP BY ?item ?itemLabel 
+ORDER BY ?prize_date_""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

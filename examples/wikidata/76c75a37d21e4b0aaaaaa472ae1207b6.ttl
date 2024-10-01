@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-76c75a37d21e4b0aaaaaa472ae1207b6> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:YanikB/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -39,4 +38,27 @@ SELECT DISTINCT ?item ?itemLabel ?riveLabel ?confluentLabel ?locationLabel ?loca
 }
 ORDER BY (?itemLabel) 
 LIMIT 500""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?itemLabel ?riveLabel ?confluentLabel ?locationLabel ?locationCoord ?sourceLabel ?sourceLocationLabel ?sourceCoord ?longueur 
+  WHERE { {?item (wdt:P403)* wd:Q203862 }                  # rivière Saint-Maurice
+    OPTIONAL {?item p:P403 [ pq:P31 ?rive ] }              # qualificatif rive de la confluence
+    OPTIONAL {?item wdt:P403 ?confluent }
+    OPTIONAL {?item p:P403 [ pq:P131 ?location ] }         # qualificatif unité administrative   
+    OPTIONAL {?item p:P403 [ pq:P625 ?locationCoord ] }    # qualificatif coordonnés de la confluence 
+    OPTIONAL {?item wdt:P885 ?source }
+    OPTIONAL {?item p:P885 [ pq:P131 ?sourceLocation ] }              
+    OPTIONAL {?item p:P885 [ pq:P625 ?sourceCoord ] }                
+    OPTIONAL {?item wdt:P885 ?tempCo .                     # Chercher les coordonnées de la source
+              ?tempCo wdt:P625 ?sourceCoord }              
+    OPTIONAL {?item wdt:P885 ?tempLoc .                    # Chercher la localisation de la source
+              ?tempLoc wdt:P131 ?sourceLocation }
+    OPTIONAL {?item wdt:P131 ?location }
+    OPTIONAL {?item wdt:P131 ?sourceLocation } 
+    OPTIONAL {?item wdt:P3871 ?rive } 
+    OPTIONAL {?item wdt:P625 ?locationCoord }
+    OPTIONAL {?item wdt:P2043 ?longueur } .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\" . }  # français sinon anglais
+}
+ORDER BY (?itemLabel) 
+LIMIT 500""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-9ece6690f5073193e5c1368902665ac6> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/collections>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -32,4 +31,18 @@ WHERE {
 }
 GROUP BY ?q ?qLabel ?iiif ?sitecount
 ORDER BY DESC(?sitecount)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?q ?qLabel (GROUP_CONCAT(DISTINCT ?collectionLabel; separator=\"; \") AS ?where)
+(URI(CONCAT('https://tools.wmflabs.org/mirador/?manifest=', STR(?iiif))) AS ?iiiflink)
+WHERE { 
+  ?q (wdt:P31/wdt:P279*) wd:Q87167; wdt:P6108 ?iiif; wikibase:sitelinks ?sitecount FILTER(?sitecount > 0)
+?q p:P195 ?s. ?s ps:P195 ?collection . MINUS {?s pq:P582 []}.
+      MINUS {?s ps:P195 wd:Q1322278 }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?q rdfs:label ?qLabel. ?collection rdfs:label ?collectionLabel
+    }
+}
+GROUP BY ?q ?qLabel ?iiif ?sitecount
+ORDER BY DESC(?sitecount)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

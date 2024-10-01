@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-1583d95547cc2a4657752e64d91d0244> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Glrx>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -46,4 +45,32 @@ SELECT ?person ?personLabel ?timeCaptain ?timeDeath ?threeID WHERE {
   }
 }
 ORDER BY ?timeDeath""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Find a person
+SELECT ?person ?personLabel ?timeCaptain ?timeDeath ?threeID WHERE {
+  BIND(\"1800-12-01\"^^xsd:dateTime AS ?dateDeath) .
+  ?person wdt:P31 wd:Q5 .
+  
+  # ?person wdt:P570 ?dateDeath .
+  
+  # Three Decks person ID
+  ?person wdt:P7389 ?threeID .
+
+  # ?person wdt:P410 ?rank .
+  
+  optional {
+    ?person wdt:P570 ?timeDeath .
+    } .
+  
+  optional {
+      ?person p:P410 ?stmtCaptain .
+      ?stmtCaptain ps:P410 wd:Q5036514 .
+      ?stmtCaptain pq:P580 ?timeCaptain .
+    } .
+  
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+  }
+}
+ORDER BY ?timeDeath""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

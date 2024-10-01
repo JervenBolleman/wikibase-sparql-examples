@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8701c7f76428ebf5472e649aa1b3bb85> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Bouzinac/Trains>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -31,4 +30,19 @@ SELECT ?metroline ?metrolineLabel ?endpoints ?carte_d_itin_raire WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
   OPTIONAL { ?metroline wdt:P15 ?carte_d_itin_raire. }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?metroline ?metrolineLabel ?endpoints ?carte_d_itin_raire WHERE {
+  {
+    SELECT ?metroline (COUNT(?endpoint_statement) AS ?endpoints) WHERE {
+      ?metroline wdt:P31 wd:Q15079663;
+        p:P559 ?endpoint_statement.
+      ?endpoint_statement a wikibase:BestRank.
+      FILTER NOT EXISTS { ?endpoint_statement pq:P582 []. }
+    } 
+    GROUP BY ?metroline 
+    HAVING (?endpoints > 2 )
+  } 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  OPTIONAL { ?metroline wdt:P15 ?carte_d_itin_raire. }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

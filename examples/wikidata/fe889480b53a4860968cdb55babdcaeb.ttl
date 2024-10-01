@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-fe889480b53a4860968cdb55babdcaeb> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_France/Communes/Liste_des_communes_avec_les_divisions_administratives>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -71,4 +70,60 @@ WHERE {
     FILTER ( !BOUND(?dateDébutNom) || ?dateDébutNom <= ?dateRecherche ) # ancien nom
     FILTER ( !BOUND(?dateFinNom) || ?dateFinNom > ?dateRecherche ) # futur nom
 }
-ORDER BY (?insee)""" .
+ORDER BY (?insee)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Communes avec départements et régions. Au 1er janvier 2013, il y avait 36 681 communes en France.
+SELECT ?insee ?commune ?nom ?inseeDépartement ?département ?inseeRégion ?région
+WHERE {
+  BIND ( \"2013-01-01\"^^xsd:dateTime as ?dateRecherche ) # Au 1er janvier 2013
+  ?commune p:P374 ?P374node . # existence d'un code Insee
+    ?P374node ps:P374 ?insee . # valeur du code Insee
+    OPTIONAL { ?P374node pq:P580 ?dateDébutCode . } # date de début du code Insee
+    OPTIONAL { ?P374node pq:P582 ?dateFinCode . } # date de fin du code Insee
+    FILTER ( !BOUND(?dateDébutCode) || ?dateDébutCode <= ?dateRecherche ) # ancien code Insee
+    FILTER ( !BOUND(?dateFinCode) || ?dateFinCode > ?dateRecherche ) # futur code Insee
+  {
+    ?commune wdt:P31 wd:Q484170 .  # nature de commune
+    OPTIONAL { ?commune wdt:P571 ?dateCréation . } # date de création
+    OPTIONAL { ?commune wdt:P576 ?dateDissolution . } # date de dissolution
+
+    ?département wdt:P2586 ?inseeDépartement. # code Insee du département
+    ?commune p:P131 ?P131nodeDépartement .
+    ?P131nodeDépartement ps:P131 ?département .  # valeur du département
+    MINUS { ?P131nodeDépartement pq:P1013 wd:Q583865 . } # département collectivité
+    OPTIONAL { ?P131nodeDépartement pq:P580 ?dateDébutDépartement . } # date de début du département
+    OPTIONAL { ?P131nodeDépartement pq:P582 ?dateFinDépartement . } # date de fin du département 
+  
+   { 
+    ?région wdt:P2585 ?inseeRégion. # code Insee de la région
+    ?commune p:P131 ?P131nodeRégion .
+    ?P131nodeRégion ps:P131 ?région .  # valeur de la région
+      }
+    UNION { 
+    ?région wdt:P2585 ?inseeRégion. # code Insee de la région
+    ?département p:P131 ?P131nodeRégion . 
+    ?P131nodeRégion ps:P131 ?région .  # valeur de la région
+      }
+    OPTIONAL { ?P131nodeRégion pq:P580 ?dateDébutRégion . } # date de début de la région
+    OPTIONAL { ?P131nodeRégion pq:P582 ?dateFinRégion . } # date de fin de la région
+  
+     }   
+    UNION { VALUES (?commune ?inseeDépartement ?inseeArrondissement ?inseeRégion ?région) {(wd:Q90 \"75\" \"751\" \"11\" wd:Q13917)} } # Paris 
+  
+    FILTER ( !BOUND(?dateCréation) || ?dateCréation <= ?dateRecherche ) # communes futures
+    FILTER ( !BOUND(?dateDissolution) || ?dateDissolution > ?dateRecherche ) # communes passées
+    FILTER ( !BOUND(?dateDébutDépartement) || ?dateDébutDépartement <= ?dateRecherche ) # ancien département
+    FILTER ( !BOUND(?dateFinDépartement) || ?dateFinDépartement > ?dateRecherche ) # futur département 
+    FILTER ( !BOUND(?dateDébutRégion) || ?dateDébutRégion <= ?dateRecherche ) # ancienne région
+    FILTER ( !BOUND(?dateFinRégion) || ?dateFinRégion > ?dateRecherche ) # future région 
+
+  ?commune p:P1448 ?P1448node . # existence d'un nom
+    ?P1448node ps:P1448 ?nom . # valeur du nom
+    FILTER( lang(?nom)=\"fr\" ). # nom en français
+    MINUS { ?P1448node pq:P2241 ?dépréciationNom . } # nom erroné
+    OPTIONAL { ?P1448node pq:P580 ?dateDébutNom . } # date de début du nom
+    OPTIONAL { ?P1448node pq:P582 ?dateFinNom . } # date de fin du nom
+    FILTER ( !BOUND(?dateDébutNom) || ?dateDébutNom <= ?dateRecherche ) # ancien nom
+    FILTER ( !BOUND(?dateFinNom) || ?dateFinNom > ?dateRecherche ) # futur nom
+}
+ORDER BY (?insee)""";
+  schema:target <https://query.wikidata.org/sparql> .

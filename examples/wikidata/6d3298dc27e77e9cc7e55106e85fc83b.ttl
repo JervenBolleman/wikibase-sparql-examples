@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-6d3298dc27e77e9cc7e55106e85fc83b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Zygimantus/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -37,4 +36,27 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 GROUP BY ?templom ?templomLabel ?person ?personLabel ?ref ?evang ?kat ?ort""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title:Lithuanian church buildings sorted by confessions
+#defaultView:Map{\"hide\": [\"?layer\"]}
+SELECT
+?templom ?templomLabel (SAMPLE(?templomLocation) AS ?templomLocation_) (SAMPLE(?templomImage) AS ?templomImage_)
+
+(IF(?ref, \"Calvinist\" , \" \") AS ?refLabel)
+(IF(?evang, \"Lutheran\", \" \") AS ?evangLabel)
+(IF(?kat, \"Catholic\", \" \") AS ?katLabel)
+(IF(?ort, \"Eastern Orthodox\", \" \") AS ?ortLabel)
+(CONCAT(?refLabel,  ?evangLabel,  ?katLabel, ?ortLabel) AS ?layer)
+WHERE {
+  ?templom wdt:P31/wdt:P279* wd:Q16970;
+          wdt:P17 wd:Q37;
+  BIND(EXISTS { ?templom wdt:P31 wd:Q103842783. } AS ?ref)
+  BIND(EXISTS { ?templom wdt:P31 wd:Q56242275. } AS ?evang)
+  BIND(EXISTS { ?templom wdt:P31/wdt:P279* wd:Q2031836. } AS ?ort)
+  BIND(EXISTS { ?templom wdt:P31/wdt:P279* wd:Q1088552. } AS ?kat)
+  OPTIONAL { ?templom wdt:P625 ?templomLocation. }
+  OPTIONAL { ?templom wdt:P18 ?templomImage. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?templom ?templomLabel ?person ?personLabel ?ref ?evang ?kat ?ort""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

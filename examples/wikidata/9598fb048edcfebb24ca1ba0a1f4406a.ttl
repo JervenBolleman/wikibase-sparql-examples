@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-9598fb048edcfebb24ca1ba0a1f4406a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:MKar/Query>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -39,4 +38,28 @@ VALUES ?occupation { wd:Q482980 wd:Q36180 wd:Q6625963 wd:Q49757 wd:Q11774202 wd:
 }
 GROUP BY ?item ?statements ?linkcount ?itemLabel ?genderLabel ?death
 ORDER BY DESC(?death)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?statements ?linkcount ?itemLabel ?genderLabel (GROUP_CONCAT(DISTINCT ?occupationLabel; SEPARATOR = \", \") AS ?occupations) ?death
+WHERE {
+VALUES ?occupation { wd:Q482980 wd:Q36180 wd:Q6625963 wd:Q49757 wd:Q11774202 wd:Q214917 wd:Q753110 wd:Q488205 wd:Q4964182 wd:Q18939491 wd:Q1028181 wd:Q28389 wd:Q1930187 wd:Q201788 wd:Q3658608 } . #occupation: composer, poet, sculptor, writer, artist, painter
+  ?item wdt:P31 wd:Q5. # all humans
+  { ?item wdt:P19 wd:Q22048 }
+	UNION  { ?item wdt:P19 ?pob . ?pob wdt:P131* wd:Q22048 } 
+	UNION {?item wdt:P103 wd:Q33810 }
+  	UNION {?item wdt:P1412 wd:Q33810 }        
+  ?item wdt:P21 ?gender.
+  ?item wdt:P106 ?occupation.
+  ?item wdt:P570 ?death.
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?item rdfs:label ?itemLabel.
+    ?gender rdfs:label ?genderLabel.
+    ?occupation rdfs:label ?occupationLabel.
+  }
+  FILTER((YEAR(?death)) < 1959)
+  OPTIONAL { ?item wikibase:sitelinks ?linkcount. }  #count sitelinks 
+?item wikibase:statements ?statements . # for counting statements
+}
+GROUP BY ?item ?statements ?linkcount ?itemLabel ?genderLabel ?death
+ORDER BY DESC(?death)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

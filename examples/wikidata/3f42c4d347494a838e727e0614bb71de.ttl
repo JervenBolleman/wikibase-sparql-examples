@@ -1,17 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-3f42c4d347494a838e727e0614bb71de> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/04>,
-    <https://www.wikidata.org//wiki/User:Juandev/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Juandev/Queries>, <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/04>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -40,5 +38,29 @@ SELECT ?place ?location ?centerpointLoc ?placeLabel ?distance ?article ?sitelink
   bind(coalesce(?article1, ?article2) as ?article)
   
 }""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Czech settlements in radius of a specific distance from the point
+# Česká sídla (vesnice, města) v určité vzdálenosti od bodu
+SELECT ?place ?location ?centerpointLoc ?placeLabel ?distance ?article ?sitelink WHERE {
+   wd:Q2180733 wdt:P625 ?centerpointLoc . # wd stays for point (settlement) from which the radius goes - proměnná za wd je položkou (sídlem) dle Wikidat, od kterého se v učité vzdálenosti vypíší sídla
+   SERVICE wikibase:around { 
+     ?place wdt:P625 ?location . 
+     bd:serviceParam wikibase:center ?centerpointLoc .
+     bd:serviceParam wikibase:radius \"35\" . # set number of a diameter in km - číslo urči kilometrickou vzdálenost od bodu
+     bd:serviceParam wikibase:distance ?distance .
+     } 
+  ?place wdt:P2788 ?P2788.
+  optional { ?article1 schema:about ?place ;
+                      schema:isPartOf <https://cs.wikipedia.org/> . 
+             ?sitelink1 ^schema:name ?article1 .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],cs\". }
+  OPTIONAL {?place wdt:P131 ?P131 .
+            ?article2 schema:about ?P131 ;
+                     schema:isPartOf <https://cs.wikipedia.org/> . 
+            ?sitelink2 ^schema:name ?article2 .}
+  bind(coalesce(?sitelink1, ?sitelink2) as ?sitelink)
+  bind(coalesce(?article1, ?article2) as ?article)
+  
+}""";
   <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#around>,
-    <http://wikiba.se/ontology#label> .
+    <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-29ceef12b545e99d043a14254e21b7c0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Mzaki/P1114>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX prov: <http://www.w3.org/ns/prov#>
@@ -36,4 +35,24 @@ SELECT ?prop ?propLabel ?count ?sample {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"ja,en\"  }
 }
 ORDER BY DESC(?count) ASC(?propLabel)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title:Qualifier and reference properies used in P1114 statements qualified with P805:Q18204
+SELECT ?prop ?propLabel ?count ?sample {
+  {
+    SELECT ?prop (COUNT(DISTINCT ?item) AS ?count) (SAMPLE(?st) AS ?sample) {
+      ?item p:P1114 ?st .
+      ?st pq:P805 wd:Q18204 .
+      {
+        ?st ?pq ?pq_val .
+        ?prop wikibase:qualifier ?pq .
+      } UNION {
+        ?st prov:wasDerivedFrom ?refnode .
+        ?refnode ?pr ?pr_val .
+        ?prop wikibase:reference ?pr .
+      }
+    } GROUP BY ?prop
+  }.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"ja,en\"  }
+}
+ORDER BY DESC(?count) ASC(?propLabel)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

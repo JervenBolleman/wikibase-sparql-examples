@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-1c48090c7bf8ac7572af32b7a1624b89> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/10>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
@@ -41,4 +40,30 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\". }
 }
 ORDER BY ?country ?natureLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX schema: <http://schema.org/>
+
+SELECT  ?item ?itemLabel ?natureLabel ?countryLabel ?IATA ?ICAO ?FAA ?tc_cad ?DGAC ?russ
+WHERE {
+  OPTIONAL { ?item wdt:P238 ?IATA. }
+  OPTIONAL { ?item wdt:P239 ?ICAO. }
+  OPTIONAL { ?item wdt:P17 ?country. }
+  OPTIONAL { ?item wdt:P240 ?FAA. }
+  OPTIONAL { ?item wdt:P5699 ?tc_cad.}
+  OPTIONAL { ?item wdt:P5746 ?DGAC.}
+  OPTIONAL { ?item wdt:P5851 ?russ. }
+  OPTIONAL { ?item wdt:P31 ?nature. }
+  MINUS    { ?item wdt:P576 [].}                    # remove items with P576 (dissolved, abolished or demolished) as a main property
+  MINUS    { ?item (wdt:P31/wdt:P279*) wd:Q782667. } # exclude motorways where plane can land
+  MINUS    { ?item wdt:P31/wdt:P279* wd:Q44665966.} # exclude  airports being build
+  MINUS    { ?item wdt:P31/wdt:P279* wd:Q2265915.}  # exclude vol à voile
+  MINUS    { ?item wdt:P582 [].}                    # remove items with P582 (end date) as a main property
+  MINUS    { ?item a wdno:P17.}                    #exclude airports that aren't physically based in a country
+  FILTER( ?item not in 
+  (wd:Q60972, wd:Q176146, wd:Q323983, wd:Q388394, wd:Q472049, wd:Q473055, wd:Q576617, wd:Q577946, wd:Q619976, wd:Q649929, wd:Q761001, wd:Q768542, wd:Q939039, wd:Q955268, wd:Q1031829, wd:Q1032113, wd:Q1095676, wd:Q1148639, wd:Q1298115, wd:Q1338960, wd:Q1350451, wd:Q1403609, wd:Q1416857, wd:Q1433509, wd:Q1444594, wd:Q1493010, wd:Q1529149, wd:Q1636887, wd:Q1654635, wd:Q1656800, wd:Q1657595, wd:Q1658031, wd:Q1658500, wd:Q1751264, wd:Q1800787, wd:Q1836818, wd:Q1836849, wd:Q1893607, wd:Q2026702, wd:Q2360285, wd:Q2361539, wd:Q2371958, wd:Q2602457, wd:Q2663480, wd:Q2872473, wd:Q2886451, wd:Q2886460, wd:Q2886467, wd:Q2886488, wd:Q2886489, wd:Q2886504, wd:Q2886563, wd:Q2886566, wd:Q2886568, wd:Q2902833, wd:Q3196747, wd:Q3218170, wd:Q3499338, wd:Q3612693, wd:Q3635552, wd:Q3887690, wd:Q4115006, wd:Q4115518, wd:Q4257441, wd:Q4381026, wd:Q4402324, wd:Q5135044, wd:Q5365417, wd:Q5453767, wd:Q5607481, wd:Q5669602, wd:Q5721555, wd:Q5721576, wd:Q5733903, wd:Q5753943, wd:Q5754926, wd:Q6358138, wd:Q6413305, wd:Q6747097, wd:Q6906023, wd:Q7158431, wd:Q7188237, wd:Q7242494, wd:Q7274959, wd:Q7274976, wd:Q7277289, wd:Q7331905, wd:Q7368132, wd:Q7419397, wd:Q7419671, wd:Q7427836, wd:Q7580932, wd:Q7930596, wd:Q7942651, wd:Q7966282, wd:Q7969333, wd:Q7992372, wd:Q8243338, wd:Q8243340, wd:Q10822643, wd:Q10853535, wd:Q10860387, wd:Q10860397, wd:Q10860400, wd:Q10860405, wd:Q14679983, wd:Q14709491, wd:Q15221694, wd:Q17082712, wd:Q17512364, wd:Q18126343, wd:Q19406831, wd:Q19828268, wd:Q19873178, wd:Q21005896, wd:Q21016007, wd:Q56289584)
+         )#Exclude military airports sharing same IATA code 
+  FILTER( ?IATA not in ( \"LON\",\"PAR\",\"NYC\",\"TYO\",\"MOW\",\"BUH\" ,\"BUE\" ,\"CHI\", \"JKT\" ,\"MIL\", \"YMQ\" ,\"OSA\", \"RIO\" ,\"ROM\" ,\"SAO\" ,\"SPK\" ,\"SEL\", \"STO\", \"YTO\" ,\"WAS\") )  #exclude metropolitan city codes                                                
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\". }
+}
+ORDER BY ?country ?natureLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

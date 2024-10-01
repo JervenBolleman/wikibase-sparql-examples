@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-0ff740eb7517bee34cc9ebdf5d1a0ab9> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_every_politician/United_States_of_America/Archive/2021/01>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -37,4 +36,25 @@ WHERE {
   ?item wdt:P18 ?image.         # Item has Image value
   BIND(IF(?group = wd:Q29468, \"0\", IF(?group = wd:Q29552, \"1\", \"2\")) AS ?groupID)
 }
-GROUP BY ?item ?itemLabel ?layer ?district ?districtLabel ?shape ?image ?group ?groupLabel""" .
+GROUP BY ?item ?itemLabel ?layer ?district ?districtLabel ?shape ?image ?group ?groupLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
+SELECT DISTINCT 
+  ?item ?itemLabel 
+  ?district ?districtLabel 
+  ?shape 
+  (SAMPLE(?image) as ?image) 
+  ?group ?groupLabel 
+  (IF(MIN(?groupID) = \"0\", \"Republican\", IF(MIN(?groupID) = \"1\", \"Democrat\", \"Other\")) AS ?layer) 
+WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?item p:P39 ?rep.             # Item has position held statement
+  ?rep ps:P39 wd:Q13218630.     # Position held statement has Position Held value of US Representative
+  ?rep pq:P2937 wd:Q18740945.   # Position held statement has Parliamentary Term value of 115th US Congress
+  ?rep pq:P768 ?district.       # Position held statement has Electoral District value
+  ?district wdt:P3896 ?shape.   # Electoral District has Geoshape value
+  ?rep pq:P4100 ?group.         # Position held statement has Parliamentary Group value
+  ?item wdt:P18 ?image.         # Item has Image value
+  BIND(IF(?group = wd:Q29468, \"0\", IF(?group = wd:Q29552, \"1\", \"2\")) AS ?groupID)
+}
+GROUP BY ?item ?itemLabel ?layer ?district ?districtLabel ?shape ?image ?group ?groupLabel""";
+  schema:target <https://query.wikidata.org/sparql> .

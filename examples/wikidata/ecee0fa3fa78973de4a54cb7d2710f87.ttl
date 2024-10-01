@@ -1,24 +1,23 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-ecee0fa3fa78973de4a54cb7d2710f87> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/hy>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/nl>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/pt>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/zh>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/hy>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/uk>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/ru>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/fr>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/en>;
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/zh>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
@@ -61,4 +60,44 @@ SELECT ?label ?count WHERE {
     }
   }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?label ?count WHERE {
+  {
+    BIND(\"People without gender\" AS ?label)
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+                      wikibase:api \"Search\"; wikibase:limit \"once\" ;
+                      mwapi:srsearch \"haswbstatement:P31=Q5 -haswbstatement:P21\" ;
+                      mwapi:srlimit \"1\" ; mwapi:srprop \"\" ; mwapi:srsort \"none\" ; mwapi:srnamespace \"0\" .
+      ?count wikibase:apiOutput '//searchinfo[1]/@totalhits'.
+    }
+  } UNION {
+    BIND(\"Male\" AS ?label)
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+                      wikibase:api \"Search\"; wikibase:limit \"once\" ;
+                      mwapi:srsearch \"haswbstatement:P31=Q5 haswbstatement:P21=Q6581097\" ;
+                      mwapi:srlimit \"1\" ; mwapi:srprop \"\" ; mwapi:srsort \"none\" ; mwapi:srnamespace \"0\" .
+      ?count wikibase:apiOutput '//searchinfo[1]/@totalhits'.
+    }
+  } UNION {
+    BIND(\"Female\" AS ?label)
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+                      wikibase:api \"Search\"; wikibase:limit \"once\" ;
+                      mwapi:srsearch \"haswbstatement:P31=Q5 haswbstatement:P21=Q6581072\" ;
+                      mwapi:srlimit \"1\" ; mwapi:srprop \"\" ; mwapi:srsort \"none\" ; mwapi:srnamespace \"0\" .
+      ?count wikibase:apiOutput '//searchinfo[1]/@totalhits'.
+    }
+  } UNION {
+    BIND(\"Other\" AS ?label)
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+                      wikibase:api \"Search\"; wikibase:limit \"once\" ;
+                      mwapi:srsearch \"haswbstatement:P31=Q5 haswbstatement:P21 -haswbstatement:P21=Q6581097 -haswbstatement:P21=Q6581072\" ;
+                      mwapi:srlimit \"1\" ; mwapi:srprop \"\" ; mwapi:srsort \"none\" ; mwapi:srnamespace \"0\" .
+      ?count wikibase:apiOutput '//searchinfo[1]/@totalhits'.
+    }
+  }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

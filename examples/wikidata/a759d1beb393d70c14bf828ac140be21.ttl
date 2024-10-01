@@ -1,17 +1,16 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-a759d1beb393d70c14bf828ac140be21> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Bouzinac/D%C3%A9doublonnages>,
     <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/02>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -43,4 +42,32 @@ OPTIONAL {
 }
 GROUP BY ?airport ?airportLabel ?ICAO ?IATA ?localisation_administrative ?localisation_administrativeLabel
 ORDER BY ?coord""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT DISTINCT ?localisation_administrativeLabel ?airport ?airportLabel (SAMPLE(?coord) AS ?coord) ?ICAO ?IATA (SAMPLE(?Local_Code) AS ?Local_Code) WHERE {
+ ?airport (wdt:P31/wdt:P279*) wd:Q62447.
+?airport wdt:P17 wd:Q30.
+MINUS { ?airport wdt:P576 _:b2. }
+MINUS { ?airport wdt:P582 _:b3. }
+MINUS { ?airport (wdt:P31/wdt:P279*) wd:Q1311670. }
+MINUS { ?airport (wdt:P31/wdt:P279*) wd:Q7373622. }
+MINUS { ?airport (wdt:P31/wdt:P279*) wd:Q2265915. }
+MINUS { ?airport (wdt:P31/wdt:P279*) wd:Q44665966. }
+MINUS { ?airport (wdt:P31/wdt:P279*) wd:Q782667. }
+MINUS { ?airport rdf:type wdno:P17. }
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,fr,[AUTO_LANGUAGE]\". }
+OPTIONAL { ?airport wdt:P625 ?coord. }
+OPTIONAL { ?airport wdt:P239 ?ICAO. }
+OPTIONAL { ?airport wdt:P238 ?IATA. }
+OPTIONAL { ?airport wdt:P240 ?Local_Code. }
+OPTIONAL {
+?airport wdt:P131* ?localisation_administrative.
+?localisation_administrative wdt:P31 ?type.
+?type wdt:P279* wd:Q35657.
+}
+}
+GROUP BY ?airport ?airportLabel ?ICAO ?IATA ?localisation_administrative ?localisation_administrativeLabel
+ORDER BY ?coord""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

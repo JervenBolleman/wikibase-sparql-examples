@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-88911dcb1b32b47e5785b61cde1eaa67> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:T%C3%A1rsalg%C3%B3/Archive_1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -33,4 +32,22 @@ SELECT DISTINCT ?item ?itemLabel ?itemDescription   (COUNT(?sitelink) AS ?siteli
 }
 GROUP BY ?item ?itemLabel ?itemDescription
 ORDER BY DESC (?sitelinks)  # csökkenő sorrendben kerül listázásra""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# -----------------------------------------------------------------------------------------------------
+#  Azok az emberek, 
+#  - akik Magyarországhoz köthetően sportolnak, 
+#  - de nincs megadva az állampolgárságuk.
+# -----------------------------------------------------------------------------------------------------
+#  Palotabarát-nak szeretettel,  ( készült: Tacsipacsi-kódját felhasználva)
+#
+SELECT DISTINCT ?item ?itemLabel ?itemDescription   (COUNT(?sitelink) AS ?sitelinks) WHERE {
+    ?item   wdt:P1532 wd:Q28 .  # Country for sport = Hungary
+    ?item   wdt:P31   wd:Q5.    # Instance of  = Human
+    MINUS { ?item wdt:P27 ?citizenship } .  # Nincs citizenship megadva.
+    OPTIONAL { ?sitelink schema:about ?item FILTER REGEX(STR(?sitelink), \".wikipedia.org/wiki/\") } .
+    FILTER NOT EXISTS { [] schema:about ?item; schema:isPartOf <https://hu.wikipedia.org/> } .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"hu,en,de,es,fr,pt,ru,zh,jp,ceb\" }
+}
+GROUP BY ?item ?itemLabel ?itemDescription
+ORDER BY DESC (?sitelinks)  # csökkenő sorrendben kerül listázásra""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

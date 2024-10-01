@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-6fb40564a79eb73fbfca7309b243f42b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Doc_Taxon/Gambier>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -43,4 +42,33 @@ where {
   bind(coalesce(?p21_Label, \"style=\"background:#ff0000;\" |\"@en) as ?p21lLabel)
   bind(coalesce(?p27_Label, \"style=\"background:#ff0000;\" |\"@en) as ?p27lLabel)
 }
-group by ?item""" .
+group by ?item""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """select 
+  ?item
+  (group_concat(distinct ?p21lLabel; separator=\", \") as ?p21Label) 
+  (group_concat(distinct ?p27lLabel; separator=\", \") as ?p27Label) 
+where {
+  hint:Query hint:optimizer \"None\".
+  values ?item {
+    wd:Q1479520
+    wd:Q28531806
+    wd:Q54823850
+    wd:Q60063834
+    wd:Q56191866
+    wd:Q2602068
+    wd:Q204389
+    wd:Q921196
+    wd:Q30501964
+  }
+  optional {?item wdt:P21 ?p21_.}
+  optional {?item wdt:P27 ?p27_.}
+  service wikibase:label {
+    bd:serviceParam wikibase:language \"de,[AUTO_LANGUAGE]\".
+    ?p21_ rdfs:label ?p21_Label.
+    ?p27_ rdfs:label ?p27_Label.
+  } hint:Prior hint:runLast false.
+  bind(coalesce(?p21_Label, \"style=\"background:#ff0000;\" |\"@en) as ?p21lLabel)
+  bind(coalesce(?p27_Label, \"style=\"background:#ff0000;\" |\"@en) as ?p27lLabel)
+}
+group by ?item""";
+  schema:target <https://query.wikidata.org/sparql> .

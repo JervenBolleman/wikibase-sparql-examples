@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-6b7549a1071c305733df20b1a65a90f7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/01>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 SELECT * WHERE {
@@ -51,4 +50,44 @@ ORDER BY DESC(?substring1length) #order by longest first substring
 # ORDER BY DESC(?substring2length) #order by longest second substring
 
 # We still need to bind all those substrings together to be able to 
-# identify the (up to) three longest one per title""" .
+# identify the (up to) three longest one per title""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT * WHERE {
+  {
+    VALUES (?title) {
+      (\"a test string to find a way to find the longest three (or so) substrings in a given string, though I would be fine with something like MAX(?substring) as well\")
+      (\"being able to extract n-grams for n > 1 would be great too\")
+      (\" another test string that starts and ends with space characters \")
+      (\"writing documentation is useful\")
+      (\"OneWordTitleInCamelCase\")
+      (\"Thanks for your help!\")
+    }
+  }
+  UNION
+  {
+    {
+      SELECT ?title WHERE {
+        ?work wdt:P1476 ?title. # let's keep the different languages in for the moment and worry about selecting the desired ones later
+        ?work wdt:P31 wd:Q13442814 .
+        FILTER(REGEX(?title, \"\\\\s+\"))   # The workflow below assumes the presence of spaces in the title. Need a way to bring in on-word titles but let's worry about that later too.
+
+      }
+      LIMIT 10
+    }
+  }
+  BIND(STRLEN(REPLACE(?title, \" \", \"\")) AS ?titlelength)
+  
+  BIND(STRBEFORE(?title, \" \") AS ?substring1)
+  BIND(STRLEN(REPLACE(?substring1, \" \", \"\")) AS ?substring1length)
+  BIND(STRAFTER(?title, \" \") AS ?postfix)
+  BIND(STRLEN(REPLACE(?postfix, \" \", \"\")) AS ?postfixlength)
+  BIND(STRBEFORE(?postfix, \" \") AS ?substring2)
+  BIND(STRLEN(REPLACE(?substring2, \" \", \"\")) AS ?substring2length)
+  BIND(STRAFTER(?postfix, ?substring2) AS ?postsubstring2)
+  BIND(STRLEN(REPLACE(?substring2, \" \", \"\")) AS ?postsubstring2length)
+}
+ORDER BY DESC(?substring1length) #order by longest first substring
+# ORDER BY DESC(?substring2length) #order by longest second substring
+
+# We still need to bind all those substrings together to be able to 
+# identify the (up to) three longest one per title""";
+  schema:target <https://query.wikidata.org/sparql> .

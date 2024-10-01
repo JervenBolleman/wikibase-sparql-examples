@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b6b21b5007053f297ca06093698da31d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -67,4 +66,54 @@ WHERE {
   # show label in auto language as default, and English when no default label exists
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# graph of shifus and parents among xiangsheng performers (also viewable as table)
+# querying qualifiers
+#defaultView:Graph
+SELECT DISTINCT ?xiangsheng_performer ?xiangsheng_performerLabel ?birthdate ?image ?shifu_or_parent ?shifu_or_parentLabel ?edgeLabel
+WHERE {
+  # define ?xiangsheng_performer as one that has teacher (P1066) or student (P802) in the shifu-disciple relationship of xiangsheng performers (Q10436443)
+  # 1. ?xiangsheng_performer's \"teacher\" (P1066) or \"student\" (P802) statement is ?x1
+  ?xiangsheng_performer (p:P1066|p:P802) ?x1.
+  # 2. ?x1's qualifier \"criterion used\" (P1013) is shifu-disciple relationship of xiangsheng performers (Q10436443)
+  ?x1 pq:P1013 wd:Q10436443
+  # optional: show ?shifu_or_parent, which has teacher (P1066) or student (P802) in the shifu-disciple relationship of xiangsheng performers (Q10436443), same as ?xiangsheng_performer
+  # 1. ?shifu_or_parent's \"teacher\" (P1066) or \"student\" (P802) statement is ?x2
+  OPTIONAL {?shifu_or_parent (p:P1066|p:P802) ?x2.
+            # 2. ?x2's qualifier \"criterion used\" (P1013) is shifu-disciple relationship of xiangsheng performers (Q10436443)
+            ?x2 pq:P1013 wd:Q10436443
+            # ?shifu_or_parent is ?xiangsheng_performer's teacher (P1066) in the shifu-disciple relationship of xiangsheng performers (Q10436443)
+            # 1. ?xiangsheng_performer's \"teacher\" (P1066) statement is ?x3
+            { ?xiangsheng_performer p:P1066 ?x3.
+              # 2. ?x3's value is ?shifu_or_parent
+              ?x3 ps:P1066 ?shifu_or_parent;
+              # 3. ?x3's qualifier \"criterion used\" (P1013) is shifu-disciple relationship of xiangsheng performers (Q10436443)
+                  pq:P1013 wd:Q10436443} 
+            # OR ?shifu_or_parent is ?xiangsheng_performer's father (P22) or mother (P25)
+            ### Note: UNION has to be used. If divided into two OPTIONALs and not using UNION,
+            ### when an optional variable (?shifu_or_parent or ?edge) has values in both OPTIONALs, i.e.,
+            ### a xiangsheng performer (?xiangsheng_performer) has both teacher(s) in shifu-disciple relationship (P1066 qualified by Q10436443) and father/mother (P22/P25)
+            ### as optional variable ?shifu_or_parent (even if ?edge is removed) 
+            ### or as optional variable ?edge (even if ?shifu_or_parent is split into ?shifu and ?parent),
+            ### only those in the first OPTIONAL can be shown (sequence matters!).
+            UNION {?xiangsheng_performer (wdt:P22|wdt:P25) ?shifu_or_parent}
+            # to avoid showing any other relation,
+            # define ?relation as teacher (P1066) or father (P22) or mother (P25)
+            ### Note: When property is used as main value in the form of \"p\" and \"ps\" (as P1066 in this query), the property label can be got as a normal main value (wdt).
+            ### When property is used as qualifier (pq), the property label can not be got (see previous query \"Graph of position holders by succession: presidents of the United States\"), and
+            ### it doesn't work to define ?relation as a group of properties from ?a to ?b and get ?relation's property label. However,
+            ### UNION can be used for more than one edgeLabel to solve the issue, which does not exist in this query. 
+            VALUES ?relation {wdt:P1066 wdt:P22 wdt:P25}
+            # ?relation is from ?xiangsheng_performer to ?shifu_or_parent
+            ?xiangsheng_performer ?relation ?shifu_or_parent.
+            # get ?relation's property label and allow it to appear on graph edge
+            ?edge wikibase:directClaim ?relation;
+                a wikibase:Property}
+  # optional: show ?xiangsheng_performer's birthdate (P569), which only appears in table, not graph
+  OPTIONAL {?xiangsheng_performer wdt:P569 ?birthdate}
+  # optional: show ?xiangsheng_performer's image (P18), which appears directly in graph, and as link in table
+  OPTIONAL {?xiangsheng_performer wdt:P18 ?image}
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-9032bf98f897af3a04a1bc235f7eb8bc> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_COVID-19/Queries/SPARQL_Study>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
@@ -104,4 +103,96 @@ WITH
 WHERE {
   INCLUDE %ngrams 
   # Exclude Ngrams starting or ending with any of a set of blacklisted words
-  BIND(\"(a""" .
+  BIND(\"(a""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:BubbleChart
+# Most frequent n-grams from a random set of 1000 COVID-19 publications
+SELECT DISTINCT ?Ngram ?Score
+
+WITH
+{ # Generating a list of entities to be analyzed
+  SELECT ?Publication
+   { 
+      SERVICE bd:sample { ?Publication wdt:P921 wd:Q84263196 . bd:serviceParam bd:sample.limit 1000 }   
+   }
+} AS %items 
+WITH
+{ # Preprocessing the titles
+  SELECT ?Title ?Publication ?Seeds ?ClearTitleLength
+   { 
+      INCLUDE %items
+      ?Publication wdt:P1476 ?Title.
+      BIND (REPLACE(STR(?Title),\"[\\\\.:,;\\\\[\\\\]\\\\?()$]\",\"\") AS ?ClearTitle) # remove some frequent special characters, including colons and semicolons
+      BIND(STRLEN(?ClearTitle) AS ?ClearTitleLength) 
+      FILTER(LANG(?Title)=\"en\") 
+      # Basic processing of the titles
+      BIND (\"::: ::: ::: ::: ::: ::: ::: ::: \" AS ?StartCodon)
+      BIND (\" ;;; ;;; ;;; ;;; ;;; ;;; ;;; ;;;\" AS ?StopCodon)
+      BIND (LCASE(CONCAT(?StartCodon , # add start codon of colons to assist with processing of n-grams at beginning of title
+                            ?ClearTitle, 
+                            ?StopCodon)) # add stop codon of semicolons to assist with processing of n-grams at end of title
+                     AS ?Seeds )
+   }
+} AS %titles 
+WITH
+{ # Generating a list of regexes to look for the NumericValue-th word in a string     
+  # Based on https://w.wiki/KG$ by Jura1
+  SELECT ?Regex1 ?Regex2 ?Regex3 ?Regex4 ?NumericValue 
+    { 
+      ?NumberItem wdt:P5176 []; wdt:P1181 ?NumericValue . 
+      FILTER( ?NumericValue > 0 ) 
+      FILTER( ?NumericValue < 151)
+      BIND(\"^([^ ]+ ){\" AS ?RegexStart)
+      BIND(\"}([^ ]+) .*\" AS ?RegexEnd)
+      BIND( CONCAT( ?RegexStart , STR( ?NumericValue - 1 ), ?RegexEnd ) AS ?Regex1)
+      BIND( CONCAT( ?RegexStart , STR( ?NumericValue + 1 ), ?RegexEnd ) AS ?Regex2) 
+      BIND( CONCAT( ?RegexStart , STR( ?NumericValue + 3 ), ?RegexEnd ) AS ?Regex3) 
+      BIND( CONCAT( ?RegexStart , STR( ?NumericValue + 5 ), ?RegexEnd ) AS ?Regex4) 
+    }
+} AS %regexes 
+WITH
+{ # Applying the regexes to the titles to extract ngrams (for n <= 8), and counting occurrences of the ngrams across titles
+  SELECT 
+    DISTINCT ?Ngram 
+    (COUNT(DISTINCT ?Title) AS ?Count)
+    ?Length
+    (( ?Count * ?Length ) AS ?Score)
+    (SAMPLE(DISTINCT ?Publication) AS ?ExamplePub)
+      { 
+        INCLUDE %regexes
+        INCLUDE %titles
+        BIND( 
+          (CONCAT(
+            REPLACE(?Seeds, ?Regex1, \"$1\"), \" \", 
+            REPLACE(?Seeds, ?Regex1, \"$2\"), \" \", 
+            REPLACE(?Seeds, ?Regex2, \"$1\"), \" \", 
+            REPLACE(?Seeds, ?Regex2, \"$2\"), \" \", 
+            REPLACE(?Seeds, ?Regex3, \"$1\"), \" \", 
+            REPLACE(?Seeds, ?Regex3, \"$2\"), \" \", 
+            REPLACE(?Seeds, ?Regex4, \"$1\"), \" \", 
+            REPLACE(?Seeds, ?Regex4, \"$2\")
+          )
+        ) AS ?NgramCandidate) 
+                            
+        BIND( 
+          (REPLACE
+           (REPLACE
+            (REPLACE
+             (REPLACE
+              (STR(?NgramCandidate),\"([;:])\",\"\"),
+              \"(^\\\\s+)\",\"\"),
+             \"(\\\\s+$)\",\"\"),
+            \"([ ]{2,})\",\" \")
+          ) AS ?Ngram) 
+
+        BIND(STRLEN(?Ngram) AS ?Length) 
+        FILTER (?Length > 3 )  
+        FILTER (?Length <= ?ClearTitleLength )  
+      }
+  GROUP BY ?Ngram ?Count ?Length ?Score ?ExamplePub
+  HAVING(?Count > 4)
+} AS %ngrams 
+WHERE {
+  INCLUDE %ngrams 
+  # Exclude Ngrams starting or ending with any of a set of blacklisted words
+  BIND(\"(a""";
+  schema:target <https://query.wikidata.org/sparql> .

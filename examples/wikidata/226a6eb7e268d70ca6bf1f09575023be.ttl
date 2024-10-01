@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-226a6eb7e268d70ca6bf1f09575023be> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Brochon99/M%C3%A9moire>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -34,4 +33,22 @@ SELECT ?item ?itemLabel (GROUP_CONCAT(DISTINCT ?occupationLabel; SEPARATOR=\", \
        ?country rdfs:label ?countryLabel .
    } .
 } GROUP BY ?item ?itemLabel ORDER BY ?countries""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel (GROUP_CONCAT(DISTINCT ?occupationLabel; SEPARATOR=\", \") AS ?occupations) (GROUP_CONCAT(DISTINCT ?countryLabel; SEPARATOR=\", \") AS ?countries) {
+  VALUES ?occupation {wd:Q19509201} . 
+   ?item wdt:P31 wd:Q5;
+               wdt:P27 ?country;
+               wdt:P27 ?target_country;
+               wdt:P106 ?occupation .
+    FILTER NOT EXISTS {
+    ?article schema:about ?item .
+    ?article schema:isPartOf <https://fr.wikipedia.org/> .
+  }
+   SERVICE wikibase:label {
+       bd:serviceParam wikibase:language \"fr,en\" .
+       ?item rdfs:label ?itemLabel .
+       ?occupation rdfs:label ?occupationLabel .
+       ?country rdfs:label ?countryLabel .
+   } .
+} GROUP BY ?item ?itemLabel ORDER BY ?countries""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

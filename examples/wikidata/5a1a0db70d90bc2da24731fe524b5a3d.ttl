@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-5a1a0db70d90bc2da24731fe524b5a3d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/07>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
@@ -31,4 +30,21 @@ SELECT ?lang ?name ?itemLabel ?sitelink ?linkcount ?item WHERE {
 }
 ORDER BY DESC(?linkcount)
 LIMIT 100                           #for testing""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Get all articles from the Wikipedia: namespace of all language editions with 10 or more sitelinks
+#  adapted from \"Get all Featured Articles (Q17437796)\" (https://www.wikidata.org/wiki/Wikidata:SPARQL_query_service/queries/examples#Featured_articles_of_all_Wikimedia_projects)
+SELECT ?lang ?name ?itemLabel ?sitelink ?linkcount ?item WHERE {
+  ?item wikibase:sitelinks ?linkcount 
+    .
+  ?sitelink schema:name ?name
+    ; schema:inLanguage ?lang
+    ; schema:about ?item
+    .
+    #;wikibase:badge wd:Q17437796.  # Comment this in (from original example) and the query works
+  FILTER (?linkcount >= 394) .      # For smaller queries, I've been testing with 394  (max is 395) instead of 10
+  FILTER (CONTAINS(?name, 'Wikipedia:')) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } # Must this change outside of main namespace?
+}
+ORDER BY DESC(?linkcount)
+LIMIT 100                           #for testing""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

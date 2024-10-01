@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-e6fe75ea7b1f6f7efe152aec1fd578c9> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Hospitals/Report/Potsdam>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -60,5 +59,50 @@ WHERE
   BIND(geof:distance(?centerLocation, ?hospitalLocation) as ?dist)
 } 
 ORDER BY ?dist""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?hospital ?hospitalLabel ?dist
+WHERE
+{
+  #use Potsdam main station as our location
+  wd:Q647973 wdt:P625 ?centerLocation.
+  
+  #get all locations in within a 3 kilometer radius
+  SERVICE wikibase:around {
+      ?hospital wdt:P625 ?hospitalLocation.
+      bd:serviceParam wikibase:center ?centerLocation.
+      bd:serviceParam wikibase:radius \"3\".
+  }
+  
+  #get all hospitals within the radius of our center
+  {
+    ?hospital wdt:P31 wd:Q16917; #hospital
+  }
+  UNION 
+  { 
+    ?hospital wdt:P31 wd:Q1774898; #clinic
+  }
+  UNION 
+  { 
+    ?hospital wdt:P31 wd:Q7309759; #rehabilitation hospital 
+  }
+  UNION 
+  { 
+    ?hospital wdt:P31 wd:Q644264; #children hospital
+  }
+  UNION 
+  { 
+    ?hospital wdt:P31 wd:Q1391390; #specialist hospital
+  }
+  UNION 
+  { 
+    ?hospital wdt:P31 wd:Q39364723; #hospital building 
+  }
+
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+  #calculate the distance between our center and each hospital
+  BIND(geof:distance(?centerLocation, ?hospitalLocation) as ?dist)
+} 
+ORDER BY ?dist""";
   <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#around>,
-    <http://wikiba.se/ontology#label> .
+    <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

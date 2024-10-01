@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-d29e8736877c504ba26724d328fd7620> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Taravyvan_Adijene/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -29,4 +28,18 @@ SELECT ?чалавек ?чалавекLabel ?датаНараджэньня ?д�
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],be-tarask,uk,pl,en,ru\". }   # фарматаваньне метак вываду
 }
 ORDER BY DESC(?інтэрвікі) DESC(?датаСьмерці) ?чалавек""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# нядаўна памерлыя асобы паводле папулярнасьці
+SELECT ?чалавек ?чалавекLabel ?датаНараджэньня ?датаСьмерці ?чалавекDescription ?інтэрвікі ?сьцьверджаньні ?вонкавыяІД
+{
+  ?чалавек wdt:P570 ?датаСьмерці
+  FILTER ( ?датаСьмерці > (now()-\"P30D\"^^xsd:duration) && ?датаСьмерці < now() )
+  ?чалавек wdt:P31 wd:Q5 .                                                        # толькі людзі
+  OPTIONAL { ?чалавек wdt:P569 ?датаНараджэньня. }
+  OPTIONAL { ?чалавек wikibase:statements ?сьцьверджаньні }
+  OPTIONAL { ?чалавек wikibase:sitelinks ?інтэрвікі }
+  OPTIONAL { ?чалавек wikibase:identifiers ?вонкавыяІД }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],be-tarask,uk,pl,en,ru\". }   # фарматаваньне метак вываду
+}
+ORDER BY DESC(?інтэрвікі) DESC(?датаСьмерці) ?чалавек""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

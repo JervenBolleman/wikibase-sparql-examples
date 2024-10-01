@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-a73c40bc1f6aa9b7d04bfb61f354da74> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Iceman1415/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -32,4 +31,22 @@ SELECT ?item ?itemLabel ?mediumLabel WHERE {
   ?item wdt:P31 ?medium.
 }
 ORDER BY (?item)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title:items that are both a manga series and an anime tv series
+SELECT ?item ?itemLabel ?mediumLabel WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  
+  {
+    SELECT ?item (COUNT(?medium) AS ?count) WHERE {
+      VALUES ?medium {wd:Q21198342 wd:Q63952888 wd:Q220898 wd:Q20650540 wd:Q7889}
+      ?item wdt:P31 ?medium.
+    }
+    GROUP BY ?item
+    HAVING (?count > 1 )
+  }
+  
+  VALUES ?medium {wd:Q21198342 wd:Q63952888 wd:Q220898 wd:Q20650540 wd:Q7889}
+  ?item wdt:P31 ?medium.
+}
+ORDER BY (?item)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

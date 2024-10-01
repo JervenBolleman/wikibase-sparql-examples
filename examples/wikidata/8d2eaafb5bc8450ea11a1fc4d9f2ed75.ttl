@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8d2eaafb5bc8450ea11a1fc4d9f2ed75> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -38,4 +37,25 @@ SELECT ?organism ?organism_name ?compound ?compound_inchi (GROUP_CONCAT(DISTINCT
   FILTER(((YEAR(?reference_date)) >= 2014 ) && ((YEAR(?reference_date)) <= 2019 ))
 }
 GROUP BY ?organism ?organism_name ?compound ?compound_inchi ?isolation_reference ?reference_title
-LIMIT 100000""" .
+LIMIT 100000""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title: Which compounds with known bioactivities were isolated from Actinomycetes (Q62606918), between 2014 and 2019, with related organisms and references?
+SELECT ?organism ?organism_name ?compound ?compound_inchi (GROUP_CONCAT(DISTINCT ?meshLabel; SEPARATOR = \"|\") AS ?bioactivities) ?isolation_reference ?reference_title WHERE {
+  ?organism (wdt:P171*) wd:Q62606918;
+    wdt:P225 ?organism_name.
+  ?compound wdt:P234 ?compound_inchi;
+    p:P703 ?statement;
+    (wdt:P2868/wdt:P486) ?meshId.
+  ?statement wikibase:rank wikibase:NormalRank.
+  ?mesh wdt:P486 ?meshId;
+    rdfs:label ?meshLabel.
+  FILTER(LANGMATCHES(LANG(?meshLabel), \"EN\"))
+  ?statement ps:P703 ?organism;
+    prov:wasDerivedFrom ?ref.
+  ?ref pr:P248 ?isolation_reference.
+  ?isolation_reference wdt:P1476 ?reference_title;
+    wdt:P577 ?reference_date.
+  FILTER(((YEAR(?reference_date)) >= 2014 ) && ((YEAR(?reference_date)) <= 2019 ))
+}
+GROUP BY ?organism ?organism_name ?compound ?compound_inchi ?isolation_reference ?reference_title
+LIMIT 100000""";
+  schema:target <https://query.wikidata.org/sparql> .

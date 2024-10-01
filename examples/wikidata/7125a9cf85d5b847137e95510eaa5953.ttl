@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-7125a9cf85d5b847137e95510eaa5953> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -37,4 +36,27 @@ WHERE {
   # show label in auto language as default, and English when no default label exists
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# graph of the Qin dynasty's extended parent/child countries (also viewable as table)
+# a country's parent and child countries are those that this country replaces and is replaced by
+# a country's extended parent/child countries are all the ones on this country's parent/child lines
+#defaultView:Graph
+SELECT DISTINCT ?country ?countryLabel ?successor ?successorLabel ?edgeLabel
+WHERE {
+  # define ?country as the Qin dynasty (Q7183)'s extended parent/child countries, i.e., Q7183's any replaces (P1365) or replaced by (P1366)'s replaces or replaced by...
+  wd:Q7183 (wdt:P1365|wdt:P1366)* ?country.
+  # ?country is instance of (P31) any subclass of (/wdt:P279*) ?x
+  ?country wdt:P31/wdt:P279* ?x
+  # define ?x as country (Q6256) and historical country (Q3024240)
+  VALUES ?x {wd:Q6256 wd:Q3024240}
+  # optional: show ?country's replaced by (P1366) as ?successor
+  OPTIONAL {?country wdt:P1366 ?successor.
+  # ?successor is instance of (P31) any subclass of (/wdt:P279*) ?x
+            ?successor wdt:P31/wdt:P279* ?x.
+  # get P1366 (replaced by)'s property label and allow it to appear on graph edge
+            ?edge wikibase:directClaim wdt:P1366;
+               a wikibase:Property}
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

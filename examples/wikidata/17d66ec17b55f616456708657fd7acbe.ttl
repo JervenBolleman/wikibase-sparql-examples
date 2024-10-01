@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-17d66ec17b55f616456708657fd7acbe> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2016/10>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -33,4 +32,22 @@ WHERE {
     ?material rdfs:label ?materialLabel .
   } .
 } GROUP BY ?work ?workLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT
+  ?work ?workLabel (GROUP_CONCAT(DISTINCT ?instanceLabel; separator=\", \") AS ?inst)
+  (GROUP_CONCAT(DISTINCT STR(YEAR(?date)); separator=\", \") AS ?date)
+  (GROUP_CONCAT(DISTINCT ?materialLabel; separator=\", \") AS ?mater) (SAMPLE(?image) AS ?image)
+WHERE {
+  ?work wdt:P170 wd:Q5547;
+        wdt:P31 ?instance;
+        wdt:P571 ?date;
+        wdt:P186 ?material;
+        wdt:P18 ?image .
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en,fr\" .
+    ?work rdfs:label ?workLabel .
+    ?instance rdfs:label ?instanceLabel .
+    ?material rdfs:label ?materialLabel .
+  } .
+} GROUP BY ?work ?workLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

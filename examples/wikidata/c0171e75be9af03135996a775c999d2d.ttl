@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c0171e75be9af03135996a775c999d2d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -34,4 +33,24 @@ WHERE {
   # show label in auto language as default, and English when no default label exists
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# scatter chart of characters in Water Margin chapters (also viewable as table)
+#defaultView:ScatterChart
+### Note: 1. The 1st non-item variable (?chapter_number) is X-axis,
+### and the 2nd non-item variable (?characterLabel) is Y-axis.
+### 2. The data type of P792 (chapter) is string, so ?chapter_number cannot be ordered as number in table's column.
+### But ?chapter_number can be ordered as number in scatter chart's axis.
+SELECT DISTINCT ?character ?chapter_number ?characterLabel
+WHERE {
+  # ?chapter is instance of (P31) chapter (Q1980247)
+  ?chapter wdt:P31 wd:Q1980247;
+           # and is part of (P361) [OneOrMorePath (+)] Water Margin's 120-chapter edition (Q70761009)
+           wdt:P361+ wd:Q70761009;
+           # ?chapter's chapter (P792) is ?chapter_number
+           wdt:P792 ?chapter_number;
+           # ?chapter's characters (P674) is ?character
+           wdt:P674 ?character
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

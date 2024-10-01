@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-d56c19952a9e8b22c065b11468ee3e97> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Realworldobject/ShowTell>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -31,4 +30,21 @@ WHERE {
 }
 ORDER BY ?wdItemLabel
 LIMIT 100""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?wdItemLabel ?wdItem ?wcItem ?languageLabel ?iaContent ?wikicommonsContent
+WHERE {
+  ?wdItem
+    wdt:P407 ?language;
+  	?contentProperty ?o;
+    rdfs:label ?wdItemLabel.
+  OPTIONAL {?wdItem wdt:P243 ?ocn}
+  OPTIONAL {?wdItem wdt:P724 ?ia}
+  OPTIONAL {?wdItem wdt:P1957 ?wikicommonsContent}
+  BIND (URI(CONCAT(\"http://www.worldcat.org/oclc/\", ?ocn)) AS ?wcItem)
+  BIND (URI(CONCAT(\"https://archive.org/details/\", ?ia)) AS ?iaContent)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" .}
+  FILTER (?contentProperty=wdt:P1957 || ?contentProperty=wdt:P724)
+}
+ORDER BY ?wdItemLabel
+LIMIT 100""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-22091812914204c7d48cfea914062b67> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:JotaCartas/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -84,4 +83,71 @@ WHERE {
 
 ORDER BY desc (?slink) desc (?stat) 
 LIMIT 15000""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT distinct ?item  ?itemLabel  ?commcat  ?slink ?stat   # ?datnas  ?datmor ?fleu ?foto 
+# ?nick  ?pseu    ?alias # ?native ?label  #?ptwiki # ?itemDescription ?paisLabel
+WHERE {
+  
+#    { ?item wdt:P69 wdt:Q66814784 . }  #FEBAUP
+  
+   #   optional { ?item wdt:P569 ?datnas . }
+   #    optional { ?item wdt:P570 ?datmor . }
+   #    optional { ?item wdt:P27  ?pais  }  
+  #   optional { ?item wdt:P1317  ?fleuri  . }    
+    
+  
+
+     #    filter not exists { ?item wdt:P18  ?foto  . }     #passa a not
+     #      filter not exists  { ?item wdt:P569 ?datnas . } 
+       #       filter not exists   { ?item wdt:P570 ?datmor . }
+      #   filter not exists { ?item wdt:P106 ?occup . } 
+            #   ?item wdt:P21 wd:Q6581072 .    #mulher
+            #   ?item wdt:P166 ?premio .    #premios recebidos
+  
+   ?item wdt:P31 wd:Q5. 
+ 
+    { ?item wdt:P27 wd:Q45.}    union
+  { ?item wdt:P27 wd:Q45670. }  
+ 
+    
+       ?item wdt:P31 ?value ; wikibase:statements ?stat .  #numero de site links
+       ?item wdt:P31 ?value ; wikibase:sitelinks ?slink .   #numero de statments
+ 
+  
+  
+#  filter not exists  { ?item wdt:P1559 ?native . }   # name in native
+          
+ filter not exists  { ?item wdt:P734 ?gnome . }   # famili name
+  
+     { ?item wdt:P373 ?commcat . }   # comm cat
+
+#label e alias
+     #  { ?item rdfs:label ?label FILTER(lang(?label) = 'pt') .     }
+# optional    { ?item rdfs:label ?label  .     }
+
+       #  { ?item skos:altLabel ?alias FILTER (LANG (?alias) =  'pt')  }
+#optional  { ?item skos:altLabel ?alias   }
+ 
+  #   filter (regex (?itemDescription , \".*[a].*\"  ))
+  
+  #      FILTER (?itemDescription != \" \") 
+  #     FILTER (?native = ?alias)
+ 
+  #   {  ?ptwiki schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> . }
+ # {  ?ptwiki schema:about ?item ; schema:isPartOf <https://pt.wikipedia.org/> . }
+  
+  {  ?comm schema:about ?item ; schema:isPartOf <https://commons.wikimedia.org/> . }
+    
+     SERVICE wikibase:label { bd:serviceParam wikibase:language \"pt\". }  
+    #  SERVICE wikibase:label { bd:serviceParam wikibase:language \"nl,fr,en,de,it,es,no,pt\". }
+     
+        
+# FILTER(NOT EXISTS {
+ #  ?item rdfs:label ?lang_label.
+#   FILTER(LANG(?lang_label) = \"pt\")
+# })
+}
+
+ORDER BY desc (?slink) desc (?stat) 
+LIMIT 15000""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-9a13afd075da9af40253f340857b1c57> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/3/10>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -19,11 +18,48 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
 SELECT ?item
 {
-  {INCLUDE %5}
+  { {
+  SELECT ?item {
+     {
+  SELECT ?lemma {
+    []
+      wikibase:lexicalCategory wd:Q1084;
+      ontolex:sense?/wdt:P5137/wdt:P279* wd:Q80228;
+      wikibase:lemma ?lemma.
+  }
+}
+     {
+  SELECT ?item ?label {
+    INCLUDE %1.
+    ?item rdfs:label ?label.
+  }
+}
+    FILTER(LANG(?label) = LANG(?lemma) &&
+           CONTAINS(LCASE(?label), LCASE(?lemma))).
+  }
+}}
   UNION
-  {INCLUDE %6}
+  { {
+  SELECT ?item {
+     {
+  SELECT ?lemma {
+    []
+      wikibase:lexicalCategory wd:Q1084;
+      ontolex:sense?/wdt:P5137/wdt:P279* wd:Q80228;
+      wikibase:lemma ?lemma.
+  }
+}
+     {
+  SELECT ?item ?description {
+    ?item schema:description ?description.
+  }
+}
+    FILTER(LANG(?description) = LANG(?lemma) &&
+           CONTAINS(LCASE(?description), LCASE(?lemma))).
+  }
+}}
 }""";
-  <http://example.org/bigdata_select> """SELECT ?item
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item
 WITH {
   SELECT DISTINCT ?item {
     ?property
@@ -84,4 +120,5 @@ WITH {
   {INCLUDE %5}
   UNION
   {INCLUDE %6}
-}""" .
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

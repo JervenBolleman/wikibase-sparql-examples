@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-3b2228a77003c2ddd83ac079da9dc6c1> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infrastruktur/Sandbox2>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -43,5 +42,33 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"nb,en\" }
 }
 ORDER BY ?dist""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Articles around a central location - here Trondheim city square (Q15693034).
+#defaultView:Map{\"hide\":[\"?rgb\",\"?layer\",\"?location\"]}
+SELECT
+  ?place ?placeLabel ?location ?article_no ?article_en ?rgb ?layer
+  (ROUND(?dist * 1000) AS ?distance)
+WHERE {
+  wd:Q15693034 wdt:P625 ?centralLoc
+  SERVICE wikibase:around {
+    ?place wdt:P625 ?location .
+    bd:serviceParam wikibase:center ?centralLoc;
+      wikibase:radius \"3\";
+      wikibase:distance ?dist
+  }
+  OPTIONAL {
+    ?article_no schema:about ?place;
+      schema:isPartOf <https://no.wikipedia.org/>
+  }
+  OPTIONAL {
+    ?article_en schema:about ?place;
+      schema:isPartOf <https://en.wikipedia.org/>
+  }
+  FILTER(BOUND(?article_no)|| BOUND(?article_en))
+  BIND (IF(BOUND(?article_en) && BOUND(?article_no),\"00ff00\",IF(BOUND(?article_en),\"ff0000\",IF(BOUND(?article_no),\"0000ff\",\"000000\" ))) as ?rgb)
+  BIND (IF(BOUND(?article_en) && BOUND(?article_no),\"EN & NO\",IF(BOUND(?article_en),\"EN\",IF(BOUND(?article_no),\"NO\",\"NIL\" ))) as ?layer)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"nb,en\" }
+}
+ORDER BY ?dist""";
   <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#around>,
-    <http://wikiba.se/ontology#label> .
+    <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

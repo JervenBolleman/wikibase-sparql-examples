@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c31898d030ee35e8b2d19cfe793a7c42> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service/queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -37,4 +36,24 @@ WHERE
 }
 ORDER BY DESC(?capacity_in_Mw)
 LIMIT 100""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?itemLabel ?countryLabel ?capacity_in_Mw ?stateLabel ?coords
+WHERE
+{
+  ?item          (wdt:P31/(wdt:P279*))      wd:Q159719;
+                 p:P2109                    ?stmnode;
+                 wdt:P625                   ?coords .
+  ?stmnode       psn:P2109                  ?valuenode.  # normalised value
+  ?valuenode     wikibase:quantityAmount    ?capacity_in_W.
+
+  BIND(?capacity_in_W / \"1e6\"^^xsd:double AS ?capacity_in_Mw)
+  OPTIONAL{?item wdt:P17 ?country .}
+  OPTIONAL{?item wdt:P5817 ?state .}
+ 
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+  }
+}
+ORDER BY DESC(?capacity_in_Mw)
+LIMIT 100""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

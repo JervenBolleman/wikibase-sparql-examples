@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-0fa781ae953e642ce8859c422b1e1392> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
@@ -28,4 +27,19 @@ BIND(YEAR(?dod) as ?died)
 ?person rdfs:label ?name filter (lang(?name) = \"en\")
 ?place rdfs:label ?birthplace filter (lang(?birthplace) = \"en\")
 OPTIONAL{ ?article schema:about ?person; schema:isPartOf <https://en.wikipedia.org/> }
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:ImageGrid
+SELECT DISTINCT ?image ?name (CONCAT(\"Born \",str(?born), \"; Died \", str(?died)) as ?dates) ?birthplace ?article WHERE {
+?person wdt:P19 ?place ; # place of birth
+     wdt:P607 wd:Q361 ; # involved in World War I
+     wdt:P18 ?image ; #image
+     wdt:P569 ?dob #date of birth
+{?place wdt:P131* wd:Q48015 } UNION { ?place wdt:P131* ?county. ?county wdt:P47 wd:Q23169 } # born in SE England or adjacent county to Oxfordshire 
+OPTIONAL { ?person wdt:P570 ?dod } #date of death
+BIND(YEAR(?dob) as ?born)
+BIND(YEAR(?dod) as ?died)
+?person rdfs:label ?name filter (lang(?name) = \"en\")
+?place rdfs:label ?birthplace filter (lang(?birthplace) = \"en\")
+OPTIONAL{ ?article schema:about ?person; schema:isPartOf <https://en.wikipedia.org/> }
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

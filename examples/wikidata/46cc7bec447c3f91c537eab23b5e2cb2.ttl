@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-46cc7bec447c3f91c537eab23b5e2cb2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Bouzinac/Dirigeants>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -61,4 +60,48 @@ WHERE {
     FILTER (NOT EXISTS { ?pr_nom_statement pq:P1545 \"1\". } && NOT EXISTS { ?pr_nom_statement pq:P1545 \"2\". })
   }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?naissance ?nomLabel ?nom1Label ?nom2Label
+       ?pr_nomLabel ?pr_nom1Label ?pr_nom2Label 
+WHERE {
+  ?item wdt:P39 wd:Q258045.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+  OPTIONAL { ?item wdt:P569 ?naissance. }
+  OPTIONAL {
+    ?item p:P734 ?nom1_statement.
+    ?nom1_statement a wikibase:BestRank.
+    ?nom1_statement pq:P1545 \"1\".
+    ?nom1_statement ps:P734 ?nom1.
+  }
+  OPTIONAL {
+    ?item p:P734 ?nom2_statement.
+    ?nom2_statement a wikibase:BestRank.
+    ?nom2_statement pq:P1545 \"2\".
+    ?nom2_statement ps:P734 ?nom2.
+  }
+  OPTIONAL {
+    ?item p:P734 ?nom_statement.
+    ?nom_statement a wikibase:BestRank.
+    ?nom_statement ps:P734 ?nom.
+    FILTER (NOT EXISTS { ?nom_statement pq:P1545 \"1\". } && NOT EXISTS { ?nom_statement pq:P1545 \"2\". })
+  }
+  OPTIONAL {
+    ?item p:P735 ?pr_nom1_statement.
+    ?pr_nom1_statement a wikibase:BestRank.
+    ?pr_nom1_statement pq:P1545 \"1\".
+    ?pr_nom1_statement ps:P735 ?pr_nom1.
+  }
+  OPTIONAL {
+    ?item p:P735 ?pr_nom2_statement.
+    ?pr_nom2_statement a wikibase:BestRank.
+    ?pr_nom2_statement pq:P1545 \"2\".
+    ?pr_nom2_statement ps:P735 ?pr_nom2.
+  }
+  OPTIONAL {
+    ?item p:P735 ?pr_nom_statement.
+    ?pr_nom_statement a wikibase:BestRank.
+    ?pr_nom_statement ps:P735 ?pr_nom.
+    FILTER (NOT EXISTS { ?pr_nom_statement pq:P1545 \"1\". } && NOT EXISTS { ?pr_nom_statement pq:P1545 \"2\". })
+  }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b3eb4ec30246a8dd53e0a49ffb7a4606> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Topics/Wikimedia/Content_projects>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -35,4 +34,25 @@ SELECT (COALESCE(?parent, ?project) AS ?qid) (COALESCE(?parentLabel, ?projectLab
     ?parent rdfs:label ?parentLabel.
     ?project rdfs:label ?projectLabel.
   }
-} ORDER BY ?inception""" .
+} ORDER BY ?inception""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT (COALESCE(?parent, ?project) AS ?qid) (COALESCE(?parentLabel, ?projectLabel) AS ?name) (COALESCE(?inception, ?parentInception) AS ?inception) ?editions {
+  {
+    SELECT ?project (COUNT(?edition) AS ?editions) {
+      ?project (wdt:P31|wdt:P279) wd:Q33120876.
+      OPTIONAL { ?edition wdt:P31 ?project. }
+    } GROUP BY ?project
+  }
+  OPTIONAL { ?project wdt:P571 ?inception. }
+  OPTIONAL {
+    ?project wdt:P629 ?parent.
+    OPTIONAL { ?parent wdt:P571 ?parentInception. }
+  }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    # Since we use the labels in the COALESCE functions we have to use the label service in manual mode
+    # see https://en.wikibooks.org/wiki/SPARQL/SERVICE_-_Label#Manual_Label_SERVICE
+    ?parent rdfs:label ?parentLabel.
+    ?project rdfs:label ?projectLabel.
+  }
+} ORDER BY ?inception""";
+  schema:target <https://query.wikidata.org/sparql> .

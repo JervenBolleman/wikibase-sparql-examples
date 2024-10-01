@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-fdc9908b326fa48e043f66850dbe1b53> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Una_tantum>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -34,4 +33,23 @@ SELECT DISTINCT ?item ?imagelink WHERE {
   BIND(IRI(CONCAT('https://commons.wikimedia.org/wiki/', ?image)) AS ?imagelink ) .
 }
 LIMIT 100""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#foto su commons per elementi WLM su wikidata (elementi di WLM che hanno una categoria connessa in Commons ma nessuna P18, e per cui almeno un'immagine in Commons riporta lo stesso ID WLM)
+SELECT DISTINCT ?item ?imagelink WHERE {
+  ?item wdt:P17 wd:Q38 .
+  ?item wdt:P2186 ?wlmid .
+  ?item wdt:P373 ?commons .
+  MINUS { ?item wdt:P18 ?image } .
+  BIND(CONCAT('\"Wiki Loves Monuments Italia\" insource:', ?wlmid) AS ?needle ) .
+  SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+      bd:serviceParam wikibase:api \"Search\" .
+      bd:serviceParam mwapi:srnamespace \"6\" .
+      bd:serviceParam mwapi:srsearch ?needle .
+      bd:serviceParam mwapi:srlimit \"1\" .
+      ?image wikibase:apiOutput mwapi:title .
+    }
+  BIND(IRI(CONCAT('https://commons.wikimedia.org/wiki/', ?image)) AS ?imagelink ) .
+}
+LIMIT 100""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

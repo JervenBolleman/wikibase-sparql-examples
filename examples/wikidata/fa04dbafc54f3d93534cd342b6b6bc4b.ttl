@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-fa04dbafc54f3d93534cd342b6b6bc4b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Herzi_Pinki/Sparql>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -42,4 +41,30 @@ WHERE
 } 
 ORDER BY DESC(?length_in_m)
 LIMIT 10000""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title: rivers by length
+SELECT ?item ?itemLabel  ?length_in_m ?length ?unitLabel ?lowerbound ?upperbound ?precision ?length2 ?conversion
+WHERE
+{
+  ?item          wdt:P31/wdt:P279*           wd:Q47521.    # bach
+  ?item          p:P2043                     ?stmnode.    # length
+  ?stmnode       psv:P2043                   ?valuenode.
+  ?valuenode     wikibase:quantityAmount     ?length.
+  ?valuenode     wikibase:quantityUnit       ?unit.
+  optional {?valuenode     wikibase:quantityLowerBound ?lowerbound.
+  ?valuenode     wikibase:quantityUpperBound ?upperbound.
+  BIND((?upperbound-?lowerbound)/2 AS ?precision).
+  BIND(IF(?precision=0, ?length, (CONCAT(str(?length), \"±\", str(?precision)))) AS ?length2). }
+
+  # conversion to SI unit
+  ?unit          p:P2370                 ?unitstmnode.   # conversion to SI unit
+  ?unitstmnode   psv:P2370               ?unitvaluenode. 
+  ?unitvaluenode wikibase:quantityAmount ?conversion.
+  ?unitvaluenode wikibase:quantityUnit   wd:Q11573.      # meter
+  BIND(?length * ?conversion AS ?length_in_m).
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\". }
+} 
+ORDER BY DESC(?length_in_m)
+LIMIT 10000""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

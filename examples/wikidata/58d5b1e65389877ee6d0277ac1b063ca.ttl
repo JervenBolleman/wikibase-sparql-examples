@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-58d5b1e65389877ee6d0277ac1b063ca> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/12>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -33,4 +32,25 @@ SELECT distinct ?film ?label_de ?nativeTitle ?itemLabel ?label ?langLabel WHERE 
                                        # coalesce will choose the first valid value as ?label
   bind(coalesce(?nativeTitle, ?itemLabel) as ?label)
   OPTIONAL { ?film rdfs:label ?label_de filter (lang(?label_de) = \"de\")}.
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT distinct ?film ?label_de ?nativeTitle ?itemLabel ?label ?langLabel WHERE {
+  ?film wdt:P31 wd:Q11424.
+  ?film wdt:P161 wd:Q180338.
+  ?film wdt:P577 ?publ.
+  ?film wdt:P495 ?country .            # get film's country of origin
+  ?country wdt:P37 ?official_lang .    # get country's official language
+  ?official_lang  wdt:P424 ?langcode . # get language code for the language
+  OPTIONAL { ?official_lang rdfs:label ?langLabel . filter (lang(?langLabel) = ?langcode) }
+                                       # for this example, get the label of the language
+
+  OPTIONAL { ?film wdt:P1705 ?nativeTitle . filter(lang(?nativeTitle)=?langcode) }
+                                       # get the native title  filtered by the language code
+
+  OPTIONAL { ?film rdfs:label ?itemLabel . filter (lang(?itemLabel) = ?langcode) }
+                                       # get the item Label filtered by the language code
+
+                                       # coalesce will choose the first valid value as ?label
+  bind(coalesce(?nativeTitle, ?itemLabel) as ?label)
+  OPTIONAL { ?film rdfs:label ?label_de filter (lang(?label_de) = \"de\")}.
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

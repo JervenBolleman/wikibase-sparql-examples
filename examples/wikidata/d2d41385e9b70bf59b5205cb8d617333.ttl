@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-d2d41385e9b70bf59b5205cb8d617333> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -34,4 +33,21 @@ SELECT DISTINCT ?item ?itemLabel ?naissance ?archives ?archivesLabel ?archivesDe
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de,it\". }
 }
 ORDER BY DESC(?archivesLabel) #trier par ordre décroissant de titre d'institution""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?itemLabel ?naissance ?archives ?archivesLabel ?archivesDescription ?inventaire ?filmLabel ?recompenseLabel 
+{
+  ?item wdt:P106 wd:Q2526255; #un élément dont l'une des occupations est d'être un réalisateur.
+        wdt:P569 ?naissance. #date de naissance
+  OPTIONAL {?item p:P485 ?statement. 
+            ?statement ps:P485 ?archives. #option avoir déposé ses archives dans une institution
+            OPTIONAL {?statement pq:P217 ?inventaire.} #option avoir pour qualificatif un numéro d'inventaire.
+           }
+  FILTER (year(?naissance) > 1920).#être né après 1920
+  FILTER (year(?naissance) < 1930).#être né avant 1930
+  ?film wdt:P166 ?recompense. #un film ayant reçu une récompense.
+  ?film wdt:P57 ?item. #que ce film aille été réalisé par l'élément recherché plus haut.
+  ?recompense wdt:P31 wd:Q28444913. #que la récompense soit attribuée par le Festival de Cannes.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de,it\". }
+}
+ORDER BY DESC(?archivesLabel) #trier par ordre décroissant de titre d'institution""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

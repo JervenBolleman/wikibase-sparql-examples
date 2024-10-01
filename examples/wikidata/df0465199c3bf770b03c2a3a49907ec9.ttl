@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-df0465199c3bf770b03c2a3a49907ec9> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Gerd_Fahrenhorst/KunstNachOrt>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -30,4 +29,20 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\". }
 } ORDER BY ?datum
 LIMIT 1000   # 20 (Juni 2024)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?itemDescription ?urheberLabel ?liegtInLabel ?ortLabel ?pic ?datum 
+WHERE {
+  VALUES ?woSuchenWir { wd:Q1826001 wd:Q18615966 wd:Q18615961 wd:Q18615959 wd:Q18615968 }
+  ?item wdt:P8138 ?woSuchenWir. # statistische Einheit: Bezirk Linden/Limmer oder ein Stadtteil
+  VALUES ?wasSuchenWir { wd:Q860861 wd:Q179700 wd:Q483453 wd:Q2293362 wd:Q4989906 wd:Q17489160 wd:Q659396 wd:Q245117 wd:Q29382748 wd:Q928357 wd:Q123521074 wd:Q2870602 }
+  # Skulptur, Statue, Zierbrunnen, Skulpturengruppe, Denkmal, Büste, Reiterstandbild, Relief, Metallskulptur, Bronzeskulptur, Tierbrunnen, Wartehäuschen
+  ?item wdt:P31 ?wasSuchenWir.   # Suche nach Skulptur oder Unterklasse /wdt:P279? führt zu Timeout bzw SEHR vielen Doppelzeilen
+  OPTIONAL { ?item wdt:P18   ?pic }
+  OPTIONAL { ?item wdt:P131  ?liegtIn }
+  OPTIONAL { ?item wdt:P170  ?urheber }
+  OPTIONAL { ?item wdt:P276  ?ort }
+  OPTIONAL { ?item wdt:P571  ?datum }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\". }
+} ORDER BY ?datum
+LIMIT 1000   # 20 (Juni 2024)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

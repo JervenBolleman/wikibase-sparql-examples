@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-cc1a48318682b29d23f62610c2953612> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:No39188/mehrQueries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -55,4 +54,43 @@ SELECT DISTINCT ?page_title ?article (GROUP_CONCAT(DISTINCT ?klasse; SEPARATOR =
 }
 GROUP BY ?item ?page_title ?article ?image ?location
 ORDER BY (?ist_ein) (?page_title)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title: Belgisch Luxemburg
+SELECT DISTINCT ?page_title ?article (GROUP_CONCAT(DISTINCT ?klasse; SEPARATOR = \", \") AS ?ist_ein) (GROUP_CONCAT(DISTINCT ?wo; SEPARATOR = \", \") AS ?liegt_in) ?image ?location ?item WHERE {
+  ?item (wdt:P131*) wd:Q1126;
+    wdt:P31 ?instance.
+  OPTIONAL { ?item wdt:P131 ?where. }
+  OPTIONAL { ?item wdt:P625 ?location. }
+  OPTIONAL {
+    ?frwiki schema:about ?item;
+      schema:isPartOf <https://fr.wikipedia.org/>;
+      schema:name ?fr_title.
+  }
+  OPTIONAL {
+    ?lbwiki schema:about ?item;
+      schema:isPartOf <https://lb.wikipedia.org/>;
+      schema:name ?lb_title.
+  }
+  OPTIONAL {
+    ?dewiki schema:about ?item;
+      schema:isPartOf <https://de.wikipedia.org/>;
+      schema:name ?de_title.
+  }
+  OPTIONAL { ?item wdt:P18 ?image. }
+  OPTIONAL {
+    ?page schema:about ?item;
+      schema:inLanguage ?lang.
+  }
+  FILTER(?lang IN(\"fr\", \"de\", \"lb\", \"nl\", \"da\"))
+  BIND(IF(BOUND(?dewiki), ?dewiki, IF(BOUND(?lbwiki), ?lbwiki, ?frwiki)) AS ?article)
+  BIND(IF(BOUND(?de_title), ?de_title, IF(BOUND(?lb_title), ?lb_title, IF(BOUND(?fr_title), ?fr_title, ?item_title))) AS ?page_title)
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,lb,nl,en\".
+    ?item rdfs:label ?item_title.
+    ?where rdfs:label ?wo.
+    ?instance rdfs:label ?klasse.
+  }
+}
+GROUP BY ?item ?page_title ?article ?image ?location
+ORDER BY (?ist_ein) (?page_title)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

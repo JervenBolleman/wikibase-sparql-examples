@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-6e1e1d72b0ee8ac6abc6b9cc216ad68b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Heads_of_state_and_government/Report:P1313_Fill_Rate>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -49,4 +48,37 @@ SELECT ?country ?countryLabel ?daysInUN (SUM(?daysInOffice) AS ?filled) (FLOOR(?
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 GROUP BY ?country ?countryLabel ?daysInUN
-ORDER BY DESC(?knownPercent) ?countryLabel""" .
+ORDER BY DESC(?knownPercent) ?countryLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?country ?countryLabel ?daysInUN (SUM(?daysInOffice) AS ?filled) (FLOOR(?filled / ?daysInUN * 10000) / 100 AS ?knownPercent) WHERE {      
+  # Current UN Member States
+  ?country wdt:P31 wd:Q3624078 ; p:P463 ?ms .
+  ?ms ps:P463 wd:Q1065 ; pq:P580 ?joined .
+  FILTER NOT EXISTS { ?ms pq:P582 [] } 
+  BIND(FLOOR(NOW()-?joined) AS ?daysInUN)
+
+  # what office(s) = head of government, and when?
+  ?country p:P1313 ?os .
+  ?os ps:P1313 ?office .
+  OPTIONAL { ?os pq:P580 ?office580 }
+  OPTIONAL { ?os pq:P582 ?office582 }
+  FILTER ( !BOUND(?office582)|| (?office582 > ?joined) )
+  BIND(IF(BOUND(?office580), IF(?office580 < ?joined, ?joined, ?office580), ?joined) AS ?officeStart)
+  BIND(IF(BOUND(?office582), ?office582, NOW()) AS ?officeEnd)
+
+  # Who has held office in that period?  
+  ?person wdt:P31 wd:Q5 ; p:P39 ?ps .
+  ?ps ps:P39 ?office ; pq:P580 ?heldStart .
+  OPTIONAL { ?ps pq:P582 ?heldEnd }
+  BIND(IF(BOUND(?heldEnd), ?heldEnd, NOW()) AS ?heldEnd)
+  
+  BIND(IF(?heldEnd > ?officeEnd, ?officeEnd, ?heldEnd) AS ?hogEnd)
+  BIND(IF(?heldStart < ?officeStart, ?officeStart, ?heldStart) AS ?hogStart)
+  
+  FILTER ((?heldStart < ?officeEnd) && (?heldEnd > ?officeStart))
+  BIND(FLOOR(?hogEnd - ?hogStart) AS ?daysInOffice)
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?country ?countryLabel ?daysInUN
+ORDER BY DESC(?knownPercent) ?countryLabel""";
+  schema:target <https://query.wikidata.org/sparql> .

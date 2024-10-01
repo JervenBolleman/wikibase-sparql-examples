@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-d9a695cc9889ea7bc13328e4557577c7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Pere_prlpz>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -99,4 +98,89 @@ SELECT * WHERE {
                IF(BOUND(?perim),CONCAT(\"perímetre: \",str(?perim),\" \",str(?aperim),\"</br>\"),\"\"), 
                IF(BOUND(?superf),CONCAT(\"sup: \",str(?superf),\" \",str(?asuperf),\"</br>\"),\"\"), 
                IF(BOUND(?volum),CONCAT(\"volum: \",str(?volum),\" \",str(?avolum),\"</br>\"),\"\")) as ?mides)
-  }""" .
+  }""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# llista de topònims amb dimensions
+SELECT * WHERE {   
+  {
+  ?item wdt:P17 wd:Q29.
+  ?item wdt:P131+ wd:Q12668.
+  }
+  UNION
+  {wd:Q12668 wdt:P206 ?item}
+   BIND (REPLACE(STR(?item), \"http://www.wikidata.org/entity/\", \"\", \"i\") as ?itemId).
+  MINUS { ?item wdt:P31/wdt:P279* wd:Q7075. }
+  MINUS { ?item wdt:P31/wdt:P279* wd:Q5341295.
+         MINUS {?item wdt:P31/wdt:P279* wd:Q811979}
+        }
+ ?item wdt:P31/wdt:P279* ?tipus.
+   OPTIONAL {?item wdt:P1314 ?ulls}
+   OPTIONAL {?item wdt:P1082 ?hab}
+        OPTIONAL {?item p:P2043 ?sllarg.
+               ?sllarg psv:P2043 ?sllargn.
+                ?sllargn wikibase:quantityAmount ?llarg. 
+                ?sllargn wikibase:quantityUnit ?ullarg. 
+                  OPTIONAL {?ullarg wdt:P5061 ?allarg.
+                           FILTER(LANG(?allarg) = \"ca\").}
+                 }
+        OPTIONAL { ?item p:P2787  ?sllum.
+               ?sllum psv:P2787  ?sllumn.
+                ?sllumn wikibase:quantityAmount ?llum. 
+                ?sllumn wikibase:quantityUnit ?ullum. 
+                  OPTIONAL {?ullum wdt:P5061 ?allum.
+                           FILTER(LANG(?allum) = \"ca\").}
+              }
+        OPTIONAL {?item p:P2049  ?sample.
+               ?sample psv:P2049  ?samplen.
+                ?samplen wikibase:quantityAmount ?ample. 
+                ?samplen wikibase:quantityAmount ?ample. 
+                ?samplen wikibase:quantityUnit ?uample. 
+                  OPTIONAL {?uample wdt:P5061 ?aample.
+                           FILTER(LANG(?aample) = \"ca\").}
+              }
+        OPTIONAL {?item p:P2048  ?salt.
+               ?salt psv:P2048  ?saltn.
+                ?saltn wikibase:quantityAmount ?alt. 
+                ?saltn wikibase:quantityUnit ?uample. 
+                  OPTIONAL {?uample wdt:P5061 ?aalt.
+                           FILTER(LANG(?aalt) = \"ca\").}
+              }
+        OPTIONAL {?item p:P4511 ?sprof.
+               ?sprof psv:P4511 ?sprofn.
+                ?sprofn wikibase:quantityAmount ?prof. 
+                ?sprofn wikibase:quantityUnit ?uprof. 
+                  OPTIONAL {?uprof wdt:P5061 ?aprof.
+                           FILTER(LANG(?aprof) = \"ca\").}
+              }
+        OPTIONAL {?item p:P2547 ?sperim.
+               ?sperim psv:P2547 ?sperimn.
+                ?sperimn wikibase:quantityAmount ?perim. 
+                ?sperimn wikibase:quantityUnit ?uperim. 
+                  OPTIONAL {?uperim wdt:P5061 ?aperim.
+                           FILTER(LANG(?aperim) = \"ca\").}
+              }
+        OPTIONAL {?item p:P2046 ?ssuperf.
+               ?ssuperf psv:P2046 ?ssuperfn.
+                ?ssuperfn wikibase:quantityAmount ?superf. 
+                ?ssuperfn wikibase:quantityUnit ?usuperf. 
+                  OPTIONAL {?usuperf wdt:P5061 ?asuperf.
+                           FILTER(LANG(?asuperf) = \"ca\").}
+              }
+        OPTIONAL {?item p:P2234 ?svolum.
+               ?svolum psv:P2234 ?svolumn.
+                ?svolumn wikibase:quantityAmount ?volum. 
+                ?svolumn wikibase:quantityUnit ?uvolum. 
+                  OPTIONAL {?uvolum wdt:P5061 ?avolum.
+                           FILTER(LANG(?avolum) = \"ca\").}
+              }
+   BIND(CONCAT(IF(BOUND(?hab),CONCAT(str(?hab),\" hab</br>\"),\"\"), 
+               IF(BOUND(?ulls),CONCAT(\"ulls: \",str(?ulls),\"</br>\"),\"\"), 
+               IF(BOUND(?llum),CONCAT(\"llum: \",str(?llum),\" \",str(?allum),\"</br>\"),\"\"), 
+               IF(BOUND(?llarg),CONCAT(\"llarg: \",str(?llarg),\" \",str(?allarg),\"</br>\"),\"\"), 
+               IF(BOUND(?ample),CONCAT(\"ample: \",str(?ample),\" \",str(?aample),\"</br>\"),\"\"), 
+               IF(BOUND(?alt),CONCAT(\"alt: \",str(?alt),\" \",str(?aalt),\"</br>\"),\"\"), 
+               IF(BOUND(?prof),CONCAT(\"profunditat: \",str(?prof),\" \",str(?aprof),\"</br>\"),\"\"), 
+               IF(BOUND(?perim),CONCAT(\"perímetre: \",str(?perim),\" \",str(?aperim),\"</br>\"),\"\"), 
+               IF(BOUND(?superf),CONCAT(\"sup: \",str(?superf),\" \",str(?asuperf),\"</br>\"),\"\"), 
+               IF(BOUND(?volum),CONCAT(\"volum: \",str(?volum),\" \",str(?avolum),\"</br>\"),\"\")) as ?mides)
+  }""";
+  schema:target <https://query.wikidata.org/sparql> .

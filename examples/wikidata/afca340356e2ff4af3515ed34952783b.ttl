@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-afca340356e2ff4af3515ed34952783b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Gilliane/Tipps/SPARQL-SIAr>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -35,4 +34,23 @@ OPTIONAL {?commune wdt:P625 ?coordoneesgeo. } # affiche les coordonnées géogra
 OPTIONAL {?commune wdt:P94 ?_blason. } # cherche le blason s'il existe
 OPTIONAL {?commune wdt:P856 ?URL. } # cherche le site web s'il existe
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Membres de la Convention pour un Service intercommunal d'archivage (NE)
+#defaultView:Map
+#view:ImageGrid{\"hide\": \"?_blason\"}
+#view:Map{\"hide\": \"?coordoneesgeo\"}
+
+SELECT ?_blason ?communeLabel ?URL ?coordoneesgeo WHERE {
+  ?commune wdt:P463 wd:Q62112752. # commune membre de SIAr
+   OPTIONAL {?commune p:P463 ?membre.} #Les éléments qui sont membres du SIAr
+   OPTIONAL {?membre pq:P580 ?datedebut.} # cherche la date de début de la Convention si elle existe
+   OPTIONAL {?membre pq:P582 ?datefin.} # cherche la date de la fin de la Convention si elle existe
+   OPTIONAL {?commune wdt:P1366 ?nouvellecommune.} # cherche la nouvelle entité si la commune membre a été remplacée        
+               
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr\". }
+
+OPTIONAL {?commune wdt:P625 ?coordoneesgeo. } # affiche les coordonnées géographiques si elles existent (pour permettre l'affichage dans defaultMap)
+OPTIONAL {?commune wdt:P94 ?_blason. } # cherche le blason s'il existe
+OPTIONAL {?commune wdt:P856 ?URL. } # cherche le site web s'il existe
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

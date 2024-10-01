@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b17c4b79a25c5831af0f22213f4b5efc> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/12>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -37,4 +36,24 @@ BIND(COALESCE(?lengthNorm/86400,(?end - ?start+1)) as ?days)
 }
 }
 group by ?siège ?siègeLabel ?start ?end ?days
-order by desc(year(?end)) ?whereLabel2""" .
+order by desc(year(?end)) ?whereLabel2""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """select ?siège ?siègeLabel (sample(?whereLabel) as ?whereLabel2) ?start ?end ?days {
+SELECT ?siège ?siègeLabel ?whereLabel ?start ?end ?days WHERE {
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+?siège wdt:P31 wd:Q188055.
+ BIND(wd:Q4337360 AS ?siège)
+OPTIONAL { ?siège wdt:P580 ?start. }
+OPTIONAL { 
+           ?siège p:P582/psv:P582 ?p582node . 
+           ?p582node wikibase:timeValue ?tv .       # get the time value
+           ?p582node wikibase:timePrecision ?tp .   # get the time precision
+           BIND(IF(?tp=9,xsd:dateTime(REPLACE(STR(?tv),\"-01-01\",\"-12-31\")),?tv) AS ?end) # set end date to 31 December if time precision is \"year\" (9)
+         }
+OPTIONAL { ?siège wdt:P276 ?where. } 
+OPTIONAL { ?siège p:P2047/psn:P2047/wikibase:quantityAmount ?lengthNorm.}
+BIND(COALESCE(?lengthNorm/86400,(?end - ?start+1)) as ?days)
+}
+}
+group by ?siège ?siègeLabel ?start ?end ?days
+order by desc(year(?end)) ?whereLabel2""";
+  schema:target <https://query.wikidata.org/sparql> .

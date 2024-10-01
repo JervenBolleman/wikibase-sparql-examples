@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-a21fdc917f2c1b91cf14c912c1b2250a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query/2>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -53,4 +52,43 @@ WHERE {
   # show label in auto language as default, and English when no default label exists
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".}
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# map of schools
+# also viewable as table, timeline, and image grid
+#defaultView:Map
+SELECT DISTINCT ?school ?schoolLabel ?locationLabel ?countryLabel ?image ?coord ?start ?end ?levelLabel
+WHERE {
+  # define \"?school, ?starttime, ?endtime, ?level\" as:
+  VALUES (?school ?starttime ?endtime ?level)
+         # Henan Experimental Primary School (Q5712978), September 1981 (Q3478974), June 1987 (Q16647466), primary school (Q9842)
+         {(wd:Q5712978 wd:Q3478974 wd:Q16647466 wd:Q9842)
+          # Zhengzhou No.8 Middle School (Q8070784), September 1987 (Q16676420), June 1990 (Q3188262), junior high school (Q149566)
+          (wd:Q8070784 wd:Q16676420 wd:Q3188262 wd:Q149566)
+          # Zhengzhou No.1 High School (Q8070782), September 1990 (Q3478980), June 1993 (Q3188264), senior high school (Q9826)
+          (wd:Q8070782 wd:Q3478980 wd:Q3188264 wd:Q9826)
+          # Renmin University of China Law School (Q7313293), September 1993 (Q3478983), June 1997 (Q3188270), Bachelor of Laws (Q798137)
+          (wd:Q7313293 wd:Q3478983 wd:Q3188270 wd:Q798137)
+          # Renmin University of China Law School (Q7313293), September 1997 (Q12580249), June 2001 (Q570738), Master of Laws (Q754848)
+          (wd:Q7313293 wd:Q12580249 wd:Q570738 wd:Q754848)
+          # Aix-Marseille III University (Q1204304), September 1999 (Q1150759), May 2000 (Q1325528), Master of Laws (Q754848)
+          (wd:Q1204304 wd:Q1150759 wd:Q1325528 wd:Q754848)
+          # Yale Law School (Q1143289), September 2001 (Q686187), May 2002 (Q1371846), Master of Laws (Q754848)
+          (wd:Q1143289 wd:Q686187 wd:Q1371846 wd:Q754848)
+          # Yale Law School (Q1143289), September 2002 (Q1330468), September 2007 (Q2272047), \"JSD candidate\"
+          (wd:Q1143289 wd:Q1330468 wd:Q2272047 \"JSD candidate\")}
+  # optional: show ?school's \"located in the administrative territorial entity\" (P131) as ?location
+  OPTIONAL {?school wdt:P131 ?location}
+  # optional: show ?school's country (P17) as ?country
+  OPTIONAL {?school wdt:P17 ?country}
+  # optional: show ?school's image (P18) as ?image
+  OPTIONAL {?school wdt:P18 ?image}
+  # optional: show ?school's coordinate location (P625) as ?coord
+  OPTIONAL {?school wdt:P625 ?coord}
+  # optional: show ?starttime's point in time (P585) as ?start
+  OPTIONAL {?starttime wdt:P585 ?start}
+  # optional: show ?endtime's point in time (P585) as ?end
+  OPTIONAL {?endtime wdt:P585 ?end}
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".}
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

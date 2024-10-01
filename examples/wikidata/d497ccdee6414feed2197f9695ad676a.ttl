@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-d497ccdee6414feed2197f9695ad676a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ash_Crow/xkcd>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -46,4 +45,33 @@ WHERE {
 
     SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 } GROUP BY ?weekday ?offset ORDER BY ?dayorder""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?weekday (COUNT(?xkcd) AS ?count) (xsd:integer(?offset + 1) AS ?dayorder) 
+WHERE {
+    ?xkcd wdt:P31 wd:Q838795;
+              wdt:P361 wd:Q13915;
+              p:P577/psv:P577 [
+                wikibase:timeValue ?date;
+                wikibase:timePrecision ?precision
+              ].
+    FILTER(?precision >= \"11\"^^xsd:integer)
+    # calculate the weekday as the offset from January first, 1973 (arbitrary Monday that preceeds the first xkcd) modulo 7
+    # SPARQL has no modulo operator, so this gets finicky
+    BIND(?date - \"1973-01-01\"^^xsd:dateTime AS ?offsetInt)
+    BIND(?offsetInt - (7 * xsd:integer(xsd:float(?offsetInt) / 7.0)) AS ?offsetSigned)
+    BIND(IF(?offsetSigned < 0, ?offsetSigned + 7, ?offsetSigned) AS ?offset)
+    
+    BIND(IF(?offset = 0, \"Monday\"@en,
+            IF(?offset = 1, \"Tuesday\"@en,
+               IF(?offset = 2, \"Wednesday\"@en,
+                  IF(?offset = 3, \"Thursday\"@en,
+                     IF(?offset = 4, \"Friday\"@en,
+                        IF(?offset = 5, \"Saturday\"@en,
+                           IF(?offset = 6, \"Sunday\"@en,
+                              \"unknown day\"@en)))))))
+         AS ?weekday)
+
+
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} GROUP BY ?weekday ?offset ORDER BY ?dayorder""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

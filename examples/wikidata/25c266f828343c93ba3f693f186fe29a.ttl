@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-25c266f828343c93ba3f693f186fe29a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -37,5 +36,26 @@ SELECT DISTINCT ?build ?buildLabel ?countryLabel ?placeLabel ?heritLabel ?locati
               filter(contains(str(?part),\"wikipedia.org\"))                                                                                                    
            }
 } group by ?build ?buildLabel ?countryLabel ?placeLabel ?heritLabel ?location""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>,
-    <http://wikiba.se/ontology#box> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?build ?buildLabel ?countryLabel ?placeLabel ?heritLabel ?location  (COUNT(DISTINCT ?article) as ?count) WHERE 
+{ 
+  SERVICE wikibase:box {
+    ?build wdt:P625 ?location .
+    bd:serviceParam wikibase:cornerWest \"Point(-7.6 38.1)\"^^geo:wktLiteral .
+     bd:serviceParam wikibase:cornerEast \"Point(-4.5 40.75)\"^^geo:wktLiteral .
+   } # bbox for Vettonia map
+  ?build wdt:P31/wdt:P279* wd:Q41176 . # a building
+  ?build wdt:P17 wd:Q29 . # must be in Spain
+  ?build wdt:P1435 wd:Q23712 . # must be cultural heritage
+  OPTIONAL { ?build wdt:P17 ?country. }
+  OPTIONAL { ?build wdt:P131 ?place. }
+  OPTIONAL { ?build wdt:P1435 ?herit. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es\". }  
+  OPTIONAL { ?article schema:name ?sitelink ;
+              schema:about ?build ;
+              schema:isPartOf ?part .
+              filter(contains(str(?part),\"wikipedia.org\"))                                                                                                    
+           }
+} group by ?build ?buildLabel ?countryLabel ?placeLabel ?heritLabel ?location""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#box>,
+    <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

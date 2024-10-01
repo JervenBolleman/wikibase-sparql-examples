@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-6614f0a153a80f3db1d33a5c6b82444a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:language-lexicalcategory>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -44,4 +43,33 @@ WHERE {
   }
   ?lexeme wikibase:lemma ?lexemeLabel
 }
-ORDER BY DESC(?publication_date)""" .
+ORDER BY DESC(?publication_date)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX target1: <http://www.wikidata.org/entity/Q9035>
+PREFIX target2: <http://www.wikidata.org/entity/Q24905>
+
+# List lexemes wrt. a lexical category and language
+SELECT
+  (xsd:date(?earliest_publication_datetime) AS ?publication_date)
+
+  ?lexeme ?lexemeLabel
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?lexeme), 32)) AS ?lexemeUrl)
+
+WHERE {
+  {
+    SELECT 
+      (MIN(?publication_datetime) AS ?earliest_publication_datetime)
+      ?lexeme
+    WHERE {
+      ?lexeme wikibase:lexicalCategory target2: ;
+              dct:language target1: ;
+              (wdt:P5323 / wdt:P577)| (p:P5323 / pq:P577) ?publication_datetime .
+    }
+    GROUP BY ?lexeme
+    ORDER BY DESC(?earliest_publication_datetime)
+    LIMIT 100
+           
+  }
+  ?lexeme wikibase:lemma ?lexemeLabel
+}
+ORDER BY DESC(?publication_date)""";
+  schema:target <https://query.wikidata.org/sparql> .

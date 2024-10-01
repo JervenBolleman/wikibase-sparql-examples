@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-e9b4032534a33477f15659a00abc8e0a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Dipsode87/FormatsSoftware>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -134,4 +133,126 @@ WHERE
 OPTIONAL{SELECT (UUID() as ?inceptionEvent) ?inceptionDate WHERE {wd:Q698 wdt:P577 ?inceptionDate.} }
 OPTIONAL{?environment wdt:P275 ?license}
 OPTIONAL{?environment wdt:P3931 ?copyrightOwner}
-  }""" .
+  }""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """prefix relSubType: <http://id.loc.gov/vocabulary/preservation/relationshipSubType/>
+prefix envFuncType: <http://id.loc.gov/vocabulary/preservation/environmentFunctiontype/>
+prefix evType: <http://id.loc.gov/vocabulary/preservation/eventType/>
+prefix rightsRelAgRole: <http://id.loc.gov/vocabulary/preservation/rightsRelatedAgentRole/>
+prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+prefix dct: <http://purl.org/dc/terms/>
+prefix foaf: <http://xmlns.com/foaf/0.1/>
+prefix skos: <http://www.w3.org/2004/02/skos/core#>
+prefix premis: <http://www.loc.gov/premis/rdf/v3/>
+prefix prov: <http://www.w3.org/ns/prov#>
+
+CONSTRUCT {
+  wd:Q698 rdf:type envFuncType:soa;
+            rdfs:label ?itemLabel;
+          premis:hasVersion ?version;
+            dct:creator ?creator;
+            relSubType:idp ?operatingSystem;
+            relSubType:idp ?platform;
+            relSubType:idp ?softwareEngine;
+            relSubType:req ?requiredSoftware;
+            relSubType:req ?gui;
+            relSubType:req ?inputDevice;
+    relSubType:isr ?debianPackage;
+    relSubType:isr ?fedoraPackage;
+            relSubType:isr ?sourceCodeRepo;
+            relSubType:isr ?distributedRepresentation;
+            relSubType:sup ?predecessor;
+            relSubType:iss ?successor;
+            relSubType:isp ?whole;
+            relSubType:hsp ?part;
+    skos:exactMatch ?framalibreID;
+            prov:wasGeneratedBy ?publicationEvent;
+            prov:wasGeneratedBy ?inceptionEvent;
+          dct:rights ?license;
+          dct:rights ?copyright.
+  ?copyright rightsRelAgRole:rig ?copyrightOwner.
+  ?operatingSystem rdf:type envFuncType:ops;
+                   rdfs:label ?operatingSystemLabel.
+  ?requiredSoftware rdf:type envFuncType:sof;
+                    rdfs:label ?requiredSoftwareLabel.
+  ?gui rdf:type envFuncType:sol;
+       rdfs:label ?guiLabel.
+  ?inputDevice rdf:type envFuncType:hap;
+       rdfs:label ?inputDeviceLabel.
+  ?platform rdf:type envFuncType:haa;
+       rdfs:label ?platformLabel.
+  ?software rdf:type envFuncType:soa;
+       rdfs:label ?softwareEngineLabel.
+  ?predecessor rdf:type envFuncType:sof;
+               rdfs:label ?predecessorLabel.
+  ?successor rdf:type envFuncType:sof;
+             rdfs:label ?successorLabel.
+  ?debianPackage rdf:type premis:Representation.
+  ?sourceCodeRepo rdf:type premis:Representation.
+  ?fedoraPackage rdf:type premis:Representation.
+  ?distributedRepresentation rdf:type premis:Representation;
+                             premis:storedAt ?distributedRepresentationLocation.
+  ?distributedRepresentationLocation rdf:type premis:StorageLocation;
+                                     premis:hasMedium ?physicalMedium.
+  ?publicationEvent rdf:type evType:cre;
+                 dct:date ?publicationDate;
+                 prov:wasAssociatedWith ?creationAgent.
+  ?inceptionEvent rdf:type evType:cre;
+                 dct:date ?inceptionDate;
+                 prov:wasAssociatedWith ?creationAgent.
+  ?creationAgent rdf:type premis:Agent;
+                 foaf:name ?creationAgentLabel.
+}
+WHERE
+{VALUES ?environment {wd:Q698}
+  ?environment rdfs:label ?itemLabel.
+  FILTER (lang(?itemLabel)=\"en\")
+  OPTIONAL{?environment wdt:P306 ?operatingSystem.
+           ?operatingSystem rdfs:label ?operatingSystemLabel.
+  FILTER (lang(?operatingSystemLabel)=\"en\")}
+  OPTIONAL{?environment wdt:P178 ?creator.}
+  OPTIONAL{?environment wdt:P1547 ?requiredSoftware.
+           ?requiredSoftware rdfs:label ?requiredSoftwareLabel.
+  FILTER (lang(?requiredSoftwareLabel)=\"en\")}
+  OPTIONAL{?environment wdt:P1414 ?gui.
+           ?gui rdfs:label ?guiLabel.
+  FILTER (lang(?guiLabel)=\"en\")}
+  OPTIONAL{?environment wdt:P479 ?inputDevice.
+           ?inputDevice rdfs:label ?inputDeviceLabel.
+  FILTER (lang(?inputDeviceLabel)=\"en\")}
+  OPTIONAL{?environment wdt:P400 ?platform.
+           ?platform rdfs:label ?platformLabel.
+  FILTER (lang(?platformLabel)=\"en\")}
+  OPTIONAL{?environment wdt:P408 ?softwareEngine.
+           ?softwareEngine rdfs:label ?softwareEngineLabel.
+  FILTER (lang(?softwareEngineLabel)=\"en\")}
+  OPTIONAL{?environment wdt:P155 ?predecessor.
+           ?predecessor rdfs:label ?predecessorLabel.
+  FILTER (lang(?predecessorLabel)=\"en\")}
+  OPTIONAL{?environment wdt:P156 ?successor.
+           ?predecessor rdfs:label ?successorLabel.
+  FILTER (lang(?successorLabel)=\"en\")}
+  OPTIONAL{?environment wdt:P1324 ?sourceCodeRepo}
+ OPTIONAL{?environment wdt:P527 ?part}
+ OPTIONAL{?environment wdt:P361 ?whole}
+ OPTIONAL{?environment wdt:P348 ?version}
+ OPTIONAL{SELECT ?physicalMedium (UUID() As ?distributedRepresentation) (UUID() As ?distributedRepresentationLocation)
+                                WHERE {wd:Q698 wdt:P1032 ?physicalMedium.}
+          }
+ OPTIONAL{
+   SELECT (IRI(REPLACE(?debianPackageBaseURI, '\\\\$1', ?debianPackageString)) AS ?debianPackage) WHERE {wd:Q698 wdt:P3442 ?debianPackageString.
+          wd:P3442 wdt:P1630 ?debianPackageBaseURI.} }
+  OPTIONAL{
+   SELECT (IRI(REPLACE(?fedoraPackageBaseURI, '\\\\$1', ?fedoraPackageString)) AS ?fedoraPackage) WHERE {wd:Q698 wdt:P3463 ?fedoraPackageString.
+          wd:P3463 wdt:P1630 ?fedoraPackageBaseURI.} }
+  OPTIONAL{
+   SELECT (IRI(REPLACE(?framalibreIDBaseURI, '\\\\$1', ?framalibreIDString)) AS ?framalibreID) WHERE {wd:Q698 wdt:P4107 ?framalibreIDString.
+          wd:P4107 wdt:P1630 ?framalibreIDBaseURI.} }
+   OPTIONAL{wd:Q698 wdt:P170 ?creationAgent.
+           ?creationAgent rdfs:label ?creationAgentLabel.
+           FILTER (lang(?creationAgentLabel)=\"en\") }
+   OPTIONAL{SELECT (UUID() as ?publicationEvent) ?publicationDate WHERE {wd:Q698 wdt:P571 ?publicationDate.} }
+OPTIONAL{SELECT (UUID() as ?inceptionEvent) ?inceptionDate WHERE {wd:Q698 wdt:P577 ?inceptionDate.} }
+OPTIONAL{?environment wdt:P275 ?license}
+OPTIONAL{?environment wdt:P3931 ?copyrightOwner}
+  }""";
+  schema:target <https://query.wikidata.org/sparql> .

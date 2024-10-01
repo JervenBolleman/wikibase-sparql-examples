@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-e640667bc54a3bb69e24a82e4819bf45> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:HereinTheHague>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -50,4 +49,35 @@ WHERE {
    }
 GROUP BY ?wrestler ?wrestlerLabel ?refLabel
 ORDER BY ?wrestlerLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT  ?wrestler ?wrestlerLabel ?refLabel (SAMPLE(?link) AS ?link) 
+WHERE {
+# Wikidata entries with CageMatch worker ID in occupation as reference
+# where the CageMatch worker ID was forgotten in the identifiers section
+# (this query should return 0 results)
+
+   ?wrestler wdt:P31 wd:Q5 .          # human
+   ?wrestler wdt:P106 wd:Q13474373 .  # occupation professional wrestler
+
+   ?article schema:about ?wrestler .  # limit to wrestlers with EN Wikipedia article
+   ?article schema:inLanguage \"en\" .  # to quicken search - for now
+   ?article schema:isPartOf <https://en.wikipedia.org/> .
+
+   ?wrestler p:P106 ?cgid_query . # build statement with p:
+   ?cgid_query ps:P106 ?occ .     # retrieve obj within statement with ps:
+   ?cgid_query prov:wasDerivedFrom ?refnode . # build ref node 
+   ?refnode pr:P2728 ?ref .       # ref node should be Cagematch worker ID
+
+# only look for entries without the CageMatch ID in the identifiers section
+# bind to format as clickable URL 
+  MINUS {
+   ?wrestler wdt:P2728 ?cgid .
+   BIND(IRI(REPLACE(?cgid, '^(.+)$', ?url)) AS ?link).
+      }
+   SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+      }
+   }
+GROUP BY ?wrestler ?wrestlerLabel ?refLabel
+ORDER BY ?wrestlerLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

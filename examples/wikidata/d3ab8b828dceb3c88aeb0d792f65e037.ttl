@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-d3ab8b828dceb3c88aeb0d792f65e037> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_20th_Century_Press_Archives/Use_cases>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
@@ -49,4 +48,40 @@ order by ?wdLabel
 # query times out without limit
 # as of 2023-07, there are 12755 results
 limit 25000""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """select ?wd ?wdLabel ?inFunction (group_concat(?hqLabel; separator='; ') as ?headquarter) ?pm20 ?hint
+where {
+  select ?wd ?wdLabel ?inFunction ?hqLabel ?pm20 ?hint
+  where {
+    {
+      ?wd wdt:P4293 ?pm20Id .
+      filter(isLiteral(?pm20Id))
+      filter(strstarts(?pm20Id, 'co'))
+    } union {
+      ?wd wdt:P11822 ?sectionId .
+      filter(isLiteral(?sectionId))
+      filter(contains(?sectionId, '/co/'))
+    }
+    optional {
+      ?wd wdt:P571 ?start .
+    }
+    optional {
+      ?wd wdt:P576 ?end .
+    }
+    optional {
+      ?wd wdt:P159 ?hq .
+    }
+    bind(concat(coalesce(str(year(?start)), ''), coalesce(concat(' - ', str(year(?end))), '')) as ?inFunction)
+    #
+    bind(if(bound(?pm20Id), uri(concat('https://pm20.zbw.eu/folder/', ?pm20Id)), uri(concat('https://pm20.zbw.eu/film/', ?sectionId))) as ?pm20)
+    bind(if(bound(?pm20Id), 'PM20 folder', 'PM20 microfilm (on premises only)') as ?hint)
+    #
+    service wikibase:label { bd:serviceParam wikibase:language \"en,de,fr,es,it,nl,pt,pl,cs,sv\" . }
+  }
+}
+group by ?wd ?wdLabel ?inFunction ?pm20 ?hint
+order by ?wdLabel
+# query times out without limit
+# as of 2023-07, there are 12755 results
+limit 25000""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

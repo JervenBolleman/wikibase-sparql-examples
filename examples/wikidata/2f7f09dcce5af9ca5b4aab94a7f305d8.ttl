@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-2f7f09dcce5af9ca5b4aab94a7f305d8> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service/Wikidata_Query_Help/Result_Views>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -22,10 +21,22 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?country ?year ?population ?countryLabel
 WHERE
 {
-    INCLUDE %results.
+    
+{
+    SELECT ?country ?year (avg(?populationValue) as ?population)
+    WHERE
+    {
+          ?country wdt:P47 wd:Q183.
+          ?country p:P1082 ?populationStatement.
+          ?populationStatement ps:P1082 ?populationValue.
+          ?populationStatement pq:P585 ?date.
+          bind(str(YEAR(?date)) AS ?year)
+    }
+    group by ?country ?year
+}
     SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <http://example.org/bigdata_select> """#defaultView:LineChart
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:LineChart
 SELECT ?country ?year ?population ?countryLabel
 WITH
 {
@@ -44,4 +55,6 @@ WHERE
 {
     INCLUDE %results.
     SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

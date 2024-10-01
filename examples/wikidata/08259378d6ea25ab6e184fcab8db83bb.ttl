@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-08259378d6ea25ab6e184fcab8db83bb> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Arjunaraoc/assembly,_district_post_2022_org_tewiki_article>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
@@ -41,4 +40,30 @@ SELECT DISTINCT ?assembly ?assemblyLabel (CONCAT(\"[[\",STR(?page_titleTE_dist),
   BIND(IF(BOUND(?startdate), YEAR(?startdate), 0 ) AS ?startyear)
   BIND(IF(BOUND(?enddate), YEAR(?enddate), 0 ) AS ?endyear)
   BIND(IF(BOUND(?defdate), YEAR(?defdate), 0 ) AS ?defyear)
-  FILTER ((?startflag_ =\"yes\" && ?endflag_=\"no\" && ?startyear=2022 )|""" .
+  FILTER ((?startflag_ =\"yes\" && ?endflag_=\"no\" && ?startyear=2022 )|""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Get assembly constituencies  with current district and old district (if available) tewikilinks during 2022 reorg
+SELECT DISTINCT ?assembly ?assemblyLabel (CONCAT(\"[[\",STR(?page_titleTE_dist),\"]]\") as ?new_dist_tewiki)  (CONCAT(\"# [[\",STR(?page_titleTE),\"]]\") as ?assemblytewikilink)
+
+#(CONCAT(\"[[\",STR(?page_titleTE_old_dist),\"]]\") as ?old_dist_tewiki)
+   WHERE {
+  ?assembly wdt:P31 wd:Q54375413.
+  ?tewikilink schema:about ?assembly;
+    schema:isPartOf <https://te.wikipedia.org/>;
+    schema:name ?page_titleTE.   
+  {
+  ?assembly    p:P131 ?districtnode. 
+  ?districtnode ps:P131 ?newdistrict.
+  ?newdistrict wdt:P131    wd:Q1159.
+  ?tewikilink_dist schema:about ?newdistrict;
+    schema:isPartOf <https://te.wikipedia.org/>;
+    schema:name ?page_titleTE_dist.  
+  OPTIONAL { ?districtnode pq:P580 ?startdate. }
+  OPTIONAL { ?districtnode pq:P582 ?enddate. }
+  OPTIONAL { ?assembly wdt:P576 ?defdate.}
+  BIND(IF(BOUND(?startdate), \"yes\", \"no\") AS ?startflag_)
+  BIND(IF(BOUND(?enddate), \"yes\", \"no\") AS ?endflag_)
+  BIND(IF(BOUND(?startdate), YEAR(?startdate), 0 ) AS ?startyear)
+  BIND(IF(BOUND(?enddate), YEAR(?enddate), 0 ) AS ?endyear)
+  BIND(IF(BOUND(?defdate), YEAR(?defdate), 0 ) AS ?defyear)
+  FILTER ((?startflag_ =\"yes\" && ?endflag_=\"no\" && ?startyear=2022 )|""";
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-643f71b7ddfb265e85796ddbfb17091a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/04>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX gas: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -78,4 +77,68 @@ WHERE {
   }
   BIND(REPLACE(wikibase:decodeUri(SUBSTR(STR(?commonsCategoryBook), STRLEN(\"https://commons.wikimedia.org/wiki/\") + 1)), \"_\", \" \") AS ?page)
   BIND(CONCAT('+', REPLACE(wikibase:decodeUri(SUBSTR(STR(?commonsCategoryAuth), STRLEN(\"https://commons.wikimedia.org/wiki/\") + 1)), \"_\", \" \")) AS ?command1)
-} ORDER BY ?page""" .
+} ORDER BY ?page""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?book ?commonsCategoryBook ?page ?command1
+WITH {
+  SELECT ?book ?auth WHERE {
+    ?book wdt:P195 wd:Q53764729 .
+    ?book wdt:P50 ?auth .
+  }
+} AS %pairs
+WITH {
+  SELECT ?auth ?commonsCategoryAuth WHERE {
+    hint:SubQuery hint:optimizer \"None\". # we have to disable the optimizer for this subquery because it gets confused by the ?commonsCategoryStatementEn part
+    INCLUDE %pairs.
+    OPTIONAL {
+      ?auth wdt:P373 ?commonsCategoryStatement.
+      BIND(STRLANG(CONCAT(\"Category:\", ?commonsCategoryStatement), \"en\") AS ?commonsCategoryStatementEn)
+      ?commonsCategoryFromStatement schema:name ?commonsCategoryStatementEn;
+                                    schema:isPartOf <https://commons.wikimedia.org/>.
+    }
+    OPTIONAL {
+      ?commonsCategoryFromSitelink schema:about ?auth;
+                                   schema:isPartOf <https://commons.wikimedia.org/>.
+      FILTER(STRSTARTS(STR(?commonsCategoryFromSitelink), \"https://commons.wikimedia.org/wiki/Category:\"))
+    }
+    BIND(COALESCE(?commonsCategoryFromStatement, ?commonsCategoryFromSitelink) AS ?commonsCategoryAuth)
+    FILTER(BOUND(?commonsCategoryAuth))
+  }
+} AS %authsWithCommonsCategories
+WITH {
+  SELECT ?book ?commonsCategoryBook WHERE {
+    hint:SubQuery hint:optimizer \"None\". # we have to disable the optimizer for this subquery because it gets confused by the ?commonsCategoryStatementEn part
+    INCLUDE %pairs.
+    OPTIONAL {
+      ?book wdt:P373 ?commonsCategoryStatement.
+      BIND(STRLANG(CONCAT(\"Category:\", ?commonsCategoryStatement), \"en\") AS ?commonsCategoryStatementEn)
+      ?commonsCategoryFromStatement schema:name ?commonsCategoryStatementEn;
+                                    schema:isPartOf <https://commons.wikimedia.org/>.
+    }
+    OPTIONAL {
+      ?commonsCategoryFromSitelink schema:about ?book;
+                                   schema:isPartOf <https://commons.wikimedia.org/>.
+      FILTER(STRSTARTS(STR(?commonsCategoryFromSitelink), \"https://commons.wikimedia.org/wiki/Category:\"))
+    }
+    BIND(COALESCE(?commonsCategoryFromStatement, ?commonsCategoryFromSitelink) AS ?commonsCategoryBook)
+    FILTER(BOUND(?commonsCategoryBook))
+  }
+} AS %booksWithCommonsCategories
+WHERE {
+  INCLUDE %pairs
+  INCLUDE %booksWithCommonsCategories.
+  INCLUDE %authsWithCommonsCategories.
+  MINUS {
+    SERVICE <https://query.wikidata.org/bigdata/namespace/categories/sparql> {
+      SERVICE gas:service {
+        gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\";
+                    gas:linkType mediawiki:isInCategory;
+                    gas:traversalDirection \"Reverse\";
+                    gas:in ?commonsCategoryAuth;
+                    gas:out ?commonsCategoryBook.
+      }
+    }
+  }
+  BIND(REPLACE(wikibase:decodeUri(SUBSTR(STR(?commonsCategoryBook), STRLEN(\"https://commons.wikimedia.org/wiki/\") + 1)), \"_\", \" \") AS ?page)
+  BIND(CONCAT('+', REPLACE(wikibase:decodeUri(SUBSTR(STR(?commonsCategoryAuth), STRLEN(\"https://commons.wikimedia.org/wiki/\") + 1)), \"_\", \" \")) AS ?command1)
+} ORDER BY ?page""";
+  schema:target <https://query.wikidata.org/sparql> .

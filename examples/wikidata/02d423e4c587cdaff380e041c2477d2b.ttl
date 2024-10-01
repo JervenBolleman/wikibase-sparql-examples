@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-02d423e4c587cdaff380e041c2477d2b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/06>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -26,4 +25,15 @@ SELECT distinct ?item ?itemLabel ?sitelink ?place_servedLabel ?iata ?icao WHERE 
             schema:isPartOf <https://en.wikipedia.org/>.   # the sitelink points to en.wikipedia
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } . #this bit gets labels for Qid values
 } order by ?itemLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT distinct ?item ?itemLabel ?sitelink ?place_servedLabel ?iata ?icao WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q1248784.                     # item must be an instance of an airport, or of a subclass of an airport
+  optional {?item wdt:P238 ?iata .}                        # item may have a P238 (IATA) value
+  optional {?item wdt:P239 ?icao .}                        # item may have has a P239 (ICAO) value         
+  optional {?item wdt:P931 ?place_served .}                # item may have a value for P931, which is put into a variable ?place_served               
+  ?item wdt:P17 wd:Q142 .                                  # ?item has country = France
+  ?sitelink schema:about ?item;                            # item has a sitelink
+            schema:isPartOf <https://en.wikipedia.org/>.   # the sitelink points to en.wikipedia
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } . #this bit gets labels for Qid values
+} order by ?itemLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

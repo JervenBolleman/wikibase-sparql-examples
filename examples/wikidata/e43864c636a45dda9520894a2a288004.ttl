@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-e43864c636a45dda9520894a2a288004> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/3/7>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -35,11 +34,95 @@ SELECT DISTINCT
 # chino simplificado y otro para el caracter simplificado
 # La siguiente subconsulta obtiene el lema de los lexemas en quechua
 {
-  INCLUDE %3.
-  INCLUDE %4.
-  INCLUDE %5.
+   {
+  SELECT * {
+     {
+  SELECT * {
+     {
+  SELECT * {
+     {
+  SELECT DISTINCT ?lexeme {
+    ?lexeme dct:language wd:Q5218.
+    # Escogemos aquellos lexemas que tienen una definición enlazada a
+    # una subclase de polígono.
+    {?lexeme ontolex:sense/wdt:P5137/wdt:P279* wd:Q37555}
+    UNION
+    # Escogemos aquellos lexemas que tienen una definición enlazada a
+    # una subclase de elipse.
+    {?lexeme ontolex:sense/wdt:P5137/wdt:P279* wd:Q40112}
+  }
+}
+    ?lexeme ontolex:sense ?sense.
+    ?sense wdt:P5972 ?senseZh.
+    ?lexemeZh
+      dct:language wd:Q727694;
+      ontolex:sense ?senseZh;
+      wikibase:lemma ?lemmaZhHansHant.
+  }
+}
+    ?lexeme ontolex:sense ?sense.
+    ?sense wdt:P5972 ?senseEn.
+    ?lexemeEn
+      dct:language wd:Q1860;
+      ontolex:sense ?senseEn;
+      wikibase:lemma ?lemmaEn.
+  }
+}
+    ?lexeme ontolex:sense ?sense.
+    ?sense wdt:P5972 ?senseEs.
+    ?lexemeEs
+      dct:language wd:Q1321;
+      ontolex:sense ?senseEs;
+      wikibase:lemma ?lemmaEs.
+  }
+}
+   {
+  SELECT ?lexemeZh (GROUP_CONCAT(?lemmaZhHansHant; SEPARATOR=\"/\") AS ?lemmaZh)  {
+     {
+  SELECT * {
+     {
+  SELECT DISTINCT ?lexeme {
+    ?lexeme dct:language wd:Q5218.
+    # Escogemos aquellos lexemas que tienen una definición enlazada a
+    # una subclase de polígono.
+    {?lexeme ontolex:sense/wdt:P5137/wdt:P279* wd:Q37555}
+    UNION
+    # Escogemos aquellos lexemas que tienen una definición enlazada a
+    # una subclase de elipse.
+    {?lexeme ontolex:sense/wdt:P5137/wdt:P279* wd:Q40112}
+  }
+}
+    ?lexeme ontolex:sense ?sense.
+    ?sense wdt:P5972 ?senseZh.
+    ?lexemeZh
+      dct:language wd:Q727694;
+      ontolex:sense ?senseZh;
+      wikibase:lemma ?lemmaZhHansHant.
+  }
+}
+    ?lexemeZh wikibase:lemma ?lemmaZhHansHant.
+  }
+  GROUP BY ?lexemeZh
+}
+   {
+  SELECT ?lexeme ?lemma {
+     {
+  SELECT DISTINCT ?lexeme {
+    ?lexeme dct:language wd:Q5218.
+    # Escogemos aquellos lexemas que tienen una definición enlazada a
+    # una subclase de polígono.
+    {?lexeme ontolex:sense/wdt:P5137/wdt:P279* wd:Q37555}
+    UNION
+    # Escogemos aquellos lexemas que tienen una definición enlazada a
+    # una subclase de elipse.
+    {?lexeme ontolex:sense/wdt:P5137/wdt:P279* wd:Q40112}
+  }
+}
+    ?lexeme wikibase:lemma ?lemma.
+  }
+}
 }""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT
   ?lexeme
   ?lemma
   ?lemmaZh
@@ -119,4 +202,5 @@ WITH {
   INCLUDE %3.
   INCLUDE %4.
   INCLUDE %5.
-}""" .
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

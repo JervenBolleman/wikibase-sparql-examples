@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-d107607c8c3d7f6dfdd864ead24d0bcc> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/02>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -36,4 +35,25 @@ WHERE
   ?artikkel schema:about ?item .
   ?artikkel schema:isPartOf <https://no.wikipedia.org/> .
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?tittel ?vitenskapelig_navn ?artikkel
+WHERE
+{
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint \"no.wikipedia.org\" .
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam mwapi:generator \"search\" .
+    bd:serviceParam mwapi:gsrsearch 'hastemplate:\"Taksoboks\" insource:\"rødlistestatusno Rødliste VU no\"' .
+     # Note that inline search ignores \"greyspace\", so the search will match \"rødlistestatusno={{Rødliste|VU|no}}\"
+    bd:serviceParam mwapi:gsrlimit \"max\" .
+    bd:serviceParam mwapi:gsrnamespace \"0\" .
+    ?tittel wikibase:apiOutput mwapi:title .
+    ?item wikibase:apiOutputItem mwapi:item .
+  }
+  FILTER BOUND(?item)
+  OPTIONAL { ?item wdt:P225 ?vitenskapelig_navn }
+  ?artikkel schema:about ?item .
+  ?artikkel schema:isPartOf <https://no.wikipedia.org/> .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

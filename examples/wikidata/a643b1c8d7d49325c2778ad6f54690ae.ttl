@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-a643b1c8d7d49325c2778ad6f54690ae> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/04>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -39,4 +38,29 @@ WHERE
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
  
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
+#Fimmakers
+SELECT DISTINCT ?filmmaker ?filmmakerLabel ?lugar ?coord ?birthdate ?year ?TabakaleraURL (\"this is a link \" as ?TabakaleraURLLabel)
+ 
+WHERE
+{
+  ?filmmaker wdt:P31 wd:Q5 ;
+             wdt:P106 wd:Q2526255 ; #zinemagilea
+             wdt:P19 ?lugar ;
+             wdt:P1344 wd:Q9081343.
+  ?lugar wdt:P625 ?coord.
+ 
+  
+  OPTIONAL{ ?filmmaker wdt:P569 ?birthdate . } # P569 : Date de naissance
+  BIND(year(?birthdate) as ?year)
+  FILTER(?year > 1800)
+  
+  ?filmmaker  wdt:P10069  ?tabakalera.
+  wd:P10069 wdt:P1630 ?formatterurl .
+  BIND(IRI(REPLACE(?tabakalera, '^(.+)$', ?formatterurl)) AS ?TabakaleraURL).
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+ 
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

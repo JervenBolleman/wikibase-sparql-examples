@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-1cd0f3c38237a44d1fd0ce537e4e1764> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/01>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -35,4 +34,22 @@ SELECT ?item ?itemLabel ?equip ?equipLabel ?posicio_equipLabel ?alcaria ?massa ?
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } .
 }
 LIMIT 100""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?equip ?equipLabel ?posicio_equipLabel ?alcaria ?massa ?numero_esportiu ?partidos WHERE {
+  BIND(2019 AS ?year) .
+  ?item wdt:P641 ?esport .
+  ?item p:P54 ?statement .
+  ?statement ps:P54 ?equip; pq:P580 ?from .
+  OPTIONAL { ?statement pq:P582 ?until } .
+  OPTIONAL { ?statement pq:P1350 ?partidos } .
+  FILTER( ?year >= YEAR( ?from ) && !( BOUND( ?until ) && YEAR( ?until ) < ?year ) ) .
+  FILTER(?esport = wd:Q2736) .
+  FILTER(?equip = wd:Q7156) .
+  OPTIONAL { ?item wdt:P413 ?posicio_equip } .
+  OPTIONAL { ?item wdt:P2048 ?alcaria } .
+  OPTIONAL { ?item wdt:P2067 ?massa } .
+  OPTIONAL { ?item wdt:P1618 ?numero_esportiu } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } .
+}
+LIMIT 100""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

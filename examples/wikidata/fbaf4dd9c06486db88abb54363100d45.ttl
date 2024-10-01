@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-fbaf4dd9c06486db88abb54363100d45> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/08>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -33,4 +32,22 @@ SELECT DISTINCT ?item ?itemLabel ?itemDescription ?coord ?layer ?rgb WHERE {
   FILTER ((xsd:integer(SUBSTR(STR(?item),33))) < 113086038) . 
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"it, en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title:Distribuzione biblioteche per tipologia in Italia. layers (lista ridotta)
+#defaultView:Map{\"hide\":\"?rgb\"}
+SELECT DISTINCT ?item ?itemLabel ?itemDescription ?coord ?layer ?rgb WHERE {
+  {?item wdt:P31/wdt:P279* wd:Q7075} .
+  ?item wdt:P17 wd:Q38; wdt:P791 ?isil.
+  OPTIONAL { ?item wdt:P31 wd:Q7075 . BIND(\"biblioteche\" as ?layer) BIND(\"FF0000\" as ?rgb) }
+  OPTIONAL { ?item wdt:P31 wd:Q2326815 . BIND(\"comunali\" as ?layer) BIND(\"222222\" as ?rgb) }
+  OPTIONAL { ?item wdt:P31 wd:Q28564 . BIND(\"pubbliche\" as ?layer) BIND(\"000000\" as ?rgb) }
+  OPTIONAL { ?item wdt:P31 wd:Q385994 . BIND(\"specializzate\" as ?layer) BIND(\"FFFFFF\" as ?rgb) } 
+  OPTIONAL { ?item wdt:P31 wd:Q105763925 . BIND(\"conservazione\" as ?layer) BIND(\"00FF00\" as ?rgb) } .
+  OPTIONAL { ?item wdt:P31 wd:Q1622062. BIND(\"universitarie\" as ?layer) BIND(\"0000FF\" as ?rgb) } .
+  OPTIONAL { ?item wdt:P31 wd:Q106231131. BIND(\"scolastiche\" as ?layer) BIND(\"888888\" as ?rgb) } .
+  BIND(IF(!BOUND(?rgb),\"444444\",?rgb) as ?rgb) # covers cases not dealt with by the OPTIONALs above
+   ?item wdt:P625 ?coord 
+  FILTER ((xsd:integer(SUBSTR(STR(?item),33))) < 113086038) . 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"it, en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

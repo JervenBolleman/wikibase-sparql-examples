@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-6096b51811bba152e1816b4ff3e446a9> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/06>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -39,4 +38,29 @@ WHERE
     bd:serviceParam wikibase:limit \"once\" .
   }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?creator ?timestamp ?edit_comment
+WHERE
+{
+  ?input_item wdt:P9506 [] 
+  BIND(strafter(str(?input_item),\"/entity/\") as ?titles)
+  
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam mwapi:generator \"allpages\" .
+    bd:serviceParam mwapi:gapfrom ?titles .
+    bd:serviceParam mwapi:gapto ?titles .
+    bd:serviceParam mwapi:prop \"revisions\" .
+    bd:serviceParam mwapi:rvprop \"user|timestamp|comment\" .
+    bd:serviceParam mwapi:rvdir \"newer\" .
+    bd:serviceParam mwapi:rvlimit \"1\" .
+    ?item wikibase:apiOutputItem mwapi:title .
+    ?creator wikibase:apiOutput \"revisions/rev/@user\" .
+    ?timestamp wikibase:apiOutput \"revisions/rev/@timestamp\" .
+    ?edit_comment wikibase:apiOutput \"revisions/rev/@comment\" .
+    bd:serviceParam wikibase:limit \"once\" .
+  }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

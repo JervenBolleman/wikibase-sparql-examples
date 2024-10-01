@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-2eca79062182d037f85260c1618f7eb8> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2016/11>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -51,4 +50,38 @@ SELECT ?work ?workLabel ?typeLabel ?inception ?published ?instruments ?tonalityL
   OPTIONAL { ?work wikibase:sitelinks ?sitelinks } .
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
 } ORDER BY ?inception""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?work ?workLabel ?typeLabel ?inception ?published ?instruments ?tonalityLabel ?external ?sitelinks {
+  { SELECT
+   ?work
+   (SAMPLE(?type) AS ?type)
+   (MIN(?inception) AS ?inception)
+   (MIN(?published) AS ?published)
+   (GROUP_CONCAT(DISTINCT ?instrumentLabel; separator=', ') AS ?instruments)
+   (SAMPLE(?tonality) AS ?tonality)
+   (COUNT(DISTINCT ?wdt) + COUNT(DISTINCT ?catalogue) AS ?external)
+   {
+     ?work wdt:P86 wd:Q1268;
+           wdt:P31 ?type .
+     ?type wdt:P279* wd:Q2188189 .
+     OPTIONAL { ?work wdt:P571 ?inception } .
+     OPTIONAL { ?work wdt:P577 ?published } .
+     OPTIONAL { ?work wdt:P826 ?tonality } .
+     OPTIONAL { ?work wdt:P870 ?instrument } .
+     SERVICE wikibase:label {
+       bd:serviceParam wikibase:language \"en\" .
+       ?instrument rdfs:label ?instrumentLabel .
+     } .
+     OPTIONAL {
+       ?work p:P528 [ pq:P972 ?catalogue ] .
+       FILTER( ?catalogue IN ( wd:Q385271, wd:Q16749676, wd:Q16749680, wd:Q16747642 ) ) .
+     } .
+     OPTIONAL {
+       ?work ?wdt [] .
+       ?wdt ^wikibase:directClaim/wikibase:propertyType wikibase:ExternalId .
+     } .
+   } GROUP BY ?work } .
+  OPTIONAL { ?work wikibase:sitelinks ?sitelinks } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+} ORDER BY ?inception""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

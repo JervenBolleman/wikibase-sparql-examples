@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-e619ccaac572012ed0f5f1e688022fbd> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:JAn>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -62,5 +61,50 @@ wd:Q38395546
 ?place wdt:P31 ?instance .
 SERVICE wikibase:label { bd:serviceParam wikibase:language \"cs,en\". }
 } order by asc(?distance)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?place ?placeLabel ?distance WHERE {
+  {
+SELECT ?item ?place ?distance WHERE {
+  {
+    SELECT ?item ?itemLabel ?place ?placeLabel ?distance WHERE {
+      {
+        SELECT ?item ?coord {
+          BIND( (19 - 12) * RAND() + 12 AS ?rand ) .
+          ?item wdt:P6736 []; wdt:P131* wd:Q757240 ; p:P625 [ ps:P625 ?coord; psv:P625/wikibase:geoLongitude ?long ] .
+          FILTER ( ABS( ?long - ?rand ) < 1 ) . # feel free to play with this...
+        } 
+      } .
+      SERVICE wikibase:around {
+        ?place wdt:P625 ?location .
+        bd:serviceParam wikibase:center ?coord .
+        bd:serviceParam wikibase:radius \"0.05\" .
+        bd:serviceParam wikibase:distance ?distance .
+      } .
+      minus {?place wdt:P6736 [] .}
+      FILTER ( ?item != ?place ) .
+    }
+  } .
+} 
+
+}
+values ?instance {
+wd:Q2309609
+wd:Q179700
+wd:Q14552192
+wd:Q575759
+wd:Q12661150
+wd:Q860861
+wd:Q721747
+wd:Q5003624
+wd:Q12029081
+wd:Q108325
+wd:Q2713614
+wd:Q4989906
+wd:Q1640496
+wd:Q38395546
+  }
+?place wdt:P31 ?instance .
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"cs,en\". }
+} order by asc(?distance)""";
   <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#around>,
-    <http://wikiba.se/ontology#label> .
+    <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

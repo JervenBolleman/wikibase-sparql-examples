@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-001c06cf34f07f121c47ac13d5e08e8c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:No39188>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -39,4 +38,28 @@ SELECT DISTINCT ?item ?itemLabel ?article ?page_title ?year ?copyrightLabel WHER
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],da,en\". }
 }
 ORDER BY (?year)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title: Dänische Filme
+SELECT DISTINCT ?item ?itemLabel ?article ?page_title ?year ?copyrightLabel WHERE {
+  ?item wdt:P31 wd:Q11424;
+    wdt:P495 wd:Q35;
+    wdt:P364 wd:Q9035.
+  OPTIONAL {
+    ?gepage schema:about ?item;
+      schema:isPartOf <https://da.wikipedia.org/>;
+      schema:name ?ge_title.
+  }
+  OPTIONAL {
+    ?depage schema:about ?item;
+      schema:isPartOf <https://de.wikipedia.org/>;
+      schema:name ?de_title.
+  }
+  OPTIONAL { ?item wdt:P577 ?date. }
+  BIND(YEAR(?date) AS ?year)
+  optional { ?item wdt:P6216 ?copyright. }
+  BIND(IF(BOUND(?depage), ?depage, ?gepage) AS ?article)
+  BIND(IF(BOUND(?de_title), ?de_title, ?ge_title) AS ?page_title)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],da,en\". }
+}
+ORDER BY (?year)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c40fb782667e8053451c4e63b493b467> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infrastruktur/Sandbox2>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX schema: <http://schema.org/>
@@ -38,4 +37,28 @@ WHERE {
   OPTIONAL { ?entity schema:url ?file . } # Some images don't have structured data associated with them
   BIND(URI(CONCAT(STR(commons:), ENCODE_FOR_URI(SUBSTR(?title, 6)))) AS ?file2)
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Images on Wikimedia Commons
+# Run this from WCQS - https://commons-query.wikimedia.org/
+PREFIX commons: <http://commons.wikimedia.org/wiki/Special:FilePath/>
+PREFIX sdc: <https://commons.wikimedia.org/entity/>
+
+SELECT ?title ?entity ?file ?file2
+WHERE {
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" ;
+      wikibase:api \"Generator\" ;
+      wikibase:limit 500 ;
+      mwapi:gcmtitle \"Category:Exoplanets\" ;
+      mwapi:generator \"categorymembers\" ;
+      mwapi:gcmtype \"file\" ;
+      mwapi:gcmlimit \"max\" ;
+      mwapi:prop \"info|pageprops\" .
+    ?title wikibase:apiOutput mwapi:title .
+    ?pageid wikibase:apiOutput mwapi:pageid .
+  }
+  BIND (URI(CONCAT(STR(sdc:), 'M', ?pageid)) AS ?entity)
+  OPTIONAL { ?entity schema:url ?file . } # Some images don't have structured data associated with them
+  BIND(URI(CONCAT(STR(commons:), ENCODE_FOR_URI(SUBSTR(?title, 6)))) AS ?file2)
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

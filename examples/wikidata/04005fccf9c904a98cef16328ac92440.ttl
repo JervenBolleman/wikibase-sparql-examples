@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-04005fccf9c904a98cef16328ac92440> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:No39188/mehrQueries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -58,4 +57,46 @@ SELECT DISTINCT (GROUP_CONCAT(DISTINCT ?lang; SEPARATOR = \", \") AS ?sprachen) 
 }
 GROUP BY ?page_title ?article ?verwaltung ?il ?item ?coordinate
 ORDER BY (?page_title)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
+SELECT DISTINCT (GROUP_CONCAT(DISTINCT ?lang; SEPARATOR = \", \") AS ?sprachen) ?page_title ?article ?verwaltung ?il ?item (GROUP_CONCAT(DISTINCT ?io; SEPARATOR = \", \") AS ?ist_ein) ?coordinate WHERE {
+  ?item (wdt:P131*) wd:Q15124;
+    wdt:P131 ?einheit.
+  OPTIONAL {
+    ?gepage schema:about ?item;
+      schema:isPartOf <https://it.wikipedia.org/>;
+      schema:name ?ge_title.
+  }
+  OPTIONAL { ?item wikibase:sitelinks ?sl. }
+  FILTER(?sl > 0 )
+  OPTIONAL {
+    ?page schema:about ?item;
+      schema:inLanguage ?lang.
+  }
+  FILTER(?lang IN(\"lld\", \"fr\", \"de\", \"it\", \"en\"))
+  OPTIONAL {
+    ?enwiki schema:about ?item;
+      schema:isPartOf <https://en.wikipedia.org/>;
+      schema:name ?en_title.
+  }
+  OPTIONAL {
+    ?dewiki schema:about ?item;
+      schema:isPartOf <https://de.wikipedia.org/>;
+      schema:name ?de_title.
+  }
+  OPTIONAL { ?item wdt:P625 ?coordinate. }
+  OPTIONAL { ?item wdt:P31 ?instance. }
+  BIND(IF(BOUND(?dewiki), ?dewiki, IF(BOUND(?enwiki), ?enwiki, ?gepage)) AS ?article)
+  BIND(IF(BOUND(?de_title), ?de_title, IF(BOUND(?en_title), ?en_title, ?ge_title)) AS ?page_title)
+  FILTER(BOUND(?article))
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,it\".
+    ?item rdfs:label ?il.
+    ?instance rdfs:label ?io.
+    ?einheit rdfs:label ?verwaltung.
+  }
+  FILTER(?einheit IN(wd:Q377319, wd:Q255568, wd:Q499129, wd:Q504491, wd:Q381366, wd:Q377980, wd:Q6526, wd:Q185541, wd:Q378095, wd:Q261187, wd:Q433287, wd:Q15124))
+}
+GROUP BY ?page_title ?article ?verwaltung ?il ?item ?coordinate
+ORDER BY (?page_title)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

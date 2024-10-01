@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-fc38af907b29fe91865c0e3ddb9be9c7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Succu/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -32,4 +31,24 @@ SELECT ?item (SUBSTR(?published1, 1, 10) as ?published) ?title ?volume ?issue ?p
   FILTER (xsd:integer(?page) >= xsd:integer(?startpage) && xsd:integer(?page) <= xsd:integer(?endpage)) 
   FILTER (Year(?published1) = xsd:integer(?year)) 
 }
-ORDER BY ASC(?published) ASC(xsd:integer(?issue)) ASC(xsd:integer(?startpage))""" .
+ORDER BY ASC(?published) ASC(xsd:integer(?issue)) ASC(xsd:integer(?startpage))""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Find title by volume, issue and page
+SELECT ?item (SUBSTR(?published1, 1, 10) as ?published) ?title ?volume ?issue ?pages WHERE {  
+  ?item wdt:P1433 wd:Q2003024 .  # Taxon
+  BIND(\"26\" as ?volume) .
+  #BIND(\"2-3\" as ?issue) .
+  BIND(\"326\" as ?page) .
+  BIND(\"1977\" as ?year) .
+  OPTIONAL {?item wdt:P577 ?published1} .
+  OPTIONAL {?item wdt:P1476 ?title} .  
+  ?item wdt:P478 ?volume .
+  ?item wdt:P433 ?issue .
+  ?item wdt:P304 ?pages0 . 
+  BIND(REPLACE(?pages0, \"-\", \"–\") AS ?pages)
+  BIND(if(contains(?pages,  \"–\"), strbefore(?pages, \"–\"), ?pages) as ?startpage)
+  BIND(if(contains(?pages,  \"–\"), strafter(?pages, \"–\"), ?pages) as ?endpage)
+  FILTER (xsd:integer(?page) >= xsd:integer(?startpage) && xsd:integer(?page) <= xsd:integer(?endpage)) 
+  FILTER (Year(?published1) = xsd:integer(?year)) 
+}
+ORDER BY ASC(?published) ASC(xsd:integer(?issue)) ASC(xsd:integer(?startpage))""";
+  schema:target <https://query.wikidata.org/sparql> .

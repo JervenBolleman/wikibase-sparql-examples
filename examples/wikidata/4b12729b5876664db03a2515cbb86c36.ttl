@@ -1,17 +1,16 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-4b12729b5876664db03a2515cbb86c36> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries/MPs_with_identified_mythical_ancestors>,
-    <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries/MPs_with_identified_mythical_ancestors>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -29,4 +28,16 @@ SELECT ?mp ?mpLabel ?person ?personLabel ?born ?died ?typeLabel WHERE {
   OPTIONAL { ?person wdt:P570 ?died } .
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# MPs with identified mythical ancestors
+SELECT ?mp ?mpLabel ?person ?personLabel ?born ?died ?typeLabel WHERE {
+  ?mp p:P39 ?positionStatement .
+  ?positionStatement ps:P39 wd:Q77685926 .  # this person is a member of the current parliament
+  { ?mp (wdt:P25|wdt:P22)* ?person . } # mp's mother or father, or their mother or father, and so on
+  filter not exists { ?person wdt:P31 wd:Q5 } . # the ancestor is not \"a human\"
+  ?person wdt:P31 ?type .
+  OPTIONAL { ?person wdt:P569 ?born } .
+  OPTIONAL { ?person wdt:P570 ?died } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

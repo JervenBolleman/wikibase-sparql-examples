@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8dd05d97a83127487f8a799c1f6bd6fe> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/11>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -42,4 +41,29 @@ WHERE
   OPTIONAL{?item wdt:P31 ?instanceof.}
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"sv,fi,en,de\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?instanceofLabel ?fdkommunLabel ?fdk_end ?kommunLabel ?landskapLabel
+WHERE 
+{
+  ?item wdt:P131 ?kommun. ?kommun wdt:P31 wd:Q856076. ?kommun wdt:P37 wd:Q9027.
+  OPTIONAL
+  {
+    ?item p:P131 ?fdk_stm .
+    ?fdk_stm a wikibase:BestRank .
+    ?fdk_stm ps:P131 ?fdkommun .
+    ?fdkommun wdt:P31 wd:Q17468533 .
+    ?fdk_stm pq:P582 ?fdk_end .
+  }
+  FILTER NOT EXISTS
+  {
+    ?item p:P131 ?fdk_stm2 .
+    ?fdk_stm2 a wikibase:BestRank .
+    ?fdk_stm2 ps:P131/wdt:P31 wd:Q17468533 .
+    ?fdk_stm2 pq:P582 ?fdk_end2 .
+    FILTER (?fdk_end2 < ?fdk_end)
+  }    
+  OPTIONAL{?kommun wdt:P131 ?landskap. ?landskap wdt:P31 wd:Q193512.}
+  OPTIONAL{?item wdt:P31 ?instanceof.}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"sv,fi,en,de\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

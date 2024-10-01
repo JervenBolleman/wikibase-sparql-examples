@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c9fd16d437347a41f12db551e1f3e8e9> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Alessandra.Moi/sandbox>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -30,4 +29,19 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],it,
 }
 GROUP BY ?person ?personLabel
 ORDER BY ?person ?personLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Scienziati nati a Milano privi di identificativo GND e BNF
+SELECT ?person ?personLabel 
+(GROUP_CONCAT(DISTINCT ?occupationLab ; SEPARATOR=\", \") AS ?occupations)
+WHERE {
+  ?person wdt:P31 wd:Q5 .
+  ?person wdt:P106 ?occupation . ?occupation rdfs:label ?occupationLab . FILTER(LANG(?occupationLab) = \"it\")
+  ?person wdt:P106/wdt:P279* wd:Q901 .
+  ?person wdt:P19 wd:Q490 .    
+  MINUS { ?person wdt:P227 ?gnd } .
+  MINUS { ?person wdt:P268 ?bnf } .
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],it,en\". }
+}
+GROUP BY ?person ?personLabel
+ORDER BY ?person ?personLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

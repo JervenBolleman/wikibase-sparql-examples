@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-fa9267d8f4cf9422d186bc37e3ebce69> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/11>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -27,15 +26,33 @@ WHERE
               (SAMPLE(?recoveries_) as ?recoveries) (SAMPLE(?timeR) as ?dateR) 
               (SAMPLE(?deaths_) as ?deaths) (SAMPLE(?timeD) as ?dateD) WHERE
 {
-  {INCLUDE %Rstats}
+  { { SELECT ?COVID19_loc ?country ?recoveries_ ?timeR WHERE
+{
+  INCLUDE %dates
+  ?COVID19_loc p:P8010 ?statR . 
+  ?statR ps:P8010 ?recoveries_ . 
+  ?statR pq:P585 ?timeR .
+} }}
   UNION
-  {INCLUDE %Cstats}
+  { { SELECT ?COVID19_loc ?country ?cases_ ?timeC WHERE
+{
+  INCLUDE %dates
+  ?COVID19_loc p:P1603 ?statC . 
+  ?statC ps:P1603 ?cases_ . 
+  ?statC pq:P585 ?timeC .
+} }}
   UNION
-  {INCLUDE %Dstats}
+  { { SELECT ?COVID19_loc ?country ?deaths_ ?timeD WHERE
+{
+  INCLUDE %dates
+  ?COVID19_loc p:P1120 ?statD . 
+  ?statD ps:P1120 ?deaths_ . 
+  ?statD pq:P585 ?timeD .
+} }}
 } group by ?COVID19_loc ?country }  OPTIONAL {?country wdt:P625 ?coord. }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } 
 }""";
-  <http://example.org/bigdata_select> """SELECT ?COVID19_loc ?COVID19_locLabel ?countryLabel ?coord ?cases ?dateC ?recoveries ?dateR ?deaths ?dateD
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?COVID19_loc ?COVID19_locLabel ?countryLabel ?coord ?cases ?dateC ?recoveries ?dateR ?deaths ?dateD
 WITH { SELECT ?COVID19_loc ?country WHERE 
 {
    wd:Q83741704 wdt:P527 ?COVID19_loc.
@@ -101,4 +118,5 @@ WHERE
   INCLUDE %results
   OPTIONAL {?country wdt:P625 ?coord. }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } 
-}""" .
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-e20d3306abd79a815baea7f035f08f5c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jacksonj04/prompts/South_Africa/Assembly/Peoples_Assembly/Current>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
@@ -32,4 +31,23 @@ SELECT DISTINCT ?identifier__wikidata ?name ?source ?term (REPLACE(STR(?start),\
     FILTER(CONTAINS(LCASE(STR(?source)), \"pa.org.za/\"))
   }
   FILTER(!BOUND(?end) || ?end > NOW())
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?identifier__wikidata ?name ?source ?term (REPLACE(STR(?start),\"T00:00:00Z\",\"\") AS ?start_date) WHERE {
+  ?identifier__wikidata p:P39 ?statement.
+  ?statement ps:P39 wd:Q16744266; pq:P580 ?start .
+  OPTIONAL { ?statement pq:P582 ?end }
+  OPTIONAL {
+    ?statement pq:P2937 ?termStatement .
+    OPTIONAL { ?termStatement p:P31/pq:P1545 ?term . }
+  }
+  OPTIONAL {
+    ?identifier__wikidata p:P973 ?describedAtPA .
+    ?describedAtPA ps:P973 ?source .
+    OPTIONAL {
+      ?describedAtPA pq:P1810 ?name .
+    }
+    FILTER(CONTAINS(LCASE(STR(?source)), \"pa.org.za/\"))
+  }
+  FILTER(!BOUND(?end) || ?end > NOW())
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

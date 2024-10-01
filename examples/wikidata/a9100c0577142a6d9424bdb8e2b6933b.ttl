@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-a9100c0577142a6d9424bdb8e2b6933b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -55,4 +54,41 @@ SELECT DISTINCT ?item ?itemLabel ?coord ?layer WHERE {            # put ?coord &
     }
   }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map                                                  # set the output visualisation
+SELECT DISTINCT ?item ?itemLabel ?coord ?layer WHERE {            # put ?coord & ?layer in this select          
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". 
+   }
+  {
+    SELECT DISTINCT ?item ?coord ?numericQuantity ?layer WHERE {  # put ?coord ?layer in this select
+      OPTIONAL {?item wdt:P625 ?coord.}                           # get the coord
+      ?item p:P31 ?statement0.
+      ?statement0 (ps:P31/(wdt:P279*)) wd:Q483110.
+      ?item p:P1083 ?statement1.
+      ?statement1 (psv:P1083/wikibase:quantityAmount) ?numericQuantity.
+      FILTER(?numericQuantity > \"25000\"^^xsd:decimal)
+      ?item p:P1619 ?statement_2.
+      ?statement_2 psv:P1619 ?statementValue_2.
+      ?statementValue_2 wikibase:timeValue ?P1619_2.
+      MINUS {
+        ?item p:P3999 ?statement_3.
+        ?statement_3 psv:P3999 ?statementValue_3.
+        ?statementValue_3 wikibase:timeValue ?P3999_3.
+      }
+      ?item p:P625 ?statement4.
+      ?statement4 (ps:P625) _:anyValueP625.
+      bind(if(?numericQuantity >100000,\"100k+\",                     # assign numeric ranges
+        if(?numericQuantity >90000,\"90k+\",
+        if(?numericQuantity >80000,\"80k+\",
+        if(?numericQuantity >70000,\"70k+\",
+        if(?numericQuantity >60000,\"60k+\",
+        if(?numericQuantity >50000,\"50k+\",
+        if(?numericQuantity >40000,\"40k+\",
+        if(?numericQuantity >30000,\"30k+\",
+        if(?numericQuantity >20000,\"20k+\",
+        if(?numericQuantity >10000,\"10k+\",
+        if(?numericQuantity >10000,\"0k+\",\"\"))))))))))) as ?layer)
+    }
+  }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

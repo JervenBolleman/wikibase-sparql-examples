@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-acdd8c08fa5695255e3302823514ee26> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:ExLibris-Primo>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -33,4 +32,23 @@ SELECT ?academic ?scholia ?academicLabel ?academicDescription ?academicAltLabel 
 
 }
 LIMIT 50""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title: Students of a university and their IDs
+SELECT ?academic ?scholia ?academicLabel ?academicDescription ?academicAltLabel  ?gender ?lccn ?lccnurl  ?viaf ?viafurl ?orcid ?orcidurl ?gscholar ?gscholarurl  WHERE {
+   ?academic wdt:P31 wd:Q5 . # academic has a person
+  
+   ?academic wdt:P69 wd:Q1150437 . # educated at Victoria University of Wellington
+
+   BIND( URI(CONCAT('https://scholia.toolforge.org/author/', STRAFTER(STR(?academic), \"/entity/\")))  AS ?scholia ) .
+
+   OPTIONAL { ?academic wdt:P21 ?gender . } .   
+   OPTIONAL { ?academic wdt:P244 ?lccn .  BIND( IRI(CONCAT('https://lccn.loc.gov/', STR(?lccn)))  AS ?lccnurl ) .   } . 
+   OPTIONAL { ?academic wdt:P214 ?viaf .  BIND( IRI(CONCAT('https://viaf.org/viaf/', STR(?viaf)))  AS ?viafurl ) . } . 
+   OPTIONAL { ?academic wdt:P496 ?orcid .  BIND( IRI(CONCAT('https://orcid.org/', STR(?orcid)))  AS ?orcidurl ) . } . 
+   OPTIONAL { ?academic wdt:P1960 ?gscholar .  BIND( IRI(CONCAT('https://scholar.google.com/citations?user=', STR(?gscholar)))  AS ?gscholarurl ) . } . 
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+
+}
+LIMIT 50""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

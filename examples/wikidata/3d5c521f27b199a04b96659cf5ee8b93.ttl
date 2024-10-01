@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-3d5c521f27b199a04b96659cf5ee8b93> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/Queries>, <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/sandbox>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
@@ -34,4 +33,22 @@ WHERE {
  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\". }
 }
 ORDER BY ?msLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title:Same GND in two items, deprecated rank in the first, normal rank in the second
+SELECT ?item1 ?item2 ?gnd ?msLabel
+WHERE {
+ { SELECT ?gnd
+ WHERE {
+ ?item p:P227 ?stdep .
+ ?stdep wikibase:rank wikibase:DeprecatedRank .
+ ?stdep ps:P227 ?gnd .
+ } }
+ ?item1 p:P227 ?stdep .
+ ?stdep wikibase:rank wikibase:DeprecatedRank .
+ ?stdep ps:P227 ?gnd .
+ OPTIONAL { ?stdep pq:P2241 ?ms . }
+ ?item2 wdt:P227 ?gnd .
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\". }
+}
+ORDER BY ?msLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

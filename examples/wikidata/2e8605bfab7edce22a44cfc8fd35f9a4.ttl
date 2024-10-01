@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-2e8605bfab7edce22a44cfc8fd35f9a4> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Awinkler3/BiB2WD>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -52,5 +51,41 @@ SELECT DISTINCT ?obj ?objLabel ?location WHERE {
     }
           SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
 }""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title: Objekte aus ausgewählten BiB-relevanten Klassen im Umkreis von 20 km um das Zentrum Berlins ohne Verweis auf BiB
+
+#Problem: Kategorie \"Denkmal\" ist sehr umfassend und wenigs präzise
+SELECT DISTINCT ?obj ?objLabel ?location WHERE {
+  VALUES ?classes { 
+    wd:Q860861
+    wd:Q179700
+    wd:Q3476515
+    wd:wd:Q2293362
+    wd:Q17489160
+    wd:Q106482879
+    wd:Q245117 }
+  wd:Q64 wdt:P625 ?berlincoords .
+          SERVICE wikibase:around {
+            ?obj wdt:P625 ?location .
+            bd:serviceParam wikibase:center ?berlincoords . 
+           bd:serviceParam wikibase:radius \"20\" . 
+         } .
+    
+            ?obj wdt:P31 ?classes .
+           
+  #Von Ergebnismenge sollen subtrahiert werden:
+  MINUS {
+    {
+  ?obj wdt:P1343 wd:Q111792585 . # Objekte mit Verweis auf BiB
+   } UNION {
+      ?obj wdt:P973 ?url .  # Objekte mit BiB URL in P973
+   FILTER (STRSTARTS(STR(?URL), \"https://bildhauerei-in-berlin.de/\") )
+    } UNION {
+      ?obj ?p [ prov:wasDerivedFrom [ pr:P854 ?URL ]] . # Objekte mit BiB URL in Referenz
+  FILTER (STRSTARTS(STR(?URL), \"https://bildhauerei-in-berlin.de/\") )
+   }
+    }
+          SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+}""";
   <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#around>,
-    <http://wikiba.se/ontology#label> .
+    <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

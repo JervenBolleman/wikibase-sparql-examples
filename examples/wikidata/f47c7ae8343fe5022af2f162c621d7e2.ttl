@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-f47c7ae8343fe5022af2f162c621d7e2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/06>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -152,30 +151,9 @@ WHERE
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY ?date""";
-  <http://example.org/bigdata_select> """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT DISTINCT ?date ?age ?president ?presidentLabel
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?date ?age ?president ?presidentLabel
 WITH
 {
-  # Find the age for all living expresidents for each value of ?date
-  SELECT ?date ?age ?president
-  WHERE
-  {
-    
-{
-  # Dates where who is oldest living expresident can change
-  SELECT DISTINCT ?date
-  WHERE
-  {
-    {
-      
-{
   # persons who is/were president of USA
   SELECT ?president ?president_enddate ?president_birthdate ?president_deathdate
   WHERE
@@ -187,230 +165,25 @@ WITH
     ?president wdt:P569 ?president_birthdate.
     OPTIONAL { ?president wdt:P570 ?president_deathdate. }
   }
-}      BIND(?president_enddate + \"P1D\"^^xsd:duration AS ?date)
-    }
-    UNION
-    {
-      
-{
-  # persons who is/were president of USA
-  SELECT ?president ?president_enddate ?president_birthdate ?president_deathdate
-  WHERE
-  {
-    ?president wdt:P31 wd:Q5.
-    ?president p:P39 ?president_statement.
-    ?president_statement ps:P39 wd:Q11696.
-    ?president_statement pq:P582 ?president_enddate.
-    ?president wdt:P569 ?president_birthdate.
-    OPTIONAL { ?president wdt:P570 ?president_deathdate. }
-  }
-}      BIND(?president_deathdate + \"P1D\"^^xsd:duration AS ?date)
-    }
-  }
-}    
-{
-  # persons who is/were president of USA
-  SELECT ?president ?president_enddate ?president_birthdate ?president_deathdate
-  WHERE
-  {
-    ?president wdt:P31 wd:Q5.
-    ?president p:P39 ?president_statement.
-    ?president_statement ps:P39 wd:Q11696.
-    ?president_statement pq:P582 ?president_enddate.
-    ?president wdt:P569 ?president_birthdate.
-    OPTIONAL { ?president wdt:P570 ?president_deathdate. }
-  }
-}    FILTER (?president_enddate < ?date) # Must have become expresident
-    FILTER IF(BOUND(?president_deathdate), ?president_deathdate >= ?date, true) # Must still be living
-    BIND (?date - ?president_birthdate AS ?age)
-  }
-} AS %ages
+} AS %presidents
 WITH
 {
-  # Find the oldest age for a living exprrsident for each value of ?date
-  SELECT ?date (MAX(?age) AS ?oldest)
-  WHERE
-  {
-    
-{
-  # Find the age for all living expresidents for each value of ?date
-  SELECT ?date ?age ?president
-  WHERE
-  {
-    
-{
   # Dates where who is oldest living expresident can change
   SELECT DISTINCT ?date
   WHERE
   {
     {
-      
-{
-  # persons who is/were president of USA
-  SELECT ?president ?president_enddate ?president_birthdate ?president_deathdate
-  WHERE
-  {
-    ?president wdt:P31 wd:Q5.
-    ?president p:P39 ?president_statement.
-    ?president_statement ps:P39 wd:Q11696.
-    ?president_statement pq:P582 ?president_enddate.
-    ?president wdt:P569 ?president_birthdate.
-    OPTIONAL { ?president wdt:P570 ?president_deathdate. }
-  }
-}      BIND(?president_enddate + \"P1D\"^^xsd:duration AS ?date)
+      INCLUDE %presidents
+      BIND(?president_enddate + \"P1D\"^^xsd:duration AS ?date)
     }
     UNION
     {
-      
-{
-  # persons who is/were president of USA
-  SELECT ?president ?president_enddate ?president_birthdate ?president_deathdate
-  WHERE
-  {
-    ?president wdt:P31 wd:Q5.
-    ?president p:P39 ?president_statement.
-    ?president_statement ps:P39 wd:Q11696.
-    ?president_statement pq:P582 ?president_enddate.
-    ?president wdt:P569 ?president_birthdate.
-    OPTIONAL { ?president wdt:P570 ?president_deathdate. }
-  }
-}      BIND(?president_deathdate + \"P1D\"^^xsd:duration AS ?date)
+      INCLUDE %presidents
+      BIND(?president_deathdate + \"P1D\"^^xsd:duration AS ?date)
     }
   }
-}    
-{
-  # persons who is/were president of USA
-  SELECT ?president ?president_enddate ?president_birthdate ?president_deathdate
-  WHERE
-  {
-    ?president wdt:P31 wd:Q5.
-    ?president p:P39 ?president_statement.
-    ?president_statement ps:P39 wd:Q11696.
-    ?president_statement pq:P582 ?president_enddate.
-    ?president wdt:P569 ?president_birthdate.
-    OPTIONAL { ?president wdt:P570 ?president_deathdate. }
-  }
-}    FILTER (?president_enddate < ?date) # Must have become expresident
-    FILTER IF(BOUND(?president_deathdate), ?president_deathdate >= ?date, true) # Must still be living
-    BIND (?date - ?president_birthdate AS ?age)
-  }
-}  }
-  GROUP BY ?date
-} AS %oldest
-WHERE
-{
-  
-{
-  # Dates where who is oldest living expresident can change
-  SELECT DISTINCT ?date
-  WHERE
-  {
-    {
-      
-{
-  # persons who is/were president of USA
-  SELECT ?president ?president_enddate ?president_birthdate ?president_deathdate
-  WHERE
-  {
-    ?president wdt:P31 wd:Q5.
-    ?president p:P39 ?president_statement.
-    ?president_statement ps:P39 wd:Q11696.
-    ?president_statement pq:P582 ?president_enddate.
-    ?president wdt:P569 ?president_birthdate.
-    OPTIONAL { ?president wdt:P570 ?president_deathdate. }
-  }
-}      BIND(?president_enddate + \"P1D\"^^xsd:duration AS ?date)
-    }
-    UNION
-    {
-      
-{
-  # persons who is/were president of USA
-  SELECT ?president ?president_enddate ?president_birthdate ?president_deathdate
-  WHERE
-  {
-    ?president wdt:P31 wd:Q5.
-    ?president p:P39 ?president_statement.
-    ?president_statement ps:P39 wd:Q11696.
-    ?president_statement pq:P582 ?president_enddate.
-    ?president wdt:P569 ?president_birthdate.
-    OPTIONAL { ?president wdt:P570 ?president_deathdate. }
-  }
-}      BIND(?president_deathdate + \"P1D\"^^xsd:duration AS ?date)
-    }
-  }
-}  OPTIONAL
-  {
-    
-{
-  # Find the age for all living expresidents for each value of ?date
-  SELECT ?date ?age ?president
-  WHERE
-  {
-    
-{
-  # Dates where who is oldest living expresident can change
-  SELECT DISTINCT ?date
-  WHERE
-  {
-    {
-      
-{
-  # persons who is/were president of USA
-  SELECT ?president ?president_enddate ?president_birthdate ?president_deathdate
-  WHERE
-  {
-    ?president wdt:P31 wd:Q5.
-    ?president p:P39 ?president_statement.
-    ?president_statement ps:P39 wd:Q11696.
-    ?president_statement pq:P582 ?president_enddate.
-    ?president wdt:P569 ?president_birthdate.
-    OPTIONAL { ?president wdt:P570 ?president_deathdate. }
-  }
-}      BIND(?president_enddate + \"P1D\"^^xsd:duration AS ?date)
-    }
-    UNION
-    {
-      
-{
-  # persons who is/were president of USA
-  SELECT ?president ?president_enddate ?president_birthdate ?president_deathdate
-  WHERE
-  {
-    ?president wdt:P31 wd:Q5.
-    ?president p:P39 ?president_statement.
-    ?president_statement ps:P39 wd:Q11696.
-    ?president_statement pq:P582 ?president_enddate.
-    ?president wdt:P569 ?president_birthdate.
-    OPTIONAL { ?president wdt:P570 ?president_deathdate. }
-  }
-}      BIND(?president_deathdate + \"P1D\"^^xsd:duration AS ?date)
-    }
-  }
-}    
-{
-  # persons who is/were president of USA
-  SELECT ?president ?president_enddate ?president_birthdate ?president_deathdate
-  WHERE
-  {
-    ?president wdt:P31 wd:Q5.
-    ?president p:P39 ?president_statement.
-    ?president_statement ps:P39 wd:Q11696.
-    ?president_statement pq:P582 ?president_enddate.
-    ?president wdt:P569 ?president_birthdate.
-    OPTIONAL { ?president wdt:P570 ?president_deathdate. }
-  }
-}    FILTER (?president_enddate < ?date) # Must have become expresident
-    FILTER IF(BOUND(?president_deathdate), ?president_deathdate >= ?date, true) # Must still be living
-    BIND (?date - ?president_birthdate AS ?age)
-  }
-}    
-{
-  # Find the oldest age for a living exprrsident for each value of ?date
-  SELECT ?date (MAX(?age) AS ?oldest)
-  WHERE
-  {
-    
+} AS %dates
+WITH
 {
   # Find the age for all living expresidents for each value of ?date
   SELECT ?date ?age ?president
@@ -422,10 +195,27 @@ WHERE
     FILTER IF(BOUND(?president_deathdate), ?president_deathdate >= ?date, true) # Must still be living
     BIND (?date - ?president_birthdate AS ?age)
   }
-}  }
+} AS %ages
+WITH
+{
+  # Find the oldest age for a living exprrsident for each value of ?date
+  SELECT ?date (MAX(?age) AS ?oldest)
+  WHERE
+  {
+    INCLUDE %ages
+  }
   GROUP BY ?date
-}    FILTER (?age = ?oldest)
+} AS %oldest
+WHERE
+{
+  INCLUDE %dates
+  OPTIONAL
+  {
+    INCLUDE %ages
+    INCLUDE %oldest
+    FILTER (?age = ?oldest)
   }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
-ORDER BY ?date""" .
+ORDER BY ?date""";
+  schema:target <https://query.wikidata.org/sparql> .

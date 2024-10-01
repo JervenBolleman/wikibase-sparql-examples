@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-2bd37d5a6ff7bdf7538a2c658f965948> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Pywikibot_-_Python_3_Tutorial/Machine_learning_with_Wikidata>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -58,4 +57,45 @@ WHERE
 }
 GROUP BY ?year ?countryLabel
 ORDER BY ?year ?countryLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# male/female population _must_ not be added unqualified as total population (!)
+# this is an error and should be fixed at the item using P1540 and P1539 instead
+# (wrong query result may be a manifestation of such)
+SELECT ?year (AVG(?pop) AS ?population) ?countryLabel
+WHERE
+{
+  ?country wdt:P31 wd:Q6256;
+           p:P1082 ?popStatement .
+  ?popStatement ps:P1082 ?pop;
+                pq:P585 ?date .
+  BIND(STR(YEAR(?date)) AS ?year)
+  
+  # IF multiple ?pop values per country per year exist, we prioritize by source
+  #       census 1st, others 2nd, estimation(s) 3rd, unknown sources (none supplies P459) last
+  # note: wikibase:rank won't help here: each year may have multiple statements for ?pop value
+  #       rank:prefered is used for the best value (or values) of the latest or current year
+  #       rank:normal may be justified for all of multiple ?pop values for a given year
+  OPTIONAL { ?popStatement pq:P459 ?method. }
+  OPTIONAL { ?country p:P1082 [ pq:P585 ?d; pq:P459 ?estimate ].
+             FILTER(STR(YEAR(?d)) = ?year). FILTER(?estimate = wd:Q791801). }
+  OPTIONAL { ?country p:P1082 [ pq:P585 ?e; pq:P459 ?census ].
+             FILTER(STR(YEAR(?e)) = ?year). FILTER(?census = wd:Q39825). }
+  OPTIONAL { ?country p:P1082 [ pq:P585 ?f; pq:P459 ?other ].
+             FILTER(STR(YEAR(?f)) = ?year). FILTER(?other != wd:Q39825 && ?other != wd:Q791801). }
+  BIND(COALESCE( 
+    IF(BOUND(?census), ?census, 1/0),
+    IF(BOUND(?other), ?other, 1/0),
+    IF(BOUND(?estimate), ?estimate, 1/0) ) AS ?pref_method).
+  FILTER(IF(BOUND(?pref_method),?method = ?pref_method,true))
+  # .. still need to group if multiple values per country per year exist and
+  # - none is qualified with P459
+  # - multiple ?estimate or multiple ?census (>1 value from same source)
+  # - ?other yields more than one source (>1 values are better than optionally
+  #                         supplied estimate, but no census source available)
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }       
+  FILTER(?year >= \"2005\")
+}
+GROUP BY ?year ?countryLabel
+ORDER BY ?year ?countryLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

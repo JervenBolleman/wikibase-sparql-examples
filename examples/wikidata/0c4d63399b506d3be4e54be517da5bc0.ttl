@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-0c4d63399b506d3be4e54be517da5bc0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Aluxosm/Scratchpad>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -42,4 +41,29 @@ WHERE
 }
 GROUP BY ?item ?date ?itemLabel ?publisherLabel ?doi ?statements ?ids
 ORDER BY ?date ?itemLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Articles where the main subject is \"Younger Dryas impact hypothesis\" and the reference for that statement is a link to \"The Bib\"
+
+SELECT DISTINCT ?item ?date ?itemLabel ?publisherLabel ?doi ?statements ?ids (COUNT(?cite) AS ?cites) # ?ref ?sitelinks
+WHERE
+{ 
+  ?item wdt:P921 wd:Q1092095.
+  
+  ?item p:P921 ?statement.
+  ?statement prov:wasDerivedFrom ?refnode.
+  ?refnode   pr:P854 ?ref.
+  
+  FILTER(CONTAINS(STR(?ref), \"younger-dryas-impact-hypothesis-bibliography-and-paper-archive\")).
+  
+  OPTIONAL { ?item wdt:P577 ?date }
+  OPTIONAL { ?item wdt:P1433 ?publisher }
+  OPTIONAL { ?item wdt:P356 ?doi }
+  OPTIONAL { ?item wdt:P2860 ?cite }
+  OPTIONAL { ?item wikibase:statements ?statements ; wikibase:identifiers ?ids ; wikibase:sitelinks ?sitelinks }
+  
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+GROUP BY ?item ?date ?itemLabel ?publisherLabel ?doi ?statements ?ids
+ORDER BY ?date ?itemLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

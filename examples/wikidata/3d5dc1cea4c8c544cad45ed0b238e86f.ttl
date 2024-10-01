@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-3d5dc1cea4c8c544cad45ed0b238e86f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
@@ -29,4 +28,19 @@ WHERE {
     {?term wdt:P279 wd:Q16707842 } UNION { ?term wdt:P279 wd:Q18015642 } UNION { ?term wdt:P279 wd:Q18018860 }
     { ?ps pq:P580 ?start } union { ?term wdt:P571 ?start . filter not exists { ?ps pq:P580 [] } }
   } group by ?parent }
-  ?item wdt:P22""" .
+  ?item wdt:P22""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?itemLabel ?item_earliest ?parent ?parentLabel ?parent_earliest ?years
+WHERE {
+  { select distinct ?item (min(?start) as ?item_earliest) where {
+    ?item p:P39 ?ps .?ps ps:P39 ?term . 
+    {?term wdt:P279 wd:Q16707842 } UNION { ?term wdt:P279 wd:Q18015642 } UNION { ?term wdt:P279 wd:Q18018860 }
+    { ?ps pq:P580 ?start } union { ?term wdt:P571 ?start . filter not exists { ?ps pq:P580 [] } }
+  } group by ?item }
+  
+  { select distinct ?parent (min(?start) as ?parent_earliest) where {
+    ?parent p:P39 ?ps .?ps ps:P39 ?term . 
+    {?term wdt:P279 wd:Q16707842 } UNION { ?term wdt:P279 wd:Q18015642 } UNION { ?term wdt:P279 wd:Q18018860 }
+    { ?ps pq:P580 ?start } union { ?term wdt:P571 ?start . filter not exists { ?ps pq:P580 [] } }
+  } group by ?parent }
+  ?item wdt:P22""";
+  schema:target <https://query.wikidata.org/sparql> .

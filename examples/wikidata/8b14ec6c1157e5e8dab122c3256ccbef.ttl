@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8b14ec6c1157e5e8dab122c3256ccbef> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/05>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -55,4 +54,42 @@ WHERE
     }
   }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# 1) Find all items for Wikimedia disambiguation pages with a label \"FFCC\" in any language.
+# 2) Find all Wikimedia pages for the items.
+# 3) Find all outgoing links (titles and items) on the disambiguation pages.
+SELECT DISTINCT ?item ?article ?site ?title ?endpoint ?link_item ?link_title
+WHERE
+{
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\".
+    bd:serviceParam wikibase:api \"Generator\".
+    bd:serviceParam mwapi:generator \"search\".
+    bd:serviceParam mwapi:gsrsearch \"inlabel:FFCC\".
+    bd:serviceParam mwapi:gsrlimit \"max\".
+    ?item wikibase:apiOutputItem mwapi:title.
+  }
+  ?item rdfs:label ?label.
+  FILTER (STR(?label) = \"FFCC\")
+  ?item wdt:P31/wdt:P279* wd:Q4167410.
+  ?article schema:about ?item.
+  ?article schema:isPartOf ?site.
+  ?article schema:name ?title.
+  BIND (STRBEFORE(STRAFTER(STR(?site), \"https://\"), \"/\") AS ?endpoint)
+  OPTIONAL
+  {
+    SERVICE wikibase:mwapi
+    {
+      bd:serviceParam wikibase:endpoint ?endpoint.
+      bd:serviceParam wikibase:api \"Generator\".
+      bd:serviceParam mwapi:generator \"links\".
+      bd:serviceParam mwapi:titles ?title.
+      bd:serviceParam mwapi:gpllimit \"max\".
+      bd:serviceParam mwapi:gplnamespace \"0\".
+      ?link_item wikibase:apiOutputItem mwapi:item.
+      ?link_title wikibase:apiOutput mwapi:title.
+    }
+  }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

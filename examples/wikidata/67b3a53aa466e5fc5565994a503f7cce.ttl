@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-67b3a53aa466e5fc5565994a503f7cce> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Amadalvarez/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -63,4 +62,50 @@ SELECT DISTINCT ?municipiLabel ?capital_deLabel ?poblacio ?emesos ?vots_PP
 
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
     }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#vots en capitals de comarca o > 25.000 habitants
+SELECT DISTINCT ?municipiLabel ?capital_deLabel ?poblacio ?emesos ?vots_PP
+ ?vots_JUNTS  ?vots_PSC ?vots_Cs ?vots_ERC
+ ?vots_Comuns  ?vots_VOX ?vots_CUP  WHERE {
+      ?item wdt:P361 wd:Q48838589;
+            wdt:P1001 ?municipi.
+      {
+      ?municipi wdt:P1376 ?capital_de .
+      ?capital_de wdt:P31 wd:Q937876
+      }
+   UNION
+   {
+      ?item wdt:P361 wd:Q48838589;
+            wdt:P1001 ?municipi.
+      ?municipi wdt:P1082  ?poblacio.
+   FILTER(?poblacio >= 25000) .
+    }
+    OPTIONAL { ?item wdt:P1868 ?emesos. }
+  OPTIONAL { ?item p:P726?statement.
+   ?statement ps:P726 wd:Q185088;
+           pq:P1111 ?vots_PP.}
+   OPTIONAL { ?item p:P726 ?statement1.
+             ?statement1 ps:P726 wd:Q97155800;
+           pq:P1111 ?vots_JUNTS.}
+  OPTIONAL { ?item p:P726 ?statement2.
+             ?statement2 ps:P726 wd:Q2055003;
+           pq:P1111 ?vots_PSC. }
+    OPTIONAL { ?item p:P726?statement3.
+              ?statement3 ps:P726 wd:Q1393123;
+           pq:P1111 ?vots_Cs.}
+    OPTIONAL { ?item p:P726?statement4.
+              ?statement4 ps:P726 wd:Q150068;
+           pq:P1111 ?vots_ERC.}
+    OPTIONAL { ?item p:P726?statement5.
+              ?statement5 ps:P726 wd:Q104760756;
+           pq:P1111 ?vots_Comuns.}
+    OPTIONAL { ?item p:P726?statement6.
+              ?statement6 ps:P726 wd:Q15630787;
+           pq:P1111 ?vots_VOX.}
+    OPTIONAL { ?item p:P726?statement7.
+              ?statement7 ps:P726 wd:Q104760691;
+           pq:P1111 ?vots_CUP.}
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+    }""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

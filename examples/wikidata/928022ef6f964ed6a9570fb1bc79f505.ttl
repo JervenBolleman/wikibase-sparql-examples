@@ -1,17 +1,16 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-928022ef6f964ed6a9570fb1bc79f505> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Akbarali/Most_used_properties_in_direct_claims,_qualifiers_and_references>,
     <https://www.wikidata.org//wiki/User:Rdrg109/1/25>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
@@ -24,10 +23,29 @@ SELECT
   ?countInQualifiers
   ?countInReferences
 {
-  INCLUDE %5.
+   {
+  SELECT * {
+     {
+  SELECT * {
+    INCLUDE %a.
+    OPTIONAL{INCLUDE %1}
+    OPTIONAL{INCLUDE %2}
+    OPTIONAL{INCLUDE %3}
+    OPTIONAL {
+      ?property schema:description ?value
+      FILTER(LANG(?value) = \"ml\").
+    }
+    BIND(IF(BOUND(?value), \"Yes\", \"No\") AS ?valueExists).
+  }
+}
+    BIND(IF(BOUND(?countInDirectClaims), ?countInDirectClaims, 0) AS ?countInDirectClaims)
+    BIND(IF(BOUND(?countInQualifiers), ?countInQualifiers, 0) AS ?countInQualifiers)
+    BIND(IF(BOUND(?countInReferences), ?countInReferences, 0) AS ?countInReferences)
+  }
+}
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\"}.
 }""";
-  <http://example.org/bigdata_select> """SELECT
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT
   ?property
   ?propertyLabel
   ?value
@@ -88,4 +106,5 @@ WITH {
 {
   INCLUDE %5.
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\"}.
-}""" .
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-33a44acce74e87c7dfda5e6b658401b1> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_COVID-19/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -57,4 +56,44 @@ WHERE
 }
 GROUP BY  ?item ?itemLabel ?beginning ?countryLabel ?locationLabel ?deaths ?cases  ?distribution_map 
 ORDER BY ?item""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?itemLabel ?beginning ?countryLabel ?locationLabel ?deaths ?cases  ?distribution_map 
+
+( GROUP_CONCAT ( DISTINCT ?subreddit; separator=\"; \" ) AS ?subreddits )
+( GROUP_CONCAT ( DISTINCT ?hashtag; separator=\"; \" ) AS ?hashtags )
+
+WHERE
+{
+	?item p:P31 ?statement. 
+      ?statement ps:P31 wd:Q3241045. 
+      ?statement pq:P642 wd:Q84263196. 
+	 
+	OPTIONAL{?item wdt:P580  ?beginning .}     
+	OPTIONAL{?item wdt:P276  ?location .}
+    OPTIONAL{?item wdt:P17   ?country .} 
+
+# Using p instead of wdt to ignore ranking.
+
+	OPTIONAL{?item p:P1120 [ps:P1120 ?deaths] .} 
+	OPTIONAL{?item p:P1603 [ps:P1603 ?cases] .}
+	OPTIONAL{?item wdt:P1846 ?distribution_map .}
+    OPTIONAL{?item wdt:P3984 ?subreddit .}    
+    OPTIONAL{?item wdt:P2572 ?hashtag .} 
+
+# Get only the highest number for these status.
+    FILTER NOT EXISTS {
+    ?item p:P1120 [ps:P1120 ?deaths_] .
+    FILTER (?deaths_ > ?deaths)
+}
+        FILTER NOT EXISTS {
+    ?item p:P1603 [ps:P1603 ?cases_] .
+    FILTER (?cases_ > ?cases)
+}
+  
+	SERVICE wikibase:label { #BabelRainbow
+		bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\"
+	}
+}
+GROUP BY  ?item ?itemLabel ?beginning ?countryLabel ?locationLabel ?deaths ?cases  ?distribution_map 
+ORDER BY ?item""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

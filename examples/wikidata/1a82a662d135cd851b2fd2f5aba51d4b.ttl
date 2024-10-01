@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-1a82a662d135cd851b2fd2f5aba51d4b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
@@ -48,4 +47,36 @@ SELECT DISTINCT ?country ?countryLabel ?capital ?capitalLabel ?population1 WHERE
  } 
 	
  ORDER BY ASC(?countryLabel)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?country ?countryLabel ?capital ?capitalLabel ?population1 WHERE {
+	
+  { SELECT ?capital (MAX(?date1) AS ?max_date1) WHERE {
+	
+    ?country p:P31/ps:P31 wd:Q6256 .
+	
+    ?country p:P36/ps:P36 ?capital . 
+	
+    ?capital p:P1082/pq:P585 ?date1 .
+	
+  } GROUP BY ?capital }
+	
+  ?country p:P31/ps:P31 wd:Q6256 .
+	
+  ?country p:P36/ps:P36 ?capital .
+	
+  ?capital p:P1082 ?p1 .
+	
+  ?p1 ps:P1082 ?population1 .
+	
+  ?p1 pq:P585 ?max_date1 .
+	
+  SERVICE wikibase:label {
+	
+     bd:serviceParam wikibase:language \"en\" .
+	
+  }
+	
+ } 
+	
+ ORDER BY ASC(?countryLabel)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

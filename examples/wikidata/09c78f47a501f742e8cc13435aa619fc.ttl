@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-09c78f47a501f742e8cc13435aa619fc> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/longest_rivers_that_feed_into_another_river>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -18,11 +17,21 @@ PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?river ?riverLabel (?lengthInM/1000 AS ?lengthInKm) ?mouthLabel WHERE {
-  INCLUDE %results.
+   {
+  SELECT DISTINCT ?river ?lengthInM ?mouth WHERE {
+    ?river wdt:P31/wdt:P279* wd:Q4022;
+           wdt:P403 ?mouth;
+           p:P2043 ?lengthStatement. ?lengthStatement a wikibase:BestRank; psn:P2043/wikibase:quantityAmount ?lengthInM. 
+    ?mouth wdt:P31/wdt:P279* wd:Q4022.
+    FILTER(?lengthInM > 1000000)
+  }
+  ORDER BY DESC(?lengthInM)
+  LIMIT 10
+}
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 ORDER BY DESC(?lengthInM)""";
-  <http://example.org/bigdata_select> """SELECT ?river ?riverLabel (?lengthInM/1000 AS ?lengthInKm) ?mouthLabel WITH {
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?river ?riverLabel (?lengthInM/1000 AS ?lengthInKm) ?mouthLabel WITH {
   SELECT DISTINCT ?river ?lengthInM ?mouth WHERE {
     ?river wdt:P31/wdt:P279* wd:Q4022;
            wdt:P403 ?mouth;
@@ -36,4 +45,6 @@ ORDER BY DESC(?lengthInM)""";
   INCLUDE %results.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
-ORDER BY DESC(?lengthInM)""" .
+ORDER BY DESC(?lengthInM)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-98c42dd44482530bb02eadf006ccfd97> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:MichaelSchoenitzer/WPFF>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -41,4 +40,30 @@ SELECT distinct ?frau ?frauLabel ?count ?frauDescription Where {
      bd:serviceParam wikibase:language \"de,en,es,fr\" .
   }
 } order by desc(?count)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT distinct ?frau ?frauLabel ?count ?frauDescription Where {
+  {
+    SELECT distinct ?frau (COUNT (DISTINCT ?articles) as ?count) WHERE {
+      # Suche nach:
+      ?frau wdt:P31 wd:Q5.          # Menschen mit
+      ?frau wdt:P21 wd:Q6581072.    # Geschlecht weiblich
+      ?frau wdt:P106 wd:Q33999      # die als Schauspieler arbeiten
+      Minus {                       # aber nicht als Porno-Darstellerin
+        ?frau wdt:P106 wd:Q488111
+        }
+      Filter Not Exists {           # ohne Artikel in der deutschen Wikipedia
+        ?dearticle schema:about ?frau.
+        ?dearticle schema:inLanguage \"de\" 
+        }
+    
+      ?articles schema:about ?frau. # sortiere nach Anzahl der existierenden Wikipedia-Artikel
+    
+    } group by ?frau order by desc(?count)
+    Limit 100                       # Beschränke auf maximal 100 Ergebnisse 
+  }.
+    
+  SERVICE wikibase:label {
+     bd:serviceParam wikibase:language \"de,en,es,fr\" .
+  }
+} order by desc(?count)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

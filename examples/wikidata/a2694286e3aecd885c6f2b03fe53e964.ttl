@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-a2694286e3aecd885c6f2b03fe53e964> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stefan_K%C3%BChn/Dresden>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -35,4 +34,25 @@ where {
    SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en,[AUTO_LANGUAGE]\". }
 }
 order by ?liegt_inLabel ?itemDescription""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#---------------------------------------------------------------------------------------
+# Mit dieser Abfrage soll die Verwaltungsstruktur bereinigt werden - Work in Progress
+#---------------------------------------------------------------------------------------
+select ?item ?itemLabel ?itemDescription ?liegt_inLabel ?liegt_inDescription #?image ?coordinate
+where {
+   ?item wdt:P131 wd:Q1731 .      
+   #?item wdt:P31 wd:Q11183787.     # OK 9/9  Ortschaften 
+   #?item wdt:P31 wd:Q2740635.      # OK 10/10 Stadtbezirk in Deutschland (ab 13. September 2018) - Sollten alle mit Wort \"Stadtbezirk\" beginnen, damit von Stadtteil unterscheidbar!
+   #?item wdt:P31 wd:Q18600372      # OK 10/10 Ortsamtsbereich ( 1991 - 13. September 2018)
+   #?item wdt:P31 wd:Q4286337.      # OK 0/0 Stadtbezirk --> Stadtbezirk in Deutschland
+   #?item wdt:P31 wd:Q123705        # 3x Stadtviertel oder Ortsteil
+   #?item wdt:P31 wd:Q253019        # 124x Ortsteil
+   ?item wdt:P31 wd:Q2333944       # 26/64 Statistischer Stadtteil
+         
+   OPTIONAL { ?item wdt:P131 ?liegt_in. }
+   #OPTIONAL { ?item wdt:P18 ?image. }
+   #OPTIONAL { ?item wdt:P625 ?coordinate . }
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en,[AUTO_LANGUAGE]\". }
+}
+order by ?liegt_inLabel ?itemDescription""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

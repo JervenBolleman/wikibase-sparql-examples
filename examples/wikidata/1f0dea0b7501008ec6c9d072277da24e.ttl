@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-1f0dea0b7501008ec6c9d072277da24e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Kbseah/Link_errata_to_articles>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 SELECT DISTINCT ?qid ?P2507 ?S887 ?comment WHERE {
@@ -26,4 +25,19 @@ SELECT DISTINCT ?qid ?P2507 ?S887 ?comment WHERE {
   BIND (ENCODE_FOR_URI(REPLACE(STR(?item), \".*Q\", \"Q\")) AS ?P2507) # corrigendum/erratum
   BIND (\"Q69652283\" AS ?S887) # based on heuristic: inferred from title
   BIND (\"link errata to articles by matching title\" AS ?comment) 
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?qid ?P2507 ?S887 ?comment WHERE {
+  VALUES ?prefix { \"CORRIGENDUM: \" \"Author Correction: \" \"Publisher Correction: \" \"ERRATUM: \" }
+  ?item wdt:P31 wd:Q1348305;
+        wdt:P1433 wd:Q2261792;
+        wdt:P1476 ?title.
+  FILTER (STRSTARTS(?title, ?prefix)).
+  BIND(REPLACE(?title, CONCAT(\"^\", STR(?prefix), \"(.*)$\"), \"$1\") AS ?substring) # concat the prefix to make a regex
+  ?item2 wdt:P1476 ?substring.
+  FILTER ( NOT EXISTS { ?item2 wdt:P2507 ?item } )
+  BIND (ENCODE_FOR_URI(REPLACE(STR(?item2), \".*Q\", \"Q\")) AS ?qid) # article item
+  BIND (ENCODE_FOR_URI(REPLACE(STR(?item), \".*Q\", \"Q\")) AS ?P2507) # corrigendum/erratum
+  BIND (\"Q69652283\" AS ?S887) # based on heuristic: inferred from title
+  BIND (\"link errata to articles by matching title\" AS ?comment) 
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

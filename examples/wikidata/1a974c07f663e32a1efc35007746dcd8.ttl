@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-1a974c07f663e32a1efc35007746dcd8> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_Bau-_und_Kulturdenkmale>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX schema: <http://schema.org/>
@@ -28,4 +27,18 @@ SELECT DISTINCT ?item ?itemLabel ?pic ?coord ?denkmallink ?wikipedia WHERE {
                schema:isPartOf <https://de.wikipedia.org/> .
     }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map{ \"hide\" : \"?coord\" }
+SELECT DISTINCT ?item ?itemLabel ?pic ?coord ?denkmallink ?wikipedia WHERE {
+             ?item wdt:P7900 ?denkmalatlas .
+  OPTIONAL { ?item wdt:P625  ?coord . }
+  OPTIONAL { ?item wdt:P18   ?pic . }
+  BIND(URI(CONCAT(\"https://denkmalatlas.niedersachsen.de/viewer/metadata/\", STR(?denkmalatlas))) AS ?denkmallink)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\" . }
+  OPTIONAL {
+    ?wikipedia schema:about ?item ;
+               schema:inLanguage \"de\" ;
+               schema:isPartOf <https://de.wikipedia.org/> .
+    }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

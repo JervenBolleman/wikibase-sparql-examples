@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-924f03c0e542bf42a43655622987c776> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:FabC>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -42,4 +41,34 @@ WHERE {
   OPTIONAL{?os wdt:P856 ?website}
   FILTER(SUBSTR(str(?developer_label), 1, 9) = \"Microsoft\").
 }
-GROUP BY ?os ORDER BY ?label""" .
+GROUP BY ?os ORDER BY ?label""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?os
+  (SAMPLE(COALESCE(?en_label, ?any_label)) as ?label)
+  (SAMPLE(?based_on_label) as ?based_on)
+  (SAMPLE(?logo) as ?logo)
+  (SAMPLE(?image) as ?image)
+  (GROUP_CONCAT(DISTINCT ?packaging_system_label ; separator=\", \") as ?packaging_system)
+  (GROUP_CONCAT(DISTINCT ?developer_label ; separator=\", \") as ?developer)
+  (GROUP_CONCAT(DISTINCT ?license_label ; separator=\", \") as ?license)
+  (SAMPLE(?inception) as ?inception)
+  (GROUP_CONCAT(DISTINCT ?origin_label ; separator=\", \") as ?origin)
+  #(SAMPLE(?website) as ?website)
+WHERE {
+  ?os wdt:P31 wd:Q9135.
+  OPTIONAL{?os rdfs:label ?en_label. FILTER(LANG(?en_label) = \"en\")} OPTIONAL {?os rdfs:label ?any_label}
+  OPTIONAL{?os wdt:P144 ?based_on. ?based_on rdfs:label ?based_on_label. FILTER(LANG(?based_on_label) = \"en\")}
+  OPTIONAL{?os wdt:P154 ?logo}
+  OPTIONAL{?os wdt:P18 ?image}
+  OPTIONAL{?os wdt:P3033 ?packaging_system. ?packaging_system rdfs:label ?packaging_system_label. FILTER(LANG(?packaging_system_label) = \"en\")}
+  OPTIONAL{?os wdt:P275 ?license. ?license rdfs:label ?license_label. FILTER(LANG(?license_label) = \"en\")}
+  OPTIONAL{?os wdt:P178 ?developer. 
+           ?developer rdfs:label ?developer_label. 
+           FILTER(LANG(?developer_label) = \"en\").       
+          }
+  OPTIONAL{?os wdt:P571 ?inception}
+  OPTIONAL{?os wdt:P495 ?origin. ?origin rdfs:label ?origin_label. FILTER(LANG(?origin_label) = \"en\")}
+  OPTIONAL{?os wdt:P856 ?website}
+  FILTER(SUBSTR(str(?developer_label), 1, 9) = \"Microsoft\").
+}
+GROUP BY ?os ORDER BY ?label""";
+  schema:target <https://query.wikidata.org/sparql> .

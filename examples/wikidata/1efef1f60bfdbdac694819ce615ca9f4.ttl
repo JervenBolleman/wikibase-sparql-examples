@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-1efef1f60bfdbdac694819ce615ca9f4> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/3/3>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 #defaultView:Tree
@@ -35,14 +34,51 @@ SELECT
 # Convert the identifier that we hackily obtained into a Wikidata item
 # so that the top group is shown in #defaultView:Tree
 {
-  INCLUDE %0.
-  INCLUDE %2.
-  INCLUDE %3.
-  INCLUDE %5.
+   {
+  SELECT ?property ?type {
+    ?property wikibase:propertyType ?type.
+  }
+}
+   {
+  SELECT ?type ?typeName {
+     {
+  SELECT DISTINCT ?type {
+     {
+  SELECT ?property ?type {
+    ?property wikibase:propertyType ?type.
+  }
+}
+  }
+}
+    BIND(STRAFTER(STR(?type), STR(wikibase:)) AS ?typeName).
+  }
+}
+   {
+  SELECT ?type (COUNT(*) AS ?count) {
+     {
+  SELECT ?property ?type {
+    ?property wikibase:propertyType ?type.
+  }
+}
+  }
+  GROUP BY ?type
+}
+   {
+  SELECT ?type ?randomQid {
+     {
+  SELECT ?type (MAX(?Pid) AS ?maxPid) {
+    INCLUDE %0.
+    BIND(STRAFTER(STR(?property), 'http://www.wikidata.org/entity/P') AS ?Pid).
+  }
+  GROUP BY ?type
+}
+    BIND(URI(CONCAT('http://www.wikidata.org/entity/P', ?maxPid)) AS ?randomQid).
+  }
+}
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\"}.
 }
 ORDER BY DESC(?count) ASC(LCASE(?propertyLabel))""";
-  <http://example.org/bigdata_select> """#defaultView:Tree
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Tree
 SELECT
   ?randomQid
   ?typeName
@@ -105,4 +141,5 @@ WITH {
   INCLUDE %5.
   SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\"}.
 }
-ORDER BY DESC(?count) ASC(LCASE(?propertyLabel))""" .
+ORDER BY DESC(?count) ASC(LCASE(?propertyLabel))""";
+  schema:target <https://query.wikidata.org/sparql> .

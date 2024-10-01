@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-a1abee72d7eea8bdb323958fecf38072> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -56,4 +55,43 @@ SELECT distinct ?election ?electiondate ?electionLabel ?members ?labour ?conserv
   
   SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
 } order by desc(?electiondate)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT distinct ?election ?electiondate ?electionLabel ?members ?labour ?conservative 
+((?electionyear - ?all_birth) as ?all_age)
+((?electionyear - ?lab_birth) as ?lab_age)
+((?electionyear - ?con_birth) as ?con_age) where
+# nb some strange rounding here - find average year of birth, then subtract from year of election
+# still need to find a more sophisticated way of doing this!
+{
+  { SELECT distinct ?election ?electiondate ?electionyear where 
+    { ?election wdt:P31 wd:Q15283424 . ?election wdt:P585 ?electiondate . 
+      bind(year(?electiondate) as ?electionyear) . filter (?electionyear >= 1970 ) }
+  } # find all general elections and their date (for sorting)
+  
+  { SELECT ?election (count(distinct ?item) as ?members) (round(avg(year(?birth))) as ?all_birth) where 
+    { ?item p:P39 ?positionStatement . ?positionStatement ps:P39 ?membership . 
+      ?membership wdt:P2715 ?election . ?positionStatement pq:P2715 ?election .
+      optional { ?item wdt:P569 ?birth . }
+    } group by ?election
+  } # all MPs
+  
+  { SELECT ?election (count(distinct ?item) as ?labour) (round(avg(year(?birth))) as ?lab_birth) where 
+    { ?item p:P39 ?positionStatement . ?positionStatement ps:P39 ?membership . 
+      ?membership wdt:P2715 ?election . ?positionStatement pq:P2715 ?election .
+      { ?positionStatement pq:P4100 wd:Q9630 } union { ?positionStatement pq:P4100 wd:Q6467393 }
+      optional { ?item wdt:P569 ?birth . }
+    } group by ?election
+  } # as above, count only labour
+
+  { SELECT ?election (count(distinct ?item) as ?conservative) (round(avg(year(?birth))) as ?con_birth) where 
+    { ?item p:P39 ?positionStatement . ?positionStatement ps:P39 ?membership . 
+      ?membership wdt:P2715 ?election . ?positionStatement pq:P2715 ?election .
+      ?positionStatement pq:P4100 wd:Q9626 .
+      optional { ?item wdt:P569 ?birth . }
+    } group by ?election
+  } # as above, count only conservative
+
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+} order by desc(?electiondate)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

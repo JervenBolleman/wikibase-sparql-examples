@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-19cb4cafa4d070b7c280a93c28fc3a8f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:film>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -59,4 +58,48 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 } 
 ORDER BY ?order""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX target: <http://www.wikidata.org/entity/Q87126473>
+
+SELECT
+  ?description ?descriptionLabel
+
+  ?value ?valueLabel ?valueUrl ?valueDescription
+ 
+  ?wikidata ?wikidataUrl
+WHERE {
+  {
+    BIND(1 AS ?order)
+    BIND(wd:Q82799 AS ?description)
+    BIND(target: AS ?value)
+    BIND(\"Wikidata&nbsp;↗\" AS ?wikidata)
+    BIND(CONCAT(\"https://www.wikidata.org/wiki/\", SUBSTR(STR(?value), 32)) AS ?wikidataUrl)
+  }
+  UNION
+  {
+    BIND(2 AS ?order)
+    BIND(wd:Q47223 AS ?description)
+    target: wdt:P569 ?birthday_time .
+    BIND(xsd:date(?birthday_time) AS ?value)
+  }
+  UNION
+  {
+    BIND(3 AS ?order)
+    BIND(wd:Q2526255 AS ?description)
+    target: wdt:P57 ?value .
+    BIND(\"Wikidata&nbsp;↗\" AS ?wikidata)
+    BIND(CONCAT(\"https://www.wikidata.org/wiki/\", SUBSTR(STR(?value), 32)) AS ?wikidataUrl)
+  }
+  UNION
+  {
+    BIND(10 AS ?order)
+    BIND(wd:Q34770 AS ?description)
+    target: wdt:P364 ?value .
+    BIND(\"Wikidata&nbsp;↗\" AS ?wikidata)
+    BIND(CONCAT(\"https://www.wikidata.org/wiki/\", SUBSTR(STR(?value), 32)) AS ?wikidataUrl)
+  }  
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} 
+ORDER BY ?order""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

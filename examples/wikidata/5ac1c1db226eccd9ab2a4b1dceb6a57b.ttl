@@ -1,0 +1,88 @@
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+<https://www.wikidata.org/#query-5ac1c1db226eccd9ab2a4b1dceb6a57b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:organization>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q1269766>
+
+SELECT DISTINCT 
+  ?collaborations
+  (CONCAT(\"#organization/\", SUBSTR(STR(target:), 32), \"/organization/\", SUBSTR(STR(?organization), 32)) AS ?collaborationsUrl)
+
+  ?example_home_author ?example_home_authorLabel
+  (CONCAT(\"#author/\", SUBSTR(STR(?example_home_author), 32)) AS ?example_home_authorUrl)
+
+  ?organization ?organizationLabel 
+
+  ?example_foreign_author ?example_foreign_authorLabel
+  (CONCAT(\"#author/\", SUBSTR(STR(?example_foreign_author), 32)) AS ?example_foreign_authorUrl)
+
+  ?example_work ?example_workLabel 
+WHERE {
+   {
+  SELECT 
+    (COUNT(DISTINCT ?work) AS ?collaborations)
+    ?organization
+    (SAMPLE(?author1) AS ?example_home_author)
+    (SAMPLE(?author2) AS ?example_foreign_author)
+    (SAMPLE(?work) AS ?example_work)
+  WHERE {
+    ?author1 (wdt:P1416 | wdt:P108) target: . 
+    ?author2 (wdt:P1416 | wdt:P108) ?organization . 
+    ?work wdt:P50 ?author1, ?author2 .  
+    FILTER (target: != ?organization)
+  }
+  GROUP BY ?organization
+} 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY DESC(?collaborations)
+LIMIT 500""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX target: <http://www.wikidata.org/entity/Q1269766>
+
+SELECT DISTINCT 
+  ?collaborations
+  (CONCAT(\"#organization/\", SUBSTR(STR(target:), 32), \"/organization/\", SUBSTR(STR(?organization), 32)) AS ?collaborationsUrl)
+
+  ?example_home_author ?example_home_authorLabel
+  (CONCAT(\"#author/\", SUBSTR(STR(?example_home_author), 32)) AS ?example_home_authorUrl)
+
+  ?organization ?organizationLabel 
+
+  ?example_foreign_author ?example_foreign_authorLabel
+  (CONCAT(\"#author/\", SUBSTR(STR(?example_foreign_author), 32)) AS ?example_foreign_authorUrl)
+
+  ?example_work ?example_workLabel 
+WITH {
+  SELECT 
+    (COUNT(DISTINCT ?work) AS ?collaborations)
+    ?organization
+    (SAMPLE(?author1) AS ?example_home_author)
+    (SAMPLE(?author2) AS ?example_foreign_author)
+    (SAMPLE(?work) AS ?example_work)
+  WHERE {
+    ?author1 (wdt:P1416 | wdt:P108) target: . 
+    ?author2 (wdt:P1416 | wdt:P108) ?organization . 
+    ?work wdt:P50 ?author1, ?author2 .  
+    FILTER (target: != ?organization)
+  }
+  GROUP BY ?organization
+} AS %authors
+WHERE {
+  INCLUDE %authors  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY DESC(?collaborations)
+LIMIT 500""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

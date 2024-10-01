@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-3a946165e4c7865ec6b40be29e179d61> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -38,4 +37,28 @@ WHERE {
   # show label in auto language as default, and English when no default label exists
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# graph of Jesus's Y-chromosomal relatives through inverse path
+# also viewable as table
+### Note: In comparison with the previous query \"Graph of Y-chromosomal relatives: Jesus\",
+### this query uses inverse path (^) of father (P22) so that one line is saved.
+#defaultView:Graph
+SELECT ?Y ?YLabel ?birthdate ?image ?father ?fatherLabel ?edgeLabel
+WHERE {
+  # define ?Y as Jesus (Q302)'s any father (P22) or father of (^P22)'s father or father of's...
+  wd:Q302 (wdt:P22|^wdt:P22)* ?Y.
+  # limit ?Y's gender (P21) to male (Q6581097)
+  ?Y wdt:P21 wd:Q6581097
+  # optional: define ?Y's father (P22) as ?father
+  OPTIONAL {?Y wdt:P22 ?father.
+            # get P22 (father)'s property label and allow it to appear on graph edge
+            ?edge wikibase:directClaim wdt:P22;
+               a wikibase:Property}
+  # optional: show ?Y's birthdate (P569), which only appears in table, not graph
+  OPTIONAL {?Y wdt:P569 ?birthdate}
+  # optional: show ?Y's image (P18), which appears directly in graph, and as link in table
+  OPTIONAL {?Y wdt:P18 ?image}
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

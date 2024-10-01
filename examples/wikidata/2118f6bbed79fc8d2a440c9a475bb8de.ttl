@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-2118f6bbed79fc8d2a440c9a475bb8de> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infrastruktur/Sandbox2>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
@@ -35,5 +34,26 @@ WHERE
   }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi>,
-    <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Case-insensitive search for scientific articles by DOI number
+SELECT ?item ?itemLabel ?doival (xsd:dateTime(?timestamp) AS ?displayDate)
+WHERE 
+{
+  VALUES ?doival {
+     \"10.1002/14651858.CD015017.PUB2\"
+     \"10.1002/14651858.CD013600.pub4\"
+  }
+  BIND(CONCAT(\"haswbstatement:P356=\", ?doival) AS ?searchstr)
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+      wikibase:endpoint \"www.wikidata.org\";
+      wikibase:limit \"once\";
+      mwapi:srsearch ?searchstr;
+      mwapi:srprop \"size|wordcount|timestamp\".
+    ?item wikibase:apiOutputItem mwapi:title .
+    ?timestamp wikibase:apiOutput \"@timestamp\" .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>,
+    <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-54996299348c759b4028051dd28d7eee> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -33,4 +32,23 @@ WHERE {
   # show label in simplified Chinese (zh-hans) as default, and English when no default label exists
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"zh-hans,en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# find patrilineal ancestors (father's father's...) of Kung Tsui-chang (Confucius's descendant, incumbent Duke Yansheng)
+#defaultView:Graph
+SELECT ?paternal ?paternalLabel ?birthdate ?image ?father ?fatherLabel ?edgeLabel
+WHERE {
+  # define ?paternal as Kung Tsui-chang (Q5966226)'s any father (P22)'s father's...
+  wd:Q5966226 wdt:P22* ?paternal
+  # optional: define ?paternal's father (P22) as ?father
+  OPTIONAL {?paternal wdt:P22 ?father.
+           # show father (P22) on graph edges
+            ?edge wikibase:directClaim wdt:P22;
+               a wikibase:Property}
+  # optional: show ?paternal's birthdate (P569), which only appears in table, not graph 
+  OPTIONAL {?paternal wdt:P569 ?birthdate}
+  # optional: show ?paternal's image (P18), which appears directly in graph, and as link in table
+  OPTIONAL {?paternal wdt:P18 ?image}
+  # show label in simplified Chinese (zh-hans) as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"zh-hans,en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-5612ea735968118e38ba8447e7b41bb0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jobu0101/API>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -32,4 +31,19 @@ SELECT ?state ?code ?stateLabel (GROUP_CONCAT(DISTINCT(?capitalName);separator=\
 }
 GROUP BY ?state ?stateLabel ?start ?code
 ORDER BY ?continents ?code""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX v: <http://www.wikidata.org/prop/statement/>
+SELECT ?state ?code ?stateLabel (GROUP_CONCAT(DISTINCT(?capitalName);separator=\"; \") AS ?capitals) (GROUP_CONCAT(DISTINCT(?continentName);separator=\"; \") AS ?continents) ?start WHERE {
+  ?state p:P463 ?memberBlock . 
+  ?memberBlock v:P463 wd:Q7785 .
+  ?memberBlock pq:P580 ?start .
+  #?memberBlock pq:P582 ?end .
+  FILTER NOT EXISTS {?memberBlock pq:P582 ?end} .
+  ?state wdt:P36 ?capital . ?capital rdfs:label ?capitalName . FILTER(lang(?capitalName) = \"en\") .
+  ?state wdt:P30 ?continent . ?continent rdfs:label ?continentName . FILTER(lang(?continentName) = \"en\") .
+  OPTIONAL{?state wdt:P298 ?code}
+  SERVICE wikibase:label{bd:serviceParam wikibase:language \"en\"}
+}
+GROUP BY ?state ?stateLabel ?start ?code
+ORDER BY ?continents ?code""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

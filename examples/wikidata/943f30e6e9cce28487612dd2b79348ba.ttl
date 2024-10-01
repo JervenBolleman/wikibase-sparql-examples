@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-943f30e6e9cce28487612dd2b79348ba> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:organization>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -55,4 +54,45 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 } 
 ORDER BY ?order""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX target: <http://www.wikidata.org/entity/Q1269766>
+
+SELECT 
+  ?description ?descriptionLabel ?descriptionUrl
+
+  ?value ?valueLabel ?valueUrl
+
+  ?wikidata ?wikidataUrl
+
+  ?scholia ?scholiaUrl
+WHERE {
+  {
+    BIND(1 AS ?order)
+
+    BIND(\"Organization\" AS ?description)
+    BIND(target: AS ?value)
+
+    BIND(\"Wikidata&nbsp;↗\" AS ?wikidata)
+    BIND(CONCAT(\"https://www.wikidata.org/wiki/\", SUBSTR(STR(?value), 32)) AS ?wikidataUrl)
+    BIND(\"Scholia&nbsp;↗\" AS ?scholia)
+    BIND(CONCAT(\"https://scholia.toolforge.org/organization/\", SUBSTR(STR(?value), 32)) AS ?scholiaUrl)
+  }
+  UNION
+  {
+    BIND(2 AS ?order)
+
+    BIND(wd:Q6256 AS ?description)
+    BIND(\"#country\" AS ?descriptionUrl)
+
+    target: wdt:P17 ?value .
+    BIND(CONCAT(\"#country/\", SUBSTR(STR(?value), 32)) AS ?valueUrl)
+
+    BIND(\"Wikidata&nbsp;↗\" AS ?wikidata)
+    BIND(CONCAT(\"https://www.wikidata.org/wiki/\", SUBSTR(STR(?value), 32)) AS ?wikidataUrl)
+    BIND(\"Scholia&nbsp;↗\" AS ?scholia)
+    BIND(CONCAT(\"https://scholia.toolforge.org/organization/\", SUBSTR(STR(?value), 32)) AS ?scholiaUrl)
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} 
+ORDER BY ?order""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

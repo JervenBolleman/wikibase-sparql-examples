@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-79090dec476b56cfea84216b62aa3e02> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jobu0101/API>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -38,4 +37,27 @@ WHERE {
     SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" }
 }
 ORDER BY ASC(xsd:integer(?ordinal))""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX v: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+
+SELECT ?episode ?ordinal (CONCAT(\"S\",?season,\"E\",?episodeInSeason) AS ?SE) ?title ?duration ?publication ?wrongPub1 ?wrongPub2 ?imdb
+WHERE {
+    ?seasonQ p:P179 ?seriesBlock .
+    ?seriesBlock v:P179 wd:Q1545694 .
+    ?seriesBlock pq:P1545 ?season .
+    ?episode p:P4908 ?seasonBlock .
+    ?seasonBlock v:P4908 ?seasonQ .
+    ?seasonBlock pq:P1545 ?episodeInSeason .
+    ?episode p:P179 ?seriesBlock2 . ?seriesBlock2 v:P179 wd:Q1545694 . ?seriesBlock2 pq:P1545 ?ordinal .
+    OPTIONAL {?episode wdt:P1476 ?title}
+    OPTIONAL {?episode wdt:P2047 ?duration}
+    OPTIONAL {?episode wdt:P345 ?imdb}
+    OPTIONAL {?episode p:P449 ?network . ?network pq:P585 ?wrongPub1}
+    OPTIONAL {?episode wdt:P577 ?publication}
+    OPTIONAL {?episode wdt:P1191 ?wrongPub2}
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" }
+}
+ORDER BY ASC(xsd:integer(?ordinal))""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

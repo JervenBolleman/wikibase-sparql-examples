@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b4c2e87b0629a38d2ae91cade5f4a55b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:CamelCaseNick/Stolpersteine>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -32,4 +31,24 @@ select ?stolperstein ?label ?language where {
   # || ?language not in (\"da\", \"de\", \"en\", \"eo\", \"en\", \"es\", \"fr\", \"nb\", \"nl\", \"pt\")
   )
   filter(?language not in (\"de\", \"nl\"))
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#by CamelCaseNick
+select ?stolperstein ?label ?language where {
+  ?stolperstein wdt:P31 wd:Q26703203;
+                rdfs:label ?label.
+  bind(lang(?label) as ?language)
+  filter(
+       (!regex(?label, \"^Snublesten for [‚A-Z]\") && ?language = \"da\")
+    || (!regex(?label, \"^Stolperstein für [‚A-Z]\") && ?language = \"de\")
+    || (!regex(?label, \"^Stolperstein dedicated to ([‚A-Z]|(the|an|a|deserters)($| ))\") && ?language = \"en\")
+    || (!regex(?label, \"^Stumbliga ŝtoneto pri [‚A-Z]\") && ?language = \"eo\")
+    || (!regex(?label, \"^Stolperstein en memoria de ([‚A-Z]|desertores$)\") && ?language = \"es\")
+    || (!regex(?label, \"^Stolperstein à la mémoire d([’'][‚AEIOUYH]|e [B-DF-HJ-NP-TV-Z])\") && ?language = \"fr\")
+    || (!regex(?label, \"^snublestein til minne om [‚A-Z]\") && ?language = \"nb\")
+    || (!regex(?label, \"^Stolperstein voor [‚A-Z]\") && ?language = \"nl\")
+    || (!regex(?label, \"^Stolperstein em memória de ([‚A-Z]|desertores$)\") && ?language = \"pt\")
+  # || ?language not in (\"da\", \"de\", \"en\", \"eo\", \"en\", \"es\", \"fr\", \"nb\", \"nl\", \"pt\")
+  )
+  filter(?language not in (\"de\", \"nl\"))
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

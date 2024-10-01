@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-56c19ddb502a27ab60f004993219b1c5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -42,4 +41,32 @@ WHERE {
   # show label in auto language as default, and English when no default label exists
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# find Jia Baoyu's extended blood relatives, i.e., those whose descendant's ancestor's descendant's... share a common ancestor with Jia Baoyu
+### Note: In comparison with the previous query \"Graph of gene pool (extended blood relatives) by only parent/child relation (no siblings): Jia Baoyu\",
+### this query only shows parent (father/mother), not including child, on graph edge, so that the arrows are single headed, not double headed,
+### as those in the parent section \"Graph of extended parent/child countries: the Qin dynasty\" (actually having an extended-blood-relatives structure),
+### and therefore the graph can present correct generations in a hierarchical layout.
+#defaultView:Graph
+SELECT ?relative ?relativeLabel ?birthdate ?image ?parent ?parentLabel ?edgeLabel
+WHERE {
+  # define ?relative as Jia Baoyu (Q8428650)'s any father (P22) or mother (P25) or child (P40)'s father or mother or child's...
+  wd:Q8428650 (wdt:P22|wdt:P25|wdt:P40)* ?relative
+  # optional: define ?relative's father (P22) or mother (P25) as ?parent
+  optional {?relative (wdt:P22|wdt:P25) ?parent
+            # To avoid showing any other relation,
+            # define ?relation as father (P22) or mother (P25)
+            VALUES ?relation {wdt:P22 wdt:P25}
+            # ?relation is from ?relative to ?parent
+            ?relative ?relation ?parent.
+            # get ?relation's property label and allow it to appear on graph edge
+            ?edge wikibase:directClaim ?relation;
+               a wikibase:Property}
+  # optional: show ?relative's birthdate (P569), which only appears in table, not graph
+  optional {?relative wdt:P569 ?birthdate}
+  # optional: show ?relative's image (P18), which appears directly in graph, and as link in table
+  optional {?relative wdt:P18 ?image}
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

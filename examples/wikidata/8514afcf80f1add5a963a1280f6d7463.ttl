@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8514afcf80f1add5a963a1280f6d7463> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:ProteinBoxBot/SPARQL_Examples>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -45,4 +44,30 @@ SELECT distinct ?uniprot ?determinationLabel ?curatorLabel ?reference_stated_inL
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
   
 } limit 50""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT distinct ?uniprot ?determinationLabel ?curatorLabel ?reference_stated_inLabel ?pmid ?publication_date ?go_id ?sig_rec_goLabel WHERE  {
+  
+  ?sig_rec_go wdt:P686 ?go_id . # get GO IDs
+  ?sig_rec_go wdt:P279* wd:Q21109843 . # that are subclasses of \"signaling receptor activity\"
+  
+  ?protein wdt:P703 wd:Q15978631 . # get items that are \"found in taxon\" human
+  ?protein wdt:P352 ?uniprot . # and have a uniprot ID
+  
+  ?protein wdt:P680 ?sig_rec_go . # proteins where the MF a signaling receptor activity subclass
+  ?protein p:P680 ?statement . # get statements
+  
+  ?statement pq:P459 ?determination . # get 'determination method' qualifiers associated with the statements
+  ?determination wdt:P31 wd:Q28955254 . # filter where the determination method is a \"manual assertion\"
+  
+  ?statement prov:wasDerivedFrom/pr:P248 ?reference_stated_in . # get the \"stated in\" reference
+  ?reference_stated_in wdt:P31 wd:Q13442814 . # stated in a \"scientific article\"
+  ?reference_stated_in wdt:P577 ?publication_date . # get the publication date
+  ?reference_stated_in wdt:P698 ?pmid . # get the pubmed id
+  FILTER (?publication_date >= \"2014-01-01T00:00:00Z\"^^xsd:dateTime) . # filter where publication date is after 2014
+  
+  ?statement prov:wasDerivedFrom/pr:P1640 ?curator . # get the curator
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+  
+} limit 50""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

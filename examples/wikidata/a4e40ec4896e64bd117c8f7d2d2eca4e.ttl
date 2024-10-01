@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-a4e40ec4896e64bd117c8f7d2d2eca4e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -51,4 +50,41 @@ UNION
 
 }
 GROUP BY ?method ?N ?count
-ORDER BY DESC(?count)""" .
+ORDER BY DESC(?count)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title: Candidate methods for tagging via P4510
+SELECT 
+  DISTINCT
+    ?method ?N (COUNT(?item) AS ?count)
+
+WHERE {
+  hint:Query hint:optimizer \"None\".
+
+  {  SERVICE wikibase:mwapi {
+  bd:serviceParam wikibase:api \"Search\";
+    wikibase:endpoint \"www.wikidata.org\";
+    mwapi:srsearch \"using and haswbstatement:P31=Q13442814 -haswbstatement:P4510=Q4115189\".
+    ?page_title wikibase:apiOutput mwapi:title.
+  }
+  }
+UNION
+
+  {  SERVICE wikibase:mwapi {
+  bd:serviceParam wikibase:api \"Search\";
+    wikibase:endpoint \"www.wikidata.org\";
+    mwapi:srsearch \"using -and haswbstatement:P31=Q13442814 -haswbstatement:P4510=Q4115189\". 
+    ?page_title wikibase:apiOutput mwapi:title.
+  }
+  }  BIND(IRI(CONCAT(STR(wd:), ?page_title)) AS ?item)
+
+  ?item wdt:P1476 ?title.
+  BIND(CONCAT(?title_ , \" | \" , ?venue_title)  AS ?title)
+  FILTER REGEX(LCASE(?title), \"\\\\b(using|utilizing|with|through|via|by|(us((ag)?)e|application(s?)) of\\\\b)(.)\").
+
+  BIND(STRBEFORE(LCASE(?title), \"using \") AS ?method) 
+  FILTER (STRLEN(?method) > 0 )
+  BIND(STRLEN(REPLACE(?method, \"\\\\S\", \"\")) + 1 as ?N)
+
+}
+GROUP BY ?method ?N ?count
+ORDER BY DESC(?count)""";
+  schema:target <https://query.wikidata.org/sparql> .

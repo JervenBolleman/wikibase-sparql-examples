@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-382c7be559d06f7f73015344855e689d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Japastorsanchez/webdatos-2023-2024/seminario-sparql>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -37,4 +36,27 @@ SELECT ?ca ?caLabel ?poblacion ?superficie ?densidad ?rgb ?geoshape ?label WHERE
        bd:serviceParam wikibase:language \"es\".
   }
 } ORDER BY ?densidad""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map{\"hide\":[\"?geoshape\", \"?rgb\"],\"layer\":\"?label\"}
+SELECT ?ca ?caLabel ?poblacion ?superficie ?densidad ?rgb ?geoshape ?label WHERE {
+  VALUES ?autonomia  {wd:Q10742 wd:Q16532593 wd:Q3297051}
+  ?ca wdt:P31 ?autonomia ;
+      wdt:P1082 ?poblacion ;
+      wdt:P2046 ?superficie .
+  OPTIONAL {?ca wdt:P3896 ?geoshape .}
+  BIND(IF(?densidad < 50 , \"ffebee\", 
+       IF(?densidad < 100 , \"ef9a9a\",
+       IF(?densidad < 200 , \"ef5350\",
+       IF(?densidad < 300 , \"c62828\",
+       \"7f0000\")))) AS ?rgb)
+  BIND(IF(?densidad < 50 , \"Menos de 50 habs./km2\", 
+       IF(?densidad <= 100 , \"Entre 50 y 100 habs./km2\",
+       IF(?densidad <=200 , \"Entre 100 y 200 habs./km2\",
+       IF(?densidad <=300 , \"Entre 200 y 300/km2\",
+       \"Más de 300 habs./km2\")))) AS ?label)  
+  BIND(ROUND(?poblacion/?superficie) AS ?densidad)
+  SERVICE wikibase:label {
+       bd:serviceParam wikibase:language \"es\".
+  }
+} ORDER BY ?densidad""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

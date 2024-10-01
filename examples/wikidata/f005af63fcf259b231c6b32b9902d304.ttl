@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-f005af63fcf259b231c6b32b9902d304> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/collections>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -25,4 +24,14 @@ SELECT DISTINCT ?artist ?artistLabel ?countryLabel ?links ?benezit_id ?grove_id 
   FILTER NOT EXISTS{?enwp schema:about ?artist; schema:inLanguage \"en\"}
     SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 } ORDER BY DESC(?links)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title:People with a Benezit or Grove Art online link with sitelinks but no English Wikipedia article
+SELECT DISTINCT ?artist ?artistLabel ?countryLabel ?links ?benezit_id ?grove_id WHERE {
+{ ?artist wdt:P2843 ?benezit_id } UNION { ?artist wdt:P8406 ?grove_id }
+  ?artist wikibase:sitelinks ?links FILTER (?links > 0).
+  ?artist wdt:P31 wd:Q5.
+  ?artist wdt:P27 ?country.
+  FILTER NOT EXISTS{?enwp schema:about ?artist; schema:inLanguage \"en\"}
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY DESC(?links)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

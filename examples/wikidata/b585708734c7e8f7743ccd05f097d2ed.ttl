@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b585708734c7e8f7743ccd05f097d2ed> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Wikimedia_Hackathon_2021_Data_Challenge/13._Create_a_list_of_all_the_COVID-19_vaccines_and_include_the_developers_of_these_vaccines.>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -26,4 +25,15 @@ SELECT ?vaccine ?vaccineLabel (GROUP_CONCAT(?developerLabel; SEPARATOR = \"; \")
   }
 }
 GROUP BY ?vaccine ?vaccineLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?vaccine ?vaccineLabel (GROUP_CONCAT(?developerLabel; SEPARATOR = \"; \") AS ?developerLabels) WHERE {
+  ?vaccine wdt:P1924 wd:Q84263196; # duck typing! don’t bother checking P31/P279, what else would have a “vaccine for” statement?
+           wdt:P178 ?developer. # I’m assuming that wdt: (best-rank) does what we want here
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?vaccine rdfs:label ?vaccineLabel.
+    ?developer rdfs:label ?developerLabel.
+  }
+}
+GROUP BY ?vaccine ?vaccineLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

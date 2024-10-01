@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-42f77ae91a1bc764016f8319d6a530ae> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:ScienceSource_project/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -40,4 +39,30 @@ SELECT ?quantile (COUNT(?hybrid1) AS ?count1) (COUNT(?hybrid2) AS ?count2)
   }
  GROUP BY ?quantile
  ORDER BY ASC(?quantile)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#For article Q6679
+#Two columns of data, breakdown of paper 2% at a time
+SELECT ?quantile (COUNT(?hybrid1) AS ?count1) (COUNT(?hybrid2) AS ?count2) 
+
+  WHERE {
+    ?annotation wdt:P3 wd:Q5 ;
+                wdt:P19 ?anchor;
+                wdt:P16 ?dic0.
+    VALUES ?dic { wd:Q6803 wd:Q6793 }.
+    ?dic wdt:P16 ?dic0.
+    BIND((IF (?dic=wd:Q6803, \"Q6803\",1/0)) AS ?hybrid1)
+    BIND((IF (?dic=wd:Q6793, \"Q6793\",1/0)) AS ?hybrid2)  
+    BIND(COALESCE(?hybrid1,?hybrid2) AS ?hybrid)
+    BIND(COALESCE(?hybrid1Label,?hybrid2Label) AS ?hl)
+    ?anchor wdt:P12 wd:Q6679.
+    ?anchor wdt:P10 ?charnumber.
+    ?annotationZ wdt:P19 ?anchorZ.
+    ?anchorZ wdt:P7 wd:Q6;
+             wdt:P12 wd:Q6679;
+             wdt:P10 ?length.
+   BIND (floor(50*?charnumber/?length) AS ?quantile)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  }
+ GROUP BY ?quantile
+ ORDER BY ASC(?quantile)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-da6f816ef0355b906c0a5fc612096e23> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiFactMine/Core_SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -50,4 +49,39 @@ WHERE {
   VALUES ?ms2 { \"Q788926\" \"Q162555\" \"Q103824\" \"Q162606\" \"Q7867\" \"Q83042\" \"Q161437\" \"Q189553\" \"Q10379\" \"Q203337\" \"Q120569\" \"Q171171\" \"Q327657\" \"Q105650\" \"Q5284418\" \"Q1071953\"  \"Q2861470\" }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } 
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#ICD10 handling, case analysis for \"infectious disease\" and \"oncology\". Output consists of items without \"medical specialty\".
+#Set out in columns for QuickStatements, though itemLabel is not for that. Q788926 means infectious disease, Q162555 oncology.
+SELECT DISTINCT ?item ?itemLabel ?ms1 ?ms2
+WHERE {
+ ?item wdt:P31 wd:Q12136 .
+  ?item wdt:P494 ?icd  .
+  OPTIONAL { ?item wdt:P1995 ?dummy0 }
+  FILTER(!bound(?dummy0))
+  BIND(SUBSTR(?icd,1,2) AS ?icd1)
+  BIND(xsd:integer(CONCAT(\"1\", SUBSTR(?icd,2,3))) AS ?icd2)
+  BIND((IF (REGEX(?icd1,'A|B'), \"Q788926\",1/0)) AS ?spec1) #infectious disease 
+  BIND((IF (REGEX(?icd1,'C|D') &&  (STRSTARTS(?icd1, 'C')||(?icd2 < 49)), \"Q162555\",1/0)) AS ?spec2) #oncology
+  BIND((IF (STRSTARTS(?icd1, 'D') && (49 < ?icd2 && ?icd2 < 90), \"Q103824\",1/0)) AS ?spec3)  #hematology
+  BIND((IF (STRSTARTS(?icd1, 'E') && (?icd2 < 36), \"Q162606\",1/0)) AS ?spec4) #endocrinology
+  BIND((IF (STRSTARTS(?icd1, 'F') && (?icd2 < 70), \"Q7867\",1/0)) AS ?spec5) #psychiatry
+  BIND(IF (STRSTARTS(?icd1, 'G'), \"Q83042\",1/0) AS ?spec6) #neurology
+  BIND((IF (STRSTARTS(?icd1, 'H') && (?icd2 < 60), \"Q161437\",1/0)) AS ?spec7) #ophthalmology
+  BIND((IF (STRSTARTS(?icd1, 'H') && (59 < ?icd2 && ?icd2 < 96), \"Q189553\",1/0)) AS ?spec8) #otolaryngology
+  BIND(IF (STRSTARTS(?icd1, 'I'), \"Q10379\",1/0) AS ?spec9) #cardiology
+  BIND(IF (STRSTARTS(?icd1, 'J'), \"Q203337\",1/0) AS ?spec10) #pulmonology
+  BIND(IF (STRSTARTS(?icd1, 'K'), \"Q120569\",1/0) AS ?spec11) #gastroenterology
+  BIND(IF (STRSTARTS(?icd1, 'L'), \"Q171171\",1/0) AS ?spec12) #dermatology
+  BIND(IF (STRSTARTS(?icd1, 'M'), \"Q327657\",1/0) AS ?spec13) #rheumatology
+  BIND(IF (STRSTARTS(?icd1, 'N'), \"Q105650\",1/0) AS ?spec14) #urology
+  BIND(IF (STRSTARTS(?icd1, 'O'), \"Q5284418\",1/0) AS ?spec15) #obstetrics
+  BIND(IF (STRSTARTS(?icd1, 'Q'), \"Q1071953\",1/0) AS ?spec16) #medical genetics
+  BIND((IF (REGEX(?icd1,'S|T'), \"Q2861470\",1/0)) AS ?spec17) #emergency medicine
+
+  BIND(COALESCE(?spec1,?spec2,?spec3,?spec4,?spec5,?spec6,?spec7,?spec8,?spec9,?spec10,?spec11,?spec12,?spec13,?spec14,?spec15,?spec16,?spec17,000000) AS ?ms2)
+
+  VALUES ?ms1 { \"P1995\" }
+  VALUES ?ms2 { \"Q788926\" \"Q162555\" \"Q103824\" \"Q162606\" \"Q7867\" \"Q83042\" \"Q161437\" \"Q189553\" \"Q10379\" \"Q203337\" \"Q120569\" \"Q171171\" \"Q327657\" \"Q105650\" \"Q5284418\" \"Q1071953\"  \"Q2861470\" }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } 
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

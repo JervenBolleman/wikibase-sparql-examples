@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-f201088fcae71a781bd342e64fb51b30> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Oravrattas/daynotes/2017-06-28>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -34,4 +33,21 @@ SELECT DISTINCT ?post ?postLabel ?post_from ?post_to ?cabinetLabel {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 }
 ORDER BY ?postLabel ?inception""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?post ?postLabel ?post_from ?post_to ?cabinetLabel {
+  ?cabinet wdt:P31 wd:Q640506 ; wdt:P1001 wd:Q22; wdt:P571 ?inception .
+  OPTIONAL { ?cabinet wdt:P576 ?dissolution }
+  BIND(if(BOUND(?dissolution), ?dissolution, NOW()) as ?effective_dissolution)
+
+  ?cabinet p:P2670 ?post_statement .
+  ?post_statement ps:P2670 ?post .
+  OPTIONAL { ?post_statement pq:P580 ?post_start }
+  BIND(if(BOUND(?post_start), ?post_start, ?inception) as ?post_from)
+                  
+  OPTIONAL { ?post_statement pq:P582 ?post_end }
+  BIND(if(BOUND(?post_end), ?post_end, ?effective_dissolution) as ?post_to)
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY ?postLabel ?inception""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

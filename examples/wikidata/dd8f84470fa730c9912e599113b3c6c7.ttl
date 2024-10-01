@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-dd8f84470fa730c9912e599113b3c6c7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -80,4 +79,67 @@ WHERE {
 }
 # calculate COUNT of ?ordinal108's different values
 GROUP BY ?ordinal108""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# line chart of Water Margin 108 Generals' title-character-chapter counts
+# also viewable as area chart, bar chart, scatter chart, bubble chart, and graph builder
+#defaultView:LineChart
+# 1st variable (?ordinal108) as X-axis; 2nd variable (?chapter_count) as Y-axis
+### Note: 1. When Y-axis is quantity (?chapter_count), string consisting of numbers and other characters (e.g.,
+### ?108_name in the previous query \"Scatter chart: 108 Generals in Water Margin first-appearance chapters by...\")
+### cannot be sorted as number or character on X-axis, which will be sorted descendingly by quantity on Y-axis.
+### So ?ordinal108, as string of number, has to be used as the variable for X-axis.
+### 2. DISTINCT has to be used in COUNT, which SELECT DISTINCT is not applicable to.
+SELECT DISTINCT ?ordinal108 (COUNT(DISTINCT ?chapter) AS ?chapter_count)
+WHERE {
+  # ?108 is instance of (P31) \"subclass of (P279)\" [ZeroOrMorePath (*)] fictional character (Q95074)
+  ?108 wdt:P31/wdt:P279* wd:Q95074;
+             # and [InversePath (^)] has part (P527) [OneOrMorePath (+)] 108 Generals (Q905173)
+             ^wdt:P527+ wd:Q905173
+  # optional: ?chapter is instance of (P31) chapter (Q1980247)
+  OPTIONAL {?chapter wdt:P31 wd:Q1980247;
+                             # and is part of (P361) [OneOrMorePath (+)] Water Margin's 120-chapter edition (Q70761009)
+                             wdt:P361+ wd:Q70761009;
+                             # ?chapter's \"characters\" (P674) statement is ?character
+                             p:P674 ?character.
+            # ?character's value is ?108
+            ?character ps:P674 ?108;
+                       # ?character's qualifier \"narrative role\" (P5800) is title character (Q3246821)
+                       ### Note: This line can be removed, and ?chapter_count will be changed to count of chapters in which
+                       ### one of the 108 Generals appears, not only as title character.
+                       pq:P5800 wd:Q3246821}
+  # optional: ?ordinal108 is defined as follows:
+  ### Note: ?ordinal108, whose data type is string, is sorted on axis as string (136 is followed by 201) in
+  ### line/area/bar/scatter chart, but is sorted on axis as real number (136 is followed by 136.000...1) in graph builder.
+  # 36 Tiangang (Q16830698)'s \"has part\" (P527) statement is ?36
+  OPTIONAL { {wd:Q16830698 p:P527 ?36.
+              # ?36's value is ?108
+              ?36 ps:P527 ?108;
+                  # ?36's qualifier \"series ordinal\" (P1545) is ?ordinal36
+                  pq:P1545 ?ordinal36
+              # use IF to bind ?ordinal36's 3-character form as ?ordinal108:
+              # if ?ordinal36 has 1 character, concatenate \"10\" and it;
+              BIND(IF(STRLEN(?ordinal36)=1, CONCAT(\"10\", ?ordinal36),
+                   # otherwise (?ordinal36 has 2 characters), concatenate \"1\" and it
+                   ### Note: If ?ordinal36 is concatenated with \"00\"/\"0\" to generate ?ordinal108,
+                   ### ?ordinal108 cannot be sorted as string of number on X-axis,
+                   ### which will be sorted descendingly by quantity on Y-axis.
+                   CONCAT(\"1\", ?ordinal36)) AS ?ordinal108) }
+             # OR ?ordinal108 is defined as follows:
+             # 72 Disha (Q16830671)'s \"has part\" (P527) statement is ?72
+             UNION {wd:Q16830671 p:P527 ?72.
+                    # ?72's value is ?108
+                    ?72 ps:P527 ?108;
+                        # ?72's qualifier \"series ordinal\" (P1545) is ?ordinal72
+                        pq:P1545 ?ordinal72
+                    # use IF to bind ?ordinal72's 3-character form as ?ordinal108:
+                    # if ?ordinal72 has 1 character, concatenate \"20\" and it;
+                    BIND(IF(STRLEN(?ordinal72)=1, CONCAT(\"20\", ?ordinal72),
+                         # otherwise (?ordinal72 has 2 characters), concatenate \"2\" and it
+                         CONCAT(\"2\", ?ordinal72)) AS ?ordinal108) }
+            }
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+# calculate COUNT of ?ordinal108's different values
+GROUP BY ?ordinal108""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

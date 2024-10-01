@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-3e10e511af998327485abd9548c3d8a4> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/collections>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -37,4 +36,25 @@ SELECT (?count1 AS ?in_Tate) (?count2 AS ?in_Smithsonian) (CONCAT(?propertyLabel
  FILTER (?count1 >2 )
 SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". ?property rdfs:label ?propertyLabel .?thing rdfs:label ?thingLabel }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:ScatterChart
+SELECT (?count1 AS ?in_Tate) (?count2 AS ?in_Smithsonian) (CONCAT(?propertyLabel,\": \",?thingLabel)AS ?attribute) WHERE {
+{ SELECT (COUNT(?obj1) AS ?count1) ?property ?thing WHERE {
+ ?obj1 wdt:P195 wd:Q430682. #Tate
+ VALUES ?prop1 {wdt:P180 wdt:P170 wdt:P2348 wdt:P135 wdt:P136 wdt:P941 wdt:P186 wdt:P1071}
+ ?obj1 ?prop1 ?thing.
+ ?property ?ref ?prop1 ; 
+           rdf:type wikibase:Property .
+  } GROUP BY ?property ?thing }
+{ SELECT (COUNT(?obj2) AS ?count2) ?property ?thing WHERE {
+ ?obj2 wdt:P195 wd:Q1192305. #Smithsonian
+ VALUES ?prop1 {wdt:P180 wdt:P170 wdt:P2348 wdt:P135 wdt:P136 wdt:P941 wdt:P186 wdt:P1071}
+ ?obj2 ?prop1 ?thing.
+ ?property ?ref ?prop1 ;
+           rdf:type wikibase:Property .
+  } GROUP BY ?property ?thing }
+ FILTER (?count2 >2 )
+ FILTER (?count1 >2 )
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". ?property rdfs:label ?propertyLabel .?thing rdfs:label ?thingLabel }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

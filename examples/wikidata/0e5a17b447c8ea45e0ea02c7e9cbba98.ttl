@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-0e5a17b447c8ea45e0ea02c7e9cbba98> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/06>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -38,4 +37,29 @@ SELECT ?person ?personLabel # we want the Qid of the person and their label in a
     ?item wdt:P69 ?place.       # get the person's place where they were educated (if it is present on the item)
     ?place wdt:P131* wd:Q22424  # make sure it's in Punjab, India
   }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"pa,en\". } # for the personLabel, give it to us in Gurmukhi first, then in English if Gurmukhi is not present""" .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"pa,en\". } # for the personLabel, give it to us in Gurmukhi first, then in English if Gurmukhi is not present""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?person ?personLabel # we want the Qid of the person and their label in a given language
+{
+  ?item wdt:P569 ?time.       # get the person's date of birth (if it is present on the item)
+  FILTER(YEAR(?time) = 1995). # make sure the year in the date is 1995
+  {
+    ?item wdt:P19 ?place.       # get the person's place of birth (if it is present on the item)
+    ?place wdt:P131* wd:Q22424. # make sure it's in Punjab, India
+  }
+  UNION # because we want _either_ places of birth _or_ places of residence, not just items with both together
+  {
+    ?item wdt:P551 ?place.      # get the person's place of residence (if it is present on the item)
+    ?place wdt:P131* wd:Q22424. # make sure it's in Punjab, India
+  }
+  UNION # (similar reasoning to the previous comment on UNION)
+  {
+    ?item wdt:P937 ?place.      # get the person's place where they worked (if it is present on the item)
+    ?place wdt:P131* wd:Q22424  # make sure it's in Punjab, India
+  }
+  UNION # (similar reasoning to the previous comment on UNION)
+  {
+    ?item wdt:P69 ?place.       # get the person's place where they were educated (if it is present on the item)
+    ?place wdt:P131* wd:Q22424  # make sure it's in Punjab, India
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"pa,en\". } # for the personLabel, give it to us in Gurmukhi first, then in English if Gurmukhi is not present""";
+  schema:target <https://query.wikidata.org/sparql> .

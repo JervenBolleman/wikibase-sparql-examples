@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-71f76e2aa28e31d53106453337cdd88a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/07>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -49,4 +48,34 @@ SELECT ?raceLabel ?team ?teamNameLabel ?person ?personLabel ?et ?et_tp ?et_year_
 
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 } order by asc(?teamNameLabel) asc(?personLabel)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?raceLabel ?team ?teamNameLabel ?person ?personLabel ?et ?et_tp ?et_year_end WHERE {
+  # person participated in a Tour de France race of a given year
+  ?race wdt:P31 wd:Q33881.
+  ?person wdt:P1344 ?race.
+  ?race wdt:P580 ?raceStart.
+  ?race wdt:P582 ?raceEnd.
+  bind(year(?raceStart) as ?raceYear)
+  filter(?raceYear = 2018)
+
+  # person's team membership
+  ?person p:P54 ?teamStatement .
+  ?teamStatement ps:P54 ?team .
+  optional {?teamStatement pq:P580 ?st}
+  optional {?teamStatement pq:P582 ?et .
+            ?teamStatement pqv:P582 [wikibase:timePrecision ?et_tp] .   # timePrecision: ... 11 = day, 10 = month, 9 = year ...
+            BIND(IF(?et_tp<11,xsd:dateTime(CONCAT(STR(YEAR(?et)),'-12-31T00:00:00Z')),?et) AS ?et_year_end)
+            # ?et_year_end now contains the last day of the year if ?et have a lower precision than day
+           }
+  filter(?st <= ?raceStart && if(bound(?et), year(?et) >= year(?raceEnd), true))
+
+  # team name at the time
+  ?team p:P1448 ?nameStatement .
+  ?nameStatement ps:P1448 ?teamName .
+  optional {?nameStatement pq:P580 ?stName}
+  optional {?nameStatement pq:P582 ?etName}
+  filter(?stName <= ?raceStart && if(bound(?etName), year(?etName) >= year(?raceEnd), true))
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} order by asc(?teamNameLabel) asc(?personLabel)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

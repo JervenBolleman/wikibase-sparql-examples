@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-ae2cbda8835e361c6432dbe42e851584> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Taravyvan_Adijene/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -32,4 +31,21 @@ SELECT ?item ?itemLabel ?itemDescription ?linkcount WHERE {
 }
 ORDER BY DESC(?linkcount)
 # LIMIT 100""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Элемэнты ВікіЗьвестак пра беларусаў, у якіх адсутнічае метка па-беларуску,
+# адсартаваныя паводле колькасьці спасылак.
+# Меткі выводзяцца мовамі, зададзенымі ў 8 радку (першая знойдзеная).
+# Калі запыт вісьне, трэба раскамэнтаваць 16 радок.
+SELECT ?item ?itemLabel ?itemDescription ?linkcount WHERE {
+  ?item wdt:P27 wd:Q184.                                                      # грамадзяне Беларусі
+  ?item wikibase:sitelinks ?linkcount.                                        # колькасьць спасылак
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,uk,pl,ru\". } # вывесьці метку першай знойдзенай мовай
+  FILTER(?linkcount >= 2)                                                     # вывесьці толькі калі больш за 2 спасылкі
+  FILTER(NOT EXISTS {
+    ?item rdfs:label ?lang_label.
+    FILTER((LANG(?lang_label)) = \"be-tarask\")                                 # калі няма па-беларуску
+  })
+}
+ORDER BY DESC(?linkcount)
+# LIMIT 100""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

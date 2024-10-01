@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-7a3acd9a6517464269ffcae400e6d9d0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stefan_K%C3%BChn/Event_venue>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -19,7 +18,15 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT distinct ?item ?itemLabel ?itemDescription ?image ?coord ?verwaltungseinheitLabel ?streetLabel ?zip ?adress ?website
 
 WHERE {
-  INCLUDE %region.
+   {
+ SELECT distinct ?region                   # Unterabfrage für alle Verwaltungseinheiten (Kreise, Städte, Gemeinden, Ortsteile, etc.)
+ WHERE {
+          
+ BIND(wd:Q1202 AS ?state).                 # liegt in Sachsen
+ ?region wdt:P131* ?state.            
+ MINUS { ?region wdt:P576 _:b0. }          # ohne Auflösungsdatum   
+ }
+}
   ?item wdt:P131 ?region.      
   #?item (wdt:P31/wdt:P279*) wd:Q33506 .    # ist ein Museum (oder Unterklasse)
   ?item (wdt:P31/wdt:P279*) wd:Q18674739 . # ist ein Veranstaltungsort (oder Unterklasse) 
@@ -39,7 +46,7 @@ WHERE {
   
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,en\". }
 }""";
-  <http://example.org/bigdata_select> """#defaultView:Map,Table
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map,Table
 SELECT distinct ?item ?itemLabel ?itemDescription ?image ?coord ?verwaltungseinheitLabel ?streetLabel ?zip ?adress ?website
 WITH {
  SELECT distinct ?region                   # Unterabfrage für alle Verwaltungseinheiten (Kreise, Städte, Gemeinden, Ortsteile, etc.)
@@ -71,4 +78,6 @@ WHERE {
   OPTIONAL { ?item wdt:P131 ?verwaltungseinheit. }  
   
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,en\". }
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

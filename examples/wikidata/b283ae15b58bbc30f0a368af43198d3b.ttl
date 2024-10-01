@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b283ae15b58bbc30f0a368af43198d3b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jobu0101/B%C3%A4ume>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -38,4 +37,25 @@ SELECT ?species (YEAR(?year) AS ?toy) ?speciesLabel ?speciesName ?genusLabel ?ge
   OPTIONAL{?species p:P166 ?award . ?award v:P166 wd:Q91885056 . ?award pq:P585 ?year . FILTER(?year NOT IN (\"2022-00-00\"^^xsd:dateTime))}
 }
 ORDER BY ?orderLabel ?familyLabel ?genusLabel ?speciesLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX v: <http://www.wikidata.org/prop/statement/>
+SELECT ?species (YEAR(?year) AS ?toy) ?speciesLabel ?speciesName ?genusLabel ?genusName ?familyLabel ?familyName ?orderLabel ?orderName WHERE {
+  VALUES ?species {wd:Q26354 wd:Q160100}
+  ?species wdt:P105 wd:Q7432 .
+  ?species wdt:P225 ?speciesName .
+  ?species wdt:P171* ?genus .
+  ?genus wdt:P105 wd:Q34740 .
+  ?genus wdt:P225 ?genusName .
+  ?genus wdt:P171* ?family .
+  ?family wdt:P105 wd:Q35409 .
+  ?family wdt:P225 ?familyName .
+  ?family wdt:P171* ?order .
+  ?order wdt:P105 wd:Q36602 .
+  ?order wdt:P225 ?orderName .
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"de\"}
+  FILTER(?order NOT IN (wd:Q14107023, wd:Q5794838, wd:Q2697797))
+  FILTER(?family NOT IN (wd:Q1450881, wd:Q145544))
+  OPTIONAL{?species p:P166 ?award . ?award v:P166 wd:Q91885056 . ?award pq:P585 ?year . FILTER(?year NOT IN (\"2022-00-00\"^^xsd:dateTime))}
+}
+ORDER BY ?orderLabel ?familyLabel ?genusLabel ?speciesLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

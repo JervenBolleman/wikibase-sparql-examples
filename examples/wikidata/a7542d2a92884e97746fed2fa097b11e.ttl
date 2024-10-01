@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-a7542d2a92884e97746fed2fa097b11e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Alba_amicorum_National_Library_of_the_Netherlands/Pilot_projects>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
@@ -42,4 +41,30 @@ SELECT ?item ?itemdate ?inv ?downloadurl ?format ?sourceurl ?title ?creatorname 
   ?item wdt:P571 ?inception . BIND(YEAR(?inception) AS ?inceptionyear)
   FILTER(?inceptionyear < 1890) .
   } ORDER BY DESC(?itemdate)
-  LIMIT 15000""" .
+  LIMIT 15000""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemdate ?inv ?downloadurl ?format ?sourceurl ?title ?creatorname ?license ?operator ?collectionLabel ?collectioncategory WHERE {
+  ?item p:P4765 ?image .
+  ?item schema:dateModified ?itemdate .
+  ?item wdt:P31 wd:Q81564326 .
+  ?item wdt:P217 ?inv .
+  ?item wdt:P6216 ?license .
+  ?image ps:P4765 ?downloadurl .
+  ?image pq:P2701 ?format .
+  ?image pq:P2699 ?sourceurl .
+  ?image pq:P1476 ?title .
+  OPTIONAL { ?image pq:P2093 ?creatorname }.
+ # ?item wdt:P170 wd:Q4233718 .
+  ?image pq:P137 wd:Q1526131.
+  ?item wdt:P195 ?collection .
+  # ?item wdt:P170 ?creator .
+  ?creator wdt:P570 ?dod . BIND(YEAR(?dod) AS ?deathyear)
+  FILTER(?deathyear < (YEAR(NOW())-95)) .
+  ?creator schema:dateModified ?creatordate .
+  OPTIONAL { ?creator wdt:P373 ?creatorcategory } .
+  ?collection rdfs:label ?collectionLabel. FILTER(LANG(?collectionLabel) = \"en\").
+  ?collection wdt:P373 ?collectioncategory .
+  ?item wdt:P571 ?inception . BIND(YEAR(?inception) AS ?inceptionyear)
+  FILTER(?inceptionyear < 1890) .
+  } ORDER BY DESC(?itemdate)
+  LIMIT 15000""";
+  schema:target <https://query.wikidata.org/sparql> .

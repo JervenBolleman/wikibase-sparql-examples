@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-e5dfadca112023bdaac2e1017ecb3a54> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Nortix08/Personen_in_Hannover>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -59,4 +58,46 @@ WHERE
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en,[AUTO_LANGUAGE]\"}
 } 
 ORDER BY DESC(?diffyear)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title:Personen mit Bezug zu Hannover, die heute ein Jubiläum haben
+#Abfrage von https://www.wikidata.org/wiki/User:Stefan_Kühn
+#---------------------------------------------------------------------------------------
+SELECT DISTINCT ?item ?itemLabel ?firstnameLabel ?lastnameLabel ?itemDescription ?reason ?day
+WHERE 
+{
+  {?item wdt:P19 wd:Q1715} # Person mit Geburtsort = Hannover
+  UNION
+  {?item wdt:P20 wd:Q1715} # Person mit Todesort = Hannover
+  UNION
+  {?item wdt:P937 wd:Q1715} # Person mit Wirkungsort = Hannover
+  
+  BIND( now() as ?testday) # Testdatum (heute)
+  #BIND(\"2019-09-13T00:00:00Z\"^^xsd:dateTime as ?testday) # Testdatum (beliebiger Tag)
+  
+  {?item p:P569 [ a wikibase:BestRank ; # Geburtstag
+                    psv:P569 [ wikibase:timeValue ?day;
+                                                 wikibase:timePrecision ?precision_day ] ]
+         FILTER (?precision_day > 8 ) # Geburtstag vollständig (YYYY-MM-DD)
+         BIND( 'Geburtstag' as ?reason)
+  }
+  UNION
+  {?item p:P570 [ a wikibase:BestRank ; # Todestag
+                    psv:P570 [ wikibase:timeValue ?day;
+                                                  wikibase:timePrecision ?precision_day ] ]
+         FILTER (?precision_day > 8 ) # Todestag vollständig (YYYY-MM-DD)
+         BIND( 'Todestag' as ?reason)
+  }
+  
+  FILTER (MONTH(?day) = MONTH(?testday)) # gleicher Monat
+  FILTER (DAY(?day) = DAY(?testday)) # gleicher Tag
+  
+  BIND (YEAR(?testday)-YEAR(?day) AS ?diffyear) # Jahresdifferenz errechnen 
+  BIND (FLOOR(?diffyear - (5 * FLOOR(?diffyear/5))) AS ?mod) # Modula 5  
+  FILTER (?mod = 0) # nur Jahre wo Rest = 0 (5,10,15,20,25,...)
+  
+  OPTIONAL { ?item wdt:P734 ?lastname . } # Nachname
+  OPTIONAL { ?item wdt:P735 ?firstname . } # Vorname
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en,[AUTO_LANGUAGE]\"}
+} 
+ORDER BY DESC(?diffyear)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

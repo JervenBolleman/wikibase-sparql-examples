@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-2cefa4a0bf62ffaf2687094df2adaef2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_KOS>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -40,4 +39,29 @@ SELECT ?item ?itemLabel ?broader ?parents ?size ?sites {
   OPTIONAL { ?item wdt:P279 ?broader }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# KOS types with number of instances and additional numbers
+SELECT ?item ?itemLabel ?broader ?parents ?size ?sites {
+  {  
+    # number of additional superclasses
+    SELECT ?item (count(distinct ?parent)-1 as ?parents) {
+      ?item wdt:P279* wd:Q6423319
+      OPTIONAL { ?item wdt:P279 ?parent }
+    } GROUP BY ?item    
+  } { 
+    # number of instances
+    SELECT ?item (count(distinct ?element) as ?size) {
+     ?item wdt:P279* wd:Q6423319
+     OPTIONAL { ?element wdt:P31 ?item }
+    } GROUP BY ?item      
+  } { 
+    # number of sitelinks
+    SELECT ?item (count(distinct ?site) as ?sites) {
+      ?item wdt:P279* wd:Q6423319
+      OPTIONAL { ?site schema:about ?item }
+    } GROUP BY ?item    
+  }
+  OPTIONAL { ?item wdt:P279 ?broader }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

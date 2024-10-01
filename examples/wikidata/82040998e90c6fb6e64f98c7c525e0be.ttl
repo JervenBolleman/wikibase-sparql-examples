@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-82040998e90c6fb6e64f98c7c525e0be> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2016/11>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -36,4 +35,26 @@ SELECT ?item ?itemLabel ?yob ?yod (?stct + (?slct * 2) AS ?rank) WHERE {
 }
 ORDER BY DESC(?rank) ?item
 LIMIT 2000""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Rank of people born in the Basque Country
+#LIMIT to 2000 as Listeria can only handle up to 5000
+SELECT ?item ?itemLabel ?yob ?yod (?stct + (?slct * 2) AS ?rank) WHERE {
+  ?item wdt:P19 ?pob.
+  ?pob wdt:P131* ?parts.
+  wd:Q47588 wdt:P527 ?parts.
+  ?item wdt:P31 wd:Q5.
+  ?item wikibase:statements ?stct.
+  ?item wikibase:sitelinks ?slct.
+  OPTIONAL {
+    ?item wdt:P569 ?dob.
+    BIND(YEAR(?dob) AS ?yob)
+  }
+  OPTIONAL {
+    ?item wdt:P570 ?dod.
+    BIND(YEAR(?dod) AS ?yod)
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"eu\". }
+}
+ORDER BY DESC(?rank) ?item
+LIMIT 2000""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

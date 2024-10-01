@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-322fef826ebeec3333c40291eb7b0d8a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/06>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -104,4 +103,94 @@ OPTIONAL {?item wdt:P1448 ?labellist. FILTER (lang(?labellist) = \"mul\")} # off
     GROUP by ?item ?dist ?label ?type
   }
 }
-ORDER BY ASC(?dist) ASC(?label)""" .
+ORDER BY ASC(?dist) ASC(?label)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?label ?type ?subtypeLabel ?keywords ?properties ?position ?start ?end ?image ?notes WHERE {
+SERVICE wikibase:label {bd:serviceParam wikibase:language \"en-GB,en,fr,de,es,pt,pl,nl,cs\".}
+{
+SELECT DISTINCT ?item ?type (MIN(?starts) as ?start) (MAX(?ends) AS ?end) 
+  (GROUP_CONCAT(DISTINCT ?noteslist; SEPARATOR = \", \") AS ?notes)
+  (GROUP_CONCAT(DISTINCT ?keywordlist; SEPARATOR = \", \") AS ?keywords)
+  (GROUP_CONCAT(DISTINCT ?propertylist; SEPARATOR = \", \") AS ?properties)
+  (SAMPLE (?positions) AS ?position)
+  (COALESCE(SAMPLE(?specialimagelist),SAMPLE (?standardimagelist)) AS ?image)
+  (COALESCE(SAMPLE(?labellist),?label) AS ?label)
+#  (SAMPLE (DISTINCT ?subtypes) AS ?subtype) WHERE {
+  (COALESCE(SAMPLE (DISTINCT ?sta), SAMPLE (DISTINCT ?stb)) AS ?subtype) WHERE {
+VALUES ?props {
+  wdt:P137  # operator
+  wdt:P88   # commissioned by
+  wdt:P176  # manufacturer
+  wdt:P361  # part of
+  wdt:P1343 # described by source
+}
+
+VALUES ?st1 { 
+  wd:Q18758641 # watercraft class
+}
+VALUES ?st2 {
+  wd:Q57821    # fortification
+  wd:Q177597   # naval vessel
+}
+VALUES ?st3 {
+  wd:Q728      # weapon  
+  wd:Q1184840  # military vehicle
+  wd:Q216916   # military aircraft
+}
+VALUES ?st4 {
+  wd:Q234137   # castle
+}
+{?item ?props wd:Q112737775}
+UNION {?register wdt:P2378 wd:Q112737775.
+  ?register wikibase:directClaim ?registerwdt.
+  ?item ?registerwdt ?value}
+
+      {?item wdt:P31/wdt:P279 ?sta}
+UNION {?item wdt:P31/wdt:P279* ?stb}
+UNION {?item wdt:P279* ?stc}
+UNION {?item wdt:P31/wdt:P279* ?std. ?item wdt:P3134 ?t} # tripadvisor
+FILTER ((BOUND (?sta) && ?sta = ?st1)||(BOUND (?stb) && ?stb = ?st2)||(BOUND (?stc) && ?stc = ?st3)||(BOUND (?std) && ?std = ?st4))
+
+#?note rdfs:label ?notelabel. FILTER (LANG(?notelabel) = \"en\") # times out
+#BIND(CONCAT(\"{\",\"{Q|\",STR(?notelabel),\"|\",STR(?note),\"}\",\"}\") as ?noteslist)
+#BIND(IF(BOUND(?notelabel),CONCAT(\"{\",\"{Q|\",STR(?notelabel),\"|\",STR(?note),\"}\",\"}\"),\"\") AS ?noteslist)
+
+OPTIONAL { {?item wdt:P279 ?k} UNION {?item wdt:P137 ?t. ?t wdt:P17 ?k} UNION {?item wdt:P17 ?k} 
+UNION {?item wdt:P31 ?k} UNION {?item wdt:P279 ?k} UNION {?item wdt:P176 ?k}
+  ?k rdfs:label ?keywordlist. FILTER (LANG(?keywordlist) = \"en\")}
+
+OPTIONAL {
+        {?item wdt:P3134 ?t. BIND(CONCAT(\"[https://www.tripadvisor.com/\",?t,\" tripadvisor]\") AS ?propertylist)}
+  UNION {?item wdt:P2671 ?g. BIND(CONCAT(\"[https://www.google.com/search?kgmid£\",STR(?g),\" google]\") AS ?propertylist)} # Google knowledge graph ID
+}
+
+OPTIONAL {?item wdt:P625 ?p1}
+OPTIONAL {?item wdt:P276 ?l2. ?l2 wdt:P625 ?p2}
+OPTIONAL {?item wdt:P131 ?l3. ?l3 wdt:P625 ?p3}
+#OPTIONAL {?item wdt:P495 ?origin. ?origin wdt:P625 ?p4}
+#OPTIONAL {?item wdt:P176 ?manu. ?manu wdt:P159 ?l4. ?l4 wdt:P625 ?p4}
+#OPTIONAL {?item wdt:P17  ?l5. ?l5 wdt:P625 ?p5}
+BIND(COALESCE(?p1,?p2,?p3) AS ?positions)
+
+OPTIONAL {?item wdt:P729 ?serviceentry}
+OPTIONAL {?item wdt:P571 ?inception}
+OPTIONAL {?item wdt:P585 ?pointintime}
+OPTIONAL {?item wdt:P580 ?starttime}
+BIND(COALESCE(?awarded,?serviceentry,?inception,?pointintime,?starttime) AS ?starts)
+     
+OPTIONAL {?item wdt:P730 ?serviceretirement}
+OPTIONAL {?item wdt:P576 ?abolished}
+OPTIONAL {?item wdt:P582 ?endtime}
+BIND(COALESCE(?serviceretirement,?abolished,?pointintime,?endtime) as ?ends)
+
+OPTIONAL { {?item wdt:P18 ?images} BIND (wikibase:decodeUri(STR(?images)) AS ?specialimagelist)} # image
+
+OPTIONAL {?item wdt:P1448 ?labellist. FILTER (lang(?labellist) = \"mul\")} # official name
+{SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\" . ?item rdfs:label ?label}
+  }
+    }
+    #GROUP by ?item ?starts ?ends ?dist ?label ?type
+    GROUP by ?item ?dist ?label ?type
+  }
+}
+ORDER BY ASC(?dist) ASC(?label)""";
+  schema:target <https://query.wikidata.org/sparql> .

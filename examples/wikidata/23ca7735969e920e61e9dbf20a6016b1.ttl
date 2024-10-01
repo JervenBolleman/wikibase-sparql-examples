@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-23ca7735969e920e61e9dbf20a6016b1> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Nurni/ListaAutoportret>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -53,4 +52,45 @@ WHERE
       }
     }
 
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT 
+	?item
+WHERE 
+{
+  {
+    SELECT ?item {
+  	    ?item wdt:P31/wdt:P279* wd:Q838948 .
+      	?item rdfs:label ?name.
+        wd:Q192110 rdfs:label ?nameA.
+      
+        # wykluczenie albumów
+        MINUS{?item wdt:P31 wd:Q482994}.
+        # wykluczenie filmów
+        MINUS{?item wdt:P31 wd:Q11424}.
+        # wykluczenie filmów krótkometrażowych
+        MINUS{?item wdt:P31 wd:Q24862}.
+        # wykluczenie naszyjników
+        MINUS{?item wdt:P31 wd:Q189299}. 
+
+        ?item wdt:P18 ?i
+
+        # self-portrait, selfportrait, autoportrait, zelf ...
+        FILTER(REGEX(?name, 
+                     CONCAT(\"^.*(self[- ]?portrait|autoretrat|autorretrato|autoritratto|selbstporträt|selbstbildnis|autoportrait|\", 
+                            \"автопортрет|zelf|självporträtt|portret własny|autoportre|painter.*portrait|selvportræt).*$\"), 
+                     \"i\") 
+                     # || REGEX(?name, ?nameA, \"i\")
+        ).
+               
+        MINUS{?item wdt:P136 wd:Q192110}.
+        MINUS{?item wdt:P136 wd:Q60133444}.
+        MINUS{?item wdt:P136 wd:Q12068677}.
+        MINUS{?item wdt:P170 wd:Q4233718}.
+        FILTER (?item NOT IN (wd:Q20177320, wd:Q20167246, wd:Q21856648, wd:Q17339410, wd:Q17427870, wd:Q2713823, wd:Q51485246,
+                              wd:Q17559608, wd:Q24066171, wd:Q27277742, wd:Q28091974, wd:Q56395164, wd:Q26710446,
+             		      wd:Q19186181, wd:Q17539559, wd:Q17614153, wd:Q18809844, wd:Q17331927, wd:Q18686048, wd:Q30065032)).
+      }
+    }
+
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

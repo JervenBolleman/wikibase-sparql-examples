@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b6cff7916a3b2f1e21960dbf3170dc57> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/12>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -43,4 +42,34 @@ WHERE
   FILTER(LANG(?gameLabel) = \"en\").
   # \"^\\P{Zs}+\\p{Zs}+\\P{Zs}+$\" doesn't work
   FILTER(REGEX(?gameLabel, \"^[^ ]+ +[^ ]+$\")).
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?game ?gameLabel
+WHERE
+{
+  # All video games
+  ?game wdt:P31/wdt:P279* wd:Q7889; 
+        
+    # having a date of publication
+    wdt:P577 ?publication;
+    # and a label
+    rdfs:label $gameLabel.
+  
+  # Published in the year 2019
+  FILTER(\"2019-01-01\"^^xsd:dateTime <= ?publication && ?publication < \"2020-01-01\"^^xsd:dateTime).
+  
+  # Not published before 2019
+  MINUS {FILTER(?publication < \"2019-01-01\"^^xsd:dateTime).} # doesn't work
+  
+  # Not part of a series
+  MINUS {?game wdt:P179 []}
+  
+  MINUS { # not on Nintendo Switch
+    ?game wdt:P400 wd:Q19610114.
+  }
+  
+  # List only games with English labels
+  FILTER(LANG(?gameLabel) = \"en\").
+  # \"^\\P{Zs}+\\p{Zs}+\\P{Zs}+$\" doesn't work
+  FILTER(REGEX(?gameLabel, \"^[^ ]+ +[^ ]+$\")).
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

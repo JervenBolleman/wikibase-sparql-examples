@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-bffd32511271c5ac12db91fa17375abe> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/12>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -32,4 +31,21 @@ WHERE
                          ?item rdfs:label ?itemLabel . 
                          ?gender rdfs:label ?genderLabel .}
 } group by ?item ?itemLabel ?start ?end ?point_in_time""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel (group_concat(distinct ?countryLabel;separator=\"; \") as ?countries) (group_concat(distinct ?personLabel;separator=\"; \") as ?people) ?start ?end ?point_in_time
+WHERE 
+{
+  ?item wdt:P31 wd:Q178561 .
+  optional {?item wdt:P710 ?country . filter not exists {?country wdt:P31 wd:Q5. } }
+  optional {?item wdt:P710 ?person . ?person wdt:P31 wd:Q5 . }
+  optional {?item wdt:P580 ?start . }
+  optional {?item wdt:P580 ?end . }
+  optional {?item wdt:P585 ?point_in_time . }
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+                         ?country rdfs:label ?countryLabel .
+                         ?person rdfs:label ?personLabel .
+                         ?item rdfs:label ?itemLabel . 
+                         ?gender rdfs:label ?genderLabel .}
+} group by ?item ?itemLabel ?start ?end ?point_in_time""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

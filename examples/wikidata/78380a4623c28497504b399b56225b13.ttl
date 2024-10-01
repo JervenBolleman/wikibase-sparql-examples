@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-78380a4623c28497504b399b56225b13> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -58,4 +57,45 @@ WHERE {
   # show label in auto language as default, and English when no default label exists
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# numbers of (new or all) characters in Dream of the Red Chamber chapters
+# viewed as line chart (also viewable as table)
+#defaultView:LineChart
+SELECT DISTINCT ?chapter ?chapter_number ?character_count
+WHERE {
+  {SELECT DISTINCT ?chapter (COUNT(DISTINCT ?character) AS ?character_count)
+   WHERE {
+     # ?chapter is instance of (P31) chapter (Q1980247)
+     ?chapter wdt:P31 wd:Q1980247;
+              # and is part of (P361) [OneOrMorePath (+)] Dream of the Red Chamber (Q8265)
+              wdt:P361+ wd:Q8265
+     # optional: ?chapter's \"characters\" (P674) statement is ?x_character
+     OPTIONAL {?chapter p:P674 ?x_character.
+               # ?x_character's value is ?character
+               ?x_character ps:P674 ?character;
+                            # ?x_character's qualifier \"subject has role\" (P2868) is \"first appearance\" (Q8563381)
+                            ### Note: This line can be removed, and ?character_count will be changed to count of
+                            ### all characters (not only new characters).
+                            pq:P2868 wd:Q8563381}
+   }
+   # group COUNT by ?chapter
+   GROUP BY ?chapter
+  }
+  # optional: ?chapter's chapter (P792) is ?number
+  OPTIONAL {?chapter wdt:P792 ?number}
+  # use IF to bind ?number's 4-character form as ?chapter_number:
+  # if ?number has 1 character, concatenate \"100\" and it;
+  ### Note: Because data type of the Y-axis variable (?character_count) is quantity,
+  ### ?number, whose data type is string, needs to be transformed to numeric strings with the same number of characters,
+  ### and the first character should not be \"0\".
+  ### Otherwise numbers on X-axis will be ordered descendingly per their corresponding values on Y-axis,
+  ### not ascendingly per their own values.
+  BIND(IF(STRLEN(?number)=1, CONCAT(\"100\", ?number),
+       # if ?number has 2 characters, concatenate \"10\" and it;
+       IF(STRLEN(?number)=2, CONCAT(\"10\", ?number),
+       # otherwise (?number has 3 characters), concatenate \"1\" and it
+       CONCAT(\"1\", ?number))) AS ?chapter_number)
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-bff5c9016d09f919b42385284b04e6f0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2016/12>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -39,4 +38,28 @@ SELECT DISTINCT ?bridge ?bridgeLabel ?womanLabel ?city ?cityLabel ?waterbody ?wa
   }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 } ORDER BY ?city""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?bridge ?bridgeLabel ?womanLabel ?city ?cityLabel ?waterbody ?waterbodyLabel (BOUND(?enArticle) AS ?hasEn) (BOUND(?frArticle) AS ?hasFr) WHERE {
+  ?bridge wdt:P31/wdt:P279* wd:Q12280;
+          wdt:P138 ?woman .
+  ?woman wdt:P21 wd:Q6581072 .
+  OPTIONAL {
+    ?bridge wdt:P131+ ?city .
+	?city wdt:P31/wdt:P279* wd:Q486972 .
+  }
+  OPTIONAL {
+    ?bridge wdt:P177 ?waterbody .
+  }
+  OPTIONAL {
+    ?enArticle a schema:Article;
+               schema:about ?woman;
+               schema:isPartOf <https://en.wikipedia.org/>.
+  }
+  OPTIONAL {
+    ?frArticle a schema:Article;
+               schema:about ?woman;
+               schema:isPartOf <https://fr.wikipedia.org/>.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} ORDER BY ?city""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

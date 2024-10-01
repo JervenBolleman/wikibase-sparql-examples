@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-dfe68488f128d9ee89f34899792d5fdb> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Wiljes/div>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -34,4 +33,21 @@ SELECT DISTINCT ?w ?wLabel ?students ?affiliationTypeLabel ?p ?pLabel ?NFDIassoc
   } 
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de\" }
 } ORDER BY DESC(?students) ASC(?wLabel)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?w ?wLabel ?students ?affiliationTypeLabel ?p ?pLabel ?NFDIassociated {  
+  ?w wdt:P31/wdt:P279* wd:Q38723 .
+  ?w wdt:P17 wd:Q183 .
+  ?w wdt:P2196 ?students .
+  { ?w wdt:P463 wd:Q105757481 .
+   BIND(\"Vereinsmitglied\" AS ?affiliationTypeLabel)
+   BIND(TRUE AS ?NFDIassociated)
+  } UNION {
+    ?p wdt:P31 wd:Q98270496 .
+    ?p p:P1416 ?statement .
+    ?statement ps:P1416 ?w .
+    OPTIONAL { ?statement pq:P3831 ?affiliationType .}   
+    BIND(TRUE AS ?NFDIassociated)
+  } 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de\" }
+} ORDER BY DESC(?students) ASC(?wLabel)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

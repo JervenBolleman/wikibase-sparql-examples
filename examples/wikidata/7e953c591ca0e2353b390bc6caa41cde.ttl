@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-7e953c591ca0e2353b390bc6caa41cde> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:AllyD/ArtistsActivities>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -37,4 +36,29 @@ SELECT DISTINCT ?artist ?artistLabel ?picTitle ?mvt ?mvtLabel ?rgb ?event ?event
   BIND(IF(BOUND(?mvt),\"D5FFEE\",\"F4FFF4\") AS ?rgb).
   OPTIONAL {?artist wdt:P1344 ?event. ?event rdfs:label ?eventLabel. FILTER((LANG(?eventLabel)) = \"en\"). } #catches documenta etc
 
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Graph
+SELECT DISTINCT ?artist ?artistLabel ?picTitle ?mvt ?mvtLabel ?rgb ?event ?eventLabel WHERE {
+
+  { ?artist wdt:P101 wd:Q213156.}
+  
+  UNION
+
+  { ?artist wdt:P136 wd:Q213156. } #Q213156 for performance, Q212431 for installations, Q203209 for conceptualism
+  
+  { ?artist wdt:P31 wd:Q5. }
+
+  UNION
+
+  { ?artist wdt:P31 wd:Q1400264. } #individuals and collective groups
+  
+  ?artist rdfs:label ?artistLabel. FILTER((LANG(?artistLabel)) = \"en\")
+  OPTIONAL { ?artist wdt:P18 ?picURI } .
+  
+  BIND(IF(BOUND(?picURI),?picURI,?artistname) AS ?picTitle).
+  OPTIONAL {?artist wdt:P135 ?mvt. ?mvt rdfs:label ?mvtLabel. FILTER((LANG(?mvtLabel)) = \"en\"). }
+  BIND(IF(BOUND(?mvt),\"D5FFEE\",\"F4FFF4\") AS ?rgb).
+  OPTIONAL {?artist wdt:P1344 ?event. ?event rdfs:label ?eventLabel. FILTER((LANG(?eventLabel)) = \"en\"). } #catches documenta etc
+
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

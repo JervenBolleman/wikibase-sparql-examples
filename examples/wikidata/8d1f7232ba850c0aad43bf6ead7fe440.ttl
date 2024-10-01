@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8d1f7232ba850c0aad43bf6ead7fe440> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -45,4 +44,35 @@ WHERE {
 ### Note: ORDER BY has to be used because by clicking the ascending/descending arrows in the table,
 ### years cannot be ordered correctly (table does not recognize the years BCE as negative numbers).
 ORDER BY ?start""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# timeline of Twenty-Six Histories civilizations (also viewable as table)
+#defaultView:Timeline
+SELECT DISTINCT ?civilization ?civilizationLabel ?start ?end ?book ?bookLabel
+WHERE {
+  # ?book is any part of (P361) part of... Twenty-Six Histories (Q11371378)
+  ?book wdt:P361* wd:Q11371378;
+        # ?book's genre (P136) is jizhuanti (Q1619411) so that parts of each book,
+        # whose genres are benji (Q1872234), liezhuan (Q2252176), et al., are excluded
+        wdt:P136 wd:Q1619411.
+  # ?book should not be instance of (P31) book series (Q277759) so that groups of books,
+  # e.g, Twenty-Four Histories (Q175077) and Seventeen Histories (Q9503010), are excluded
+  FILTER NOT EXISTS {?book wdt:P31 wd:Q277759}
+  # optional: show ?book's main subject (P921) as ?civilization
+  OPTIONAL {?book wdt:P921 ?civilization.
+            # ?civilization is instance of (P31) any subclass of (wdt:P279) subclass of... ?x
+            ?civilization wdt:P31/wdt:P279* ?x
+            # define ?x as historical country (Q3024240) or historical period (Q11514315)
+            VALUES ?x {wd:Q3024240 wd:Q11514315}
+            # optional: show ?civilization's inception time (P571) or start time (P580) as ?start
+            OPTIONAL {?civilization (wdt:P571|wdt:P580) ?start}
+            # optional: show ?civilization's dissolution time (P576) or end time (P582) as ?end
+            OPTIONAL {?civilization (wdt:P576|wdt:P582) ?end}
+            }
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".}
+}
+# order table by ?start in ascending order
+### Note: ORDER BY has to be used because by clicking the ascending/descending arrows in the table,
+### years cannot be ordered correctly (table does not recognize the years BCE as negative numbers).
+ORDER BY ?start""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

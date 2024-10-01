@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-2b3295ad5c92669b7d7b95078f3868e5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/12>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -19,13 +18,21 @@ PREFIX schema: <http://schema.org/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 select ?item ?itemLabel ?sitelinks
 where {
-   include %subquery.
+    {
+   select distinct ?item 
+   where {
+      
+      values ?item_class {wd:Q34 wd:Q183}
+      ?item wdt:P27 ?item_class; wdt:P21 wd:Q6581072; wdt:P31 wd:Q5.
+      filter not exists {[] schema:about ?item; schema:isPartOf <https://de.wikipedia.org/>}
+   }
+}
    bind(xsd:integer(substr(str(?item), 33)) as ?num).
    ?item wikibase:sitelinks ?sitelinks 
    service wikibase:label {bd:serviceParam wikibase:language \"de,en\".}
 } 
 order by desc(?sitelinks) asc(?num)""";
-  <http://example.org/bigdata_select> """select ?item ?itemLabel ?sitelinks
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """select ?item ?itemLabel ?sitelinks
 with {
    select distinct ?item 
    where {
@@ -41,4 +48,6 @@ where {
    ?item wikibase:sitelinks ?sitelinks 
    service wikibase:label {bd:serviceParam wikibase:language \"de,en\".}
 } 
-order by desc(?sitelinks) asc(?num)""" .
+order by desc(?sitelinks) asc(?num)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

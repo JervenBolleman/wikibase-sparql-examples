@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-472258f04b041febc0fbf2598413471e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Caf%C3%A9/Archivos/2024/06>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -30,4 +29,21 @@ SELECT DISTINCT ?municipio ?municipioLabel (COUNT(?ayuntamiento) AS ?num_casas_c
 ::GROUP BY ?municipio ?municipioLabel
 ::#HAVING ((COUNT(?ayuntamiento)) > 1 )
 ::ORDER BY DESC (?num_casas_consistoriales)
-::""" .
+::""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?municipio ?municipioLabel (COUNT(?ayuntamiento) AS ?num_casas_consistoriales) 
+::WITH {
+::  SELECT DISTINCT  ?municipio ?ayuntamiento WHERE {
+::  ?municipio wdt:P31/wdt:P279* wd:Q2074737.
+::  ?ayuntamiento wdt:P31 wd:Q112793351;
+::    wdt:P131 ?municipio.
+::  }
+::}  AS %1
+::WHERE {
+::  INCLUDE %1
+::  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+::}
+::GROUP BY ?municipio ?municipioLabel
+::#HAVING ((COUNT(?ayuntamiento)) > 1 )
+::ORDER BY DESC (?num_casas_consistoriales)
+::""";
+  schema:target <https://query.wikidata.org/sparql> .

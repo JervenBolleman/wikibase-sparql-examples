@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-2a2208c9aa56c3f58069a9d667e68b1b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/09>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -38,4 +37,30 @@ OPTIONAL { ?item wdt:P2093 ?author_name_string. }
 OPTIONAL { ?item wdt:P356 ?DOI }
 }
 GROUP BY ?item ?itemLabel ?_PubMed_ID ?PMCID ?publication_date ?published_in ?published_inLabel ?DOI
-LIMIT 100""" .
+LIMIT 100""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?_PubMed_ID ?PMCID ?publication_date ?published_in ?DOI ?itemLabel
+?published_inLabel (GROUP_CONCAT(DISTINCT ?author_name_string; SEPARATOR = \"; \") AS ?authors) (GROUP_CONCAT(DISTINCT ?main_subject; SEPARATOR = \"; \") AS ?subject) WHERE {
+{
+  SELECT * WHERE {
+    ?item wdt:P31 wd:Q13442814.
+    ?item rdfs:label ?itemLabel.
+    FILTER(CONTAINS(LCASE(?itemLabel), \"zika\"))
+    FILTER((LANG(?itemLabel)) = \"en\")
+  }
+LIMIT 1000
+}
+OPTIONAL { ?item wdt:P698 ?_PubMed_ID. }
+OPTIONAL {
+?item wdt:P1433 ?published_in.
+?published_in rdfs:label ?published_inLabel.
+}
+OPTIONAL { ?item wdt:P921 ?main_subject. }
+OPTIONAL { ?item wdt:P932 ?PMCID. }
+OPTIONAL { ?item wdt:P577 ?publication_date. }
+OPTIONAL { ?item wdt:P921 ?published_in. }
+OPTIONAL { ?item wdt:P2093 ?author_name_string. }
+OPTIONAL { ?item wdt:P356 ?DOI }
+}
+GROUP BY ?item ?itemLabel ?_PubMed_ID ?PMCID ?publication_date ?published_in ?published_inLabel ?DOI
+LIMIT 100""";
+  schema:target <https://query.wikidata.org/sparql> .

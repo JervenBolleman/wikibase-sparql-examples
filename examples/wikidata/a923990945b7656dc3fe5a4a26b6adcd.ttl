@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-a923990945b7656dc3fe5a4a26b6adcd> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/05>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -35,4 +34,25 @@ WHERE {
 #  ?item     p:P569/psv:P569 ?timenode.
 #  ?timenode wikibase:timePrecision     ?timeprecision.
 #  FILTER(?timeprecision > 8) #only year or better precision
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?authorLabel ?timeprecision (YEAR(?dob) as ?year)
+WHERE {
+  ?item wdt:P31 wd:Q5 .
+  ?item wdt:P6379 ?collection. #in a collection
+#  ?item wdt:P6379 wd:Q17153751.
+  {?item wdt:P937 ?werklocatie}#has a work location
+        UNION
+  {?item wdt:P108 ?employer}#or an employer
+        UNION
+  {?item wdt:P551 ?woonplaats}#or living place
+#  ?item wdt:P6379 ?institution .
+#  ?institution wdt:P17 ?country.#  country
+#  ?country wdt:P463 wd:Q458. # member EU
+  FILTER NOT EXISTS { ?item wdt:P7763 [] } .#no copyright status
+  FILTER NOT EXISTS { ?item wdt:P570 [] }.  #no dod
+  FILTER NOT EXISTS { ?item wdt:P1317 [] } .#no floruit
+#  ?item     p:P569/psv:P569 ?timenode.
+#  ?timenode wikibase:timePrecision     ?timeprecision.
+#  FILTER(?timeprecision > 8) #only year or better precision
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

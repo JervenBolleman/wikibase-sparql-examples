@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c8eccf2d7c3007fd4f85b9d425ab9ca0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -57,4 +56,47 @@ WHERE {
 }
 # order layer by ?deathLabel
 order by ?deathLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# show Water Margin characters' death places on map
+# with manner/cause of death as layer
+#defaultView:Map{\"layer\":\"?deathLabel\"}
+SELECT DISTINCT ?person ?nick_name ?personLabel ?image ?personDescription ?groupLabel ?typeLabel ?death ?deathLabel ?place ?placeLabel ?coord 
+WHERE {
+  # define ?person as one that is present in work (P1441) Water Margin (Q70827), and
+  ?person wdt:P1441 wd:Q70827;
+          # is instance of (P31) or any subclass of (P279) fictional character (Q95074)
+          wdt:P31/wdt:P279* wd:Q95074.
+  # optional: show ?person's death place (P20) as ?place
+  OPTIONAL {?person wdt:P20 ?place
+             # optional: show ?place's coordinate location (P625) as ?coord
+             OPTIONAL {?place wdt:P625 ?coord} }
+  # optional: show ?person's manner of death (P1196) or cause of death (wdt:P509) as ?death
+  OPTIONAL {?person (wdt:P1196|wdt:P509) ?death 
+            # To avoid showing any other relation
+            # define ?relation as only manner of death (P1196) or cause of death (P509) 
+            VALUES ?relation {wdt:P1196 wdt:P509}
+            # ?relation is from ?person to ?death
+            ?person ?relation ?death.
+            # show ?relation as ?type in table
+            ### Note: The reason why ?relation is not shown as edgeLabel in graph is because in addition to ?person and ?death,
+            ### a third variable, ?place, also shows itself (with link to item), not just its label, thus appearing in graph, and 
+            ### edgeLabel works correctly when there are only two variables.
+            ### Three variables (?person, ?death, ?place) cause errors on edgeLabel, although may still work well for edge (as in this query).
+            ### The edge connects two values that has an item link (vertex), from the one in the leftest vertical column in the table to any other one in the same horizontal row. 
+            ### Make the order of columns correct, and make right decision on 
+            ### whether a variable should show itself (with link to item) or just show its label,
+            ### so that the edge can work correctly.
+           ?type wikibase:directClaim ?relation;
+               a wikibase:Property}
+  # show ?person's nick name (P1449) as ?nick_name
+  OPTIONAL {?person wdt:P1449 ?nick_name}
+  # optional: show ?person's member_of (P463) as ?group
+  OPTIONAL {?person wdt:P463 ?group}
+  # optional: show ?person's image (P18) as ?image
+  OPTIONAL {?person wdt:P18 ?image}
+  # show label in simplified Chinese (zh-hans) as default, and English when no default label exists
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"zh-hans,en\".}
+}
+# order layer by ?deathLabel
+order by ?deathLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

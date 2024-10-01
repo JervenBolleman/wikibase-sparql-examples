@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-3ca4959da38aa4779d30b92d7898634f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Property_talk:P2002>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
@@ -33,4 +32,23 @@ WHERE
   MINUS { ?st pq:P582 [] }
   FILTER(!(wikibase:isSomeValue(?id)))
 }
-LIMIT 100""" .
+LIMIT 100""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# checks for a P8687-statement for the numeric id in the current year
+# skips usernames with end date, missing or unknown numeric ids, deprecated rank
+SELECT ?item ?username ?id
+WHERE
+{
+  VALUES ?goodRanks { wikibase:NormalRank wikibase:PreferredRank }
+  ?item p:P2002 ?st.
+  ?st pq:P6552 ?id.
+  MINUS {
+    ?st0 pq:P6552 ?id; pq:P585 ?d. [] p:P8687 ?st0.
+    FILTER(?d > \"2023-31-12\"^^xsd:dateTime)
+  }
+  ?st wikibase:rank ?goodRanks .
+  ?st ps:P2002 ?username.
+  MINUS { ?st pq:P582 [] }
+  FILTER(!(wikibase:isSomeValue(?id)))
+}
+LIMIT 100""";
+  schema:target <https://query.wikidata.org/sparql> .

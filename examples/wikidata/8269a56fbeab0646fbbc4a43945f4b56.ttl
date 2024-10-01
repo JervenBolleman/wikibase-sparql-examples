@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8269a56fbeab0646fbbc4a43945f4b56> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/11>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -29,4 +28,18 @@ SELECT ?shape ((?letter) as ?layer) ?name ?wikilangLabel WHERE
   filter(bound(?letter))
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 } order by ?letter #defaultView:Map""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?shape ((?letter) as ?layer) ?name ?wikilangLabel WHERE
+{
+  ?article schema:about wd:Q16520 . ?article schema:name ?name . ?article schema:inLanguage ?lang . ?article schema:isPartOf ?x .
+  FILTER CONTAINS(str(?x), \"wikipedia\") . # only Wikipedias
+  optional { filter(STRSTARTS(?name, 'Б')) . bind('Б' as ?letter) } # title starts with Б
+  optional { filter(STRSTARTS(?name, 'П')) . bind('П' as ?letter) } # title starts with П
+  optional { filter(STRSTARTS(?name, 'B')) . bind('B' as ?letter) } # title starts with B
+  optional { filter(STRSTARTS(?name, 'P')) . bind('P' as ?letter) } # title starts with P
+  { ?wiki wdt:P856 ?x . ?wiki wdt:P407 ?wikilang . ?country wdt:P37 ?wikilang . 
+   ?country wdt:P3896 ?shape . ?country wdt:P31 wd:Q3624078 .  }
+  filter(bound(?letter))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} order by ?letter #defaultView:Map""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

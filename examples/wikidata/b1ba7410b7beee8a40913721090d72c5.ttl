@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-b1ba7410b7beee8a40913721090d72c5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/02>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -27,4 +26,16 @@ SELECT ?item ?itemLabel ?sexualityLabel ?linkcount WHERE {
   OPTIONAL {?item wikibase:sitelinks ?linkcount .} # count of sitelinks 
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 } order by DESC(?linkcount)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?sexualityLabel ?linkcount WHERE {
+  ?item wdt:P91 ?sexuality .
+  values ?sexuality {wd:Q592 wd:Q6636 wd:Q6649 wd:Q43200 wd:Q51415 wd:Q255155 wd:Q271534 wd:Q339014 wd:Q724351 wd:Q8354594
+}  FILTER NOT EXISTS {                              # has no en.wikipedia sitelink
+    ?wen schema:about ?item .
+    ?wen schema:isPartOf <https://en.wikipedia.org/> .
+  }
+  ?item wdt:P31 wd:Q5 .                            # human
+  OPTIONAL {?item wikibase:sitelinks ?linkcount .} # count of sitelinks 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} order by DESC(?linkcount)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

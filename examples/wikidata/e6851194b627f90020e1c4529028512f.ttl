@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-e6851194b627f90020e1c4529028512f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:language-language>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX dct: <http://purl.org/dc/terms/>
@@ -46,4 +45,36 @@ WHERE {
 
 }
 ORDER BY ?originating_lexemeLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX target1: <http://www.wikidata.org/entity/Q9035>
+PREFIX target2: <http://www.wikidata.org/entity/Q9027>
+
+SELECT 
+  ?originating_lexeme ?originating_lexemeLabel
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?originating_lexeme), 32)) AS ?originating_lexemeUrl)
+
+  ?originating_language ?originating_languageLabel
+  (CONCAT(\"#language/\", SUBSTR(STR(?originating_language), 32)) AS ?originating_languageUrl)
+
+  ?derived_lexeme ?derived_lexemeLabel
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?derived_lexeme), 32)) AS ?derived_lexemeUrl)
+
+  ?derived_language ?derived_languageLabel
+  (CONCAT(\"#language/\", SUBSTR(STR(?derived_language), 32)) AS ?derived_languageUrl)
+
+WHERE {
+  BIND(target1: AS ?originating_language)
+  BIND(target2: AS ?derived_language)
+  
+  ?derived_lexeme dct:language ?derived_language ;
+                  wdt:P5191+ ?originating_lexeme .
+  ?originating_lexeme dct:language ?originating_language .
+
+  ?derived_lexeme wikibase:lemma ?derived_lexemeLabel .
+  ?originating_lexeme wikibase:lemma ?originating_lexemeLabel .
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+
+}
+ORDER BY ?originating_lexemeLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

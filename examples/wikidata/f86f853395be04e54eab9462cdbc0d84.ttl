@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-f86f853395be04e54eab9462cdbc0d84> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/gender_distribution_in_movie_characters_over_time>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -20,14 +19,76 @@ PREFIX p: <http://www.wikidata.org/prop/>
 # gender distribution in movie characters over time
 SELECT *
 WHERE {
-  INCLUDE %yearsWithCounts.
+   {
+  SELECT ?year (SUM(?cisMaleCharacters) AS ?cisMaleCharacters_) (SUM(?cisFemaleCharacters) AS ?cisFemaleCharacters_) (SUM(?transMaleCharacters) AS ?transMaleCharacters_) (SUM(?transFemaleCharacters) AS ?transFemaleCharacters_) (SUM(?nonbinaryCharacters) AS ?nonbinaryCharacters_) WHERE {
+     {
+  SELECT ?movie (YEAR(MIN(?publicationDate)) AS ?year) WHERE {
+    INCLUDE %moviesWithCharacters.
+    ?movie wdt:P577 ?publicationDate.
+    FILTER(!wikibase:isSomeValue(?publicationDate))
+  }
+  GROUP BY ?movie
+}
+     {
+  SELECT ?movie (COUNT(DISTINCT ?cisMaleCharacter) AS ?cisMaleCharacters) WHERE {
+    INCLUDE %moviesWithCharacters.
+    OPTIONAL {
+      ?character wdt:P21 wd:Q6581097.
+      BIND(?character AS ?cisMaleCharacter)
+    }
+  }
+  GROUP BY ?movie
+}
+     {
+  SELECT ?movie (COUNT(DISTINCT ?cisFemaleCharacter) AS ?cisFemaleCharacters) WHERE {
+    INCLUDE %moviesWithCharacters.
+    OPTIONAL {
+      ?character wdt:P21 wd:Q6581072.
+      BIND(?character AS ?cisFemaleCharacter)
+    }
+  }
+  GROUP BY ?movie
+}
+     {
+  SELECT ?movie (COUNT(DISTINCT ?transMaleCharacter) AS ?transMaleCharacters) WHERE {
+    INCLUDE %moviesWithCharacters.
+    OPTIONAL {
+      ?character wdt:P21 wd:Q2449503.
+      BIND(?character AS ?transMaleCharacter)
+    }
+  }
+  GROUP BY ?movie
+}
+     {
+  SELECT ?movie (COUNT(DISTINCT ?transFemaleCharacter) AS ?transFemaleCharacters) WHERE {
+    INCLUDE %moviesWithCharacters.
+    OPTIONAL {
+      ?character wdt:P21 wd:Q1052281.
+      BIND(?character AS ?transFemaleCharacter)
+    }
+  }
+  GROUP BY ?movie
+}
+     {
+  SELECT ?movie (COUNT(DISTINCT ?nonbinaryCharacter) AS ?nonbinaryCharacters) WHERE {
+    INCLUDE %moviesWithCharacters.
+    OPTIONAL {
+      ?character wdt:P21/wdt:P279* wd:Q48270.
+      BIND(?character AS ?nonbinaryCharacter)
+    }
+  }
+  GROUP BY ?movie
+}
+  }
+  GROUP BY ?year
+}
   BIND(?cisMaleCharacters_ + ?transMaleCharacters_ AS ?maleCharacters)
   BIND(?cisFemaleCharacters_ + ?transFemaleCharacters_ AS ?femaleCharacters)
   BIND(?cisMaleCharacters_ + ?cisFemaleCharacters_ AS ?cisCharacters)
   BIND(?transMaleCharacters_ + ?transFemaleCharacters_ + ?nonbinaryCharacters_ AS ?transCharacters)
 }
 ORDER BY ?year""";
-  <http://example.org/bigdata_select> """# gender distribution in movie characters over time
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# gender distribution in movie characters over time
 SELECT *
 WITH {
   SELECT DISTINCT ?movie ?character WHERE {
@@ -117,4 +178,5 @@ WHERE {
   BIND(?cisMaleCharacters_ + ?cisFemaleCharacters_ AS ?cisCharacters)
   BIND(?transMaleCharacters_ + ?transFemaleCharacters_ + ?nonbinaryCharacters_ AS ?transCharacters)
 }
-ORDER BY ?year""" .
+ORDER BY ?year""";
+  schema:target <https://query.wikidata.org/sparql> .

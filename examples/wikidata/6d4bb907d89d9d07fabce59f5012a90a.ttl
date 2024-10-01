@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-6d4bb907d89d9d07fabce59f5012a90a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_sum_of_all_paintings/Location/Netherlands/Missing_creator>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX schema: <http://schema.org/>
@@ -18,10 +17,25 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX p: <http://www.wikidata.org/prop/>
 SELECT DISTINCT ?item ?description ?name ?painter ?rkdid ?painterLabel 
 WHERE {
-  INCLUDE %paintings.
-  INCLUDE %painters.
+   {
+  SELECT DISTINCT ?item ?description ?name WHERE {
+  ?item wdt:P31 wd:Q3305213 .
+  ?item wdt:P195 wd:Q18600731 .
+  MINUS { ?item p:P170 [] } .
+  ?item schema:description ?description .  FILTER (LANG(?description) = \"en\")
+  BIND(REPLACE(?description, '^painting by ([^\\\\)]+)(\\\\([^\\\\)]+\\\\))?$', \"$1\") AS ?name)
+  } LIMIT 1000 # ORDER BY ?description
+}
+   {
+  SELECT ?painter ?rkdid ?painterLabel ?name WHERE {
+  ?painter wdt:P650 ?rkdid .
+  ?painter wdt:P31 wd:Q5 .
+  ?painter rdfs:label ?painterLabel . FILTER (LANG(?painterLabel) = \"en\") .
+  BIND(REPLACE(?painterLabel, '^(.)([[^\\\\s]]+) (.+)$', \"$1. $3\") AS ?name)
+    }
+}
 }""";
-  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?description ?name ?painter ?rkdid ?painterLabel 
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?description ?name ?painter ?rkdid ?painterLabel 
 WITH {
   SELECT DISTINCT ?item ?description ?name WHERE {
   ?item wdt:P31 wd:Q3305213 .
@@ -42,4 +56,5 @@ WITH {
 WHERE {
   INCLUDE %paintings.
   INCLUDE %painters.
-}""" .
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

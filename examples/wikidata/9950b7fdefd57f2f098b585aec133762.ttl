@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-9950b7fdefd57f2f098b585aec133762> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:ProteinBoxBot/SPARQL_Examples>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -47,4 +46,34 @@ SELECT DISTINCT ?compound ?compoundLabel where {
 
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?compound ?compoundLabel where {
+
+  # gene has genetic association with a respiratory disease  
+  ?gene       wdt:P31    wd:Q7187 .
+  ?gene       wdt:P2293  ?diseaseGA .
+  ?diseaseGA  wdt:P279*  wd:Q3286546 .
+
+  # gene product is localized to the membrane
+  ?gene     wdt:P688             ?protein .
+  ?protein  wdt:P681             ?cc .
+  ?cc       wdt:P279*|wdt:P361*  wd:Q14349455 .
+
+  # gene is involved in a pathway with another gene (gene2)
+  ?pathway  wdt:P31   wd:Q4915012 ;
+            wdt:P527  ?gene ;
+            wdt:P527  ?gene2 .
+  ?gene2    wdt:P31   wd:Q7187 . 
+
+  # gene2 product has a Ser/Thr protein kinase domain AND known enzyme inhibitor  
+  ?gene2     wdt:P688  ?protein2 .
+  ?protein2  wdt:P129  ?compound ;
+             wdt:P527  wd:Q24787419 ;
+             p:P129    ?s2 .
+  ?s2        ps:P129   ?cp2 .
+  ?compound  wdt:P31   wd:Q11173 .
+  FILTER EXISTS {?s2 pq:P366 wd:Q427492 .}
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

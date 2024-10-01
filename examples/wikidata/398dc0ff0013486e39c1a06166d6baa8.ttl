@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-398dc0ff0013486e39c1a06166d6baa8> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Glrx>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -47,4 +46,33 @@ SELECT ?rear ?rearLabel ?dateRear ?dateDeath WHERE {
     bd:serviceParam wikibase:language \"en\" .
   }
 } ORDER BY ?dateRear""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# retired rear admirals
+SELECT ?rear ?rearLabel ?dateRear ?dateDeath WHERE {
+  # BIND (\"1769-01-01\"^^xsd:dateTime as ?dateReport) .
+  BIND (\"1812-01-01\"^^xsd:dateTime as ?dateReport) .
+  
+  # a human
+  ?rear wdt:P31 wd:Q5 .
+
+  # in the royal Navy
+  ?rear wdt:P241 wd:Q172771 .
+
+  # with the rank of superannuated rear admiral
+  ?rear p:P410 ?stmtRear.
+  ?stmtRear ps:P410 wd:Q125940783 .
+  ?stmtRear pq:P580 ?dateRear .
+  
+  # promoted before the report date
+  FILTER (?dateRear <= ?dateReport) .
+  
+  ?rear wdt:P570 ?dateDeath .
+  
+  # still alive at report date
+  FILTER (?dateDeath >= ?dateReport) .
+
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+  }
+} ORDER BY ?dateRear""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

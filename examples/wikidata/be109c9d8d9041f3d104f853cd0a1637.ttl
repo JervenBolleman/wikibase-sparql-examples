@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-be109c9d8d9041f3d104f853cd0a1637> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Realworldobject/ShowTell>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdtn: <http://www.wikidata.org/prop/direct-normalized/>
@@ -108,4 +107,93 @@ WHERE {
 }
 GROUP BY ?fast ?heading ?wd ?wdLabel ?wdDescription ?viaflookup ?viaflookupDeref ?us_vs_them
 ORDER BY xsd:integer(STRAFTER(STR(?fast), STR(fast:)))""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Place reference query
+# Caveat: The lack of Wikidata identifiers doesn't necessarily mean Wikidata doesn't know these things exist. It just means they aren't reconciled.
+# Caveat: The lack of VIAF IDs doesn't necessarily mean Wikidata doesn't know the VIAF IDs. It might only mean the FAST ID isn't reconciled.
+# Caveat: Multiple VIAF IDs may mean there are duplicates in VIAF or that Wikidata has allowed mismatches. Blame in the latter case can be diagnosed via \"References\" and/or the \"History\" tab.
+PREFIX fast: <http://id.worldcat.org/fast/>
+PREFIX viaf: <http://viaf.org/viaf/>
+SELECT ?fast ?heading 
+#?viaflookup 
+?viaflookupDeref 
+?us_vs_them
+(GROUP_CONCAT(DISTINCT ?wdfastID;SEPARATOR=\" | \") AS ?wdFASTS) 
+(GROUP_CONCAT(DISTINCT ?viaf;SEPARATOR=\" | \") AS ?wdVIAFS) 
+(GROUP_CONCAT(DISTINCT ?lccn;SEPARATOR=\" | \" ) AS ?wdLCCNs)
+?wd ?wdLabel ?wdDescription 
+(GROUP_CONCAT(DISTINCT ?typeQ;SEPARATOR=\" | \") AS ?types) 
+WHERE {
+  VALUES (?fast ?heading ?viaflookupDeref) {
+    (fast:1204155 \"aUnited States.\" viaf:130168302)
+    (fast:1219920 \"aEngland.\" viaf:142995804)
+    (fast:1204623 \"aGreat Britain.\" viaf:127756949)
+    (fast:1204289 \"aFrance.\" viaf:170385099)
+    (fast:1204333 \"aNew York (State) zNew York.\" viaf:266415900)
+    (fast:1204271 \"aEngland zLondon.\" viaf:261467287)
+    (fast:1204928 \"aCalifornia.\" viaf:147680367)
+    (fast:1245064 \"aEurope. \" viaf:124144648501726049254)
+    (fast:1210272 \"aGermany.\" viaf:189116956)
+    (fast:1204565 \"aItaly.\" viaf:152361066)
+    (fast:1205283 \"aFrance zParis.\" viaf:158822968)
+    (fast:1244550 \"aSouthern States. \" viaf:315526862)
+    (fast:1204310 \"aCanada.\" viaf:136600716)
+    (fast:1210280 \"aNew York (State)\" viaf:146785329)
+    (fast:1204885 \"aRome (Empire) \" viaf:145348938)
+    (fast:1243255 \"aWest United States.\" viaf:129296938)
+    (fast:1204540 \"aCalifornia zLos Angeles.\" viaf:124053622)
+    (fast:1204304 \"aNorth Carolina.\" viaf:127824921)
+    (fast:1204303 \"aSpain.\" viaf:133609710)
+    (fast:1241913 \"aNew England.\" viaf:236811278)
+    (fast:1206715 \"aScotland.\" viaf:134799371)
+    (fast:1204505 \"aWashington (D.C.)\" viaf:312739635)
+    (fast:1204270 \"aMaine.\" viaf:151253777)
+    (fast:1208379 \"aNew Jersey.\" viaf:157102040)
+    (fast:1239509 \"aAfrica.\" viaf:127043766)
+    (fast:1205427 \"aIreland.\" viaf:158208597)
+    (fast:1210281 \"aSoviet Union.\" viaf:124251745)
+    (fast:1207312 \"aRussia.\" viaf:247149066396265601002)
+    (fast:1204481 \"aCalifornia zSan Francisco.\" viaf:143700861)
+    (fast:1205012 \"aMassachusetts zBoston.\" viaf:133676669)
+    (fast:1205076 \"aOhio zColumbus\" viaf:247586192)
+    (fast:1240359 \"aMoon zTranquility Base\" viaf:315125366)
+    (fast:1333516 \"aAlaska zMount Denali\" viaf:241195889)
+    (fast:1020337 \"aMiddle Earth (Imaginary place)\" viaf:NA)
+    (fast:1243528 \"aPacific Ocean\" viaf:304910555)
+    (fast:1896842 \"aTurkey zTroy (Extinct city)\" viaf:150894506)
+  }
+  
+  OPTIONAL {
+    ?wd wdtn:P2163 ?fast .
+    OPTIONAL {?wd wdt:P214 ?viaf}
+    OPTIONAL {?wd wdt:P2163 ?wdfastID}
+    OPTIONAL {?wd wdt:P244 ?lccn}
+    OPTIONAL {
+      ?wd p:P31 [ ps:P31 ?type ]. 
+      ?type rdfs:label ?typeLabel .
+      FILTER(LANG(?typeLabel)=\"en\")
+      BIND(CONCAT(?typeLabel, \" (\", STRAFTER(STR(?type), STR(wd:)), \")\") AS ?typeQ)
+    }
+  }
+  OPTIONAL {
+    ?wd wdtn:P214 ?viaflookupDeref .
+    OPTIONAL {?wd wdt:P2163 ?wdfastID}
+    OPTIONAL {?wd wdt:P214 ?viaf}
+    OPTIONAL {?wd wdt:P244 ?lccn}
+    OPTIONAL {
+      ?wd p:P31 [ ps:P31 ?type ]. 
+      ?type rdfs:label ?typeLabel .
+      FILTER(LANG(?typeLabel)=\"en\")
+      BIND(CONCAT(?typeLabel, \" (\", STRAFTER(STR(?type), STR(wd:)), \")\") AS ?typeQ)
+    }
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  
+  BIND(STRAFTER(STR(?fast), STR(fast:)) AS ?fastID)
+  BIND(CONCAT(\"00000000\", ?fastID) AS ?fast000ID)
+  BIND(SUBSTR(?fast000ID, STRLEN(?fast000ID)-7) AS ?fstID)
+  BIND (URI(CONCAT(\"http://viaf.org/viaf/sourceID/FAST|fst\", ?fstID)) AS ?viaflookup)
+}
+GROUP BY ?fast ?heading ?wd ?wdLabel ?wdDescription ?viaflookup ?viaflookupDeref ?us_vs_them
+ORDER BY xsd:integer(STRAFTER(STR(?fast), STR(fast:)))""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

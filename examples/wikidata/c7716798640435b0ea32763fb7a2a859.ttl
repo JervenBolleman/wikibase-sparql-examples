@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c7716798640435b0ea32763fb7a2a859> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
@@ -27,4 +26,17 @@ WHERE
     BIND( (?diff / ?dist) AS ?slope ) . 
     SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\" } .
 } ORDER BY DESC(?slope)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?stationA ?stationALabel ?stationB ?stationBLabel ?slope ?altA ?altB ?coordA ?coordB ?diff ?dist
+WHERE
+{
+    ?stationA wdt:P197 ?stationB .
+    FILTER( STR( ?stationA ) < STR( ?stationB ) ) .
+    ?stationA wdt:P2044 ?altA ; wdt:P625 ?coordA .
+    ?stationB wdt:P2044 ?altB ; wdt:P625 ?coordB .
+    BIND( geof:distance( ?coordA , ?coordB) AS ?dist ) .
+    BIND( ABS(?altA - ?altB) AS ?diff ) .
+    BIND( (?diff / ?dist) AS ?slope ) . 
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\" } .
+} ORDER BY DESC(?slope)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

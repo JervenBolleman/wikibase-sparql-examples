@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-374d19b470995f03ae612f3b95cc4f4b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -34,4 +33,20 @@ WHERE {
   FILTER (?died <= \"1854-12-31T00:00:00Z\"^^xsd:dateTime) .
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# what on earth happened to MPs who died in office? Here, 1854...
+SELECT ?mp ?mpLabel ?died ?mannerLabel ?causeLabel ?casualtyLabel ?placeLabel
+WHERE {
+    ?membership wdt:P279 wd:Q16707842 . # all UK MPs
+    ?mp p:P39 ?positionStatement .  ?positionStatement ps:P39 ?membership . 
+    ?positionStatement pq:P1534 wd:Q5247364 .  # ie only those coded as end cause: death in office
+    ?mp wdt:P570 ?died .
+    optional { ?mp wdt:P509 ?cause . }
+    optional { ?mp wdt:P1196 ?manner . }
+    optional { ?mp wdt:P1347 ?casualty . } # military deaths are coded strangely
+    optional { ?mp wdt:P20 ?place . }
+  FILTER (?died >= \"1854-01-01T00:00:00Z\"^^xsd:dateTime) . 
+  FILTER (?died <= \"1854-12-31T00:00:00Z\"^^xsd:dateTime) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

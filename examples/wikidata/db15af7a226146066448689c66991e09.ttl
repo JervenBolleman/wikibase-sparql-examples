@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-db15af7a226146066448689c66991e09> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/10>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
@@ -40,5 +39,31 @@ WHERE {
   ?item wikibase:identifiers \"0\"^^xsd:integer.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"nb,nn,no,en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#mwapi>,
-    <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title:New entities by user without identifiers.
+SELECT ?item ?itemLabel ?itemDescription ?timestamp ?size
+WHERE {
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+                    wikibase:limitContinuations \"199\";
+
+                    wikibase:api \"Generator\";
+                    mwapi:generator \"allpages\";
+                    mwapi:gaplimit \"1\";
+
+                    mwapi:list \"usercontribs\";
+                    mwapi:ucuser \"Pmt\";
+                    mwapi:ucshow \"new\";
+                    mwapi:ucnamespace \"0\";
+                    mwapi:uclimit \"1\";
+                    mwapi:ucprop \"ids|title|timestamp|size\" .
+    ?item wikibase:apiOutputItem \"//api/query/usercontribs/item/@title\" .
+    ?timestamp wikibase:apiOutput \"//api/query/usercontribs/item/@timestamp\" .
+    ?size wikibase:apiOutput \"//api/query/usercontribs/item/@size\" .
+  }
+  FILTER BOUND(?item)
+  ?item wikibase:identifiers \"0\"^^xsd:integer.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"nb,nn,no,en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>,
+    <http://wikiba.se/ontology#mwapi>;
+  schema:target <https://query.wikidata.org/sparql> .

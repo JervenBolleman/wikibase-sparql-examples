@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-49d654b3fce160c2d3604266857cc5d5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -44,4 +43,31 @@ PREFIX p: <http://www.wikidata.org/prop/>
 :  }
 :  ?article schema:about ?item;
 :      schema:isPartOf <https://en.wikipedia.org/>.
-:}""" .
+:}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """:SELECT ?item ?itemLabel ?description ?image ?legend ?imageDate ?birthdate ?deathdate ?nationality ?sex ?occupation ?article WITH { 
+:  SELECT ?item ?itemLabel ?birthdate WHERE {
+:  ?item wdt:P31 wd:Q5;
+:    rdfs:label ?itemLabel;
+:    wdt:P569 ?birthdate.
+:  hint:Prior hint:rangeSafe \"true\"^^xsd:boolean.
+:  FILTER((\"1991-00-00\"^^xsd:dateTime <= ?birthdate) && (?birthdate < \"1992-00-00\"^^xsd:dateTime))
+:  FILTER((LANG(?itemLabel)) = \"en\")
+:} } as %i
+:WHERE {
+:  INCLUDE %i
+:   OPTIONAL { ?item schema:description ?description.   FILTER((LANG(?description)) = \"en\") }
+:  OPTIONAL { ?item wdt:P734 ?lastname. }
+:  OPTIONAL { ?item wdt:P570 ?deathdate. }
+:  OPTIONAL { ?item wdt:P27 ?nationality. }
+:  OPTIONAL { ?item wdt:P21 ?sex. }
+:  OPTIONAL { ?item wdt:P106 ?occupation. }
+:  OPTIONAL {
+:    ?item p:P18 ?stat.
+:    ?stat ps:P18 ?image.
+:    OPTIONAL { ?stat pq:P2096 ?legend. FILTER (langmatches(lang(?legend), \"en\")) }
+:    OPTIONAL { ?stat pq:P585 ?imageDate. }
+:  }
+:  ?article schema:about ?item;
+:      schema:isPartOf <https://en.wikipedia.org/>.
+:}""";
+  schema:target <https://query.wikidata.org/sparql> .

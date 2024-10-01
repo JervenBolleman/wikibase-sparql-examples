@@ -1,17 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-f6053fae3caa8b77c748e188e3d23535> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Libraries/Japan>,
-    <https://www.wikidata.org//wiki/User:Mnamihdk>;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Mnamihdk>, <https://www.wikidata.org//wiki/Wikidata:WikiProject_Libraries/Japan>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -55,4 +53,45 @@ WHERE {
   }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE], ja, en\" . }
 }
-ORDER BY DESC(?count)""" .
+ORDER BY DESC(?count)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?aggType ?subclassLabel ?count (?subclass AS ?subclassEntity) 
+WHERE {
+  {
+    #　subclassのエンティティとsubclassごとの合計件数
+    SELECT ?subclass (COUNT(DISTINCT ?library) AS ?count)
+    WHERE {
+      ?library wdt:P31 ?subclass.
+      ?subclass wdt:P279* wd:Q7075.
+      ?library wdt:P17 wd:Q17.
+    }
+    GROUP BY ?subclass
+  }
+  UNION
+  {
+    #　subclassごとの合計のさらに合計（延べ件数＝複数のsubclassに分類されている場合はそれぞれを1件と数える＝件数に重複あり）
+    SELECT (\"延べ件数\" AS ?aggType) (SUM(?count) AS ?count)
+    WHERE {
+      {
+        SELECT (COUNT(DISTINCT ?library) AS ?count)  #　subclassごとの合計
+        WHERE {
+          ?library wdt:P31 ?subclass.
+          ?subclass wdt:P279* wd:Q7075.
+          ?library wdt:P17 wd:Q17.
+        }
+        GROUP BY ?subclass
+      }
+    }
+  }
+  UNION
+  {
+    #　項目のユニーク件数（複数のsubclassに分類されている場合でもIDが同じなら合わせて1件＝件数に重複なし）
+    SELECT (\"ユニーク件数\" AS ?aggType) (COUNT(DISTINCT ?library) AS ?count)
+    WHERE {
+      ?library wdt:P31/wdt:P279* wd:Q7075.
+      ?library wdt:P17 wd:Q17.
+    }
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE], ja, en\" . }
+}
+ORDER BY DESC(?count)""";
+  schema:target <https://query.wikidata.org/sparql> .

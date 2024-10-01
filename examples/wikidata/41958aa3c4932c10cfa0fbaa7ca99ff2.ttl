@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-41958aa3c4932c10cfa0fbaa7ca99ff2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Renamerr/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 PREFIX schema: <http://schema.org/>
@@ -28,4 +27,18 @@ SELECT ?p ?pLabel ?d ?d2 ?aliases WHERE {
   }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"uk,ru\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# поряд описи на двох мовах
+# використано  wikibase:propertyType  skos:altLabel  schema:description
+SELECT ?p ?pLabel ?d ?d2 ?aliases WHERE {
+  {
+    SELECT ?p ?pt ?d ?d2 (GROUP_CONCAT(DISTINCT ?alias; separator=\"|\") as ?aliases) WHERE {
+      ?p wikibase:propertyType ?pt .
+      OPTIONAL {?p skos:altLabel ?alias FILTER (LANG (?alias) = \"uk\")}
+      OPTIONAL {?p schema:description ?d FILTER (LANG (?d) = \"uk\") .}
+      OPTIONAL {?p schema:description ?d2 FILTER (LANG (?d2) = \"ru\") .}
+    } GROUP BY ?p ?pt ?d ?d2
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"uk,ru\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

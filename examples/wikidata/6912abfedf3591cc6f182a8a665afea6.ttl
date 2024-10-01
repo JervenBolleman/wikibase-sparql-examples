@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-6912abfedf3591cc6f182a8a665afea6> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_COVID-19/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -48,4 +47,37 @@ WHERE
   	}
 }
 GROUP BY ?item""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item (SAMPLE(?itemLabel) AS ?itemLabel) (SAMPLE(?trialLabels) AS ?trialLabels) (SAMPLE(?typeLabel) AS ?typeLabel)
+WHERE 
+{
+  { ?item wdt:P31 wd:Q87719492 } UNION {
+    VALUES ?v { wd:Q84263196 wd:Q82069695 }
+    VALUES ?vv { wd:Q134808 wd:Q28051899 }
+    ?item wdt:P31 ?vv.
+    ?item wdt:P1924 ?v.
+  }
+  OPTIONAL
+  {
+    VALUES ?type { wd:Q3560939 wd:Q96695067 wd:Q96841548 wd:Q578537 wd:Q97153934 wd:Q97153933 wd:Q58623657 wd:Q99518999 }
+    ?item wdt:P31 ?type
+  }
+  OPTIONAL { ?item wdt:P1343 ?type }
+  { 	
+    SELECT ?item (GROUP_CONCAT(DISTINCT(?trialLabel); separator=\", \") AS ?trialLabels) 
+  	WHERE
+  	{ 
+  	  ?item wdt:P1343 ?src.
+      ?src wdt:P6099 ?trial.
+      ?trial rdfs:label ?trialLabel. FILTER( LANG(?trialLabel)=\"en\" )
+	}
+    GROUP BY ?item
+  }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" . 
+    ?item rdfs:label ?itemLabel .
+    ?type rdfs:label ?typeLabel .
+  	}
+}
+GROUP BY ?item""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

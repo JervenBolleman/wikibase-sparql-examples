@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-9a32bba612fb7cc7700541dc19096dec> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:AllyD/sandbox>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -51,4 +50,40 @@ SELECT DISTINCT ?accper ?accperLabel ?accused  ?dateDied ?loc ?locator ?locatorL
 } LIMIT 6000
         }
 
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
+SELECT DISTINCT (CONCAT(STR(YEAR(?rulest)),\" \", ?deadBandLab) AS ?layer) ?loc  ?accper ?accperLabel ?dateDied ?placeDied ?causeDied ?locatorLabel ?accusedURI WHERE {
+
+  
+  ## Inner query for basic case/person data
+  {
+SELECT DISTINCT ?accper ?accperLabel ?accused  ?dateDied ?loc ?locator ?locatorLabel ?deadBand ?deadBandLab ?rulest ?rgb ?accusedURI WHERE 
+                        {
+  { ?accper wdt:P4478 ?accused.}
+  ?accper rdfs:label ?accperLabel. FILTER((LANG(?accperLabel)) = \"en\").
+  BIND(URI (CONCAT (\"https://witches.shca.ed.ac.uk/index.cfm?fuseaction=home.accusedrecord&accusedref=\", ?accused, \"&search_string=lastname\") )  AS ?accusedURI).
+  ##temp filter down to only Youngs
+  ##  FILTER (CONTAINS(?accperLabel, \"Young\")).
+  ##
+  #OPTIONAL { ?accper wdt:P509 ?causeDiedQ. ?causeDiedQ rdfs:label ?causeDied. FILTER((LANG(?causeDied)) = \"en\"). }  
+  ### Date ###
+  OPTIONAL {?accper wdt:P570 ?dateDied }.
+  OPTIONAL {?accper p:P793 / pq:P585 ?accdate. BIND (?accdate AS ?dateDied).}.
+  OPTIONAL {?accper p:P793 / pq:P580 ?accdate2. BIND (?accdate2 AS ?dateDied).}.
+  #FILTER (BOUND(?dateDied1)). ##Optional filter for known death (though some died during so process never concluded)
+  ### Location ###
+  OPTIONAL {?accper wdt:P20 ?placeDiedQ. } 
+  OPTIONAL {?accper wdt:P551 ?res}.
+  BIND(COALESCE(?res, ?placeDiedQ, wd:Q22) AS ?locator).
+  OPTIONAL {?locator wdt:P625 ?loc. ?locator rdfs:label ?locatorLabel. FILTER((LANG(?locatorLabel)) = \"en\").}
+  ##Time period
+  ?ruler wdt:P17 wd:Q230791.
+  ?ruler p:P35 ?ruleper. ?ruleper ps:P35 ?deadBand. ?ruleper pq:P580 ?rulest. ?ruleper pq:P582 ?rulestop. FILTER (?dateDied > ?rulest && ?dateDied < ?rulestop ).
+  ?deadBand rdfs:label ?deadBandLab. FILTER((LANG(?deadBandLab)) = \"en\").
+  ## Add colour when generating Graph only
+  ## BIND(\"3CB0FD\" AS ?rgb).
+} LIMIT 6000
+        }
+
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

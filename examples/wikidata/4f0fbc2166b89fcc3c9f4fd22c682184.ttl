@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-4f0fbc2166b89fcc3c9f4fd22c682184> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/07>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -57,4 +56,46 @@ WHERE
 }
 GROUP BY ?l ?sense ?hitza ?ahotsak ?elhuyar ?audio
 ORDER BY ?random
-LIMIT 10""" .
+LIMIT 10""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT (uri(replace(str(?l), \"L\", \"Q\")) as ?item) (MD5(CONCAT(str(?item),str(RAND()))) as ?random) ?l ?hitza ?sense ?ahotsak ?elhuyar ?audio (SAMPLE(?picture_) AS ?picture) 
+WHERE
+{
+  ?l a ontolex:LexicalEntry ; dct:language ?language ;
+        wikibase:lemma ?hitza ;
+        ontolex:sense ?esanahia.
+  ?esanahia skos:definition ?sense;
+
+        wdt:P5137 ?q_concept.
+  ?q_concept wdt:P18 ?picture_.
+  ?language wdt:P218 'eu'.
+  FILTER (LANG(?sense) = 'eu')
+  ?l wdt:P7559 ?ahotsak.
+  ?l wdt:P6838 ?elhuyar.
+  ?l wdt:P443 ?audio.
+    # Exclude out of scope concepts
+  MINUS {?q_concept wdt:P31 wd:Q3624078.}. # countries
+ 
+  # Exclude non suitable concepts
+  VALUES ?minus {
+  wd:Q47092 # rape
+  wd:Q198   # war
+  wd:Q124490 # violence
+  wd:Q170382 # revolver
+  wd:Q1576   #cigar
+  #... add yours here
+  }.
+  MINUS {?sense wdt:P5137 ?minus.}.
+  
+  # Exclude senses not suitable for young children:
+  VALUES ?filter {
+  wd:Q8102
+  wd:Q545779
+  wd:Q1521634
+  wd:Q571571
+  wd:Q184439}.
+  FILTER NOT EXISTS {?sense wdt:P6191 ?filter.}.
+}
+GROUP BY ?l ?sense ?hitza ?ahotsak ?elhuyar ?audio
+ORDER BY ?random
+LIMIT 10""";
+  schema:target <https://query.wikidata.org/sparql> .

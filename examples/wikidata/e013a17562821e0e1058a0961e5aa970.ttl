@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-e013a17562821e0e1058a0961e5aa970> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/06>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -38,4 +37,25 @@ SELECT ?person ?personLabel (MAX(?end_or_now) as ?last_date)  (MAX(?age_end_or_n
 }
 GROUP BY ?person ?personLabel ?dob ?dod ?age ?when
 ORDER BY DESC(?age_at_date)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#Former US presidents/vice-presidents, current age or age at death; years alive after last time an office held
+#includes incumbents with current date
+#by Jura1, 2020-06-20
+
+SELECT ?person ?personLabel (MAX(?end_or_now) as ?last_date)  (MAX(?age_end_or_now) as ?age_at_date)  ?dob ?dod ?when ?age   (?when - YEAR(?last_date)  as ?yearsalivesince)
+{
+  VALUES ?office {  wd:Q11699 wd:Q11696 }
+  ?st ps:P39 ?office .
+  ?person wdt:P31 wd:Q5; p:P39 ?st . 
+  OPTIONAL { ?st pq:P582 ?e } 
+  BIND( COALESCE(?e, NOW() ) as ?end_or_now) 
+  ?person wdt:P569 ?dob .
+  OPTIONAL { ?person wdt:P570 ?dod } .
+  BIND( COALESCE( YEAR( ?dod) , YEAR(NOW()) ) as ?when )  
+  BIND( ?when - YEAR(?dob) as ?age) 
+  BIND(YEAR(?end_or_now)-YEAR(?dob) as ?age_end_or_now)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?person ?personLabel ?dob ?dod ?age ?when
+ORDER BY DESC(?age_at_date)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

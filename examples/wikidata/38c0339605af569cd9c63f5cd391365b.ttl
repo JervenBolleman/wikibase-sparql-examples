@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-38c0339605af569cd9c63f5cd391365b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/02>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -101,5 +100,92 @@ SELECT DISTINCT ?down ?downLabel ?up ?upLabel (\"#ff0000\" AS ?rgb) WHERE {
   }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,sv,jp,zh,ru,fr,de\". }
 }""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+
+#defaultView:Graph
+# parts of a gene and their subclasses
+SELECT DISTINCT ?down ?downLabel ?up ?upLabel (\"#ff0000\" AS ?rgb) WHERE {
+  {
+    {
+      SELECT ?down ?up WHERE { # subclass of untranslated region
+        SERVICE gas:service {
+          gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\".
+          gas:program gas:in wd:Q424345.
+          gas:program gas:traversalDirection \"Reverse\".
+          gas:program gas:out ?down.
+          gas:program gas:out1 ?depth.
+          gas:program gas:out2 ?up.
+          gas:program gas:linkType wdt:P279.
+        }
+      }
+    }
+  }
+  UNION
+  {
+    {
+      SELECT ?down ?up WHERE { # subclass of regulatory sequence
+        SERVICE gas:service {
+          gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\".
+          gas:program gas:in wd:Q3238407.
+          gas:program gas:traversalDirection \"Reverse\".
+          gas:program gas:out ?down.
+          gas:program gas:out1 ?depth.
+          gas:program gas:out2 ?up.
+          gas:program gas:linkType wdt:P279.
+        }
+      }
+    }
+  }
+  UNION
+  {
+    {
+      SELECT ?down ?up WHERE { # part of coding region
+        SERVICE gas:service {
+          gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\".
+          gas:program gas:in wd:Q3780824.
+          gas:program gas:traversalDirection \"Reverse\".
+          gas:program gas:out ?down.
+          gas:program gas:out1 ?depth.
+          gas:program gas:out2 ?up.
+          gas:program gas:linkType wdt:P361.
+        }
+      }
+    }
+  }
+  UNION
+  {
+    {
+      SELECT ?down ?up WHERE { # instance of regulatory sequence
+        SERVICE gas:service {
+          gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\".
+          gas:program gas:in wd:Q424345.
+          gas:program gas:traversalDirection \"Reverse\".
+          gas:program gas:out ?down.
+          gas:program gas:out1 ?depth.
+          gas:program gas:out2 ?up.
+          gas:program gas:linkType wdt:P31.
+        }
+      }
+    }
+  }
+   UNION
+  {
+    {
+      SELECT ?down ?up WHERE { # part of gene
+        SERVICE gas:service {
+          gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\".
+          gas:program gas:in wd:Q7187. # gene
+          gas:program gas:traversalDirection \"Reverse\".
+          gas:program gas:out ?down.
+          gas:program gas:out1 ?depth.
+          gas:program gas:out2 ?up.
+          gas:program gas:linkType wdt:P361.
+        }
+      }
+    }
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,sv,jp,zh,ru,fr,de\". }
+}""";
   <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>,
-    <http://www.bigdata.com/rdf/gas#service> .
+    <http://www.bigdata.com/rdf/gas#service>;
+  schema:target <https://query.wikidata.org/sparql> .

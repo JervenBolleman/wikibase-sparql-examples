@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-0f9704d728f204c8bf032ba77e4e9cd0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/most_recently_dissolved_enterprises_that_were_over_200_years_old>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -26,4 +25,15 @@ SELECT DISTINCT ?company ?companyLabel ?founded ?dissolved (xsd:integer((?dissol
 }
 ORDER BY DESC(?dissolved)
 LIMIT 25""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?company ?companyLabel ?founded ?dissolved (xsd:integer((?dissolved - ?founded)/365.2425) AS ?years) WHERE {
+  ?company wdt:P1454/wdt:P279* wd:Q6881511; # the instance/subclass tree for companies seems to be a bit messy, so go via “legal form” instead
+           wdt:P571 ?founded;
+           wdt:P576 ?dissolved.
+  FILTER(?founded < (NOW() - \"P200Y\"^^xsd:duration))
+  FILTER(?dissolved > (?founded + \"P200Y\"^^xsd:duration))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de\". } # final fallback to German because as of 2019-09-26, many results were German(-language) companies
+}
+ORDER BY DESC(?dissolved)
+LIMIT 25""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

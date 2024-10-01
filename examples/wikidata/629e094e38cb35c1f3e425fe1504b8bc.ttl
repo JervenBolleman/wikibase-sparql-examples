@@ -1,17 +1,16 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-629e094e38cb35c1f3e425fe1504b8bc> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Climate_Change/Models>,
     <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_Climate_Change>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -30,4 +29,15 @@ SELECT ?item ?itemLabel ?scopeLabel ?emission_amount ?unitLabel ?typeLabel WHERE
   OPTIONAL {?p pq:P518 ?type} # Get the type of scope (for Scope 3 emissions)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"sv,en\". }
 } ORDER BY ?itemLabel ?scopeLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title: Organizations GHG emissions using scopes (as defined by the GHG protocol) 
+SELECT ?item ?itemLabel ?scopeLabel ?emission_amount ?unitLabel ?typeLabel WHERE {
+  ?scope wdt:P279* wd:Q120897419 . # Finds all scope items
+  ?item p:P5991 ?p . # Finds all items with carbon footprint statements
+  ?p pq:P3831 ?scope ; # ..but only use those qualified with one of the scopes
+     ps:P5991 ?emission_amount ; # Get the emission amount
+     psv:P5991 / wikibase:quantityUnit ?unit . # Get the emission unit
+  OPTIONAL {?p pq:P518 ?type} # Get the type of scope (for Scope 3 emissions)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"sv,en\". }
+} ORDER BY ?itemLabel ?scopeLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

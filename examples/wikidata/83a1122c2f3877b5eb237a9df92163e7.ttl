@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-83a1122c2f3877b5eb237a9df92163e7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:GLAM/Metropolitan_Museum_of_Art/Tools/SDC>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -39,4 +38,25 @@ WHERE {
 #      ?thing rdfs:label ?thingLabel.
 #    }
 #  }
-} LIMIT 100""" .
+} LIMIT 100""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Met images and official depiction info from Met API
+SELECT ?file ?filename ?thing ?thingLabel # ?url
+WHERE {
+  ?file wdt:P3634 ?metid .
+  MINUS {  # FILTER NOT EXISTS does not work as well
+  ?file p:P180 [
+          ps:P180 ?thing  ; 
+          pq:P459 wd:Q106429444 
+        ] . 
+  }
+  ?file schema:url ?image .
+  ?file schema:contentUrl ?url .
+  BIND (wikibase:decodeUri(CONCAT(\"File:\", substr(str(?url),53))) AS ?filename)
+#  service <https://query.wikidata.org/sparql> {
+#    service wikibase:label {
+#      bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+#      ?thing rdfs:label ?thingLabel.
+#    }
+#  }
+} LIMIT 100""";
+  schema:target <https://query.wikidata.org/sparql> .

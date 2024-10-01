@@ -1,17 +1,16 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-2ecb52da8b6225c2daed113eaddfb41b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/03>,
-    <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/10>;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/10>,
+    <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
@@ -20,12 +19,21 @@ PREFIX dct: <http://purl.org/dc/terms/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 SELECT ?lexeme (GROUP_CONCAT(?lemma; separator = \"/\") AS ?lemmata) ?sampleSense (SAMPLE(?gloss) AS ?anyGloss)
 WHERE {
-  INCLUDE %lexemesWithOneSense.
+   {
+  SELECT ?lexeme (SAMPLE(?sense) AS ?sampleSense) WHERE {
+    SERVICE bd:sample {
+      ?lexeme dct:language wd:Q8752.
+      bd:serviceParam bd:sample.limit 20 .
+    }
+    OPTIONAL { ?lexeme ontolex:sense ?sense. }
+  }
+  GROUP BY ?lexeme
+}
   ?lexeme wikibase:lemma ?lemma.
   OPTIONAL { ?sampleSense skos:definition ?gloss. }
 }
 GROUP BY ?lexeme ?sampleSense""";
-  <http://example.org/bigdata_select> """SELECT ?lexeme (GROUP_CONCAT(?lemma; separator = \"/\") AS ?lemmata) ?sampleSense (SAMPLE(?gloss) AS ?anyGloss)
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?lexeme (GROUP_CONCAT(?lemma; separator = \"/\") AS ?lemmata) ?sampleSense (SAMPLE(?gloss) AS ?anyGloss)
 WITH {
   SELECT ?lexeme (SAMPLE(?sense) AS ?sampleSense) WHERE {
     SERVICE bd:sample {
@@ -41,4 +49,6 @@ WHERE {
   ?lexeme wikibase:lemma ?lemma.
   OPTIONAL { ?sampleSense skos:definition ?gloss. }
 }
-GROUP BY ?lexeme ?sampleSense""" .
+GROUP BY ?lexeme ?sampleSense""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://www.bigdata.com/rdf#sample>;
+  schema:target <https://query.wikidata.org/sparql> .

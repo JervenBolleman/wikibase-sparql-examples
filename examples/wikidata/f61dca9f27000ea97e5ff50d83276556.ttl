@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-f61dca9f27000ea97e5ff50d83276556> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/06>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -35,4 +34,23 @@ where {
 	}
   	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item1 ?item1Label ?labelnew1 ?item2 ?item2Label
+where {
+	      {	SELECT DISTINCT ?item1 ?item2 ?labelnew1 
+	        where {
+	         ?item1 wdt:P31 wd:Q44559 .
+                  ##minus { ?item1 p:P397 [] }.
+			      ?item2 wdt:P31 wd:Q523 .   
+                  ?item1 rdfs:label ?label1.
+                  ?item2 rdfs:label ?label2.
+                  FILTER(LANG(?label1) = \"en\").
+                  FILTER(LANG(?label2) = \"en\").
+                  bind(substr(?label1, 1, strlen(?label1)-1) as ?labelnew1).
+                  FILTER(?labelnew1 = ?label2).
+                 }
+		LIMIT 10
+	}
+  	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

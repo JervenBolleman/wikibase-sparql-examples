@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-6351cb8ac2e1681e0366cf26589b189a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:No39188/mehrQueries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -72,4 +71,57 @@ SELECT DISTINCT ?page_title ?article ?item (GROUP_CONCAT(DISTINCT ?klasse; SEPAR
 }
 GROUP BY ?page_title ?article ?item ?fläche ?tiefe ?maxtiefe ?salinität ?loc
 ORDER BY (?page_title)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title: Binnen- und Randmeere
+SELECT DISTINCT ?page_title ?article ?item (GROUP_CONCAT(DISTINCT ?klasse; SEPARATOR = \" \") AS ?ist_ein) ?fläche ?tiefe ?maxtiefe ?salinität ?loc WHERE {
+  { ?item wdt:P31 wd:Q2578218, ?instance. }
+  UNION
+  { ?item wdt:P31 wd:Q986177, ?instance. }
+  UNION
+  { ?item wdt:P31 wd:Q204894. }
+  OPTIONAL { ?item wdt:P2046 ?fläche. }
+  OPTIONAL { ?item wdt:P4511 ?t. }
+  OPTIONAL {
+    ?item p:P4511 ?st1.
+    ?st1 ps:P4511 ?maxtiefe;
+      pq:P1013 wd:Q10578722.
+  }
+  OPTIONAL {
+    ?item p:P4511 ?st2.
+    ?st2 ps:P4511 ?avgtiefe;
+      pq:P1013 wd:Q202785.
+  }
+  OPTIONAL { ?item wdt:P4350 ?salinität. }
+  OPTIONAL { ?item wdt:P625 ?loc. }
+  OPTIONAL {
+    ?dawiki schema:about ?item;
+      schema:isPartOf <https://da.wikipedia.org/>;
+      schema:name ?da_title.
+  }
+  OPTIONAL {
+    ?enwiki schema:about ?item;
+      schema:isPartOf <https://en.wikipedia.org/>;
+      schema:name ?en_title.
+  }
+  OPTIONAL {
+    ?dewiki schema:about ?item;
+      schema:isPartOf <https://de.wikipedia.org/>;
+      schema:name ?de_title.
+  }
+  OPTIONAL {
+    ?page schema:about ?item;
+      schema:inLanguage ?lang.
+  }
+  BIND(IF(BOUND(?avgtiefe), ?avgtiefe, ?t) AS ?tiefe)
+  BIND(IF(BOUND(?dawiki), ?dawiki, IF(BOUND(?dewiki), ?dewiki, ?enwiki)) AS ?article)
+  BIND(IF(BOUND(?da_title), ?da_title, IF(BOUND(?de_title), ?de_title, IF(BOUND(?en_title), ?en_title, ?item_title))) AS ?page_title)
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?item rdfs:label ?item_title.
+    ?instance rdfs:label ?klasse.
+    ?pq_obj rdfs:label ?wert.
+  }
+}
+GROUP BY ?page_title ?article ?item ?fläche ?tiefe ?maxtiefe ?salinität ?loc
+ORDER BY (?page_title)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

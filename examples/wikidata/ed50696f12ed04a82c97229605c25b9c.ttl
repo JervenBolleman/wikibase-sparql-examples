@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-ed50696f12ed04a82c97229605c25b9c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jobu0101/API>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -30,4 +29,19 @@ SELECT ?item ?itemLabel ?instance ?instanceLabel (MIN(?imdbAll) AS ?imdb) (MIN(?
 } 
 GROUP BY ?item ?itemLabel ?instanceLabel ?instance
 ORDER BY ?instance ?itemLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX v: <http://www.wikidata.org/prop/statement/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+
+SELECT ?item ?itemLabel ?instance ?instanceLabel (MIN(?imdbAll) AS ?imdb) (MIN(?mojoAll) AS ?mojo) (MIN(?release) AS ?firstRelease) WHERE {
+  VALUES ?item {wd:Q9321426 wd:Q17150575 wd:Q18703062 wd:Q18192306 wd:Q20646602 wd:Q19881558 wd:Q19938437 wd:Q18639756 wd:Q18149041 wd:Q3604746 wd:Q19595098 wd:Q18786473 wd:Q19880878 wd:Q21979652 wd:Q20120108 wd:Q12127045 wd:Q17572811 wd:Q18486021 wd:Q19897965 wd:Q16556668 wd:Q19363732 wd:Q21500755 wd:Q21527443}.
+  OPTIONAL{?item wdt:P31 ?instance}.
+  OPTIONAL{?item wdt:P345 ?imdbAll}.
+  OPTIONAL{?item wdt:P1237 ?mojoAll}.
+  OPTIONAL{?item p:P577 ?release_statement . ?release_statement psv:P577/wikibase:timePrecision \"11\"^^xsd:integer . ?release_statement v:P577 ?release}.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"de\"}
+} 
+GROUP BY ?item ?itemLabel ?instanceLabel ?instance
+ORDER BY ?instance ?itemLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

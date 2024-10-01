@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c1ee8df953b65d1482dd5f723c923d7c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:YanikB>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -40,4 +39,26 @@ SELECT DISTINCT ?id ?title ?idLabel ?len ?oriLabel ?geo ?loc1 ?geo2 ?loc2 WHERE 
   }
 }
 ORDER BY ?idLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Affluents du Missouri .
+SELECT DISTINCT ?id ?title ?idLabel ?len ?oriLabel ?geo ?loc1 ?geo2 ?loc2 WHERE {  
+  {?id wdt:P403 wd:Q5419} 
+  ?id wdt:P625 ?geo .
+  OPTIONAL {?id wdt:P3871 ?ori}
+  {?id p:P625 [ ps:P625 ?geo; pq:P518 ?appl ] }
+  OPTIONAL {?id p:P625 [ ps:P625 ?geo; pq:P131 ?loc1 ] }
+  FILTER (?appl != wd:Q7376362).  
+  {?id p:P625 [ ps:P625 ?geo2; pq:P518 ?cren ] }
+  OPTIONAL {?id p:P625 [ ps:P625 ?geo2; pq:P131 ?loc2 ] }
+  FILTER (?cren = wd:Q7376362).
+  OPTIONAL {?id wdt:P2043 ?len }
+  OPTIONAL {?id wdt:P4614 ?bass }
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"fr,en\" . }
+  OPTIONAL {
+            ?link schema:about ?id .
+            ?link schema:isPartOf <https://en.wikipedia.org/> .
+            ?link schema:name ?title.
+  }
+}
+ORDER BY ?idLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-a3de22bf07078902dc3a782e552252c6> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/06>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -43,4 +42,33 @@ SELECT DISTINCT ?geo ?xLabel (SAMPLE(?x) AS ?x) (SAMPLE(?population) AS ?populat
 }
 GROUP BY ?geo ?xLabel
 ORDER BY ?population""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map{\"hide\":[\"?geo\", \"?layer\"]}
+SELECT DISTINCT ?geo ?xLabel (SAMPLE(?x) AS ?x) (SAMPLE(?population) AS ?population) (SAMPLE(?layer) AS ?layer) WHERE {
+  ?x wdt:P31/wdt:P279* wd:Q6256 ;
+  #   wdt:P30 wd:Q46 ;
+     wdt:P3896 ?geo ;
+     wdt:P1082 ?population.
+  BIND(
+    IF(?population < 100000, \"<100,000\",
+    IF(?population < 500000, \"100,000-500,000\",
+    IF(?population < 1000000, \"500,000-1M\",
+    IF(?population < 2000000, \"1M-2M\",
+    IF(?population < 5000000, \"2M-5M\",
+    IF(?population < 10000000, \"5M-10M\",
+    IF(?population < 20000000, \"10M-20M\",
+    IF(?population < 40000000, \"20M-40M\",
+    IF(?population < 60000000, \"40M-60M\",   
+    IF(?population < 80000000, \"60M-80M\",
+    IF(?population < 100000000, \"80M-100M\",
+    IF(?population < 200000000, \"100M-200M\",
+    IF(?population < 500000000, \"200M-500M\",
+    IF(?population < 1000000000, \"500M-1B\",
+    IF(?population > 1000000000, \"1B+\",   
+    \"\")))))))))))))))
+    AS ?layer).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?geo ?xLabel
+ORDER BY ?population""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

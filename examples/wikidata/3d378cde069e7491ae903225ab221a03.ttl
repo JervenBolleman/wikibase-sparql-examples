@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-3d378cde069e7491ae903225ab221a03> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_COVID-19/Archive>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -40,4 +39,30 @@ WHERE {
 
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
-ORDER BY ASC(?dod)""" .
+ORDER BY ASC(?dod)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT 
+  DISTINCT ?item ?itemLabel ?dod ?cod ?codLabel
+WHERE {
+  {   
+   SELECT DISTINCT ?item  WHERE {
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:endpoint \"en.wikipedia.org\" .
+      bd:serviceParam wikibase:api \"Generator\" .
+      bd:serviceParam mwapi:generator \"search\" .
+      bd:serviceParam mwapi:gsrsearch \"\"Spanish flu\"\" .
+      bd:serviceParam mwapi:gsrlimit \"max\" .
+      ?item wikibase:apiOutputItem mwapi:item .
+    }
+  } LIMIT 100
+ }
+
+  ?item wdt:P31 wd:Q5.
+  
+  OPTIONAL {?item wdt:P570 ?dod .}
+
+  OPTIONAL {?item wdt:P509 ?cod .}
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ASC(?dod)""";
+  schema:target <https://query.wikidata.org/sparql> .

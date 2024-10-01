@@ -1,17 +1,16 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-4c4822a3237c11f6e2241a95391b700c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_SrpKor/Queries>,
-    <https://www.wikidata.org//wiki/Wikidata:WikiProject_ELTeC/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_ELTeC/Queries>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_SrpKor/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -35,4 +34,26 @@ WHERE {
   FILTER((LANG(?pubplace)) = \"sr\")
 }
 #sortiraj prema godini publikovanja
-ORDER BY (?pubyear)""" .
+ORDER BY (?pubyear)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
+SELECT DISTINCT ?novel ?name ?pubplace ?pubyear ?coord ?layer ?image
+WHERE {
+  VALUES ?collection { wd:Q106936149 wd:Q109123373  }
+  { ?novel wdt:P747 ?edition;
+           wdt:P747 ?firsted.
+    ?edition  wdt:P1433 ?collection.
+    ?firsted wdt:P31 wd:Q10898227;
+             wdt:P291 ?place. }
+    ?place wdt:P625 ?coord.
+  OPTIONAL {?firsted wdt:P577 ?dob.}
+  OPTIONAL {?firsted  wdt:P18 ?image.}
+  BIND(YEAR(?dob) AS ?pubyear)
+  BIND(IF(?pubyear < 1839 , \"-1840\", IF(?pubyear < 1860 , \"1840-1859\", IF(?pubyear < 1880 , \"1860-1879\", IF(?pubyear < 1900 , \"1880-1899\", IF(?pubyear < 1921 , \"1900-1920\", \"Post-1920\"))))) AS ?layer)
+  ?novel rdfs:label ?name.
+  FILTER((LANG(?name)) = \"sr\")
+  ?place rdfs:label ?pubplace.
+  FILTER((LANG(?pubplace)) = \"sr\")
+}
+#sortiraj prema godini publikovanja
+ORDER BY (?pubyear)""";
+  schema:target <https://query.wikidata.org/sparql> .

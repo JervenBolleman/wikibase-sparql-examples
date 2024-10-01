@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-efad58d802eca9bf60ca0aeb9c87c512> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Linus_Wolf/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 SELECT ?work    (CONCAT (?workMainTitle,    \". \", GROUP_CONCAT(DISTINCT ?workSubTitles; SEPARATOR=\". \"))    AS ?workTitle) (YEAR(?workDate) AS ?workYear)
@@ -40,4 +39,33 @@ WHERE {
 }
 GROUP BY ?volume          ?edition          ?work
          ?volumeMainTitle ?editionMainTitle ?editionDate ?workMainTitle ?volumeNr ?volumeDate ?workDate
-ORDER BY ?workYear ?volumeNr""" .
+ORDER BY ?workYear ?volumeNr""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?work    (CONCAT (?workMainTitle,    \". \", GROUP_CONCAT(DISTINCT ?workSubTitles; SEPARATOR=\". \"))    AS ?workTitle) (YEAR(?workDate) AS ?workYear)
+       ?edition (CONCAT (?editionMainTitle, \". \", GROUP_CONCAT(DISTINCT ?editionSubTitles; SEPARATOR=\". \")) AS ?editionTitle) (YEAR(?editionDate) AS ?editionYear)
+       ?volume  (CONCAT (?volumeMainTitle,  \". \", GROUP_CONCAT(DISTINCT ?volumeSubTitles; SEPARATOR=\". \"))  AS ?volumeTitle) ?volumeNr (YEAR(?volumeDate) AS ?volumeYear)
+WHERE {
+  BIND(wd:Q51880 as ?author).
+  ?work wdt:P31 wd:Q47461344; wdt:P50 ?author.
+  OPTIONAL {?work wdt:P1476 ?workMainTitle.}
+  OPTIONAL {?work wdt:P1680 ?workSubTitles.}
+  OPTIONAL {?work wdt:P571 ?workDate.}
+  OPTIONAL {?work wdt:P747 ?edition.
+            ?edition wdt:P629 ?work.
+            ?edition wdt:P31 wd:Q3331189.
+            OPTIONAL {?edition wdt:P1476 ?editionMainTitle.}
+            OPTIONAL {?edition wdt:P1680 ?editionSubTitles.}
+            OPTIONAL {?edition wdt:P577 ?editionDate.}
+            OPTIONAL {?edition wdt:P527 ?volume.
+                      ?volume wdt:P361 ?edition.
+                      ?volume wdt:P31 wd:Q1238720.
+                      OPTIONAL {?volume wdt:P1476 ?volumeMainTitle.}
+                      OPTIONAL {?volume wdt:P1680 ?volumeSubTitles.}
+                      OPTIONAL {?volume wdt:P1545 ?volumeNr.}
+                      OPTIONAL {?volume wdt:P577 ?volumeDate.}
+                     }
+           }
+}
+GROUP BY ?volume          ?edition          ?work
+         ?volumeMainTitle ?editionMainTitle ?editionDate ?workMainTitle ?volumeNr ?volumeDate ?workDate
+ORDER BY ?workYear ?volumeNr""";
+  schema:target <https://query.wikidata.org/sparql> .

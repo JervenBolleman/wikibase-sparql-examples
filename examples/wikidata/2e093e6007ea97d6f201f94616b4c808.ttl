@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-2e093e6007ea97d6f201f94616b4c808> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Gz260/Programme/2017>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -34,4 +33,21 @@ SELECT ?ville ?villeLabel ?coord ?routes_court WHERE {
   BIND(REPLACE(str(?routes), \"autoroute \", \"\") as ?routes_court) .
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\" . }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
+SELECT ?ville ?villeLabel ?coord ?routes_court WHERE {
+  {
+    SELECT DISTINCT ?ville (GROUP_CONCAT(?l_route; separator = ', ') as ?routes) WHERE {
+      ?item wdt:P16 wd:Q3456602 .
+      MINUS { VALUES ?outre_mer { wd:Q17012 wd:Q17054 wd:Q3769 wd:Q17070 wd:Q34617 wd:Q17063 wd:Q25362 wd:Q126125 } . ?item wdt:P131 ?outre_mer } . 
+      ?item p:P609/ps:P609 ?ville .
+      ?ville p:P31/ps:P31/wdt:P279* wd:Q484170 .
+      OPTIONAL { ?item rdfs:label ?l_route filter (lang(?l_route) = \"fr\") } .
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\" . }
+    } GROUP BY ?ville
+  } .
+  ?ville wdt:P625 ?coord .
+  BIND(REPLACE(str(?routes), \"autoroute \", \"\") as ?routes_court) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\" . }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

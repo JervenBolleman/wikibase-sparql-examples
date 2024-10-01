@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-8463d8b526c18bf009035b462d23e843> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_France/Communes>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -33,4 +32,22 @@ WHERE {
   FILTER ( !STRSTARTS(?insee, \"975\") )                     # - Saint-Pierre et Miquelon
   ?item wdt:P374 ?insee.
 }
-ORDER BY (?insee)""" .
+ORDER BY (?insee)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?insee ?item ?nomoff
+WHERE {
+  BIND ( \"2020-01-02\"^^xsd:dateTime as ?dateQuery )
+  ?item p:P31 ?nature.
+  { ?nature ps:P31 wd:Q484170. }                           # commune de France
+  OPTIONAL { ?nature pq:P582 ?dateFin }
+  OPTIONAL { ?item wdt:P576 ?dateFin. }                    # date dissolution
+  FILTER ( !BOUND(?dateFin)|| ?dateFin > ?dateQuery )
+  OPTIONAL { ?nature pq:P580 ?dateDébut }
+  OPTIONAL { ?item wdt:P571 ?dateDébut. }                  # date création
+  OPTIONAL { ?item wdt:P1448 ?nomoff. }
+  FILTER ( !BOUND(?dateDébut) || ?dateDébut < ?dateQuery )
+  FILTER ( !STRSTARTS(?insee, \"98\") )                      # - Polynésie
+  FILTER ( !STRSTARTS(?insee, \"975\") )                     # - Saint-Pierre et Miquelon
+  ?item wdt:P374 ?insee.
+}
+ORDER BY (?insee)""";
+  schema:target <https://query.wikidata.org/sparql> .

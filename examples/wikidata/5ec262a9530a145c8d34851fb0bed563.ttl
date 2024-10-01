@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-5ec262a9530a145c8d34851fb0bed563> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -43,4 +42,33 @@ WHERE {
   # show label in auto language as default, and English when no default label exists
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# find Guo Degang's extended blood relatives + extended master-disciple relations
+### Note: The master-disciple relations in this query (same as those in the previous query \"Graph of master-disciple relations: Minoru Kitani\", although without the word \"extended\" in its title) are \"extended\"
+### in that a result may not share a common ancestral point with the original point.
+### Because a student might have more than one teacher (as a child has more than one parent), by searching for Guo Degang's teacher's student's teacher's student's...,
+### a result may not share a common ancestral master with Guo Degang.
+#defaultView:Graph
+SELECT ?network ?networkLabel ?birthdate ?image ?parent_master ?parent_masterLabel ?edgeLabel
+WHERE {
+  # define ?network as Guo Degang (Q5619584)'s any father (P22) or mother (P25) or child (P40) or teacher (P1066) or student (P802)'s 
+  # father or mother or child or student or teacher's...
+  wd:Q5619584 (wdt:P22|wdt:P25|wdt:P40|wdt:P1066|wdt:P802)* ?network
+  # optional: define ?network's father (P22) or mother (P25) or teacher (P1066) as ?parent_master
+  optional {?network (wdt:P22|wdt:P25|wdt:P1066) ?parent_master
+            # To avoid showing any other relation,
+            # define ?relation as father (P22) or mother (P25) or teacher (P1066)
+            VALUES ?relation {wdt:P22 wdt:P25 wdt:P1066}
+            # ?relation is from ?network to ?parent_master
+            ?network ?relation ?parent_master.
+            # get ?relation's property label and allow it to appear on graph edge
+            ?edge wikibase:directClaim ?relation;
+               a wikibase:Property}
+  # optional: show ?network's birthdate (P569), which only appears in table, not graph
+  optional {?network wdt:P569 ?birthdate}
+  # optional: show ?network's image (P18), which appears directly in graph, and as link in table
+  optional {?network wdt:P18 ?image}
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

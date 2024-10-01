@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-c903d64d2a804c0d747d3e53593dbebc> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_UAE/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
@@ -33,4 +32,23 @@ SELECT (SAMPLE(?date) AS ?date) (SUM(?count) AS ?cumulative_count) ?milestone WH
   FILTER(?milestone > ?qid_rounded)
   ?milestonep pq:P585 ?date.
 }
-GROUP BY ?milestone""" .
+GROUP BY ?milestone""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#cumulative growth of UAE items (stolen from 99of9)
+#defaultView:LineChart
+SELECT (SAMPLE(?date) AS ?date) (SUM(?count) AS ?cumulative_count) ?milestone WHERE {
+  {
+    SELECT ?qid_rounded (COUNT(?item) AS ?count) (SAMPLE(?item) AS ?exampleitem) WHERE {
+      ?item ?property wd:Q878.
+      BIND(xsd:integer(SUBSTR(STR(?item), 33 )) AS ?qid)
+      BIND(xsd:integer(?qid / 20000 ) AS ?qid_cut)
+      BIND(?qid_cut * 20000  AS ?qid_rounded)
+    }
+    GROUP BY ?qid_rounded
+  }
+  wd:Q38074555 p:P1114 ?milestonep.
+  ?milestonep ps:P1114 ?milestone.
+  FILTER(?milestone > ?qid_rounded)
+  ?milestonep pq:P585 ?date.
+}
+GROUP BY ?milestone""";
+  schema:target <https://query.wikidata.org/sparql> .

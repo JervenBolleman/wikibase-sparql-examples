@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-cb301796f35099cbd2f0680dfa35129f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_20th_Century_Press_Archives/Use_cases>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -47,4 +46,33 @@ where {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 }
 order by ?sortCode""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """select distinct ?item ?subjectCode ?itemLabel ?docs ?viewer
+where {
+  ?country rdfs:label \"Japan\"@en ;
+        wdt:P8483 ?geoCode .
+  ?item wdt:P31 wd:Q91257459 ;
+        wdt:P4293 ?folderId ;
+        wdt:P1269 ?country ;
+        wdt:P921 ?subjectCategory .
+  ?subjectCategory wdt:P8484 ?subjectCode .
+    
+  # restrict country to that with exact matching PM20 geo code
+  ?country p:P8483 ?statement .
+  ?statement ps:P8483 ?geoCode ;
+             pq:P4390 wd:Q39893449 .
+  
+  # number of documents acessible online
+  ?item p:P4293/pq:P5592 ?docs .
+  
+  # construct URI for dfgviewer
+  bind(uri(concat('https://pm20.zbw.eu/dfgview/', ?folderId)) as ?viewer)
+  
+  # obtain extended subjectCode (series ordial) from subjectCategory
+  # for correct sort order
+  ?subjectCategory p:P8484/pq:P1545 ?sortCode .
+                                                       
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+order by ?sortCode""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-a4c67fd30272a0b2b721d30a1013d106> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/05>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -41,4 +40,27 @@ WHERE
 
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?itemLabel ?born ?position ?positionLabel ?position_start ?ageInDays ?years ?months ?days
+WHERE 
+{
+  ?item p:P39 ?position_stm.
+  ?position_stm ps:P39 ?position.
+  ?position wdt:P279* wd:Q18384454.
+  ?position_stm pq:P580 ?position_start.  
+  ?item wdt:P569 ?born. 
+  BIND (?position_start - ?born AS ?ageInDays)
+
+  BIND (YEAR(?born)  AS ?Y1)
+  BIND (YEAR(?position_start)  AS ?Y2)
+  BIND (MONTH(?born) AS ?M1)
+  BIND (MONTH(?position_start) AS ?M2)
+  BIND (DAY(?born)   AS ?D1)
+  BIND (DAY(?position_start)   AS ?D2)
+  BIND (?Y2 - ?Y1 - IF(?M1 > ?M2 || (?M2 = ?M1 && ?D1 > ?D2), 1, 0) AS ?years)
+  BIND (IF(?M2 > ?M1 || (?M2 = ?M1 && ?D2 >= ?D1), ?M2 - ?M1, 12 + ?M2 - ?M1) - IF(?D2 < ?D1, 1, 0) AS ?months)
+  BIND (IF(?D2 >= ?D1, ?D2 - ?D1, xsd:integer(?position_start - (?position_start - \"P1M\"^^xsd:duration)) + ?D2 - ?D1) as ?days)
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

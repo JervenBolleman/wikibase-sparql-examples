@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-1e362a3f332b5778c6f930deb4a193e0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Fingerhuth/NFDI>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -36,4 +35,24 @@ WHERE
   # coalesce locations of institution and headquarters
   BIND(COALESCE(?geoLoc, ?geoHead) AS ?geoLoc) 
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,de\" }
-} ORDER BY ASC(?pLabel) ASC(?affiliationTypeLabel) ASC(?wLabel)""" .
+} ORDER BY ASC(?pLabel) ASC(?affiliationTypeLabel) ASC(?wLabel)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Map
+SELECT DISTINCT ?p ?pLabel ?affiliationType ?affiliationTypeLabel ?w ?wLabel ?geoLoc
+# ?p:NFDI4DataScience, ?w:institution
+WHERE
+{
+  wd:Q108542422 p:P1416 ?statement .
+  ?p p:P1416 ?statement .
+  ?statement ps:P1416 ?w .
+
+  # type of affiliation
+  OPTIONAL { ?statement pq:P3831 ?affiliationType }  
+  # location of institution
+  OPTIONAL { ?w wdt:P625 ?geoLoc }
+  # location of headquarters of institution
+  OPTIONAL { ?w wdt:P159/wdt:P625 ?geoHead }
+  # coalesce locations of institution and headquarters
+  BIND(COALESCE(?geoLoc, ?geoHead) AS ?geoLoc) 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,de\" }
+} ORDER BY ASC(?pLabel) ASC(?affiliationTypeLabel) ASC(?wLabel)""";
+  schema:target <https://query.wikidata.org/sparql> .

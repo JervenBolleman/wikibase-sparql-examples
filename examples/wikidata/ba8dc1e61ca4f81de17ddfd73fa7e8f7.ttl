@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-ba8dc1e61ca4f81de17ddfd73fa7e8f7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/01>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -38,4 +37,27 @@ where {
          
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT distinct ?item ?dop ?mdod   ?itemLabel 
+where { 
+  # look for items of type \"work\" or \"data\" (or their children)
+  ?item wdt:P31/wdt:P279* ?pq . 
+  VALUES ?pq { wd:Q386724  wd:Q42848 } 
+
+  ?item wdt:P577 ?dop . # get date of publication
+  
+  # Date of death of the last surviving creator
+  {SELECT ?item  (max(?dod) as ?mdod) 
+  where {
+    ?item wdt:P50|wdt:P170|wdt:P655|wdt:P84|wdt:P110|wdt:P287 ?creator .
+    ?creator wdt:P570 ?dod .
+  }  group by ?item  }.
+  
+  # Add constraints
+  FILTER(?dop  < \"1924-01-01\"^^xsd:dateTime) .
+  FILTER(?mdod < \"1918-01-01\"^^xsd:dateTime) .
+  FILTER NOT EXISTS {?item wdt:P6216 [] } . 
+         
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

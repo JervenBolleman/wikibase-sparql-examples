@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-15bd6c41c333ee38c282294c7ffb0e0f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -65,4 +64,52 @@ WHERE {
   # show label in auto language as default, and English when no default label exists
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """# Wuhan pneumonia (COVID-19) cases/deaths/CFR in different locations (grouped by level of cases/deaths/CFR)
+# querying qualifier
+# calculate variables by BIND
+# viewed as bar chart (also viewable as table, image grid, and map)
+#defaultView:BarChart
+# select \"?cases ?case_level\" to view ?cases as Y-axis and ?case_level as group of X-axis (?outbreakLabel) 
+### Note: \"?cases ?case_level\" can be replaced with \"?deaths ?death_level\" or \"?CFR ?CFR_level\".
+SELECT ?outbreak ?outbreakLabel ?cases ?case_level ?map ?coord ?start_time ?end_time
+### Note: \"WHERE\" is the same as that in the parent section (Maps of Wuhan pneumonia (COVID-19) outbreak locations: layered by level of cases/deaths/CFR), and
+### \"ORDER BY\" is deleted.
+WHERE {
+  # ?outbreak's \"instance of\" (P31) statement is ?x
+  ?outbreak p:P31 ?x.
+  # ?x's value is ?y
+  ?x ps:P31 ?y;
+     # the value of ?x's qualifier \"of\" (P642) is COVID-19 (Q84263196)
+     pq:P642 wd:Q84263196.
+  # ?y is any subclass of (P279*) disease outbreak (Q3241045)
+  ### Note: So ?y can be disease outbreak (Q3241045), epidemic (Q44512, subclass of disease outbreak), or pandemic (Q12184, subclass of epidemic). 
+  ?y wdt:P279* wd:Q3241045
+  # optional: show ?outbreak's distribution map (P1846) as ?map
+  OPTIONAL {?outbreak wdt:P1846 ?map}
+  # optional: show ?outbreak's coordinate location (P625) as ?coord
+  OPTIONAL {?outbreak wdt:P625 ?coord}
+  # optional: show ?outbreak's number of cases (P1603) as ?cases
+  OPTIONAL {?outbreak wdt:P1603 ?cases}
+  # use IF to classify numbers of cases into different levels, and bind the levels as ?case_level
+  ### Note: Shown as \"10^n (n1-n2)\", not just \"n1-n2\", because, when shown as \"n1-n2\",
+  ### if using thousand separator (e.g., \"1,000-9,999\"), numbers with and without thousand separator cannot be ordered correctly by \"ORDER BY\", and
+  ### if not using thousand separator (e.g., \"1000-9999\"), it will be difficult to recognize big number (e.g., 1000000).
+  BIND(IF((?cases=0), \"0\", IF((?cases<10), \"10^0 (1-9)\", IF((?cases<100), \"10^1 (10-99)\", IF((?cases<1000), \"10^2 (100-999)\", IF((?cases<10000), \"10^3 (1,000-9,999)\", IF((?cases<100000), \"10^4 (10,000-99,999)\", IF((?cases<1000000), \"10^5 (100,000-999,999)\", \">=10^6 (1,000,000)\" ))))))) AS ?case_level)
+  # optional: show ?outbreak's number of deaths (P1120) as ?deaths
+  OPTIONAL {?outbreak wdt:P1120 ?deaths}
+  # use IF to classify numbers of deaths into different levels, and bind the levels as ?death_level
+  BIND(IF((?deaths=0), \"0\", IF((?deaths<10), \"10^0 (1-9)\", IF((?deaths<100), \"10^1 (10-99)\", IF((?deaths<1000), \"10^2 (100-999)\", IF((?deaths<10000), \"10^3 (1,000-9,999)\", \">=10^4 (10,000)\" ))))) AS ?death_level)
+  # bind the quotient of \"?deaths divided by ?cases\" as ?CFR (case fatality rate)
+  ### Note: Got to know how to calculate variables
+  BIND (?deaths / ?cases AS ?CFR)
+  # use IF to classify case fatality rates into different levels, and bind the levels as ?CFR_level
+  BIND(IF((?CFR>=0.1), \"10^-1 [10%,100%]\", IF((?CFR>=0.01), \"10^-2 [1%,10%)\", IF((?CFR>=0.001), \"10^-3 [0.1%,1%)\", IF((?CFR>=0.0001), \"10^-4 [0.01%,0.1%)\", IF((?CFR=0), \"0\", \">0, <10^-4 (0%, 0.01%)\" ))))) AS ?CFR_level)
+  # optional: show ?outbreak's start time (P580) as ?start_time
+  OPTIONAL {?outbreak wdt:P580 ?start_time}
+  # optional: show ?outbreak's end time (P582) as ?end_time
+  OPTIONAL {?outbreak wdt:P582 ?end_time}
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

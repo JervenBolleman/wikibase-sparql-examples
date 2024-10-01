@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-d82d4ec9980bc36342c452d14ec22f6a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/12>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -34,4 +33,21 @@ WHERE
  ?coordinate psv:P625 ?coordinate_node. #Une valeur spécifique de P625 est associée à ?coordinate_node
  ?coordinate_node wikibase:geoLatitude ?lat. #On associe la latitude de P625 à ?lat
   filter (?lat < 45.7) #on ne garde que les latitudes plus petites que 45,7
-}""" .
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT DISTINCT ?item ?pop
+WHERE
+{
+  ?item wdt:P17 wd:Q16 ;   # Canada
+        wdt:P31/wdt:P279* wd:Q486972 ; #how to filter ?
+        wdt:P131* ?loc ; # localités humaines
+        p:P2046 ?stat . #la propriété population est désormais associée à ?stat
+  ?stat a wikibase:BestRank ; #ici, \"a\" est un raccourci pour \"rdf:type\". On demande donc que ?stat soit membre des affirmations BestRank
+        psn:P2046 ?pop2 . #unité normalisée
+  ?pop2 wikibase:quantityAmount ?pop .
+ ?item p:P625 ?coordinate. #la propriété coordonnées géographiques est désormais associée à ?coordinate
+ ?coordinate ps:P625 ?coord. #la valeur de coordonnées géographiques est désormais associée à ?coord
+ ?coordinate psv:P625 ?coordinate_node. #Une valeur spécifique de P625 est associée à ?coordinate_node
+ ?coordinate_node wikibase:geoLatitude ?lat. #On associe la latitude de P625 à ?lat
+  filter (?lat < 45.7) #on ne garde que les latitudes plus petites que 45,7
+}""";
+  schema:target <https://query.wikidata.org/sparql> .

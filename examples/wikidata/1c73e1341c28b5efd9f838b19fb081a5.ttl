@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-1c73e1341c28b5efd9f838b19fb081a5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:ZentralGut/Portr%C3%A4tgalerie>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -60,4 +59,46 @@ SELECT ?label ?desc ?dod ?dodPrecision ?dob ?dobPrecision ?poDLabel ?poBLabel ?r
              ?occupColl rdfs:label ?occupCollLabel. FILTER (LANG(?occupCollLabel) = \"de\")
              ?occup rdfs:label ?occupLabel. FILTER (LANG(?occupLabel) = \"de\")}
 }
-GROUP BY ?label ?desc ?dod ?dodPrecision ?dob ?dobPrecision ?poDLabel ?poBLabel ?relLabel ?orderLabel ?hlsId ?gndId ?wpPage ?child ?childLabel ?father ?fatherLabel ?mother ?motherLabel ?relative ?relativeLabel ?kinshipLabel ?occupColl ?occupCollLabel""" .
+GROUP BY ?label ?desc ?dod ?dodPrecision ?dob ?dobPrecision ?poDLabel ?poBLabel ?relLabel ?orderLabel ?hlsId ?gndId ?wpPage ?child ?childLabel ?father ?fatherLabel ?mother ?motherLabel ?relative ?relativeLabel ?kinshipLabel ?occupColl ?occupCollLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX target: <http://www.wikidata.org/entity/Q115831>
+SELECT ?label ?desc ?dod ?dodPrecision ?dob ?dobPrecision ?poDLabel ?poBLabel ?relLabel ?orderLabel ?hlsId ?gndId ?wpPage ?child ?childLabel ?father ?fatherLabel ?mother ?motherLabel ?relative ?relativeLabel ?kinshipLabel ?occupColl ?occupCollLabel (GROUP_CONCAT(?occupLabel; separator=\", \") AS ?occupation)  WHERE {
+  target: rdfs:label ?label.
+  FILTER((LANG(?label)) = \"de\")
+  target: schema:description ?desc.
+  FILTER((LANG(?desc)) = \"de\")
+  #Biographische Daten - Geburtsort/datum, Sterbeortdatum, Beruf, Religion, rel. Orden
+  OPTIONAL { target: p:P569/psv:P569[wikibase:timePrecision ?dobPrecision; wikibase:timeValue ?dob] }
+  OPTIONAL { target: p:P570/psv:P570[wikibase:timePrecision ?dodPrecision; wikibase:timeValue ?dod] }
+  OPTIONAL { target: wdt:P19 ?poB. ?poB rdfs:label ?poBLabel. FILTER (LANG(?poBLabel) = \"de\")}
+  OPTIONAL { target: wdt:P20 ?poD. ?poD rdfs:label ?poDLabel. FILTER (LANG(?poDLabel) = \"de\")}
+  OPTIONAL { target: wdt:P106 ?occup.}
+  OPTIONAL { target: wdt:P140 ?rel. ?rel rdfs:label ?relLabel. FILTER (LANG(?relLabel) = \"de\") }
+  OPTIONAL { target: wdt:P611 ?order. ?order rdfs:label ?orderLabel. FILTER (LANG(?orderLabel) = \"de\") }  
+  #OPTIONAL { target: wdt:P39 ?position. ?position rdfs:label ?positionLabel. FILTER (LANG(?positionLabel) = \"de\")}  
+  # Identifier, Wikipedia
+  OPTIONAL { target: wdt:P902 ?hlsId. }  
+  OPTIONAL { target: wdt:P227 ?gndId. }  
+  OPTIONAL { ?wpPage schema:about target:; schema:isPartOf <https://de.wikipedia.org/> }
+  # Verwandte die ebenfalls in der Porträtgalerie hängen
+  OPTIONAL { target: wdt:P40 ?child. ?child wdt:P1343 wd:Q112578667. ?child rdfs:label ?childLabel. FILTER (LANG(?childLabel) = \"de\") }
+  OPTIONAL { target: wdt:P22 ?father. ?father wdt:P1343 wd:Q112578667. ?father rdfs:label ?fatherLabel. FILTER (LANG(?fatherLabel) = \"de\")  }
+  OPTIONAL { target: wdt:P25 ?mother. ?mother wdt:P1343 wd:Q112578667. ?mother rdfs:label ?motherLabel. FILTER (LANG(?motherLabel) = \"de\")}
+  ## Andere Verwandte
+  OPTIONAL {
+    target: wdt:P1343 wd:Q112578667;
+            p:P1038 ?relativeStmt. 
+    ?relativeStmt ps:P1038 ?relative;
+                pq:P1039 ?kinship. 
+    ?relative wdt:P1343 wd:Q112578667.
+    ?relative rdfs:label ?relativeLabel. FILTER(LANG(?relativeLabel)=\"de\"). 
+    ?kinship rdfs:label ?kinshipLabel. FILTER(LANG(?kinshipLabel)=\"de\").
+  }
+  # Personen der Galerie mit gleicher Occupation
+  OPTIONAL { ?occupColl wdt:P106 ?occup. 
+             FILTER(?occupColl != target:)
+             ?occupColl wdt:P1343 wd:Q112578667. 
+             ?occupColl rdfs:label ?occupCollLabel. FILTER (LANG(?occupCollLabel) = \"de\")
+             ?occup rdfs:label ?occupLabel. FILTER (LANG(?occupLabel) = \"de\")}
+}
+GROUP BY ?label ?desc ?dod ?dodPrecision ?dob ?dobPrecision ?poDLabel ?poBLabel ?relLabel ?orderLabel ?hlsId ?gndId ?wpPage ?child ?childLabel ?father ?fatherLabel ?mother ?motherLabel ?relative ?relativeLabel ?kinshipLabel ?occupColl ?occupCollLabel""";
+  schema:target <https://query.wikidata.org/sparql> .

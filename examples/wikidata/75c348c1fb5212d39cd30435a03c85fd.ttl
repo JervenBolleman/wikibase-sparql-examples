@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-75c348c1fb5212d39cd30435a03c85fd> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Bar/Archive/2020/02>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -34,4 +33,21 @@ SELECT ?item ?title ?autoreLabel ?pubblicazione ?data_premio_strega ?genreLabel 
 }
 
  ORDER BY ?data_premio_strega #ordinato per data di assegnazione del premio (non per data di pubblicazione)""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?item ?title ?autoreLabel ?pubblicazione ?data_premio_strega ?genreLabel ?casa_editriceLabel ?itemLabel WHERE {
+  ?item  wdt:P166 wd:Q731542. #premio ricevuto è premio strega
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+  FILTER ( ?istanza != wd:Q5 ) #non è un umano (il premio su wikidata è assegnato sia ai libri vincitori che agli autori). Ci deve essere un modo migliore di selezionare solo i libri ma non l'ho trovato
+  FILTER ( ?tipopremio = wd:Q731542 ) #il premio è premio strega (questo l'ho dovuto inserire altrimenti ricevevo tutti i premi
+  OPTIONAL { ?item p:P166 ?premio . ?premio pq:P585 ?data_premio_strega ; ps:P166 ?tipopremio } #questo artifizio serve per estrarre solo il dato di anno di assegnazione del premio (che spesso è diverso dalla data di pubblicazione)
+  
+  OPTIONAL { ?item wdt:P577 ?pubblicazione. } #anno di pubblicazione
+  OPTIONAL { ?item wdt:P31 ?istanza. }  #l'istanza su cui fare la query
+  OPTIONAL { ?item wdt:P50 ?autore. }  #nome dell'autore
+  OPTIONAL { ?item wdt:P136 ?genre. }  #genere del libro
+  OPTIONAL { ?item wdt:P123 ?casa_editrice. } #casa editrice
+  OPTIONAL { ?item wdt:P1476 ?title } #titolo originale
+}
+
+ ORDER BY ?data_premio_strega #ordinato per data di assegnazione del premio (non per data di pubblicazione)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

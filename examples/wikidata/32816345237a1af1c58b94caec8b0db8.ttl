@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-32816345237a1af1c58b94caec8b0db8> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Totodu74/Useful_queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -42,4 +41,26 @@ WHERE
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
 }
 ORDER BY ?taxon""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?taxon ?taxonLabel ?taxonDescription ?rankLabel ?authorLabel ?year ?sourceLabel
+WHERE 
+{
+  {?taxon wdt:P31 wd:Q16521 } UNION {?taxon wdt:P31 wd:Q310890} UNION {?taxon wdt:P31 wd:Q23038290} UNION {?taxon wdt:P31 wd:Q47487597 } UNION {?taxon wdt:P31 wd:Q98961713} UNION {?taxon wdt:P31 wd:Q2568288} .
+  MINUS { ?taxon p:P1403 ?status. }
+  ?taxon p:P225 ?name .
+  ?taxon wdt:P105 ?rank .
+  ?name ps:P225 []; pq:P405 ?author .
+  {?author wdt:P108 wd:Q663025 } UNION {?author wdt:P937 wd:Q663025} .
+  ?name ps:P225 []; pq:P574 ?date FILTER (?date > \"1819-12-31T00:00:00Z\"^^xsd:dateTime) .
+  
+  OPTIONAL {
+    ?name prov:wasDerivedFrom ?ref .
+    ?ref pr:P6184 wd:Q1361864 .
+    ?ref pr:P248 ?source .
+    }
+  
+  BIND(YEAR(?date) AS ?year) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY ?taxon""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

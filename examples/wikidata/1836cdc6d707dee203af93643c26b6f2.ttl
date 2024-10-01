@@ -1,16 +1,15 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 
 <https://www.wikidata.org/#query-1836cdc6d707dee203af93643c26b6f2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  rdfs:comment "TODO"@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:HereinTheHague>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
-  schema:target <https://query.wikidata.org/sparql>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -41,4 +40,27 @@ MINUS {
  } 
 GROUP BY ?wrestler ?article ?wrestlerLabel
 ORDER BY ?wrestlerLabel""";
-  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label> .
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT ?wrestler ?article (SAMPLE(?link) AS ?link) ?wrestlerLabel
+WHERE {
+   ?wrestler wdt:P31 wd:Q5 .
+   ?wrestler wdt:P106 wd:Q13474373 .
+   ?article schema:about ?wrestler .
+   ?article schema:inLanguage \"en\" .
+   ?article schema:isPartOf <https://en.wikipedia.org/> .
+OPTIONAL { wd:P2728 wdt:P1630 ?url .
+           ?wrestler wdt:P2728 ?cgid .
+           BIND(IRI(REPLACE(?cgid, '^(.+)$', ?url)) AS ?link).
+         }
+MINUS {
+   ?wrestler p:P106 ?occupation_statement .
+   ?occupation_statement ps:P106 wd:Q13474373 .
+   ?occupation_statement pq:P580 ?start .
+      }
+   SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+   }
+ } 
+GROUP BY ?wrestler ?article ?wrestlerLabel
+ORDER BY ?wrestlerLabel""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .
