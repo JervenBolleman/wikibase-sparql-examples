@@ -1,0 +1,68 @@
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+<https://www.wikidata.org#query-ae5782ba98fddd153c18b1ae9dfba661> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Synia:grammaticalgender-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
+  ?lexemes
+
+  ?gender ?genderLabel
+  (CONCAT(\"#grammaticalgender/\", SUBSTR(STR(?gender), 32)) AS ?genderUrl)
+  ?genderDescription
+
+  ?example_lexeme ?example_lexemeLabel
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)
+WHERE {
+   {
+  SELECT 
+    (COUNT(?lexeme) AS ?lexemes)
+    ?gender
+    (SAMPLE(?lexeme) AS ?example_lexeme)
+  WHERE {
+    ?lexeme dct:language [] ; 
+            wdt:P5185 ?gender .
+  }
+  GROUP BY ?gender
+}  ?example_lexeme wikibase:lemma ?example_lexemeLabel . 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }
+}
+ORDER BY DESC(?lexemes)""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT 
+  ?lexemes
+
+  ?gender ?genderLabel
+  (CONCAT(\"#grammaticalgender/\", SUBSTR(STR(?gender), 32)) AS ?genderUrl)
+  ?genderDescription
+
+  ?example_lexeme ?example_lexemeLabel
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)
+WITH {
+  SELECT 
+    (COUNT(?lexeme) AS ?lexemes)
+    ?gender
+    (SAMPLE(?lexeme) AS ?example_lexeme)
+  WHERE {
+    ?lexeme dct:language [] ; 
+            wdt:P5185 ?gender .
+  }
+  GROUP BY ?gender
+} AS %genders
+WHERE {
+  INCLUDE %genders
+  ?example_lexeme wikibase:lemma ?example_lexemeLabel . 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }
+}
+ORDER BY DESC(?lexemes)""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

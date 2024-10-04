@@ -4,11 +4,114 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-f0fc2cce645357589aa83208a807c202> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-f0fc2cce645357589aa83208a807c202> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stuartyeates/InterestingPeopleQuery>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Stuartyeates/InterestingPeopleQuery>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: New Zealand research people
+#
+SELECT DISTINCT ?academic 
+   ?academicLabel 
+   ?academicDescription 
+   ?academicAltLabel 
+   (GROUP_CONCAT(DISTINCT ?scholia; SEPARATOR = \";\") AS ?Scholia_urls)
+   (GROUP_CONCAT(DISTINCT ?lccnurl; SEPARATOR = \";\") AS ?LCCN_urls)
+   (GROUP_CONCAT(DISTINCT ?viafurl; SEPARATOR = \";\") AS ?VIAF_urls)
+   (GROUP_CONCAT(DISTINCT ?orcidurl; SEPARATOR = \";\") AS ?ORCID_urls)
+   (GROUP_CONCAT(DISTINCT ?dob; SEPARATOR = \";\") AS ?DOBs)
+   (GROUP_CONCAT(DISTINCT ?dod; SEPARATOR = \";\") AS ?DODs)
+   (GROUP_CONCAT(DISTINCT ?genderLabel; SEPARATOR = \";\") AS ?Genders)
+   (GROUP_CONCAT(DISTINCT ?ethnicLabel; SEPARATOR = \";\") AS ?Ethnicities)
+   (GROUP_CONCAT(DISTINCT ?tribeLabel; SEPARATOR = \";\") AS ?Tribes)
+   (GROUP_CONCAT(DISTINCT ?orientLabel; SEPARATOR = \";\") AS ?Orientations)
+   (GROUP_CONCAT(DISTINCT ?web; SEPARATOR = \";\") AS ?Website_URLS)
+   (GROUP_CONCAT(DISTINCT ?turnurl; SEPARATOR = \";\") AS ?ATL_ID_urls)
+   (GROUP_CONCAT(DISTINCT ?papaurl; SEPARATOR = \";\") AS ?Te_Papa_ID_urls)
+   (GROUP_CONCAT(DISTINCT ?areurl; SEPARATOR = \";\") AS ?Te_Ara_ID_urls)
+   (GROUP_CONCAT(DISTINCT ?komurl; SEPARATOR = \";\") AS ?Kōmako_ID_urls)
+
+   WHERE {
+     
+   # define a set of institutions we're interested in (need to broaden this: more polytechics, museums, etc)  
+     
+   VALUES ?inst { 
+   # wgtn.ac.nz      
+   wd:Q1150437 wd:Q42417045 wd:Q17067645  wd:Q864860
+   # canterbury      
+   wd:Q432475 wd:Q98762296 wd:Q106879289
+   # massey          
+   wd:Q1134606 wd:Q111584166
+   # otago           
+   wd:Q1201513 wd:Q43062411 wd:Q7896034 wd:Q45135879
+   # auckland        
+   wd:Q492467 wd:Q4819572 wd:Q104203517 wd:Q122973190
+   # lincoln         
+   wd:Q1048626
+   # waikato
+   wd:Q606140 
+   # AUT
+   wd:Q758659 wd:Q99287521 wd:Q123875358 wd:Q99285561 wd:Q73784427         
+   # DSIR and successors           
+   wd:Q17513775 wd:Q6484356 wd:Q389704 wd:Q5906602 wd:Q7554874 wd:Q116039094 wd:Q935203 wd:Q104097072 wd:Q7015441 wd:Q1503201 wd:Q1665158 wd:Q1983244 wd:Q1466498 wd:Q1661937 wd:Q16256127
+   # polytechics     
+   wd:Q86902171  wd:Q7893913 wd:Q2495129
+   # research-conducting ministries      
+   wd:Q100254215  
+   # museums
+   wd:Q915603 wd:Q1033769 wd:Q7424149   
+   # wānanga 
+   wd:Q60775079 wd:Q18167396 wd:Q7691039
+   } .
+     
+   ## section where we express who we are interested in by their relationships to the insittutions
+     
+   ?academic wdt:P31 wd:Q5 . # academic is a person
+   {
+      #has a direct relationship
+      ?academic ?wildcard ?inst 
+   } UNION    {
+      #has a direct relationship
+      ?inst ?wildcard ?academic
+   } UNION {
+      # has a thesis submitted to
+      ?thesis wdt:P4101  ?inst . 
+      ?thesis wdt:P50 ?academic . 
+   } UNION {
+      # has a book published by
+      ?book wdt:P123  ?inst  . 
+      ?book wdt:P50 ?academic . 
+   } UNION {
+      ?academic wdt:P12702 ?komid .
+   } UNION {
+      ?academic p:P166 ?award .
+      ?award ps:P166 wd:Q30456287 . #  Fellow of the Royal Society Te Apārangi 
+   }
+
+     
+   ## section where we express what we want to know about them
+   
+   OPTIONAL { ?academic wdt:P21 ?gender . } .   
+   OPTIONAL { ?academic wdt:P172 ?ethnic . } .  
+   OPTIONAL { ?academic wdt:P12011 ?tribe . } .   
+   OPTIONAL { ?academic wdt:P91 ?orient . } .   
+   OPTIONAL { ?academic wdt:P856 ?web. } .   
+
+   OPTIONAL { ?academic wdt:P569 ?dob . } .   
+   OPTIONAL { ?academic wdt:P570 ?dod . } .   
+
+   BIND( URI(CONCAT('https://scholia.toolforge.org/author/', STRAFTER(STR(?academic), \"/entity/\")))  AS ?scholia ) .
+   OPTIONAL { ?academic wdt:P244 ?lccn .  BIND( IRI(CONCAT('https://lccn.loc.gov/', STR(?lccn)))  AS ?lccnurl ) .   } . 
+   OPTIONAL { ?academic wdt:P214 ?viaf .  BIND( IRI(CONCAT('https://viaf.org/viaf/', STR(?viaf)))  AS ?viafurl ) . } . 
+   OPTIONAL { ?academic wdt:P496 ?orcid .  BIND( IRI(CONCAT('https://orcid.org/', STR(?orcid)))  AS ?orcidurl ) . } . 
+   OPTIONAL { ?academic wdt:P6683 ?turnid .  BIND( IRI(CONCAT('https://tiaki.natlib.govt.nz/#details=ethesaurus.', STR(?turnid)))  AS ?turnurl ) . } . 
+   OPTIONAL { ?academic wdt:P4544 ?papaid .  BIND( IRI(CONCAT('https://collections.tepapa.govt.nz/agent/', STR(?papaid)))  AS ?papaurl ) . } . 
+   OPTIONAL { ?academic wdt:P2745 ?areid .  BIND( IRI(CONCAT('https://teara.govt.nz/en/biographies/', STR(?areid)))  AS ?areurl ) . } . 
+   OPTIONAL { ?academic wdt:P12702 ?komid .  BIND( IRI(CONCAT('https://www.komako.org.nz/person/', STR(?komid)))  AS ?komurl ) . } . 
+  
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+
+}
+GROUP BY ?academic ?academicLabel ?academicDescription ?academicAltLabel"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

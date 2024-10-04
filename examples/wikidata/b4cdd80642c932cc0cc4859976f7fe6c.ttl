@@ -4,11 +4,31 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-b4cdd80642c932cc0cc4859976f7fe6c> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-b4cdd80642c932cc0cc4859976f7fe6c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Simon_Villeneuve/SPARQL>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Simon_Villeneuve/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """tous les éléments utilisant une certaine référence, ainsi que le chemin y menant
+SELECT ?item ?itemLabel ?property ?propertyLabel ?value ?valueLabel ?statement
+WHERE 
+{
+  ?item ?ppp ?statement .               # there is a triple having ?statement as its object
+  ?statement ?qqq ?value.               # there is a triple having ?statement as its subject
+                                        # we need ?ppp to be a p:Pnnn and ?qqq to be a ps:Pnnn predicate
+                                        # so that we know we're in the right part of the data model to be able
+                                        # to test for a property statement reference. So... 
+  
+  ?property a wikibase:Property ;       # there is a property
+     wikibase:claim ?ppp ;              # which has a predicate in the form p:Pnnn and an object ?ppp
+                                        # so the variable ?ppp is a p:Pnnn predicate, and ?statement must be a property statement
+     wikibase:statementProperty ?qqq .  # and which has a predicate in the form of ps:Pnnn and an object ?qqq
+                                        # so the variable ?qqq is a ps:Pnnn predicate, and ?value must be the value for this property statement 
+  
+  ?statement prov:wasDerivedFrom ?autre_statement. #d'après la source ...   # and as you know, the property statement has at least one reference 
+  ?autre_statement pr:P248 wd:Q100443909 .                                  # and the reference is 'stated in' 'Q100443909'
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>

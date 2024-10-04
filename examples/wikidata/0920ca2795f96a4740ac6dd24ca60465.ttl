@@ -4,11 +4,27 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-0920ca2795f96a4740ac6dd24ca60465> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-0920ca2795f96a4740ac6dd24ca60465> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/03>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2019/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """afficher le nombre d'éléments disposant de la propriété \"archivé par\" (P485) par institution suisse
+#afficher le lieu où est située l'institution.
+#classer les institution par ordre de nombre d'éléments décroissant.
+SELECT DISTINCT ?institution ?institutionLabel (GROUP_CONCAT(DISTINCT(?LieuLabel); separator=\", \") as ?Lieux) (COUNT(?item) AS ?total) 
+WHERE 
+{
+  ?item wdt:P485 ?institution . #les éléments doivent disposé de la propriété \"archivé par\" qui renvoie à une institution.
+  ?institution wdt:P17 wd:Q39; #l'institution doit être localisée en France
+               wdt:P131 ?lieu. #localisation administrative de l'institution
+   OPTIONAL {
+    ?institution wdt:P131 ?Lieu.
+     OPTIONAL {?Lieu rdfs:label ?LieuLabel. filter(lang(?LieuLabel)=\"fr\")}
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,en\". }
+}
+GROUP BY ?institution ?institutionLabel ?lieux
+ORDER BY DESC (?total) ?lieux"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

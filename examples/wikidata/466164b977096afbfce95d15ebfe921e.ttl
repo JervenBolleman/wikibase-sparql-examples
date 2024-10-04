@@ -4,11 +4,28 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-466164b977096afbfce95d15ebfe921e> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-466164b977096afbfce95d15ebfe921e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Deansfa>, <https://www.wikidata.org//wiki/User:Deansfa/SPARQL>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Deansfa>, <https://www.wikidata.org/wiki/User:Deansfa/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ select articles with one single author (author as a string), 
+# and select the author (which can't be done in the same query, it has to be made in a join)
+SELECT $item $count ?author WHERE {
+  FILTER (?count = 1)
+  {
+    SELECT DISTINCT ?item (COUNT (?author) as ?count) WHERE {
+      ?item wdt:P31 wd:Q13442814 ; wdt:P179 wd:Q57081850 .
+      ?item wdt:P2093 ?author.
+    }
+    GROUP BY (?item)
+  }
+  {
+    SELECT DISTINCT ?item ?author WHERE {
+      ?item wdt:P31 wd:Q13442814 ; wdt:P179 wd:Q57081850 .
+      ?item wdt:P2093 ?author.
+    }
+  }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>

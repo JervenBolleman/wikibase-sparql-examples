@@ -4,11 +4,41 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-101c19ec4e0ac3d6ebe9abdfe13c259b> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-101c19ec4e0ac3d6ebe9abdfe13c259b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/length_of_Wikipedia_articles_about_fingers>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:TweetsFactsAndQueries/Queries/length_of_Wikipedia_articles_about_fingers>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ longest* Wikipedia articles about fingers
+# *(measured in bytes of Wikitext, which is a terrible measure:
+#   it counts categories, comments, and other kinds of metadata,
+#   discounts anything contributed by templates except the template invocation,
+#   and fails to account for different languages using more or less characters per word, or bytes per character)
+SELECT ?finger ?fingerLabel ?endpoint ?title ?length ?article WITH {
+  SELECT ?finger ?article ?endpoint ?title WHERE {
+    ?finger wdt:P279 wd:Q620207.
+    ?article schema:about ?finger;
+             schema:isPartOf ?wiki;
+             schema:name ?title.
+    ?wiki wikibase:wikiGroup \"wikipedia\".
+    # MINUS { ?wiki wikibase:wikiGroup \"wikiquote\". } # if you want to remove the previous line to check other projects, uncomment this one, Wikiquote is not allowed with MWAPI
+    BIND(STRBEFORE(STRAFTER(STR(?wiki), \"https://\"), \"/\") AS ?endpoint)
+  }
+} AS %articles WHERE {
+  hint:SubQuery hint:optimizer \"None\".
+  INCLUDE %articles.
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Generator\";
+                    wikibase:endpoint ?endpoint;
+                    mwapi:generator \"allpages\";
+                    mwapi:gapfrom ?title;
+                    mwapi:gaplimit 1;
+                    wikibase:limit 1 .
+    ?length_ wikibase:apiOutput \"@length\".
+  }
+  BIND(xsd:integer(?length_) AS ?length)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?length)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>

@@ -4,11 +4,63 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-09c7a01267979259d8a20c6c7bb3e3e2> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-09c7a01267979259d8a20c6c7bb3e3e2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Albania/National_Library_of_Albania/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_Albania/National_Library_of_Albania/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Title: Find statements with references containing external links to bksh.al
+# Description: Find item statements with references containing external links to bksh.al using http and https protocols
+SELECT ?item ?itemLabel ?property ?propertyLabel ?value ?valueLabel ?reference_URL
+WITH
+{
+  SELECT DISTINCT ?item
+  WHERE
+  {
+    {
+      # Find items with https URLs
+      SERVICE wikibase:mwapi
+      {
+        bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+        bd:serviceParam wikibase:api \"Generator\" .
+        bd:serviceParam mwapi:generator \"exturlusage\" .
+        bd:serviceParam mwapi:geuprop \"title\" .
+        bd:serviceParam mwapi:geunamespace \"0\" .
+        bd:serviceParam mwapi:geuprotocol \"https\" .
+        bd:serviceParam mwapi:geuquery \"*.bksh.al\" .
+        bd:serviceParam mwapi:geulimit \"max\" .
+        ?item wikibase:apiOutputItem mwapi:title .
+      }
+    }
+    UNION
+    {
+      # Find items with http URLs
+      SERVICE wikibase:mwapi
+      {
+        bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+        bd:serviceParam wikibase:api \"Generator\" .
+        bd:serviceParam mwapi:generator \"exturlusage\" .
+        bd:serviceParam mwapi:geuprop \"title\" .
+        bd:serviceParam mwapi:geunamespace \"0\" .
+        bd:serviceParam mwapi:geuprotocol \"http\" .
+        bd:serviceParam mwapi:geuquery \"*.bksh.al\" .
+        bd:serviceParam mwapi:geulimit \"max\" .
+        ?item wikibase:apiOutputItem mwapi:title .
+      }
+    }
+  }
+} AS %get_items
+WHERE
+{
+  INCLUDE %get_items
+  ?item ?prop ?statement .
+  ?property wikibase:claim ?prop .
+  ?property wikibase:statementProperty ?ps .
+  ?statement ?ps ?value .
+  ?statement prov:wasDerivedFrom ?reference .
+  ?reference ?refprop ?reference_URL .
+  FILTER CONTAINS(STR(?reference_URL), \"bksh.al/\")
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

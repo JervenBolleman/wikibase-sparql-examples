@@ -4,11 +4,28 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-28c6739cad4bebd6d249b13e4250cada> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-28c6739cad4bebd6d249b13e4250cada> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Gnoeee/Query>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Gnoeee/Query>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Malayalam film with an article on the en Wiki but not on the ml Wiki
+SELECT ?movie ?movieLabel (COUNT(DISTINCT ?sitelink) AS ?count) WHERE {
+  ?movie wdt:P31 wd:Q11424;
+    wdt:P364 wd:Q36236.
+  ?sitelink schema:about ?movie.
+  FILTER(EXISTS {
+    ?wen schema:about ?movie;
+      schema:inLanguage \"en\".
+  })
+  FILTER(NOT EXISTS {
+    ?wor schema:about ?movie;
+      schema:inLanguage \"ml\".
+  })
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?movie ?movieLabel
+ORDER BY DESC (?count)
+LIMIT 2000"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

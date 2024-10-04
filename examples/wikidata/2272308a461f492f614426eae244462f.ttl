@@ -4,11 +4,45 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-2272308a461f492f614426eae244462f> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-2272308a461f492f614426eae244462f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:No39188>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:No39188>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: Quantenphysik mit Unterkategorien
+SELECT ?kategorie ?member ?item ?article (GROUP_CONCAT(DISTINCT ?class; SEPARATOR = \", \") AS ?ist_ein) WHERE {
+    VALUES ?kategorie { \"Kategorie:Quantenphysik\"
+\"Kategorie:Nichtlineare Optik\"
+\"Kategorie:Photonik\"
+\"Kategorie:Quantenmechanik\"
+\"Kategorie:Quantenfeldtheorie\"
+\"Kategorie:Laserphysik\"
+\"Kategorie:Quantenoptik\"
+\"Kategorie:Quasiteilchen\"
+\"Kategorie:Streutheorie\"
+\"Kategorie:Schwache Wechselwirkung\"   }
+        SERVICE wikibase:mwapi {
+            bd:serviceParam wikibase:endpoint \"de.wikipedia.org\";
+                     wikibase:api \"Generator\";
+                     mwapi:generator \"categorymembers\";
+                     mwapi:gcmtitle ?kategorie;
+                     mwapi:gcmprop \"ids%7Ctitle%7Ctype\";
+                     mwapi:gcmlimit \"max\".
+            ?member wikibase:apiOutput mwapi:title.
+            ?ns wikibase:apiOutput \"@ns\".
+            ?item wikibase:apiOutputItem mwapi:item.   
+        }   
+    FILTER(BOUND(?item) && ?ns = \"0\")
+    OPTIONAL {
+      ?article schema:about ?item;
+        schema:isPartOf <https://de.wikipedia.org/>;
+        schema:name ?page_title.
+    }
+    OPTIONAL { ?item wdt:P31 ?instance. }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+            ?instance rdfs:label ?class.} 
+}
+group by ?kategorie ?member ?item ?article 
+order by ?kategorie ?member"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

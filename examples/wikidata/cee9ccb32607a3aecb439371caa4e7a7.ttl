@@ -1,0 +1,194 @@
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+<https://www.wikidata.org#query-cee9ccb32607a3aecb439371caa4e7a7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Stuartyeates/InterestingPeopleQuery>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment """title: Work in progress: all New Zealand people and all New Zealand attributes
+#
+SELECT DISTINCT 
+   ?person 
+   #?personLabel ?personDescription  ?personAltLabel 
+   #(GROUP_CONCAT(DISTINCT ?dob; SEPARATOR = \";\") AS ?DOBs)
+   #(GROUP_CONCAT(DISTINCT ?dod; SEPARATOR = \";\") AS ?DODs)
+   #(GROUP_CONCAT(DISTINCT ?lccnurl; SEPARATOR = \";\") AS ?LCCN_urls)
+   #(GROUP_CONCAT(DISTINCT ?viafurl; SEPARATOR = \";\") AS ?VIAF_urls)
+
+   # ?komurl ?dnzburl ?shofurl ?fnzaurl ?hnzpurl ?maraurl ?anzlurl
+   #?nlnzurl ?anziurl ?abidurl  ?nzocurl  ?nzpiurl ?papaurl ?bfidurl  ?fracurl ?szidurl 
+   ?mcidurl ?atliurl
+   WHERE {
+         
+   ?person wdt:P31 wd:Q5 . # person is a person
+   {
+      ?person wdt:P27 wd:Q664 .  # citizen of New Zealand
+    } UNION {
+      ?person wdt:P551 wd:Q664 .  # residence of New Zealand
+   } 
+     
+     
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\" }
+   #OPTIONAL { ?person wdt:P569 ?dob . } .   
+   #OPTIONAL { ?person wdt:P570 ?dod . } .   
+   #OPTIONAL { ?person wdt:P244 ?lccn .  BIND( IRI(CONCAT('https://lccn.loc.gov/', STR(?lccn)))  AS ?lccnurl ) .   } . 
+   #OPTIONAL { ?person wdt:P214 ?viaf .  BIND( IRI(CONCAT('https://viaf.org/viaf/', STR(?viaf)))  AS ?viafurl ) . } . 
+
+   OPTIONAL { ?person wdt:P12702 ?komi  .  BIND( IRI(CONCAT('https://www.komako.org.nz/person/',         STR(?komi)))  AS ?komurl  ) . } .  # Kōmako author ID
+   OPTIONAL { ?person wdt:P2745  ?dnzb  .  BIND( IRI(CONCAT('https://teara.govt.nz/en/biographies/',         STR(?dnzb)))  AS ?dnzburl ) . } . # Dictionary of New Zealand Biography ID 
+   OPTIONAL { ?person wdt:P4418  ?shof  .  BIND( IRI(CONCAT('https://www.nzhalloffame.co.nz/Inductees/', STR(?shof)))  AS ?shofurl ) . } . # New Zealand Sports Hall of Fame ID
+   OPTIONAL { ?person wdt:P6792  ?fnza  .  BIND( IRI(CONCAT('https://findnzartists.org.nz/en/artist/', STR(?fnza)))  AS ?fnzaurl ) .} . # Find NZ Artists ID
+   OPTIONAL { ?person wdt:P11004 ?hnzp  .  BIND( IRI(CONCAT('https://hockeynz.altiusrt.com/people/', STR(?hnzp)))  AS ?hnzpurl ) .} . # Hockey New Zealand person ID 
+   OPTIONAL { ?person wdt:P5640  ?mara  .  BIND( IRI(CONCAT('https://www.read-nz.org/writer/', STR(?mara)))  AS ?maraurl ) .} . # Read NZ Te Pou Muramura writer ID
+   OPTIONAL { ?person wdt:P5635  ?anzl  .  BIND( IRI(CONCAT('https://www.anzliterature.com/member/', STR(?anzl)))  AS ?anzlurl ) .} . # ANZL writer ID 
+   OPTIONAL { ?person wdt:P7682  ?nlnz  .  BIND( IRI(CONCAT('https://natlib.govt.nz/records/', STR(?nlnz)))  AS ?nlnzurl ) .} . # National Library of New Zealand ID
+   OPTIONAL { ?person wdt:P12985 ?anzi  .  BIND( IRI(CONCAT('https://www.anzrankings.org.nz/site/profiles_con/athlete/', STR(?anzi)))  AS ?anziurl ) .} . # Athletics New Zealand athlete ID
+   OPTIONAL { ?person wdt:P3645  ?abid  .  BIND( IRI(CONCAT('http://stats.allblacks.com/asp/profile.asp?ABID=', STR(?abid)))  AS ?abidurl ) .} . # All Blacks player ID
+   OPTIONAL { ?person wdt:P4056  ?nzoc  .  BIND( IRI(CONCAT('https://www.olympic.org.nz/athletes/', STR(?nzoc)))  AS ?nzocurl ) .} . # New Zealand Olympic Committee athlete ID  
+   OPTIONAL { ?person wdt:P10977 ?nzpi  .  BIND( IRI(CONCAT('https://paralympics.org.nz/paralympians-profiles/', STR(?nzpi)))  AS ?nzpiurl ) .} . # Paralympics New Zealand athlete ID
+   OPTIONAL { ?person wdt:P3544  ?papa  .  BIND( IRI(CONCAT('https://collections.tepapa.govt.nz/agent/', STR(?papa)))  AS ?papaurl ) .} . # Te Papa agent ID 
+   OPTIONAL { ?person wdt:P5636  ?bfid  .  BIND( IRI(CONCAT('http://stats.allblacks.com/asp/profile_bf.asp?BFID=', STR(?bfid)))  AS ?bfidurl ) .} . # Black Ferns player ID
+   OPTIONAL { ?person wdt:P9136  ?szid  .  BIND( IRI(CONCAT('https://sounz.org.nz/contributors/', STR(?szid)))  AS ?szidurl ) .} . # SOUNZ contributor ID
+   OPTIONAL { ?person wdt:P8067  ?mcid  .  BIND( IRI(CONCAT('https://collection.canterburymuseum.com/objects/', STR(?mcid)))  AS ?mcidurl ) .} . # identifier in the Macdonald Dictionary
+   OPTIONAL { ?person wdt:P6683  ?atli  .  BIND( IRI(CONCAT('https://tiaki.natlib.govt.nz/#details=ethesaurus.', STR(?atli)))  AS ?atliurl ) .} . # Alexander Turnbull Library ID 
+#   OPTIONAL { ?person wdt:P2745  ?dnzb  .  BIND( IRI(CONCAT('https://www.komako.org.nz/person/', STR(?dnzb)))  AS ?dnzburl ) .} . # Dictionary of New Zealand Biography ID 
+#   OPTIONAL { ?person wdt:P2745  ?dnzb  .  BIND( IRI(CONCAT('https://www.komako.org.nz/person/', STR(?dnzb)))  AS ?dnzburl ) .} . # Dictionary of New Zealand Biography ID 
+#   OPTIONAL { ?person wdt:P2745  ?dnzb  .  BIND( IRI(CONCAT('https://www.komako.org.nz/person/', STR(?dnzb)))  AS ?dnzburl ) .} . # Dictionary of New Zealand Biography ID 
+#   OPTIONAL { ?person wdt:P2745  ?dnzb  .  BIND( IRI(CONCAT('https://www.komako.org.nz/person/', STR(?dnzb)))  AS ?dnzburl ) .} . # Dictionary of New Zealand Biography ID 
+#   OPTIONAL { ?person wdt:P2745  ?dnzb  .  BIND( IRI(CONCAT('https://www.komako.org.nz/person/', STR(?dnzb)))  AS ?dnzburl ) .} . # Dictionary of New Zealand Biography ID 
+#   OPTIONAL { ?person wdt:P2745  ?dnzb  .  BIND( IRI(CONCAT('https://www.komako.org.nz/person/', STR(?dnzb)))  AS ?dnzburl ) .} . # Dictionary of New Zealand Biography ID 
+#   OPTIONAL { ?person wdt:P2745  ?dnzb  .  BIND( IRI(CONCAT('https://www.komako.org.nz/person/', STR(?dnzb)))  AS ?dnzburl ) .} . # Dictionary of New Zealand Biography ID 
+}
+GROUP BY ?person # ?personLabel   ?personDescription   ?personAltLabel
+   # ?komurl ?dnzburl ?shofurl ?fnzaurl ?hnzpurl ?maraurl ?anzlurl 
+   #?nlnzurl ?anziurl ?abidurl  ?nzocurl ?nzpiurl ?papaurl ?bfidurl  ?fracurl ?szidurl 
+   ?mcidurl ?atliurl
+#LIMIT 1000"""@en;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#title: Work in progress: all New Zealand people and all New Zealand attributes
+#
+SELECT DISTINCT 
+   ?person 
+   #?personLabel ?personDescription  ?personAltLabel 
+   #(GROUP_CONCAT(DISTINCT ?dob; SEPARATOR = \";\") AS ?DOBs)
+   #(GROUP_CONCAT(DISTINCT ?dod; SEPARATOR = \";\") AS ?DODs)
+   #(GROUP_CONCAT(DISTINCT ?lccnurl; SEPARATOR = \";\") AS ?LCCN_urls)
+   #(GROUP_CONCAT(DISTINCT ?viafurl; SEPARATOR = \";\") AS ?VIAF_urls)
+
+   # ?komurl ?dnzburl ?shofurl ?fnzaurl ?hnzpurl ?maraurl ?anzlurl
+   #?nlnzurl ?anziurl ?abidurl  ?nzocurl  ?nzpiurl ?papaurl ?bfidurl  ?fracurl ?szidurl 
+   ?mcidurl ?atliurl
+   WHERE {
+         
+   ?person wdt:P31 wd:Q5 . # person is a person
+   {
+      ?person wdt:P27 wd:Q664 .  # citizen of New Zealand
+    } UNION {
+      ?person wdt:P551 wd:Q664 .  # residence of New Zealand
+   } 
+     
+     
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\" }
+   #OPTIONAL { ?person wdt:P569 ?dob . } .   
+   #OPTIONAL { ?person wdt:P570 ?dod . } .   
+   #OPTIONAL { ?person wdt:P244 ?lccn .  BIND( IRI(CONCAT('https://lccn.loc.gov/', STR(?lccn)))  AS ?lccnurl ) .   } . 
+   #OPTIONAL { ?person wdt:P214 ?viaf .  BIND( IRI(CONCAT('https://viaf.org/viaf/', STR(?viaf)))  AS ?viafurl ) . } . 
+
+   OPTIONAL { ?person wdt:P12702 ?komi  .  BIND( IRI(CONCAT('https://www.komako.org.nz/person/',         STR(?komi)))  AS ?komurl  ) . } .  # Kōmako author ID
+   OPTIONAL { ?person wdt:P2745  ?dnzb  .  BIND( IRI(CONCAT('https://teara.govt.nz/en/biographies/',         STR(?dnzb)))  AS ?dnzburl ) . } . # Dictionary of New Zealand Biography ID 
+   OPTIONAL { ?person wdt:P4418  ?shof  .  BIND( IRI(CONCAT('https://www.nzhalloffame.co.nz/Inductees/', STR(?shof)))  AS ?shofurl ) . } . # New Zealand Sports Hall of Fame ID
+   OPTIONAL { ?person wdt:P6792  ?fnza  .  BIND( IRI(CONCAT('https://findnzartists.org.nz/en/artist/', STR(?fnza)))  AS ?fnzaurl ) .} . # Find NZ Artists ID
+   OPTIONAL { ?person wdt:P11004 ?hnzp  .  BIND( IRI(CONCAT('https://hockeynz.altiusrt.com/people/', STR(?hnzp)))  AS ?hnzpurl ) .} . # Hockey New Zealand person ID 
+   OPTIONAL { ?person wdt:P5640  ?mara  .  BIND( IRI(CONCAT('https://www.read-nz.org/writer/', STR(?mara)))  AS ?maraurl ) .} . # Read NZ Te Pou Muramura writer ID
+   OPTIONAL { ?person wdt:P5635  ?anzl  .  BIND( IRI(CONCAT('https://www.anzliterature.com/member/', STR(?anzl)))  AS ?anzlurl ) .} . # ANZL writer ID 
+   OPTIONAL { ?person wdt:P7682  ?nlnz  .  BIND( IRI(CONCAT('https://natlib.govt.nz/records/', STR(?nlnz)))  AS ?nlnzurl ) .} . # National Library of New Zealand ID
+   OPTIONAL { ?person wdt:P12985 ?anzi  .  BIND( IRI(CONCAT('https://www.anzrankings.org.nz/site/profiles_con/athlete/', STR(?anzi)))  AS ?anziurl ) .} . # Athletics New Zealand athlete ID
+   OPTIONAL { ?person wdt:P3645  ?abid  .  BIND( IRI(CONCAT('http://stats.allblacks.com/asp/profile.asp?ABID=', STR(?abid)))  AS ?abidurl ) .} . # All Blacks player ID
+   OPTIONAL { ?person wdt:P4056  ?nzoc  .  BIND( IRI(CONCAT('https://www.olympic.org.nz/athletes/', STR(?nzoc)))  AS ?nzocurl ) .} . # New Zealand Olympic Committee athlete ID  
+   OPTIONAL { ?person wdt:P10977 ?nzpi  .  BIND( IRI(CONCAT('https://paralympics.org.nz/paralympians-profiles/', STR(?nzpi)))  AS ?nzpiurl ) .} . # Paralympics New Zealand athlete ID
+   OPTIONAL { ?person wdt:P3544  ?papa  .  BIND( IRI(CONCAT('https://collections.tepapa.govt.nz/agent/', STR(?papa)))  AS ?papaurl ) .} . # Te Papa agent ID 
+   OPTIONAL { ?person wdt:P5636  ?bfid  .  BIND( IRI(CONCAT('http://stats.allblacks.com/asp/profile_bf.asp?BFID=', STR(?bfid)))  AS ?bfidurl ) .} . # Black Ferns player ID
+   OPTIONAL { ?person wdt:P9136  ?szid  .  BIND( IRI(CONCAT('https://sounz.org.nz/contributors/', STR(?szid)))  AS ?szidurl ) .} . # SOUNZ contributor ID
+   OPTIONAL { ?person wdt:P8067  ?mcid  .  BIND( IRI(CONCAT('https://collection.canterburymuseum.com/objects/', STR(?mcid)))  AS ?mcidurl ) .} . # identifier in the Macdonald Dictionary
+   OPTIONAL { ?person wdt:P6683  ?atli  .  BIND( IRI(CONCAT('https://tiaki.natlib.govt.nz/#details=ethesaurus.', STR(?atli)))  AS ?atliurl ) .} . # Alexander Turnbull Library ID 
+#   OPTIONAL { ?person wdt:P2745  ?dnzb  .  BIND( IRI(CONCAT('https://www.komako.org.nz/person/', STR(?dnzb)))  AS ?dnzburl ) .} . # Dictionary of New Zealand Biography ID 
+#   OPTIONAL { ?person wdt:P2745  ?dnzb  .  BIND( IRI(CONCAT('https://www.komako.org.nz/person/', STR(?dnzb)))  AS ?dnzburl ) .} . # Dictionary of New Zealand Biography ID 
+#   OPTIONAL { ?person wdt:P2745  ?dnzb  .  BIND( IRI(CONCAT('https://www.komako.org.nz/person/', STR(?dnzb)))  AS ?dnzburl ) .} . # Dictionary of New Zealand Biography ID 
+#   OPTIONAL { ?person wdt:P2745  ?dnzb  .  BIND( IRI(CONCAT('https://www.komako.org.nz/person/', STR(?dnzb)))  AS ?dnzburl ) .} . # Dictionary of New Zealand Biography ID 
+#   OPTIONAL { ?person wdt:P2745  ?dnzb  .  BIND( IRI(CONCAT('https://www.komako.org.nz/person/', STR(?dnzb)))  AS ?dnzburl ) .} . # Dictionary of New Zealand Biography ID 
+#   OPTIONAL { ?person wdt:P2745  ?dnzb  .  BIND( IRI(CONCAT('https://www.komako.org.nz/person/', STR(?dnzb)))  AS ?dnzburl ) .} . # Dictionary of New Zealand Biography ID 
+#   OPTIONAL { ?person wdt:P2745  ?dnzb  .  BIND( IRI(CONCAT('https://www.komako.org.nz/person/', STR(?dnzb)))  AS ?dnzburl ) .} . # Dictionary of New Zealand Biography ID 
+}
+GROUP BY ?person # ?personLabel   ?personDescription   ?personAltLabel
+   # ?komurl ?dnzburl ?shofurl ?fnzaurl ?hnzpurl ?maraurl ?anzlurl 
+   #?nlnzurl ?anziurl ?abidurl  ?nzocurl ?nzpiurl ?papaurl ?bfidurl  ?fracurl ?szidurl 
+   ?mcidurl ?atliurl
+#LIMIT 1000""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#title: Work in progress: all New Zealand people and all New Zealand attributes
+#
+SELECT DISTINCT 
+   ?person 
+   #?personLabel ?personDescription  ?personAltLabel 
+   #(GROUP_CONCAT(DISTINCT ?dob; SEPARATOR = \";\") AS ?DOBs)
+   #(GROUP_CONCAT(DISTINCT ?dod; SEPARATOR = \";\") AS ?DODs)
+   #(GROUP_CONCAT(DISTINCT ?lccnurl; SEPARATOR = \";\") AS ?LCCN_urls)
+   #(GROUP_CONCAT(DISTINCT ?viafurl; SEPARATOR = \";\") AS ?VIAF_urls)
+
+   # ?komurl ?dnzburl ?shofurl ?fnzaurl ?hnzpurl ?maraurl ?anzlurl
+   #?nlnzurl ?anziurl ?abidurl  ?nzocurl  ?nzpiurl ?papaurl ?bfidurl  ?fracurl ?szidurl 
+   ?mcidurl ?atliurl
+   WHERE {
+         
+   ?person wdt:P31 wd:Q5 . # person is a person
+   {
+      ?person wdt:P27 wd:Q664 .  # citizen of New Zealand
+    } UNION {
+      ?person wdt:P551 wd:Q664 .  # residence of New Zealand
+   } 
+     
+     
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\" }
+   #OPTIONAL { ?person wdt:P569 ?dob . } .   
+   #OPTIONAL { ?person wdt:P570 ?dod . } .   
+   #OPTIONAL { ?person wdt:P244 ?lccn .  BIND( IRI(CONCAT('https://lccn.loc.gov/', STR(?lccn)))  AS ?lccnurl ) .   } . 
+   #OPTIONAL { ?person wdt:P214 ?viaf .  BIND( IRI(CONCAT('https://viaf.org/viaf/', STR(?viaf)))  AS ?viafurl ) . } . 
+
+   OPTIONAL { ?person wdt:P12702 ?komi  .  BIND( IRI(CONCAT('https://www.komako.org.nz/person/',         STR(?komi)))  AS ?komurl  ) . } .  # Kōmako author ID
+   OPTIONAL { ?person wdt:P2745  ?dnzb  .  BIND( IRI(CONCAT('https://teara.govt.nz/en/biographies/',         STR(?dnzb)))  AS ?dnzburl ) . } . # Dictionary of New Zealand Biography ID 
+   OPTIONAL { ?person wdt:P4418  ?shof  .  BIND( IRI(CONCAT('https://www.nzhalloffame.co.nz/Inductees/', STR(?shof)))  AS ?shofurl ) . } . # New Zealand Sports Hall of Fame ID
+   OPTIONAL { ?person wdt:P6792  ?fnza  .  BIND( IRI(CONCAT('https://findnzartists.org.nz/en/artist/', STR(?fnza)))  AS ?fnzaurl ) .} . # Find NZ Artists ID
+   OPTIONAL { ?person wdt:P11004 ?hnzp  .  BIND( IRI(CONCAT('https://hockeynz.altiusrt.com/people/', STR(?hnzp)))  AS ?hnzpurl ) .} . # Hockey New Zealand person ID 
+   OPTIONAL { ?person wdt:P5640  ?mara  .  BIND( IRI(CONCAT('https://www.read-nz.org/writer/', STR(?mara)))  AS ?maraurl ) .} . # Read NZ Te Pou Muramura writer ID
+   OPTIONAL { ?person wdt:P5635  ?anzl  .  BIND( IRI(CONCAT('https://www.anzliterature.com/member/', STR(?anzl)))  AS ?anzlurl ) .} . # ANZL writer ID 
+   OPTIONAL { ?person wdt:P7682  ?nlnz  .  BIND( IRI(CONCAT('https://natlib.govt.nz/records/', STR(?nlnz)))  AS ?nlnzurl ) .} . # National Library of New Zealand ID
+   OPTIONAL { ?person wdt:P12985 ?anzi  .  BIND( IRI(CONCAT('https://www.anzrankings.org.nz/site/profiles_con/athlete/', STR(?anzi)))  AS ?anziurl ) .} . # Athletics New Zealand athlete ID
+   OPTIONAL { ?person wdt:P3645  ?abid  .  BIND( IRI(CONCAT('http://stats.allblacks.com/asp/profile.asp?ABID=', STR(?abid)))  AS ?abidurl ) .} . # All Blacks player ID
+   OPTIONAL { ?person wdt:P4056  ?nzoc  .  BIND( IRI(CONCAT('https://www.olympic.org.nz/athletes/', STR(?nzoc)))  AS ?nzocurl ) .} . # New Zealand Olympic Committee athlete ID  
+   OPTIONAL { ?person wdt:P10977 ?nzpi  .  BIND( IRI(CONCAT('https://paralympics.org.nz/paralympians-profiles/', STR(?nzpi)))  AS ?nzpiurl ) .} . # Paralympics New Zealand athlete ID
+   OPTIONAL { ?person wdt:P3544  ?papa  .  BIND( IRI(CONCAT('https://collections.tepapa.govt.nz/agent/', STR(?papa)))  AS ?papaurl ) .} . # Te Papa agent ID 
+   OPTIONAL { ?person wdt:P5636  ?bfid  .  BIND( IRI(CONCAT('http://stats.allblacks.com/asp/profile_bf.asp?BFID=', STR(?bfid)))  AS ?bfidurl ) .} . # Black Ferns player ID
+   OPTIONAL { ?person wdt:P9136  ?szid  .  BIND( IRI(CONCAT('https://sounz.org.nz/contributors/', STR(?szid)))  AS ?szidurl ) .} . # SOUNZ contributor ID
+   OPTIONAL { ?person wdt:P8067  ?mcid  .  BIND( IRI(CONCAT('https://collection.canterburymuseum.com/objects/', STR(?mcid)))  AS ?mcidurl ) .} . # identifier in the Macdonald Dictionary
+   OPTIONAL { ?person wdt:P6683  ?atli  .  BIND( IRI(CONCAT('https://tiaki.natlib.govt.nz/#details=ethesaurus.', STR(?atli)))  AS ?atliurl ) .} . # Alexander Turnbull Library ID 
+#   OPTIONAL { ?person wdt:P2745  ?dnzb  .  BIND( IRI(CONCAT('https://www.komako.org.nz/person/', STR(?dnzb)))  AS ?dnzburl ) .} . # Dictionary of New Zealand Biography ID 
+#   OPTIONAL { ?person wdt:P2745  ?dnzb  .  BIND( IRI(CONCAT('https://www.komako.org.nz/person/', STR(?dnzb)))  AS ?dnzburl ) .} . # Dictionary of New Zealand Biography ID 
+#   OPTIONAL { ?person wdt:P2745  ?dnzb  .  BIND( IRI(CONCAT('https://www.komako.org.nz/person/', STR(?dnzb)))  AS ?dnzburl ) .} . # Dictionary of New Zealand Biography ID 
+#   OPTIONAL { ?person wdt:P2745  ?dnzb  .  BIND( IRI(CONCAT('https://www.komako.org.nz/person/', STR(?dnzb)))  AS ?dnzburl ) .} . # Dictionary of New Zealand Biography ID 
+#   OPTIONAL { ?person wdt:P2745  ?dnzb  .  BIND( IRI(CONCAT('https://www.komako.org.nz/person/', STR(?dnzb)))  AS ?dnzburl ) .} . # Dictionary of New Zealand Biography ID 
+#   OPTIONAL { ?person wdt:P2745  ?dnzb  .  BIND( IRI(CONCAT('https://www.komako.org.nz/person/', STR(?dnzb)))  AS ?dnzburl ) .} . # Dictionary of New Zealand Biography ID 
+#   OPTIONAL { ?person wdt:P2745  ?dnzb  .  BIND( IRI(CONCAT('https://www.komako.org.nz/person/', STR(?dnzb)))  AS ?dnzburl ) .} . # Dictionary of New Zealand Biography ID 
+}
+GROUP BY ?person # ?personLabel   ?personDescription   ?personAltLabel
+   # ?komurl ?dnzburl ?shofurl ?fnzaurl ?hnzpurl ?maraurl ?anzlurl 
+   #?nlnzurl ?anziurl ?abidurl  ?nzocurl ?nzpiurl ?papaurl ?bfidurl  ?fracurl ?szidurl 
+   ?mcidurl ?atliurl
+#LIMIT 1000""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

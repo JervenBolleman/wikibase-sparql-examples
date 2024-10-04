@@ -4,11 +4,46 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-aa05c8e48760de8418771d346a708c01> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-aa05c8e48760de8418771d346a708c01> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/03>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2021/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """#####query to find info based on a person's QID - show each person as 1 row####
+
+SELECT DISTINCT ?item ?itemLabel (GROUP_CONCAT(DISTINCT ?givennamelabel; separator=\"|\") as ?givennames) (GROUP_CONCAT(DISTINCT ?familynamelabel; separator=\"|\") as ?familynames) (GROUP_CONCAT(DISTINCT ?birthname; separator=\"|\")as ?birthnames) (GROUP_CONCAT(DISTINCT ?genderlabel; separator=\"|\")as ?genderlabels)(GROUP_CONCAT(DISTINCT ?placeofbirthlabel; separator=\"|\")as ?placeofbirthlabels)(GROUP_CONCAT(DISTINCT ?birthdate; separator=\"|\")as ?birthdates)  (GROUP_CONCAT(DISTINCT ?deathyear; separator=\"|\")as ?deathyears)  
+
+WHERE
+{
+    ?item wdt:P31 wd:Q5 .
+
+    VALUES ?item {wd:Q13898 wd:Q616117 wd:Q24567113 wd:Q18810921 wd:Q40939}
+  
+    OPTIONAL { ?item wdt:P569 ?birthdate.}
+  
+    OPTIONAL { ?item wdt:P570 ?deathyear. }
+  
+    OPTIONAL { ?item wdt:P735 ?givenname.
+               ?givenname rdfs:label ?givennamelabel filter (lang(?givennamelabel) = \"en\").}
+
+    OPTIONAL { ?item wdt:P734 ?familyname.
+               ?familyname rdfs:label ?familynamelabel filter (lang(?familynamelabel) = \"en\").}   
+
+    OPTIONAL { ?item wdt:P1477 ?birthname. } 
+  
+    OPTIONAL { ?item wdt:P21 ?gender. 
+               ?gender rdfs:label ?genderlabel filter (lang(?genderlabel) = \"en\").}    
+
+    OPTIONAL { ?item wdt:P19 ?placeofbirth. 
+               ?placeofbirth rdfs:label ?placeofbirthlabel filter (lang(?placeofbirthlabel) = \"en\").}  
+
+    SERVICE wikibase:label { bd:serviceParam wikibase:language  
+                                \"[AUTO_LANGUAGE],en\" }
+} 
+
+GROUP BY ?item ?itemLabel ?givennameLabel ?familynameLabel ?birthnames ?genderLabel  ?placeofbirthlabels ?birthdates ?deathyears
+
+
+ORDER BY ?item"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

@@ -4,11 +4,25 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-33b1f1da2c8953996b9d9f55d0761916> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-33b1f1da2c8953996b9d9f55d0761916> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ people who were both MPs and MSPs at the same time
+SELECT DISTINCT ?person ?personLabel ?mpStart ?mpEnd ?mspStart ?mspEnd
+WHERE {
+  ?person p:P39 ?mspStatement, ?mpStatement.
+  ?mspStatement ps:P39/wdt:P279* wd:Q1711695.
+  ?mpStatement ps:P39/wdt:P279* wd:Q16707842.            # find all MSPs and MPs
+  ?mspStatement pq:P580 ?mspStart.                       # find their MSP term
+  OPTIONAL { ?mspStatement pq:P582 ?mspEnd_. }
+  BIND(COALESCE(?mspEnd_, NOW()) AS ?mspEnd)
+  ?mpStatement pq:P580 ?mpStart.                         # find their MP term
+  OPTIONAL { ?mpStatement pq:P582 ?mpEnd_. }
+  BIND(COALESCE(?mpEnd_, NOW()) AS ?mpEnd)
+  FILTER ( ?mpStart <= ?mspEnd && ?mspStart <= ?mpEnd )  # check they overlapped
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+ORDER BY ?mpStart"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

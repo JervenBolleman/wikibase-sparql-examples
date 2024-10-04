@@ -4,11 +4,28 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-6d3c80fd6d1ead9fd0d409b6645d4c34> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-6d3c80fd6d1ead9fd0d409b6645d4c34> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Zygimantus/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Zygimantus/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title:Pairs of churches in Lithuania that are within 25 metres of each other
+SELECT ?church ?churchLabel ?churchloc ?dist ?other ?otherLabel
+WHERE
+{
+  ?church wdt:P31 wd:Q16970 .                           # this thing is a church
+  ?church wdt:P17 wd:Q37 .                             # and it's in the UK
+  ?church wdt:P625 ?churchloc .                         # and it has a location
+  ?other wdt:P31 wd:Q16970 .                            # another thing is also a church
+  SERVICE wikibase:around {
+      ?other wdt:P625 ?otherloc .
+      bd:serviceParam wikibase:center ?churchloc .
+      bd:serviceParam wikibase:radius \"0.025\" .          # and is pretty much exactly on the same spot (±25m)
+  } 
+  FILTER (STR(?church) > STR(?other))                   # filter so each pair only shows up once
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+  BIND(geof:distance(?churchloc, ?otherloc) as ?dist)         
+}
+ORDER BY ?dist"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

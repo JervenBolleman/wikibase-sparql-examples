@@ -4,11 +4,28 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-e663f0a7c6f3edf8610e8416c705abf7> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-e663f0a7c6f3edf8610e8416c705abf7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Govdirectory/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_Govdirectory/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: All of Katrineholm's online accounts and if not available a direct search link
+SELECT DISTINCT ?propertyLabel ?account WHERE {
+  BIND(wd:Q508140 AS ?org) # Katrineholm Municipality
+
+  ?property wdt:P31 wd:Q105388954 ;
+            wikibase:directClaim ?wdt .
+  
+  OPTIONAL { ?property wdt:P4354 ?searchEndpoint }
+
+  OPTIONAL { ?org ?wdt ?value }
+  
+  BIND(IF((!BOUND(?value) && BOUND(?searchEndpoint)), IRI(CONCAT(SUBSTR(?searchEndpoint,1,STRLEN(?searchEndpoint)-2), ?orgLabel)), ?value) AS ?account)
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . # make sure to change the lanuage to optimize the search queries
+    ?org rdfs:label ?orgLabel .
+    ?property rdfs:label ?propertyLabel
+   }
+} ORDER BY ?property"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

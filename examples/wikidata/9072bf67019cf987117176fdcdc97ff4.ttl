@@ -4,11 +4,33 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-9072bf67019cf987117176fdcdc97ff4> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-9072bf67019cf987117176fdcdc97ff4> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/05>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2018/05>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Books or suclasses of books (NOT editions) written in a language the author, supposedly, can't write
+SELECT DISTINCT ?work ?workLabel ?year ?author ?authorLabel ?languageLabel WHERE {
+
+  #Work is an instance or any subclass of book 
+  ?work wdt:P31/wdt:P279* wd:Q571 .
+
+  #AND is not an instance of a version, translation or edition
+  MINUS { ?work wdt:P31 wd:Q3331189 } .
+
+  #Show inception date of the work if available
+  OPTIONAL { ?work wdt:P571 ?date . BIND( YEAR( ?date ) as ?year ) } .
+
+  #Get the language of the work
+  ?work wdt:P407 ?language .
+
+  #AND the author
+  ?work wdt:P50 ?author .
+
+  MINUS { ?author (wdt:P103|(p:P1412/ps:P1412))/wdt:P279* ?language } .
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

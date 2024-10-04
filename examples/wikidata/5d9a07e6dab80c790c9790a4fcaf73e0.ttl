@@ -4,11 +4,39 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-5d9a07e6dab80c790c9790a4fcaf73e0> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-5d9a07e6dab80c790c9790a4fcaf73e0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Neo-Jay/Query>, <https://www.wikidata.org/wiki/User:Neo-Jay/Query/1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ candidates in the 2020 Taiwanese legislative election
+# viewable as table, also as map
+# querying qualifiers
+SELECT ?candidate ?candidateLabel ?image ?genderLabel ?age ?representsLabel ?electoral_districtLabel ?coord ?candidate_number ?votes_received
+WHERE {
+  # ?candidate's \"candidacy in election\" (P3602) statement is ?x
+  ?candidate p:P3602 ?x.
+  # ?x's value is 2020 Taiwanese legislative election (Q60287334)
+  ?x ps:P3602 wd:Q60287334
+  # optional: show ?candidate's image (P18) as ?image
+  OPTIONAL {?candidate wdt:P18 ?image}
+  # optional: show ?candidate's gender (P21) as ?gender
+  OPTIONAL {?candidate wdt:P21 ?gender}
+  # optional: show ?x's qualifier \"stated age at event\" (P3629) as ?age
+  OPTIONAL {?x pq:P3629 ?age}
+  # optional: show ?x's qualifier \"represents\" (P1268) as ?represents
+  OPTIONAL {?x pq:P1268 ?represents}
+  # optional: show ?x's qualifier \"electoral district\" (P768) as ?electoral_district
+  OPTIONAL {?x pq:P768 ?electoral_district
+            # optional: show ?electoral_district's coordinate location (P625) as ?coord
+            OPTIONAL {?electoral_district wdt:P625 ?coord}
+            }
+  # optional: show ?x's candidate_number (P4243) as ?candidate_number
+  OPTIONAL {?x pq:P4243 ?candidate_number}
+  # optional: show ?x's votes received (P1111) as ?votes_received
+  OPTIONAL {?x pq:P1111 ?votes_received}
+  # show label in simplified Chinese (zh-hans) as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"zh-hans,en\". } 
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

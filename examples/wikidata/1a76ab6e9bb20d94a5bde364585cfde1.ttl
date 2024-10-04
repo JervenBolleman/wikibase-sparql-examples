@@ -4,11 +4,27 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-1a76ab6e9bb20d94a5bde364585cfde1> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-1a76ab6e9bb20d94a5bde364585cfde1> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Dagbani_Wikimedians/SPARQL_queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Dagbani_Wikimedians/SPARQL_queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Search for missing descriptions in a target language.
+#Example: instance of human with country of citizenship Belgium with missing Dutch description.
+
+SELECT ?item ?itemLabel ?genderLabel ?occupationLabel ?domainLabel ?positionLabel ?itemDescription WHERE {
+  ?item wdt:P31 wd:Q5.
+  ?item wdt:P27 wd:Q31.
+optional{ ?item wdt:P21 ?gender.}
+optional{ ?item wdt:P106 ?occupation.}
+optional{ ?item wdt:P101 ?domain.}
+optional{ ?item wdt:P39 ?position.}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"nl,fr,en,de,it,es,pt,no\". }
+  FILTER(NOT EXISTS {
+    ?item schema:description ?itemdesc.
+    FILTER(LANG(?itemdesc) = \"nl\")
+  })
+}
+order by ?itemLabel"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

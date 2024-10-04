@@ -4,11 +4,45 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-5b8cea750c72ba77b55117cc1aff6a81> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-5b8cea750c72ba77b55117cc1aff6a81> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Hopala!>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User_talk:Hopala!>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ SPARQL03759677
+# A lancer depuis data.idref.fr
+# Début d'une requête visant à comparer les PPN des personnes de PRELIB avec le PPN des item Wikidata équivalents.
+# D'un côté, on récupère le PPN des personnes (dont l'URI est stockée dans ?personne) sur Data For Humanities et de l'autre les items Wikidata dont les propriétés 
+# P269 (l'identifiant dans IdRef) et P5641 (PRELIB Person ID) ont été saisis. On forge l'URI de la personne PRELIB à partir de P5641 et 
+# on la lie avec ?personne
+PREFIX cidoc: <http://www.cidoc-crm.org/cidoc-crm/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+
+SELECT *
+WHERE {
+  {
+    SERVICE <https://dataforhumanities.abes.fr/sparql> {
+      SELECT ?personne ?ppn_dans_prelib {
+      GRAPH <https://dataforhumanities.org/sparql-endpoint/prelib-v1> {
+        ?personne <https://ontome.net/ns/sdh-crm-supplement/P20> ?o ;
+                  a cidoc:E21_Person .
+      }
+      FILTER (CONTAINS(str(?o), 'idref'))
+      BIND (substr(str(?o), 22, 9) AS ?ppn_dans_prelib)
+    }
+      }
+  }
+  UNION
+  {
+    SERVICE <http://query.wikidata.org/bigdata/namespace/wdq/sparql> { SELECT ?personne ?ppn_dans_wikidata {
+      ?item wdt:P5641 ?PRELIB_PERSONNE_ID ;
+            wdt:P269 ?ppn_dans_wikidata .
+      BIND (IRI(CONCAT(\"http://mshb.huma-num.fr/prelib/personne/\", ?PRELIB_PERSONNE_ID)) AS ?personne)
+    }
+    }
+  }
+} ORDER BY ?personne"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """# SPARQL03759677
 # A lancer depuis data.idref.fr

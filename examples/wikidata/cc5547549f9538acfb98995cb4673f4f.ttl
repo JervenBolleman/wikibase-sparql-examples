@@ -4,11 +4,26 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-cc5547549f9538acfb98995cb4673f4f> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-cc5547549f9538acfb98995cb4673f4f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:ExLibris-Primo>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:ExLibris-Primo>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: People accociated with a university who have no LCCN
+SELECT DISTINCT ?academic ?academicLabel ?academicDescription ?academicAltLabel ?viafurl ?orcidurl WHERE {
+   
+   ?academic wdt:P31 wd:Q5 . # academic is a person
+  
+   {
+     ?academic wdt:P69 wd:Q1150437 . #educated at Victoria University of Wellington
+   } UNION {
+     ?academic wdt:P108 wd:Q1150437 . # employed by Victoria University of Wellington
+   } 
+   
+   FILTER NOT EXISTS { ?academic wdt:P244 ?lccn . } # filter out those with an lccn
+   OPTIONAL { ?academic wdt:P214 ?viaf .  BIND( IRI(CONCAT('https://viaf.org/viaf/', STR(?viaf)))  AS ?viafurl ) . } . 
+   OPTIONAL { ?academic wdt:P496 ?orcid .  BIND( IRI(CONCAT('https://orcid.org/', STR(?orcid)))  AS ?orcidurl ) . } . 
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

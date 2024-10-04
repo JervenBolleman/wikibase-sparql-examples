@@ -4,11 +4,55 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-565accb358b8c55a07cd3cb770d29436> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-565accb358b8c55a07cd3cb770d29436> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infrastruktur/Sandbox2>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Infrastruktur/Sandbox2>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Utsagn på Wikidata med referanse fra dn.no
+SELECT ?statement ?subject ?subjectLabel ?property ?propertyLabel ?object ?objectLabel ?refURL
+WITH {
+  SELECT DISTINCT ?subject
+  WHERE {
+    {
+      SERVICE wikibase:mwapi {
+        bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+          wikibase:api \"Generator\";
+          mwapi:generator \"exturlusage\";
+          mwapi:geulimit \"500\";
+          mwapi:geuquery \"*.dn.no\";
+          mwapi:geuprotocol \"http\";
+          mwapi:geunamespace \"0\" .
+        ?subject wikibase:apiOutputItem mwapi:title.
+      }
+    } UNION {
+      SERVICE wikibase:mwapi {
+        bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+          wikibase:api \"Generator\";
+          mwapi:generator \"exturlusage\";
+          mwapi:geulimit \"500\";
+          mwapi:geuquery \"*.dn.no\";
+          mwapi:geuprotocol \"https\";
+          mwapi:geunamespace \"0\" .
+        ?subject wikibase:apiOutputItem mwapi:title.
+      }
+    }
+  }
+} AS %i
+WHERE {
+  INCLUDE %i .
+  
+  hint:Query hint:optimizer \"None\".
+  
+  ?subject ?p ?statement .
+  ?statement prov:wasDerivedFrom/pr:P854 ?refURL .
+  FILTER (CONTAINS(str(?refURL), 'dn.no')) .
+  
+  ?property wikibase:claim ?p .
+  ?property wikibase:statementProperty ?ps .
+  ?statement ?ps ?object .
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

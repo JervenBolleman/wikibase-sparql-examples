@@ -4,11 +4,45 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-fb19036b138027da33276ee2def193a1> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-fb19036b138027da33276ee2def193a1> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:GLAM/Koninklijke_Bibliotheek_Nederland/maintained_by>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:GLAM/Koninklijke_Bibliotheek_Nederland/maintained_by>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Wikiprojects maintained by the KB
+SELECT ?project 
+?projectLabelEN 
+?projectLabelNL 
+?WDprojectpage ?projectbanner 
+(GROUP_CONCAT(DISTINCT ?subjectLabelEN ; separator = \" **** \") as ?projectAboutEN) 
+(GROUP_CONCAT(DISTINCT ?subjectLabelNL ; separator = \" **** \") as ?projectAboutNL)
+?projectTopicMainCat ?projectTopicMainCatLabelEN
+#?commonscat 
+?commonscatURL 
+?WPNLurl
+WHERE 
+{
+  ?project wdt:P31 wd:Q16695773; wdt:P126 wd:Q1526131.
+  OPTIONAL {?project wdt:P18 ?projectbanner.}
+  OPTIONAL {?project rdfs:label ?projectLabelEN FILTER(LANG(?projectLabelEN)='en').}
+  OPTIONAL {?project rdfs:label ?projectLabelNL FILTER(LANG(?projectLabelNL)='nl').}
+  OPTIONAL {?WDprojectpage schema:about ?project .
+     ?WDprojectpage schema:isPartOf <https://www.wikidata.org/>.}  
+ 
+  OPTIONAL {?project wdt:P921 ?subject.
+     ?subject rdfs:label ?subjectLabelEN. FILTER(LANG(?subjectLabelEN)='en').}
+  OPTIONAL {?project wdt:P921 ?subject.
+     ?subject rdfs:label ?subjectLabelNL. FILTER(LANG(?subjectLabelNL)='nl')}
+  
+  OPTIONAL {?project wdt:P910 ?projectTopicMainCat.
+     ?projectTopicMainCat rdfs:label ?projectTopicMainCatLabelEN. FILTER(LANG(?projectTopicMainCatLabelEN)='en').
+     ?commonscatURL schema:about ?projectTopicMainCat .
+     ?commonscatURL schema:isPartOf <https://commons.wikimedia.org/>.}
+  
+   OPTIONAL {?project wdt:P910 ?projectTopicMainCat2.
+     ?WPNLurl schema:about ?projectTopicMainCat2 .
+     ?WPNLurl schema:isPartOf <https://nl.wikipedia.org/>.}
+
+} GROUP BY ?project  ?projectLabelEN ?projectLabelNL ?WDprojectpage ?projectbanner ?projectTopicMainCat ?projectTopicMainCatLabelEN ?commonscatURL ?WPNLurl #?commonscat"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>

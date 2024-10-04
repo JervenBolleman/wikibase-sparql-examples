@@ -4,11 +4,30 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-1b60181c8ad4bcf6ab273f6f87469910> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-1b60181c8ad4bcf6ab273f6f87469910> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:No39188>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:No39188>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: Beatles Lieder
+SELECT ?page_title ?article (GROUP_CONCAT(DISTINCT ?komponist; SEPARATOR = \", \") AS ?komponisten) ?jahr ?album ?item WHERE {
+  ?item wdt:P31 wd:Q105543609;
+    wdt:P175 wd:Q1299;
+    wdt:P407 wd:Q1860.
+  ?article schema:about ?item;
+    schema:isPartOf <https://de.wikipedia.org/>;
+    schema:name ?page_title.
+  OPTIONAL { ?item wdt:P577 ?year. }
+  OPTIONAL { ?item wdt:P86 ?composer. }
+  OPTIONAL { ?item wdt:P361 ?part_of. }
+  BIND(YEAR(?year) AS ?jahr)
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?composer rdfs:label ?komponist.
+    ?part_of rdfs:label ?album.
+  }
+}
+GROUP BY ?page_title ?article ?jahr ?album ?item
+ORDER BY (?jahr) (?album)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

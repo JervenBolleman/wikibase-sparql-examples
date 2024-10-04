@@ -4,11 +4,45 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-8675a8638123485d5d5d497e0e08245e> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-8675a8638123485d5d5d497e0e08245e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Charles_Matthews/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Charles_Matthews/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Edinburgh U.-educated women by birth-place
+SELECT ?person ?personLabel 
+(SAMPLE(?birth_date) as ?birth_date) 
+(SAMPLE(?death_date ) as ?death_date ) 
+(SAMPLE(?birth_place_label ) as ?birth_place_label ) 
+(SAMPLE(?birth_place_coords ) as ?birth_place_coords ) 
+(SAMPLE(?image ) as ?image ) 
+(SAMPLE(?country ) as ?country) 
+(COUNT(?article) as ?rank)
+WHERE 
+{	 
+  	?person wdt:P69 wd:Q160302 .
+	?person wdt:P31 wd:Q5 .
+  	?person wdt:P21 wd:Q6581072 .
+
+    OPTIONAL {?person wdt:P18 ?image }
+  	OPTIONAL {?person wdt:P18 ?image }
+	OPTIONAL {?person wdt:P569 ?birth_date }
+  	OPTIONAL {?person wdt:P27 ?countryItem .
+              ?countryItem rdfs:label ?country filter (lang(?country) = \"en\")
+         }
+	OPTIONAL {
+             ?person wdt:P19 ?birth_place . 
+             ?birth_place wdt:P625 ?birth_place_coords .
+             ?birth_place rdfs:label ?birth_place_label filter ( lang(?birth_place_label) = \"en\" )
+         }
+	OPTIONAL {?person wdt:P570 ?death_date } 
+    OPTIONAL {?article schema:about ?person}     
+  
+ SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\" }
+}
+
+ 
+GROUP BY ?person ?personLabel
+ORDER BY DESC(?rank)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

@@ -4,11 +4,34 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-d74a29e0f8c37bf7ded62e6ee48350da> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-d74a29e0f8c37bf7ded62e6ee48350da> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:No39188/mehrQueries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:No39188/mehrQueries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: Deutsche Unternehmen
+SELECT ?name (GROUP_CONCAT(DISTINCT ?klasse; SEPARATOR = \", \") AS ?art) (GROUP_CONCAT(DISTINCT ?sitz; SEPARATOR = \", \") AS ?sitze) ?mutter ?article ?gegründet ?item WHERE {
+  ?item (wdt:P31/(wdt:p279*)) wd:Q6881511;
+    wdt:P17 wd:Q183;
+    wdt:P31 ?io.
+  OPTIONAL { ?item wdt:P749 ?ueo. }
+  OPTIONAL { ?item wdt:P159 ?hv. }
+  OPTIONAL { ?item wdt:P571 ?gegründet. }
+  OPTIONAL {
+    ?article schema:about ?item;
+      schema:isPartOf <https://de.wikipedia.org/>;
+      schema:name ?page_title.
+  }
+  BIND(IF(BOUND(?page_title), ?page_title, ?label) AS ?name)
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?item rdfs:label ?label.
+    ?io rdfs:label ?klasse.
+    ?hv rdfs:label ?sitz.
+    ?ueo rdfs:label ?mutter.
+  }
+}
+GROUP BY ?item ?name ?mutter ?article ?gegründet
+ORDER BY (?name)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

@@ -4,11 +4,35 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-2425e182514018aeae52dd5f6dc2610c> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-2425e182514018aeae52dd5f6dc2610c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Informatics/Software/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_Informatics/Software/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: Authors of works that use software
+SELECT DISTINCT ?author ?authorLabel  ?count
+WITH {
+  SELECT DISTINCT ?work WHERE {
+    ?work wdt:P4510 ?use .  
+    ?use wdt:P1324 [] .
+  }
+}
+AS %papers
+WITH {
+  SELECT ?author (COUNT(DISTINCT ?work) AS ?count)  WHERE {
+    INCLUDE %papers
+    ?work wdt:P50 ?author .
+  }
+  GROUP BY ?author
+  HAVING ( ?count > 10)
+}
+AS %authors
+WHERE {
+  INCLUDE %authors 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?author ?authorLabel ?count
+ORDER BY DESC(?count)
+LIMIT 200"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

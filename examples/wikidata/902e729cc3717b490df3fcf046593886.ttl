@@ -4,11 +4,35 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-902e729cc3717b490df3fcf046593886> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-902e729cc3717b490df3fcf046593886> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Seb35>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Seb35>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Députés français de la XVIe législature
+#SELECT ?depute ?deputeNom ?circonscriptionNom ?dateDebutMandat ?dateFinMandat ?dateNaissance ?groupeParlementaireNom (SAMPLE(?photo) AS ?photographie) ?article
+SELECT ?depute ?deputeNom ?circonscriptionNom ?dateDebutMandat ?dateFinMandat ?dateNaissance ?groupeParlementaireNom
+WHERE {
+  ?depute wdt:P39 wd:Q3044918 .
+  ?depute p:P39 ?mandat .
+  ?mandat pq:P2937 wd:Q112567597 .
+  ?mandat pq:P580 ?dateDebutMandat .
+  OPTIONAL { ?depute rdfs:label ?deputeNom . FILTER( LANG(?deputeNom) = \"fr\" ) } .
+  OPTIONAL { ?depute wdt:P734 ?nomFamille . ?nomFamille rdfs:label ?nomFamilleNom . FILTER( LANG(?nomFamilleNom) = \"fr\" ) } .
+  OPTIONAL { ?mandat pq:P582 ?dateFinMandat } .
+  #FILTER NOT EXISTS { ?mandat pq:P582 ?dateFinMandat } . # Décommenter pour avoir les mandats en cours (c-à-d sans date de fin)
+  #?mandat pq:P582 ?dateFinMandat . # Décommenter pour avoir les mandats terminés (c-à-d avec une date de fin)
+  #FILTER( ?dateDebutMandat != \"2017-06-21\"^^xsd:dateTime ) . # Décommenter pour avoir les mandats commencés après le 21 juin 2017
+  OPTIONAL { ?mandat pq:P768 ?circonscription . ?circonscription rdfs:label ?circonscriptionNom . FILTER( LANG(?circonscriptionNom) = \"fr\" ) } .
+  OPTIONAL { ?depute wdt:P569 ?dateNaissance } .
+  OPTIONAL { ?mandat pq:P1365 ?remplace } .
+  OPTIONAL { ?mandat pq:P1366 ?remplacepar } .
+  OPTIONAL { ?mandat pq:P4100 ?groupeParlementaire . ?groupeParlementaire rdfs:label ?groupeParlementaireNom . FILTER( LANG(?groupeParlementaireNom) = \"fr\" ) } .
+  #OPTIONAL { ?depute wdt:P18 ?photo } .
+  OPTIONAL { ?article schema:about ?depute; schema:isPartOf <https://fr.wikipedia.org/> } .
+  BIND( REPLACE( UCASE( REPLACE( ?nomFamilleNom, \"^de \", \"\" ) ), \"É\", \"E\" ) AS ?nom ) .
+}
+#GROUP BY ?depute ?deputeNom ?circonscriptionNom ?dateDebutMandat ?dateFinMandat ?dateNaissance ?groupeParlementaireNom ?article
+ORDER BY ?dateFinMandat ?dateDebutMandat ?nom"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

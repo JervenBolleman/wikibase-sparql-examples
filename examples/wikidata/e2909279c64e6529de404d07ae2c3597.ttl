@@ -4,11 +4,30 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-e2909279c64e6529de404d07ae2c3597> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-e2909279c64e6529de404d07ae2c3597> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/10>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2018/10>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Version 2 - using filters
+select ?item ?itemLabel ?pit ?value 
+  WHERE 
+  {
+    values ?item {wd:Q84}
+
+    ?item p:P1082 ?statement.     # this block finds a ?pit / ?value combination
+    ?statement ps:P1082 ?value.
+    ?statement pq:P585 ?pit.
+
+    filter not exists {          # this block finds another ?pit / ?value combination
+      ?item p:P1082 ?statement2.
+      ?statement2 ps:P1082 ?value2.
+      ?statement2 pq:P585 ?pit2.
+      filter (str(?statement) != str(?statement2))
+      filter (?pit2>?pit) }     # and the filter checks that there is not a more recent 
+                                # point in time (?pit2) than the selected ?pit 
+
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>

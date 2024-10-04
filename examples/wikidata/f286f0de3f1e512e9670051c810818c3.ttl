@@ -4,11 +4,33 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-f286f0de3f1e512e9670051c810818c3> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-f286f0de3f1e512e9670051c810818c3> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_France/Liste_des_r%C3%A9gions>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_France/Liste_des_r%C3%A9gions>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Au 28 septembre 1973, il y a 26 régions.
+SELECT DISTINCT ?inseeRégion ?région ?nom WHERE {
+  BIND ( \"1973-09-28\"^^xsd:dateTime as ?dateRecherche ) 
+ 
+   ?région p:P2585 ?P2585node . # existence d'un code Insee
+    ?P2585node ps:P2585 ?inseeRégion . # valeur du code Insee
+    OPTIONAL { ?région wdt:P571 ?dateCréation . } # date de création
+    OPTIONAL { ?région wdt:P576 ?dateDissolution . } # date de dissolution
+  
+   ?région p:P1448 ?P1448node . # existence d'un nom
+    ?P1448node ps:P1448 ?nom . # valeur du nom
+    FILTER( lang(?nom)=\"fr\" ). # nom en français
+    MINUS { ?P1448node pq:P3831 wd:Q96406455 . } # nom long
+    MINUS { ?P1448node pq:P2241 ?dépréciationNom . } # nom erroné
+    OPTIONAL { ?P1448node pq:P580 ?dateDébutNom . } # date de début du nom
+    OPTIONAL { ?P1448node pq:P582 ?dateFinNom . } # date de fin du nom 
+
+    FILTER ( !BOUND(?dateCréation) || ?dateCréation <= ?dateRecherche ) # ancienne région
+    FILTER ( !BOUND(?dateDissolution) || ?dateDissolution > ?dateRecherche ) # future région 
+    FILTER ( !BOUND(?dateDébutNom) || ?dateDébutNom <= ?dateRecherche ) # ancien nom
+    FILTER ( !BOUND(?dateFinNom) || ?dateFinNom > ?dateRecherche ) # futur nom   
+}
+ORDER BY ?inseeRégion"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

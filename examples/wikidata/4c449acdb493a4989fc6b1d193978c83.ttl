@@ -4,11 +4,21 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-4c449acdb493a4989fc6b1d193978c83> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-4c449acdb493a4989fc6b1d193978c83> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_France/Communes/Liste_des_communes>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_France/Communes/Liste_des_communes>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Au 1er janvier 2016, il y avait 35 885 communes en France.
+SELECT ?commune 
+WHERE {
+  BIND ( \"2016-01-01\"^^xsd:dateTime as ?dateRecherche ) # Au 1er janvier 2016
+  { ?commune wdt:P31 wd:Q484170 . } UNION { VALUES ?commune {wd:Q90} } # nature de commune
+    OPTIONAL { ?commune wdt:P571 ?dateCréation . } # date de création
+    OPTIONAL { ?commune wdt:P576 ?dateDissolution . } # date de dissolution
+    FILTER ( !BOUND(?dateCréation) || ?dateCréation <= ?dateRecherche ) # communes futures
+    FILTER ( !BOUND(?dateDissolution) || ?dateDissolution > ?dateRecherche ) # communes passées
+}
+ORDER BY (?commune)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

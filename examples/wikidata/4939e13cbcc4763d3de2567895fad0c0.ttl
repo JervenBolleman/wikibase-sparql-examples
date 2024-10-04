@@ -4,11 +4,150 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-4939e13cbcc4763d3de2567895fad0c0> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-4939e13cbcc4763d3de2567895fad0c0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Neo-Jay/Query>, <https://www.wikidata.org/wiki/User:Neo-Jay/Query/1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ table of world Go competitions and champions (also viewable as map and image grid)
+## 1). variables after SELECT DISTINCT can be replaced with \"x y\", in which
+## x can be ?countryLabel or ?start_yearLabel or ?end_yearLabel or ?seriesLabel and
+## y can be \"(COUNT(DISTINCT ?competition) AS ?champion)\" or \"(AVG(?win_age) AS ?AVG_win_age)\" or \"(AVG(?pro_age) AS ?AVG_pro_age)\", and
+## the query can be viewed as table, bar chart, line chart, area chart, and bubble chart;
+## 2). variables after SELECT DISTINCT can be replaced with
+## \"?seriesLabel (YEAR(MAX(?end))-YEAR(MIN(?start))+1 AS ?series_years) (MIN(?start) AS ?MIN_start) (MAX(?end) AS ?MAX_end)\"
+### Note: Using YEAR(\"MAX|MIN\"()), not \"MAX|MIN\"(YEAR()), to avoid null value and reduce calculation amount.
+## to query ?series's life years (minimum value 1) and start/end time, and
+## the query can be viewed as table, bar chart, line chart, area chart, bubble chart, and timeline;
+## 3). variables after SELECT DISTINCT can be replaced with \"?endLabel ?series ?series_string ?countryLabel\",
+## viewed as scatter chart (also viewable as table);
+## 4). variables after SELECT DISTINCT can be replaced with
+## \"?winnerLabel (COUNT(DISTINCT ?competition) AS ?champion) (YEAR(MAX(?end))-YEAR(MIN(?end))+1 AS ?win_years) (AVG(?win_age) AS ?AVG_win_age)
+## (MIN(?end) AS ?1st_win) (MAX(?end) AS ?last_win)\"
+### Note: The 2nd variable (Y-axis in bar/line/area chart; size in bubble chart) can be replaced with
+### (YEAR(MAX(?end))-YEAR(MIN(?end))+1 AS ?win_years) or (AVG(?win_age) AS ?AVG_win_age).
+## to query ?winner's champion number, win years (minimum value 1), average win age, and first/last win time, and
+## the query can be viewed as table, bar chart, line chart, area chart, bubble chart, and timeline
+SELECT DISTINCT ?competition ?competitionLabel ?seriesLabel ?edition ?start ?end ?participants ?winner ?winnerLabel ?image ?surnameLabel
+                ?win_age ?pro_age ?birth_placeLabel ?coord ?countryLabel
+WHERE {
+  # ?competition is instance of (P31) ?series
+  {?competition wdt:P31 ?series.
+   # ?series is instance of (P31) \"subclass of (P279)\" [ZeroOrMorePath (*)] recurring sporting event (Q18608583)
+   ?series wdt:P31/wdt:P279* wd:Q18608583}
+  # OR ?competition's sports season of league or competition (P3450) is ?series
+  UNION {?competition wdt:P3450 ?series}
+  # ?series's \"instance of\" (P31) statement is ?x_worldGo
+  {?series p:P31 ?x_worldGo.
+   # ?x_worldGo's value is ?worldGo
+   ?x_worldGo ps:P31 ?worldGo}
+  # OR ?series's \"subclass of\" (P279) statement is ?x_worldGo
+  UNION {?series p:P279 ?x_worldGo.
+         # ?x_worldGo's value is ?worldGo
+         ?x_worldGo ps:P279 ?worldGo}
+  # ?worldGo is subclass of (P279) [ZeroOrMorePath (*)] world Go competition (Q10869075)
+  ?worldGo wdt:P279* wd:Q10869075
+  # ?competition should not have competition class (P2094) that is subclass of (P279) [ZeroOrMorePath (*)] ?not
+  ### Note: Ideally, wdt:P2094/wdt:P279* should be wdt:P2094/(wdt:P2094|wdt:P279)* to cover more possible paths,
+  ### but wdt:P2094/(wdt:P2094|wdt:P279)* causes server error and has to be replaced with a less ideal one.
+  FILTER NOT EXISTS {?competition wdt:P2094/wdt:P279* ?not
+                     # define ?not as women's sports (Q920057) or team sport (Q216048)
+                     # or amateur sports (Q15991269) or youth sports (Q599867) or senior sport (Q1395783)
+                     ### Note: VALUES has to be inside, not outside, of FILTER.
+                     VALUES ?not {wd:Q920057 wd:Q216048 wd:Q15991269 wd:Q599867 wd:Q1395783} }
+  # ?competition should not have number of participants (P1132) that (?a) is less than 9
+  # so that ?competition either has number of participants (P1132) more than 8
+  # or does not have number of participants (P1132)
+  FILTER NOT EXISTS {?competition wdt:P1132 ?a FILTER(?a<9)}
+  # ?competition's start time should be the same as or later than ?series's start time to be world Go competition
+  # (so that the first 2 editions of Tongyang Cup (Q1049397) can be excluded), i.e.,
+  # NOT EXISTS: 1. ?x_worldGo has qualifier \"start time\" (P580), ?start1, and
+  FILTER NOT EXISTS {?x_worldGo pq:P580 ?start1.
+                     # 2. ?competition has start time (P580), ?start2, and
+                     ### Note: If this line is removed, and ?start2 is replaced with ?start in the next line,
+                     ### then ?competition without start time (P580) will also be excluded.
+                     ?competition wdt:P580 ?start2
+                     # 3. ?start2 is earlier than ?start1
+                     FILTER (?start2 < ?start1)}
+  # optional: show ?competition's edition number (P393) as ?edition
+  OPTIONAL {?competition wdt:P393 ?edition}
+  # optional: show ?competition's start time (P580) as ?start
+  OPTIONAL {?competition wdt:P580 ?start
+            # bind ?start's year as ?start_year
+            BIND(YEAR(?start) AS ?start_year) }
+  # optional: show ?competition's end time (P582) as ?end
+  OPTIONAL {?competition wdt:P582 ?end
+            # bind ?end's year as ?end_year
+            BIND(YEAR(?end) AS ?end_year) }
+  # optional: show ?competition's number of participants (P1132) as ?participants
+  OPTIONAL {?competition wdt:P1132 ?participants}
+  # optional: ?competition's \"winner\" (P1346) statement is ?x_winner
+  OPTIONAL {?competition p:P1346 ?x_winner.
+            # ?x_winner's value is ?winner
+            ?x_winner ps:P1346 ?winner
+            # optional: show ?winner's image (P18) as ?image
+            OPTIONAL {?winner wdt:P18 ?image}
+            # optional: show ?winner's family name (P734) as ?surname
+            OPTIONAL {?winner wdt:P734 ?surname}
+            # optional: show ?x_winner's s qualifier \"age at event\" (P3629) as ?win_age
+            OPTIONAL {?x_winner pq:P3629 ?win_age}
+            # optional: ?winner's \"occupation\" (P106) statement is ?x_pro
+            OPTIONAL {?winner p:P106 ?x_pro.
+                      # ?x_pro's value is subclass of (P279) [ZeroOrMorePath (*)] Go professional (Q3186699)
+                      ?x_pro ps:P106/wdt:P279* wd:Q3186699
+                      # optional: ?x_pro's qualifier \"start time\" (P580) is ?pro_start
+                      OPTIONAL {?x_pro pq:P580 ?pro_start} }
+            # optional: ?winner's birth date (P569) is ?birth_date
+            OPTIONAL {?winner wdt:P569 ?birth_date}
+            # use IF to calculate the age when ?winner turned pro, and bind the age as ?pro_age
+            BIND(IF(MONTH(?pro_start)>MONTH(?birth_date) || (MONTH(?pro_start)=MONTH(?birth_date) && DAY(?pro_start)>=DAY(?birth_date)),
+                    YEAR(?pro_start)-YEAR(?birth_date), YEAR(?pro_start)-YEAR(?birth_date)-1) AS ?pro_age)
+            # optional: show ?winner's birth place (P19) as ?birth_place
+            OPTIONAL {?winner wdt:P19 ?birth_place
+                      # optional: show birth_place's coordinate location (P625) as ?coord
+                      OPTIONAL {?birth_place wdt:P625 ?coord} }
+            # optional: ?x_winner's qualifier \"country for sport\" (P1532) is ?country1
+            OPTIONAL {?x_winner pq:P1532 ?country1}
+            # optional: ?winner's country for sport (P1532) is ?country2
+            OPTIONAL {?winner wdt:P1532 ?country2}
+            # use IF and Exists to bind ?country1 or ?country2 as ?country:
+            # if ?x_winner's qualifier \"country for sport\" (P1532), ?country1, exists, bind ?country1 as ?country
+            # otherwise (?country1 doesn't exist), bind ?country2 as ?country
+            BIND(IF(Exists{?x_winner pq:P1532 ?country1}, ?country1, ?country2) AS ?country) }
+  # optional: ?x_worldGo's qualifier \"start time\" (P580) is ?inception1
+  ### Note: Removing this line causes server error.
+  OPTIONAL {?x_worldGo pq:P580 ?inception1}
+  # optional: ?series's inception (P571) is ?inception2
+  OPTIONAL {?series wdt:P571 ?inception2}
+  # use IF and EXISTS to bind ?inception1 or ?inception2 as ?inception:
+  # if ?x_worldGo's qualifier \"start time\" (P580), ?inception1, exists, bind ?inception1 as ?inception
+  # otherwise (?inception1 doesn't exist), bind ?inception2 as ?inception
+  BIND(IF(EXISTS{?x_worldGo pq:P580 ?inception1}, ?inception1, ?inception2) AS ?inception)
+  # optional: ?inception_date's point in time (P585) is ?inception
+  OPTIONAL {?inception_date wdt:P585 ?inception
+            # ?inception_date is instance of (P31) \"subclass of (P279)\" [ZeroOrMorePath (*)] calendar day of a given year (Q47150325)
+            ### Note: Removing FILTER(EXISTS{}) and directly using \"?inception_date wdt:P31/wdt:P279* wd:Q47150325\",
+            ### although legitimate, causes server error, for unknown reason.
+            FILTER(EXISTS{?inception_date wdt:P31/wdt:P279* wd:Q47150325})
+            # optional: ?inception_date's \"short name\" (P1813) statement is ?x_inception_shortname
+            OPTIONAL {?inception_date p:P1813 ?x_inception_shortname.
+                      # ?x_inception_shortname's value is ?inception_shortname
+                      ?x_inception_shortname ps:P1813 ?inception_shortname;
+                                             # x_inception_shortname's qualifier \"determination method\" (P459) is  ISO 8601 basic format (Q97462483)
+                                             pq:P459 wd:Q97462483} }
+  # optional: ?series's \"short name\" (P1813) statement is ?x_series_shortname
+  OPTIONAL {?series p:P1813 ?x_series_shortname.
+            # ?x_series_shortname's value is ?series_shortname
+            ?x_series_shortname ps:P1813 ?series_shortname;
+                                # ?x_series_shortname's qualifier \"language of work or name\" (P407) is English (Q1860)
+                                pq:P407 wd:Q1860}
+  # concatenate ?inception_shortname, a space, and ?series_shortname as ?series_string
+  BIND(CONCAT(?inception_shortname, \" \", ?series_shortname) as ?series_string)
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+## 1). when using \"x y\" after SELECT DISTINCT, add \"GROUP BY x\" below;
+## 2). when using \"?seriesLabel...\" after SELECT DISTINCT, add \"GROUP BY ?seriesLabel\" below;
+## 4). when using \"?winnerLabel...\" after SELECT DISTINCT, add \"GROUP BY ?winnerLabel\" below"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

@@ -4,11 +4,41 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-f4d03c33f4e98efd550484041d24b285> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-f4d03c33f4e98efd550484041d24b285> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/ambassadors>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_British_Politicians/ambassadors>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Wikidata entries for British ambassadors and high commissioners
+# showing the number of those who have been deceased more than three years (=eligible for ODNB coverage)
+# and the proportion of those in the ODNB, a first-order approximation of \"historical significance\"
+# it is filtered so there must be ten or more deceased holders of a post (otherwise ones with low matching rates dominate)
+# bear in mind that Wikidata does not have *complete* matching to many of these posts yet so percentages may drop
+
+select distinct ?item ?itemLabel ?number_of_deceased_holders ?percent_odnb where
+{
+  { ?item wdt:P31 wd:Q18115939 . } union { ?item wdt:P31 wd:Q56760832 } . # ambassador or high commissioner
+  
+   { select distinct ?item (count(distinct ?holder) as ?number_of_deceased_holders) 
+             where
+                    {
+                      { ?item wdt:P31 wd:Q18115939 . } union { ?item wdt:P31 wd:Q56760832 } .
+                      ?holder p:P39 ?positionStatement . ?positionStatement ps:P39 ?item . 
+                      ?holder wdt:P570 ?died . FILTER (?died < \"2015-01-01T00:00:00Z\"^^xsd:dateTime) .
+                      # ie this person died before 1/1/2015 and so is theoretically ODNB-eligible
+                    } group by ?item
+            }
+  { select distinct ?item (count(distinct ?holder) as ?odnbcount) 
+             where
+                    {
+                      { ?item wdt:P31 wd:Q18115939 . } union { ?item wdt:P31 wd:Q56760832 } .
+                      ?holder p:P39 ?positionStatement . ?positionStatement ps:P39 ?item . 
+                      ?holder wdt:P1415 ?odnb .
+                    } group by ?item
+            }
+  filter(?number_of_deceased_holders >= 10)
+  BIND(ROUND(100*(?odnbcount/?number_of_deceased_holders)) as ?percent_odnb) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} order by desc(?percent_odnb) desc(?number_of_deceased_holders)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

@@ -4,11 +4,27 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-03163d4a4694a483dd43380606e934b3> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-03163d4a4694a483dd43380606e934b3> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Dirac>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Dirac>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Search for missing descriptions in a target language and match with description string
+SELECT DISTINCT ?item ?itemLabel ?itemDescription WHERE {
+  ?item wdt:P31 wd:Q16521.  # instance of human
+  ?item wdt:P105 wd:Q7432.
+  ?item wdt:P171* wd:Q10811.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en, fr\". }
+
+  ?item schema:description ?itemdesc2.
+  FILTER(CONTAINS(?itemdesc2, \"species of reptile\")).
+  
+  FILTER(NOT EXISTS {
+    ?item schema:description ?itemdesc.
+    FILTER(LANG(?itemdesc) = \"fr\") # with missing French description    
+  }).
+
+}
+order by ?itemLabel"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

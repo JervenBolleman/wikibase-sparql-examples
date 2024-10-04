@@ -4,11 +4,30 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-4227d67a3cd8d16f79f41104de4a342c> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-4227d67a3cd8d16f79f41104de4a342c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/08>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2020/08>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ i. avg. branching factor of class tree (width)
+
+SELECT (AVG(?width) as ?avg_width_of_class_tree)  (MIN(?width) as ?min)  (MAX(?width) as ?max)
+{
+  SELECT ?depth (COUNT(?item) as ?width)
+  WHERE
+  {
+  SERVICE gas:service {
+    gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.SSSP\" ;
+                gas:in wd:Q181388 ;
+                gas:traversalDirection \"Reverse\" ;
+                gas:out ?item ;
+                gas:out1 ?depth ;
+                gas:maxIterations 100 ;
+                gas:linkType wdt:P279 .
+  }
+  ?item wdt:P279* wd:Q181388  
+  }
+  GROUP BY ?depth
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX gas: <http://www.bigdata.com/rdf/gas#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

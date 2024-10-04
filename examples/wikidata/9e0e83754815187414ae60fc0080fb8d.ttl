@@ -4,11 +4,23 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-9e0e83754815187414ae60fc0080fb8d> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-9e0e83754815187414ae60fc0080fb8d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Poland/Maintenance_Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_Poland/Maintenance_Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ description checker for gminas
+SELECT DISTINCT ?item ?itemLabel ?itemDescription ?gminaLabel ?wojLabel WHERE {
+  # get instance of any gmina wiejska, miejsko-wiejska
+  {?item wdt:P31 wd:Q3504085 .} UNION { ?item wdt:P31 wd:Q3491915 . }
+  ?item wdt:P31 ?gmina .
+  ?item wdt:P131 ?powiat . ?powiat wdt:P131 ?woj .
+  # from Poland
+  ?item wdt:P131* wd:Q36 .
+  # where instance of has no end time
+  MINUS { ?item p:P31 [ pq:P580 ?end_time ] } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"pl\". }
+}
+ORDER BY ?itemLabel"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

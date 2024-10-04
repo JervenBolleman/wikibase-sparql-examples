@@ -4,11 +4,36 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-def8973fc820c1d1da0bad5005aa812c> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-def8973fc820c1d1da0bad5005aa812c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Charles_Matthews/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Charles_Matthews/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Andrew Gray, version of the above,  includes the MPs who were the first of their given name 
+SELECT ?givenName ?givenNameLabel ?firstDate ?mp ?mpLabel WITH {
+  SELECT ?givenName (MIN(?date) AS ?firstDate) WHERE {
+    { ?mpStatement ps:P39/wdt:P279? wd:Q16707842. } UNION
+    { ?mpStatement ps:P39/wdt:P279? wd:Q18015642. } UNION
+    { ?mpStatement ps:P39/wdt:P279? wd:Q18018860. }
+    ?mpStatement pq:P580 ?date.
+    ?mp p:P39 ?mpStatement;
+        wdt:P735 ?givenName.
+  }
+  GROUP BY ?givenName
+} AS %givenNames WITH {
+  SELECT DISTINCT ?givenName ?firstDate ?mp WHERE {
+    INCLUDE %givenNames.
+    ?mpStatement pq:P580 ?firstDate.
+    { ?mpStatement ps:P39/wdt:P279? wd:Q16707842. } UNION
+    { ?mpStatement ps:P39/wdt:P279? wd:Q18015642. } UNION
+    { ?mpStatement ps:P39/wdt:P279? wd:Q18018860. }
+    ?mp p:P39 ?mpStatement;
+        wdt:P735 ?givenName.
+  }
+} AS %mps WHERE {
+  INCLUDE %mps.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?firstDate ?givenNameLabel"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

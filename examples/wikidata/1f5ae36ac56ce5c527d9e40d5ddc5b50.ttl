@@ -4,11 +4,28 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-1f5ae36ac56ce5c527d9e40d5ddc5b50> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-1f5ae36ac56ce5c527d9e40d5ddc5b50> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/10>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2017/10>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Script #2
+SELECT
+      (GROUP_CONCAT(DISTINCT     ?dateYear ; separator = \", \") AS     ?dateYears)
+      WHERE {
+        # types of item
+              {?game wdt:P136 wd:Q744038}   # regular RPGs
+        UNION {?game wdt:P136 wd:Q1529437}  # tactical RPGs
+        UNION {?game wdt:P136 wd:Q1422746}  # action RPGs
+        UNION {?game wdt:P136 wd:Q1143132}  # roguelikes
+        #?game wdt:P136/wdt:P279* wd:Q744038.	# any class or subclass of role-playing video game, including MMORPGs
+        ?game wdt:P31 wd:Q7889.             # instance of video game
+
+        # release date (simple)
+        OPTIONAL {?game wdt:P577 ?date BIND(YEAR(?date) AS ?dateYear)}    # faster substitute
+      }
+    GROUP BY $game
+    ORDER BY asc (?dateYears)
+    #limit 100"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>

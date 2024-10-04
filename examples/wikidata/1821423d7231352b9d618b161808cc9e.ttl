@@ -4,11 +4,30 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-1821423d7231352b9d618b161808cc9e> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-1821423d7231352b9d618b161808cc9e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/12>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2018/12>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Properties with 5 or less Model Item statements, with links to query for top 10 items using the property
+SELECT ?property ?propertyLabel ?model_item_statement_count ?query_top_ten_items
+WHERE {
+  {
+    SELECT DISTINCT ?property (COUNT(?modelItem) as ?model_item_statement_count)
+    WHERE {
+      ?property rdf:type wikibase:Property . #all properties
+      OPTIONAL { ?property wdt:P5869 ?modelItem } #with model items if present
+    } GROUP BY ?property 
+  }
+  
+  FILTER (?model_item_statement_count < 5) #only show properties with 5 or less Model Item statements
+  BIND (xsd:integer( SUBSTR(STR(?property), 33) ) as ?propNumber) #use property number as a basic rank for 'top' properties 
+  BIND (\"https://query.wikidata.org/embed.html#SELECT%20%3Fitem%20%3FitemLabel%20%3Fstatement_count%0AWHERE%20%7B%0A%20%20%7B%0A%20%20%20%20SELECT%20%3Fitem%20%3Fstatement_count%0A%20%20%20%20WHERE%20%7B%0A%20%20%20%20%20%20%3Fitem%20wdt%3APproperty%20%5B%5D%20.%0A%20%20%20%20%20%20%3Fitem%20wikibase%3Astatements%20%3Fstatement_count%20.%0A%20%20%20%20%7D%0A%20%20%20%20ORDER%20BY%20DESC%20%28%3Fstatement_count%29%0A%20%20%20%20LIMIT%2010%0A%20%20%7D%0A%20%20SERVICE%20wikibase%3Alabel%20%7B%20bd%3AserviceParam%20wikibase%3Alanguage%20%22%5BAUTO_LANGUAGE%5D%2Cen%22.%20%7D%0A%7D%0A%0A\"
+        as ?query_template)       
+  BIND (URI(REPLACE(?query_template,\"property\", STR(?propNumber))) as ?query_top_ten_items) #generate query URL by inserting property number into template
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY (?propNumber)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

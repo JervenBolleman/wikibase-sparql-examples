@@ -4,11 +4,30 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-df6e39581e9d4146ff884267f1cfb6bf> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-df6e39581e9d4146ff884267f1cfb6bf> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MKar/Query>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:MKar/Query>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Biographies at orwiki by occupation and sex
+SELECT ?job ?jobLabel ?m ?f ?count with {
+SELECT ?job (COUNT(?link) AS ?count) (SUM (?male) as ?m) (SUM (?female) as ?f)
+WHERE {
+  ?item wdt:P31 wd:Q5.
+  ?item wdt:P106 ?job.
+  OPTIONAL { ?item wdt:P21 ?sex. }
+  BIND(IF(?sex = wd:Q6581097, 1, 0) as ?male) 
+  BIND(IF(?sex = wd:Q6581072, 1, 0) as ?female)
+  ?link schema:about ?item;
+        schema:isPartOf <https://or.wikipedia.org/>.
+} 
+  GROUP BY ?job
+  ORDER BY DESC(?count)
+  limit 20
+} as %i where
+{
+  include %i
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

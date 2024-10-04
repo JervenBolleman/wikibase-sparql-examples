@@ -4,11 +4,36 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-a1af4dc3105fd2161584598b54bcd096> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-a1af4dc3105fd2161584598b54bcd096> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stefan_K%C3%BChn/Dresden>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Stefan_K%C3%BChn/Dresden>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """----------------------------------------------------------
+# Objekte mit \"Dresden\" im Label ohne Dresden als Attribut
+#----------------------------------------------------------
+SELECT ?item ?itemLabel ?itemDescription ?commons ?image ?coordinates
+WHERE {
+  ?item wdt:P17 wd:Q183.
+  #?item wdt:P373 ?commons
+  MINUS { ?item wdt:P131 _:b1. }         # liegt in Verwaltungseinheit ...
+  MINUS { ?item wdt:P159 _:b2. }         # Hauptverwaltung
+  MINUS { ?item wdt:P276 _:b3. }         # Ort ...
+  MINUS { ?item wdt:P138  wd:Q1731. }    # benannt nach Dresden
+  MINUS { ?item wdt:P1269 wd:Q1731. }    # Aspekt von Dresden
+  MINUS { ?item wdt:P1001 wd:Q1731. }    # gehört zum Zuständigkeitsbereich von Dresden
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en,[AUTO_LANGUAGE]\". }
+  #FILTER(REGEX(STR(?commons), \"Dresden\"))               # Filter für Name
+  ?item rdfs:label ?label_de.                                  # Label abspeichern
+  filter (lang(?label_de) = \"de\").                             # Label nur auf Deutsch filtern
+  FILTER(REGEX(STR(?label_de), \"Dresden\"))    
+  
+  optional {?item wdt:P31 ?instanceof  }                
+  Filter (?instanceof != wd:Q13406463).                 # keine Wikimedia-Liste
+  OPTIONAL { ?item wdt:P18 ?image. }
+  OPTIONAL { ?item wdt:P625 ?coordinates. }
+}
+Limit 100"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

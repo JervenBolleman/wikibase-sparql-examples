@@ -4,11 +4,28 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-721cabac8e5835c8e82ef4ae4f3aa108> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-721cabac8e5835c8e82ef4ae4f3aa108> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Hannes_R%C3%B6st/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Hannes_R%C3%B6st/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Find people with duplicate award entries
+SELECT ?item ?itemLabel ?value ?ref  ?refLabel  ?prop (COUNT(?ref) AS ?nr_items)
+WHERE
+{
+    ?item wdt:P39 wd:Q18510612 .  
+    # ?item p:P214 ?statement. # VIAF
+    ?item p:P569 ?statement. # DOB
+    # ?item ?prop ?statement. 
+  
+    ?statement ps:P569 ?value.
+    ?statement prov:wasDerivedFrom ?refnode.
+    # ?refnode   pr:P902 ?ref. ## HLS identifier
+    ?refnode   pr:P248 ?ref.   ## ref name
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+
+GROUP BY ?item ?itemLabel ?value ?statement ?ref ?refLabel ?prop
+HAVING(COUNT(?ref) > 1)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

@@ -4,11 +4,32 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-c6d565cea403723d3cba62b0ce369324> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-c6d565cea403723d3cba62b0ce369324> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:Events/AAFSaint%C3%8919>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata_talk:Events/AAFSaint%C3%8919>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """afficher le nombre d'éléments disposant de la propriété \"archivé par\" (P485) par institution française
+#introduire un correctif en déduisant le nombre trouvé le 11.03.2019 pour remettre tous les compteurs à zéro.
+#afficher le lieu où est située l'institution.
+#classer les institution par ordre de nombre d'éléments décroissant.
+SELECT ?institution ?institutionLabel ?lieuLabel (COUNT(?item) - COALESCE(?subtrahend, 0) AS ?total) 
+WHERE 
+{
+  ?item wdt:P485 ?institution . #les éléments doivent disposé de la propriété \"archivé par\" qui renvoie à une institution.
+  ?institution wdt:P17 wd:Q142; #l'institution doit être localisée en France
+               wdt:P131 ?lieu. #localisation administrative de l'institution
+  
+  OPTIONAL {
+    VALUES (?institution ?subtrahend) {
+      (wd:Q182542 593)(wd:Q2860505 113)(wd:Q193563 3)(wd:Q16303821 3)(wd:Q3152115 3)(wd:Q2860516 2)(wd:Q838691 2)(wd:Q273461 2)(wd:Q20670712 1)(wd:Q3075420 1)(wd:Q19833040 1)
+      (wd:Q2901309 1)(wd:Q2948151 1)(wd:Q19606447 1)(wd:Q19606436 1)(wd:Q16010742 1)(wd:Q19606442 94)(wd:Q19606454 1)(wd:Q30218775 1)(wd:Q19606460 1)(wd:Q47524704 1)
+      (wd:Q1492436 1)(wd:Q2717848 1)(wd:Q18785452 1)(wd:Q2860474 1)(wd:Q2860557 1)(wd:Q2860461 1)(wd:Q1328440 1)(wd:Q2860498 1)(wd:Q202660 1)(wd:Q18213967 1)
+    }
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,en\". }
+}
+GROUP BY ?institution ?institutionLabel ?lieuLabel ?subtrahend
+ORDER BY DESC (?total) ?institutionLabel"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

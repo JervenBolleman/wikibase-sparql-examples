@@ -4,11 +4,26 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-a5888581b418d74b195d7fdcf1fc4d7d> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-a5888581b418d74b195d7fdcf1fc4d7d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Charles_Matthews/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Charles_Matthews/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Andrew Gray, given names of Westminster MPs and date when 1st MP with that name entered parliament 
+SELECT ?givenName ?givenNameLabel ?firstDate WITH {
+  SELECT ?givenName (MIN(?date) AS ?firstDate) WHERE {
+    { ?mpStatement ps:P39/wdt:P279? wd:Q16707842. } UNION
+    { ?mpStatement ps:P39/wdt:P279? wd:Q18015642. } UNION
+    { ?mpStatement ps:P39/wdt:P279? wd:Q18018860. }
+    ?mpStatement pq:P580 ?date.
+    ?mp p:P39 ?mpStatement;
+        wdt:P735 ?givenName.
+  }
+  GROUP BY ?givenName
+} AS %givenNames WHERE {
+  INCLUDE %givenNames.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?firstDate ?givenNameLabel"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

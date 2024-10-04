@@ -4,11 +4,33 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-fbc5d61390aef5b4da6d6b0df03437f0> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-fbc5d61390aef5b4da6d6b0df03437f0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infrastruktur/Sandbox2>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Infrastruktur/Sandbox2>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Norske skip bygget i 1990 eller senere
+PREFIX sdir: <https://www.sdir.no/skipssok/#/?q=>
+PREFIX martr: <https://www.marinetraffic.com/en/ais/details/ships/imo:>
+PREFIX nais: <https://nais.kystverket.no/aisstream/>
+
+SELECT DISTINCT
+  ?itemLabel (YEAR(?start_) AS ?start) (YEAR(?end_) AS ?end) ?imo ?mmsi ?item 
+  (URI(CONCAT(STR(martr:), ?imo)) AS ?martr)
+  (URI(CONCAT(STR(sdir:), ?imo)) AS ?sdir)
+  (URI(CONCAT(STR(nais:), ?mmsi)) AS ?nais)
+WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q11446;
+    wdt:P8047 wd:Q20.
+  OPTIONAL { ?item wdt:P729 ?start_. }
+  OPTIONAL { ?item wdt:P730 ?end_. }
+  OPTIONAL { ?item wdt:P176 ?manufacturer. }
+  OPTIONAL { ?item wdt:P458 ?imo. }
+  OPTIONAL { ?item wdt:P587 ?mmsi. }
+  FILTER (?start_ >= \"1990-01-01\"^^xsd:dateTime)
+  FILTER NOT EXISTS { ?item rdfs:label ?nbLabel. FILTER(LANG(?nbLabel) = \"nb\") }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?start_)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

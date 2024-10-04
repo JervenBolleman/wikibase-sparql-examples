@@ -4,11 +4,27 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-ad54843cd3cb2e74dc4fa0eb513f8ac7> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-ad54843cd3cb2e74dc4fa0eb513f8ac7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Lirazelf/Learning>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Lirazelf/Learning>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """irish women scientists without wikipedia pages, and what their particular occupation is, with the various occupations on one line. 
+SELECT ?item ?itemLabel (group_concat(?occLabel ;separator=\", \") as ?occupations)
+
+WHERE {
+  ?item wdt:P27 wd:Q27;
+        wdt:P21 wd:Q6581072 ;
+        wdt:P106/wdt:P279* wd:Q901 .
+  ?item wdt:P106 ?occ 
+       
+       MINUS { ?article schema:about ?item }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+                           
+                            ?occ rdfs:label ?occLabel . #not sure what this bit actually does
+                           ?item rdfs:label ?itemLabel . #i have no idea why these two lines are important but it doesn't work without them.
+                           }
+} 
+group by ?item ?itemLabel"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

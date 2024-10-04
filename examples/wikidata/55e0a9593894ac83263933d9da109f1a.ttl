@@ -4,11 +4,33 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-55e0a9593894ac83263933d9da109f1a> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-55e0a9593894ac83263933d9da109f1a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Taravyvan_Adijene/SPARQL>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Taravyvan_Adijene/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Нарадзіліся ў зададзены дзень
+SELECT ?элемэнт ?элемэнтLabel ?месцаНараджэньняLabel ?каардынаты ?выява ?датаСьмерці
+WHERE
+{
+    BIND(MONTH(NOW()) AS ?месяцАдбору)
+    BIND(DAY(NOW()) AS ?дзеньАдбору)
+
+    ?элемэнт wdt:P31 wd:Q5.                                                 # толькі людзі
+    ?элемэнт wdt:P569 ?date.
+    { ?элемэнт wdt:P19 wd:Q184. }                                           # месца нараджэньня — Беларусь
+    UNION
+    { ?элемэнт wdt:P19/wdt:P131* wd:Q184. }                                 # альбо месца нараджэньня знаходзіцца ў Беларусі
+    UNION
+    { ?элемэнт wdt:P27 wd:Q184. }                                           # альбо грамадзянства — Беларусь
+    OPTIONAL { ?элемэнт wdt:P570 ?датаСьмерці. }
+    OPTIONAL { ?элемэнт wdt:P19 ?месцаНараджэньня. }
+    OPTIONAL { ?месцаНараджэньня wdt:P625 ?каардынаты. }
+    OPTIONAL { ?элемэнт wdt:P18 ?выява. }
+    FILTER (MONTH(?date) = ?месяцАдбору && DAY(?date) = ?дзеньАдбору)
+    SERVICE wikibase:label {
+        bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],be-tarask,en\".
+    }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

@@ -4,11 +4,55 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-00ec73163208eed00c7df5a0fe2fa4fb> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-00ec73163208eed00c7df5a0fe2fa4fb> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Collection_highlights_National_Library_of_the_Netherlands/Flora_Batava/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_Collection_highlights_National_Library_of_the_Netherlands/Flora_Batava/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ For File:Agrostis Spica venti (modern=Apera spica-venti) - Pl0151 - FloraBatava-KB-v02.jpg
+# - MediaID = M132800954 (see [https://commons.wikimedia.org/w/index.php?title=File:Agrostis_Spica_venti_(modern%3DApera_spica-venti)_-_Pl0151_-_FloraBatava-KB-v02.jpg&action=info this page])
+# - Title (as string)= File:Agrostis Spica venti (modern=Apera spica-venti) - Pl0151 - FloraBatava-KB-v02.jpg
+# - FullimageUrl1 = https://upload.wikimedia.org/wikipedia/commons/e/e8/Agrostis_Spica_venti_%28modern%3DApera_spica-venti%29_-_Pl0151_-_FloraBatava-KB-v02.jpg 
+# - FullimageUrl2, via Special:Redirect = https://commons.wikimedia.org/w/index.php?title=Special:Redirect/file&wpvalue=File:Agrostis_Spica_venti_(modern%3DApera_spica-venti)_-_Pl0151_-_FloraBatava-KB-v02.jpg
+# - PageUrl = https://commons.wikimedia.org/wiki/File:Agrostis_Spica_venti_(modern%3DApera_spica-venti)_-_Pl0151_-_FloraBatava-KB-v02.jpg
+# - PageShortUrl = https://commons.wikimedia.org/w/index.php?curid=132800954
+# - PageShortUrl2, via the concept URI = https://commons.wikimedia.org/entity/M132800954
+#
+# See for help https://www.mediawiki.org/wiki/Wikidata_Query_Service/User_Manual/MWAPI
+
+SELECT ?MediaID ?Title ?FullimageUrl1 ?FullimageUrl2 ?PageUrl ?PageShortUrl1 ?PageShortUrl2
+WITH
+{
+  SELECT ?Title ?pageid  ?FullimageUrl1 
+  WHERE
+{
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+    bd:serviceParam mwapi:gcmtitle \"Category:Flora_Batava_-_KB_copy,_Volume_2,_1807\" .
+    bd:serviceParam mwapi:generator \"categorymembers\" .
+    bd:serviceParam mwapi:gcmlimit \"500\" .
+    bd:serviceParam mwapi:prop \"imageinfo\".
+    bd:serviceParam mwapi:iiprop \"url\".
+    ?Title wikibase:apiOutput mwapi:title .
+    ?pageid wikibase:apiOutput \"@pageid\" .
+    ?ns wikibase:apiOutput \"@ns\".
+    ?FullimageUrl1 wikibase:apiOutputURI \"imageinfo/ii/@url\".
+  }
+  FILTER (?ns = \"6\")  #Files only
+  }
+} AS %get_files
+WHERE
+{
+  INCLUDE %get_files
+  BIND(CONCAT('M', ?pageid) AS ?MediaID)    
+  BIND(REPLACE(?Title, \" \", \"_\", \"i\") AS ?p)      
+  BIND(URI(CONCAT(\"https://commons.wikimedia.org/w/index.php?title=Special:Redirect/file&wpvalue=\", ?p)) AS ?FullimageUrl2)      
+  BIND(URI(CONCAT('https://commons.wikimedia.org/wiki/', ?p)) AS ?PageUrl). 
+  BIND(URI(CONCAT('https://commons.wikimedia.org/w/index.php?curid=', ?pageid)) AS ?PageShortUrl1)
+  BIND(URI(CONCAT('https://commons.wikimedia.org/entity/', ?MediaID)) AS ?PageShortUrl2)
+} 
+ORDER BY ?MediaID #approx the same order as the plate numbers"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

@@ -4,11 +4,26 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-f7172e7cc9c862c77d3e5bc7682107bb> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-f7172e7cc9c862c77d3e5bc7682107bb> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Dirac>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Dirac>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Identifier les archers avec leur gentilé, accordé selon masculin/féminin (si identifié dans l'élément, sinon y aller avec masculin?)
+SELECT ?item ?itemLabel ?itemDescription ?gentile WHERE {
+  ?item wdt:P31 wd:Q5.  # instance of human
+  ?item wdt:P106 wd:Q890527. # Archer 
+  ?item wdt:P27 ?country.
+  ?country wdt:P1549 ?gentile.
+
+  FILTER (LANG(?gentile) = \"fr\") .
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\". }
+  FILTER(NOT EXISTS {
+    ?item schema:description ?itemdesc.
+    FILTER(LANG(?itemdesc) = \"fr\") # with missing French description
+  })
+}
+order by ?itemLabel"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

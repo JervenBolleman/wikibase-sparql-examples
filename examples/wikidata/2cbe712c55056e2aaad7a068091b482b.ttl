@@ -4,11 +4,29 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-2cbe712c55056e2aaad7a068091b482b> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-2cbe712c55056e2aaad7a068091b482b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Dagbani_Wikimedians/SPARQL_queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Dagbani_Wikimedians/SPARQL_queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ property labels to translate in Dagbani language (Dag)
+SELECT ?property ?propertyLabel ?usageCount WHERE {
+  {
+    SELECT ?directClaimProperty (COUNT(*) AS ?usageCount) WHERE {
+      ?s ?directClaimProperty ?o.
+      ?page schema:isPartOf <https://dag.wikipedia.org/>;
+        schema:about ?s.
+    }
+    GROUP BY ?directClaimProperty
+  }
+  ?property wikibase:directClaim ?directClaimProperty.
+  FILTER(NOT EXISTS { ?property wikibase:propertyType wikibase:ExternalId. })
+  FILTER(NOT EXISTS {
+    ?property rdfs:label ?label.
+    FILTER((LANG(?label)) = \"dag\")
+  })
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY DESC (?usageCount)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX schema: <http://schema.org/>

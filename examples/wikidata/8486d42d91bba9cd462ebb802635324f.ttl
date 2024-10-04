@@ -4,11 +4,32 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-8486d42d91bba9cd462ebb802635324f> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-8486d42d91bba9cd462ebb802635324f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_University_degrees/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_University_degrees/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ German members of the German Bundestag with a doctorate university degree
+# 
+SELECT ?politician ?politician_label ?institution ?institutionLabel ?degreeLabel
+WHERE
+{
+    ?politician p:P39 # find items that have the position 
+                [ps:P39 wd:Q1939555 ;      # of member of German Bundestag
+                 pq:P2715 wd:Q15062956 ] . # and a qualifier \"elected in the 2017 German federal election\"
+                                
+    ?politician p:P69 ?educatedAt .      # has an \"educated at\" statement 
+    ?educatedAt ps:P69 ?institution .    # get value of the \"educated at\" statement, i.e. the institution
+    ?institution wdt:P625 ?geoloc .     # get the geolocation of the institution just for fun
+  
+    OPTIONAL {?educatedAt pq:P512 ?degree }        # get qualifier \"academic degree\" (P512) 
+#    ?degree wdt:P31*/wdt:P279* wd:Q849697 . # filter for doctoral degrees
+	 
+ 		 
+	OPTIONAL {?politician rdfs:label ?politician_label filter (lang(?politician_label) = \"en\") .}
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+
+}
+ORDER BY ASC (?politician)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

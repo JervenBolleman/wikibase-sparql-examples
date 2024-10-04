@@ -4,11 +4,28 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-dfd37cc7794009829674399480227a05> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-dfd37cc7794009829674399480227a05> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/08>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2022/08>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Federation with correlation - Get byline for Commons images
+# Run this from WCQS - https://commons-query.wikimedia.org/
+SELECT ?exoplanet ?label_en ?image ?file ?creator_ns ?creator_wu ?creator_url
+WHERE {
+  hint:Query hint:optimizer \"None\" .
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?exoplanet wdt:P31 wd:Q44559 ;
+      wdt:P18 ?image .
+    OPTIONAL { ?exoplanet rdfs:label ?label_en . FILTER(LANG(?label_en)=\"en\") }
+  }
+  ?file schema:url ?image .
+  OPTIONAL {
+    ?file p:P170 ?cst .
+    OPTIONAL { ?cst pq:P2093 ?creator_ns . }
+    OPTIONAL { ?cst pq:P4174 ?creator_wu . }
+    OPTIONAL { ?cst pq:P2699 ?creator_url . }
+  }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>

@@ -4,11 +4,35 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-db15af7a226146066448689c66991e09> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-db15af7a226146066448689c66991e09> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/10>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2021/10>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title:New entities by user without identifiers.
+SELECT ?item ?itemLabel ?itemDescription ?timestamp ?size
+WHERE {
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+                    wikibase:limitContinuations \"199\";
+
+                    wikibase:api \"Generator\";
+                    mwapi:generator \"allpages\";
+                    mwapi:gaplimit \"1\";
+
+                    mwapi:list \"usercontribs\";
+                    mwapi:ucuser \"Pmt\";
+                    mwapi:ucshow \"new\";
+                    mwapi:ucnamespace \"0\";
+                    mwapi:uclimit \"1\";
+                    mwapi:ucprop \"ids|title|timestamp|size\" .
+    ?item wikibase:apiOutputItem \"//api/query/usercontribs/item/@title\" .
+    ?timestamp wikibase:apiOutput \"//api/query/usercontribs/item/@timestamp\" .
+    ?size wikibase:apiOutput \"//api/query/usercontribs/item/@size\" .
+  }
+  FILTER BOUND(?item)
+  ?item wikibase:identifiers \"0\"^^xsd:integer.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"nb,nn,no,en\". }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>

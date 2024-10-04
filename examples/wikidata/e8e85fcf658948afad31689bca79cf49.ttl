@@ -4,11 +4,32 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-e8e85fcf658948afad31689bca79cf49> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-e8e85fcf658948afad31689bca79cf49> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Deansfa>, <https://www.wikidata.org//wiki/User:Deansfa/SPARQL>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Deansfa>, <https://www.wikidata.org/wiki/User:Deansfa/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ better version of the one above: we select only articles that have one single author
+# (excluding the case where there are multiple authors but just one is a \"string\" author)
+SELECT $item $count ?author_name ?rank  WHERE {
+  # FILTER REGEX(STR(?count), \"^[1]{1}$\")
+  # FILTER REGEX(STR(?rank), \"^[1]{1}$\")
+  # FILTER (?count >= 7)
+  FILTER (?count = 1)
+  FILTER (STR(?rank) = \"1\")
+  {
+    SELECT DISTINCT ?item (COUNT (?author) as ?count) WHERE {
+      ?item wdt:P31 wd:Q13442814 ; wdt:P179 wd:Q57081850 .
+      ?item wdt:P2093 ?author.
+    }
+    GROUP BY (?item)
+  }
+  {
+    SELECT DISTINCT ?item (xsd:string(?author) AS ?author_name) ?rank WHERE {
+      ?item wdt:P31 wd:Q13442814 ; wdt:P179 wd:Q57081850 .
+      ?item p:P2093 [ ps:P2093 ?author ; pq:P1545 ?rank ] .
+    }
+  }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

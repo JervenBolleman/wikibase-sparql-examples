@@ -4,11 +4,56 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-8ae1bd75f822105a339f3321199d1d88> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-8ae1bd75f822105a339f3321199d1d88> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Will_(Wiki_Ed)/APS_Project_Page/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Will_(Wiki_Ed)/APS_Project_Page/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Topics through time
+
+PREFIX target: <http://www.wikidata.org/entity/Q3382012>
+
+SELECT
+  ?year
+  ?works
+  ?topic ?topicLabel
+WITH {
+  SELECT 
+    ?work
+  WHERE {
+    ?work wdt:P1433 target: .
+  }
+} AS %works
+WITH {
+  SELECT
+    (COUNT(?work) AS ?count)
+    ?topic
+  WHERE {
+    INCLUDE %works
+    ?work wdt:P921 ?topic .
+  }
+  GROUP BY ?topic
+  ORDER BY DESC(?count)
+  LIMIT 5
+} AS %topics
+WITH {
+  SELECT
+    ?year 
+    (COUNT(?work) AS ?works)
+    ?topic
+  WHERE {
+    INCLUDE %works
+    INCLUDE %topics
+    ?work wdt:P921 ?topic ;
+          wdt:P577 ?publication_datetime .
+    BIND(STR(YEAR(?publication_datetime)) AS ?year)
+  }
+  GROUP BY ?year ?topic
+} AS %result
+WHERE {
+  INCLUDE %result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?year"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

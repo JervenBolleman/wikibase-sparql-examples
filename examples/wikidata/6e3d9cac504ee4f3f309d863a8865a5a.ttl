@@ -4,11 +4,42 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-6e3d9cac504ee4f3f309d863a8865a5a> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-6e3d9cac504ee4f3f309d863a8865a5a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_France/Queries/Communes>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_France/Queries/Communes>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Communes françaises dont le département ne correspond pas
+# Cette requête ne doit renvoyer aucun résultat.
+SELECT DISTINCT ?commune ?communeLabel ?communeDescription ?insee ?deptinsee ?departementLabel {
+  ?commune p:P31 ?statement .	# Les éléments qui ont pour nature...
+  ?statement ps:P31 ?type . # ...un des types autorisés ci-dessous
+  VALUES ?type {
+     wd:Q484170 # commune française
+     wd:Q2989454 # commune nouvelle
+     wd:Q22927616 # commune française à statut particulier
+    }
+  FILTER NOT EXISTS { ?statement pq:P582 ?fin_com } . # La commune n'a pas de date de fin
+  
+  ?commune wdt:P374 ?insee . 
+  
+  ?commune p:P131 ?departementStatement .
+  ?departementStatement ps:P131 ?departement .
+  ?departement wdt:P31 ?typeDep .
+  VALUES ?typeDep {
+    wd:Q6465 # département
+    wd:Q202216 # département d'Outre-mer
+    wd:Q719487 # collectivité d'Outre-mer
+    wd:Q3408484 # Province de la Nouvelle-Calédonie
+  }
+  FILTER NOT EXISTS { ?departementStatement pq:P582 ?fin_dep } .  # Le statement de localisation administrative dans le département n'a pas de date de fin
+
+  ?departement wdt:P2586 ?deptinsee .
+  # Il reste à ignorer Paris et les communes de la métropole lyonnaise
+  FILTER NOT EXISTS { ?commune wdt:P131 wd:Q16665897 . } # Métropole lyonnaise
+  FILTER ( ?commune != wd:Q90 ) . # Paris
+  FILTER ( ! STRSTARTS( ?insee, ?deptinsee ) ) . # Le code INSEE de la commune ne commence pas par le code INSEE du département
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\" . }
+} ORDER BY ?insee"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

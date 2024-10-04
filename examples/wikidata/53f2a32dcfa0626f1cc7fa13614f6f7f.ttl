@@ -4,11 +4,126 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-53f2a32dcfa0626f1cc7fa13614f6f7f> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-53f2a32dcfa0626f1cc7fa13614f6f7f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Datumizer/List_of_role-playing_video_games>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Datumizer/List_of_role-playing_video_games>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Script #1
+# Should ideally print labels in all pertinent languanges, and include the language after the label.
+# E.g. \"Super Mario Bros. (ENG)\"
+
+SELECT
+	# This section thanks to User:VIGNERON
+#	(MIN(?dateYear) AS	?dateYears)
+#	(
+#		CONCAT	
+#		(
+#			GROUP_CONCAT(DISTINCT ?gameENLabelTxt; separator = \", \"), \", \",
+#			GROUP_CONCAT(DISTINCT ?gameJALabelTxt; separator = \", \"), \", \",
+#			GROUP_CONCAT(DISTINCT ?gameHPLabelTxt; separator = \", \"), \", \",
+#			GROUP_CONCAT(DISTINCT ?gameZHLabelTxt; separator = \", \"), \", \",
+#			GROUP_CONCAT(DISTINCT ?gamePYLabelTxt; separator = \", \")
+#		) AS ?gameNames
+#	)
+#	(GROUP_CONCAT(DISTINCT	?cooLabel;		separator = \", \") AS	?cooLabels)
+#	(?game AS ?dataLink)
+
+	# This section is an alternate
+	(MIN(?dateYear) AS	?dateYears)
+	(GROUP_CONCAT(DISTINCT	?gameENLabel;	separator = \", \") AS	?gameENLabels)		# English label
+#	(GROUP_CONCAT(DISTINCT	?gameNOLabel;	separator = \", \") AS	?gameNOTxts)		# All non-English labels, too many
+	(GROUP_CONCAT(DISTINCT	?gameJALabel;	separator = \", \") AS	?gameJALabels)		# Japanese label
+	(GROUP_CONCAT(DISTINCT	?gameHPLabel;	separator = \", \") AS	?gameHPLabels)		# Hepburn label
+#	(GROUP_CONCAT(DISTINCT	?gameZHLabel;	separator = \", \") AS	?gameZHLabels)		# Mandarin label
+#	(GROUP_CONCAT(DISTINCT	?gamePYLabel;	separator = \", \") AS	?gamePYLabels)		# Pinyin label
+	(GROUP_CONCAT(DISTINCT	?cooLabel;		separator = \", \") AS	?cooLabels)
+#	(?game AS ?dataLink)
+
+	WHERE
+	{
+#		hint:Query hint:optimizer \"None\".
+
+		# test values
+#		VALUES ?game
+#		{
+#			wd:Q4850488		# Baldur's Gate III: The Black Hound (should have \"no value\" due to being cancelled)
+#			wd:Q4931588		# Bob's Game (should have \"no value\" due to not being released yet)
+#			wd:Q5315330		# Dunjonquest (1979)
+#			wd:Q5250229		# Deep Labyrinth (should have multiple dates)
+#			wd:Q1462499		# Starflight (1986, has multiple genres)
+#			wd:Q22124593		# God Wars: Beyond Time (should have blank date since the property does not exist)
+#		}
+
+		# types of item
+		      {?game wdt:P136 wd:Q744038}	# regular RPGs
+		UNION {?game wdt:P136 wd:Q1529437}	# tactical RPGs
+		UNION {?game wdt:P136 wd:Q1422746}	# action RPGs
+		UNION {?game wdt:P136 wd:Q1143132}	# roguelikes
+#		?game wdt:P136/wdt:P279* wd:Q744038.	# any class or subclass of role-playing video game, including MMORPGs
+		?game wdt:P31 wd:Q7889.		 # instance of video game
+
+		#country of origin
+		OPTIONAL
+		{
+			?game wdt:P495 ?country.	# country of origin
+			?country wdt:P297 ?cooLabel.	# abbreviation
+		}
+
+		# English label
+		OPTIONAL
+		{
+			?game rdfs:label ?gameENLabel FILTER(LANG(?gameENLabel) = \"en\").
+			BIND(CONCAT(?gameENLabel, \" (EN)\") AS ?gameENLabelTxt)
+		}
+		# All non-English labels. Waaaay too many results! Many duplicates!
+		# Ideally, we would only get non-English labels for games that originate from non-English speaking countries. And only get those languages, not others!
+		# Only some dates are pertinent to en.wikipedia.
+#		OPTIONAL
+#		{
+#			?game rdfs:label ?gameNOLabel FILTER(LANG(?gameNOLabel) != \"en\").
+#			BIND(CONCAT(?gameNOLabel, \" (\", LANG(?gameNOLabel), \")\") AS ?gameNOLabelTxt)
+#		}
+		# Japanese label
+		OPTIONAL
+		{
+			?game rdfs:label ?gameJALabel FILTER(LANG(?gameJALabel) = \"ja\")
+			BIND(CONCAT(?gameJALabel, \" (JA)\") AS ?gameJALabelTxt)
+		}
+		# Japanese hepburn romanization
+		OPTIONAL
+		{
+			?game wdt:P2125 ?gameHPLabel
+			BIND(CONCAT(?gameHPLabel, \" (JA)\") AS ?gameHPLabelTxt)
+		}
+		# Chinese label
+		OPTIONAL
+		{
+			?game rdfs:label ?gameZHLabel FILTER(LANG(?gameZHLabel) = \"zh\")
+			BIND(CONCAT(?gameZHLabel, \" (ZH)\") AS ?gameZHLabelTxt)
+		}
+		# Chinese pinyin transliteration
+		OPTIONAL
+		{
+			?game wdt:P1721 ?gamePYLabel
+			BIND(CONCAT(?gamePYLabel, \" (ZH)\") AS ?gamePYLabelTxt)
+		}
+
+		# release date (simple)
+		OPTIONAL {?game wdt:P577 ?date BIND(YEAR(?date) AS ?dateYear)}
+
+		# hepburn romanization and pinyin transliteration (is this still necessary?)
+#		OPTIONAL {?game wdt:P2125	?hepburn}
+#		OPTIONAL {?game wdt:P1721	?pinyin}
+#		SERVICE wikibase:label
+#		{
+#			bd:serviceParam wikibase:language \"en\".
+#			?hepburn rdfs:label	?gameHPLabel.
+#			?pinyin rdfs:label	?gamePYLabel.
+#		}
+	}
+GROUP BY $game
+ORDER BY ASC (?dateYears) ASC (?gameENLabelTxts)
+#limit 100"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

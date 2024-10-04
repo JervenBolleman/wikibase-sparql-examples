@@ -4,11 +4,30 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-dfec025ce29ce2ad8865a0c56b2851f3> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-dfec025ce29ce2ad8865a0c56b2851f3> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/hansard>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_British_Politicians/hansard>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ second query - parties presumed as only one value for party is set on the item, and there are no date qualifiers to suggest it changed
+select distinct ?mp ?mpLabel ?seatLabel ?start ?end ?presumed_single_partyLabel ?historic_hansard
+WHERE {  
+  ?position wdt:P279 wd:Q16707842 . ?mp p:P39 ?positionStatement .
+  ?positionStatement ps:P39 ?position ; pq:P768 ?seat ; pq:P580 ?start ; pq:P582 ?end .
+  bind(year(?start) as ?startyear) . bind(year(?end) as ?endyear) . filter (?startyear < 2005) .
+  filter not exists { ?positionStatement pq:P4100 ?known_party . }
+  # there is no party known during this specific time frame
+  ?mp p:P102 ?partyStatement1 . ?partyStatement1 ps:P102 ?presumed_single_party . 
+             filter not exists { ?mp p:P102 ?partyStatement2. FILTER(?partyStatement1 != ?partyStatement2) } .
+             filter not exists { ?partyStatement1 pq:P580 ?startTime. } .
+             filter not exists { ?partyStatement1 pq:P582 ?endTime. } . 
+  # presumed_single_party is calculated for items that have no dates, and only one value present
+  { SELECT distinct ?mp (GROUP_CONCAT(distinct ?hh; separator=\"; \") as ?historic_hansard) WHERE {
+             ?position wdt:P279 wd:Q16707842 . ?mp p:P39 ?positionStatement .
+             ?positionStatement ps:P39 ?position .
+             optional { ?mp wdt:P2015 ?hh . }  } group by ?mp }
+  # find Historic Hansard IDs
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }      
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

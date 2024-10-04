@@ -4,11 +4,20 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-e0b013e0480f2f0a429140e05449e006> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-e0b013e0480f2f0a429140e05449e006> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/collections>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:MartinPoulter/queries/collections>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title:Languages of Wikipedia articles about Memory of the World Register inscriptions
+SELECT ?langcode ?langname (COUNT(?link) AS ?count) WHERE {
+  ?item wdt:P1435 wd:Q473858. # heritage designation: Memory of the World
+    ?link schema:about ?item ; schema:inLanguage ?langcode
+   FILTER(CONTAINS(str(?link), \".wikipedia.org/\")) # only Wikipedia articles
+  OPTIONAL { ?language wdt:P218 ?langcode; rdfs:label ?langlabel FILTER(lang(?langlabel) = \"en\") } # Convert short code to full language name
+BIND(COALESCE(?langlabel, ?langcode) AS ?langname)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} GROUP BY ?langcode ?langname
+ORDER BY DESC(?count)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

@@ -4,11 +4,46 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-b42488afecde2408257474d88a0f91b3> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-b42488afecde2408257474d88a0f91b3> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/01>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2023/01>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """----------------------------------------------------------
+# Many persons without statement family name
+#----------------------------------------------------------
+#Familienname
+SELECT distinct ?item ?label_de ?lastname
+WHERE 
+{
+  SERVICE bd:slice {
+    ?item wdt:P31 wd:Q5 .
+    bd:serviceParam bd:slice.offset 0 .      # Offset 
+    bd:serviceParam bd:slice.limit 5000 .   #  number of datasets to scan
+  }      
+  MINUS { ?item wdt:P734 [] } .              # no family name
+
+  ?item rdfs:label ?label_de .               # only german label
+  FILTER(LANG(?label_de) = 'de') .  
+  
+  FILTER(REGEX(STR(?label_de), \"[^,]\")) .    # no commas  \"Prinzessin Elisabeth Helene, Markgrafin von Meißen\"
+  FILTER(!REGEX(STR(?label_de), \"[0-9]\")) .  # no number   \"12th Planet\" 
+  FILTER(!REGEX(STR(?label_de), \"\\\\?\")) .    # no Question mark  \"A.geh Wirklich?\" 
+  FILTER(!REGEX(STR(?label_de), \"\\\\-\")) .    # no minus  \"Adib asch-Schischakli\" 
+  FILTER(REGEX(STR(?label_de), \" \")) .       # minimum one space z.B.  \"Athenagoras\"
+  FILTER(!REGEX(STR(?label_de), \"\\\\.$\")) .   # no point at the end  \"Johann Reinhard III.\"
+  FILTER(!REGEX(STR(?label_de), \" (von|de|le|der|die|das|dem) \")) .  # no nobiliary particle   \"Anton Günther Herzog von Oldenburg\"
+  
+  # only since 1875
+  OPTIONAL { ?item wdt:P569 ?date_of_birth }. # date of birth
+  FILTER (?date_of_birth >= \"1875-01-01T00:00:00Z\"^^xsd:dateTime)  
+  
+  BIND(REPLACE(?label_de, \"^.* ([^\\\\s]+)$\", \"$1\") AS ?lastname)  # get lastname
+  FILTER(REGEX(STR(?lastname), \"....*\")) .                       # minimum 3 letters  
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". } 
+}
+order by ?lastname ?label_de 
+limit 30"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

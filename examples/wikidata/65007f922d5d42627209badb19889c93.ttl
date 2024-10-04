@@ -4,11 +4,61 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-65007f922d5d42627209badb19889c93> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-65007f922d5d42627209badb19889c93> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_sum_of_all_paintings/Collection/Bavarian_State_Painting_Collections/to_fix>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata_talk:WikiProject_sum_of_all_paintings/Collection/Bavarian_State_Painting_Collections/to_fix>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ requirements:
+# no aliases
+# only 1 label in de
+# 3 descriptions in de, en, nl; those same apart from start
+# 0 or 1 creator, if 1 matching with that one given in description
+
+SELECT DISTINCT
+(STRAFTER(STR(?item), \"entity/\") AS ?qid)
+?Lde
+(CONCAT(\"Gemälde aus dem Umkreis von \", ?descriptionTail) AS ?Dde)
+(CONCAT(\"painting by the circle of \", ?descriptionTail) AS ?Den)
+(\"\" AS ?Dnl)
+?creator ?uncertaincreator
+
+WHERE {
+  ?item wdt:P195 wd:Q812285.
+  ?item wdt:P31 wd:Q3305213.
+  FILTER NOT EXISTS {?item skos:altLabel ?alias.} # no aliases
+  OPTIONAL { ?item rdfs:label ?itemLabelOther FILTER((LANG(?itemLabelOther)) != \"de\") . }
+  FILTER(!BOUND(?itemLabelOther)) # no non-de labels
+  ?item rdfs:label ?itemLabel FILTER((LANG(?itemLabel)) = \"de\") . # 1 label in de
+  OPTIONAL { ?item schema:description ?descriptionOther FILTER(LANG(?descriptionOther) NOT IN (\"de\", \"en\", \"nl\")) . }
+  FILTER(!BOUND(?descriptionOther)) # no non-de/en/nl descriptions
+  ?item schema:description ?descriptionDe FILTER(LANG(?descriptionDe) = \"de\") .
+  ?item schema:description ?descriptionEn FILTER(LANG(?descriptionEn) = \"en\") .
+  ?item schema:description ?descriptionNl FILTER(LANG(?descriptionNl) = \"nl\") .
+  BIND(STRAFTER(STR(?descriptionDe), \"Gemälde von \") AS ?descriptionTail)
+  FILTER(?descriptionTail = STRAFTER(STR(?descriptionEn), \"painting by \"))
+  FILTER(?descriptionTail = STRAFTER(STR(?descriptionNl), \"schilderij van \")) # same description tails
+  
+  FILTER(REGEX(?itemLabel, \"^.+\\\\(.+\\\\)$\"))
+  BIND(REPLACE(?itemLabel, \"^.+\\\\((.+)\\\\)$\", \"$1\") AS ?bracket)
+  FILTER(REGEX(?bracket, 'Umkreis'))
+  BIND(CONCAT(\"^(.+)\\\\(\", STR(?bracket), \"\\\\)$\") AS ?matchBareLabel) # STR() shouldn't be necessary
+#  BIND(REPLACE(?itemLabel, ?matchBareLabel, \"$1\") AS ?Lde) # why doesn't this work?
+  BIND(REPLACE(?itemLabel, \"^(.+)\\\\(Umkreis\\\\)$\", \"$1\") AS ?Lde)
+
+  MINUS {
+    ?item p:P170 ?creatorstatement .
+    ?creatorstatement prov:wasDerivedFrom ?reference .
+  }
+  OPTIONAL { ?item wdt:P170 ?creator .
+             ?creator rdfs:label ?creatorLabel . # for matching purposes
+           }
+  OPTIONAL {
+    ?item p:P170 ?creatorstatement.
+    ?creatorstatement ps:P170 wd:Q4233718.
+    ?creatorstatement ?qualifier ?uncertaincreator.
+    ?qualifierproperty wikibase:qualifier ?qualifier.
+  }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

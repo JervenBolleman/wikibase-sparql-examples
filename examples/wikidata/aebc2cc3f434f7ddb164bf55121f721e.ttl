@@ -4,11 +4,32 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-aebc2cc3f434f7ddb164bf55121f721e> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-aebc2cc3f434f7ddb164bf55121f721e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ijon/Lexeme>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Ijon/Lexeme>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: Language-pairs of connected lexemes with count of lexemes
+SELECT
+  ?language1 ?language1Label ?language2 ?language2Label 
+  ?number_of_lexemes
+WITH {
+SELECT ?language1 ?language2 (COUNT(*) AS ?number_of_lexemes) {
+  [] ^wdt:P5137 / ^ontolex:sense ?lexeme1, ?lexeme2 .
+  FILTER (?lexeme1 != ?lexeme2)
+  ?lexeme1 dct:language ?language1 .
+  ?lexeme2 dct:language ?language2 .
+  FILTER (?language1 != ?language2)
+  FILTER (STR(?language1) > STR(?language2)) 
+}
+GROUP BY ?language1 ?language2
+ORDER BY DESC(?number_of_lexemes)
+LIMIT 100
+} AS %result
+{
+  INCLUDE %result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?number_of_lexemes)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

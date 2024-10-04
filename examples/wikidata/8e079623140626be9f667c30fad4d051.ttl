@@ -4,11 +4,26 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-8e079623140626be9f667c30fad4d051> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-8e079623140626be9f667c30fad4d051> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MKar/Query>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:MKar/Query>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Count of items related to places in Odisha (Q22048 )
+SELECT ?p ?pLabel  (COUNT(DISTINCT ?item) as ?ct) (SAMPLE(?item) as ?sample)  (SAMPLE(?itemLabel) as ?sampleLabel)
+WITH
+{
+    SELECT ?place { ?place wdt:P131* wd:Q22048 }
+} as %inc
+WHERE
+{
+  INCLUDE %inc 
+  hint:Query hint:optimizer \"None\".          
+  ?item ?wdt ?place .
+  ?p wikibase:directClaim ?wdt .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". ?p rdfs:label ?pLabel }
+}
+GROUP BY ?p ?pLabel
+ORDER BY DESC(?ct)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

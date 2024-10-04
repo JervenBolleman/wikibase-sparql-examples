@@ -4,12 +4,21 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-7e356ced777ca2143eae2e17115edc3c> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-7e356ced777ca2143eae2e17115edc3c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_France/Monuments_historiques>,
-    <https://www.wikidata.org//wiki/Wikidata:WikiProject_France/Monuments_historiques/Requ%C3%AAtes>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_France/Monuments_historiques>,
+    <https://www.wikidata.org/wiki/Wikidata:WikiProject_France/Monuments_historiques/Requ%C3%AAtes>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """MH sans identifiant
+SELECT DISTINCT ?item ?itemLabel WHERE {
+	{ ?item wdt:P1435 wd:Q10387575 . } UNION { ?item wdt:P1435 wd:Q10387684 . } #MH
+	OPTIONAL { ?item p:P1435 [ ps:P1435 [] ; pq:P580 ?dateDebut ] . }
+	FILTER(year(?dateDebut) < year(now())-2 ) #protégé il y a plus de deux ans
+	MINUS { ?item wdt:P380 [] } #sans d'identifiant Mérimée
+	MINUS { ?item wdt:P481 [] } #sans d'identifiant Palissy
+	MINUS { ?item wdt:P131+ wd:Q33788 } #hors Nouvelle-Calédonie
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\" } .
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

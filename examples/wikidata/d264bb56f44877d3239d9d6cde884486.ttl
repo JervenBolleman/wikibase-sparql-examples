@@ -4,11 +4,31 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-d264bb56f44877d3239d9d6cde884486> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-d264bb56f44877d3239d9d6cde884486> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:2le2im-bdc/artfilm>, <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/04>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:2le2im-bdc/artfilm>, <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2020/04>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """films mis à disposition en libre accès en VOD par artfilm.ch durant la crise du Covid-19 triés par réalisatrice ou réalisateur et date
+SELECT DISTINCT ?film ?filmLabel ?réalLabel ?familleLabel ?duree (MIN(?date) as ?oldest_date) ?accès
+WHERE 
+{
+  ?film wdt:P1344 wd:Q89370484;
+        wdt:P2047 ?duree;
+        wdt:P577 ?date;
+        wdt:P57 ?réal.
+  ?film p:P973 ?describestmt.
+  ?describestmt ps:P973 ?accès.
+  ?describestmt pq:P407 wd:Q150.
+  FILTER STRSTARTS(STR(?accès), \"https://www.artfilm.ch\").
+  OPTIONAL {?réal wdt:P734 ?famille.}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de,it,es\".
+                         ?réal rdfs:label ?réalLabel.
+                         ?film rdfs:label ?filmLabel.
+                         ?famille rdfs:label ?familleLabel.
+                         }
+}
+GROUP BY ?film ?filmLabel ?réalLabel ?familleLabel ?duree ?accès
+ORDER BY STR(?familleLabel) ?réalLabel ?oldest_date"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

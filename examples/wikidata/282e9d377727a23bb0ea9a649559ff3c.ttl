@@ -4,11 +4,24 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-282e9d377727a23bb0ea9a649559ff3c> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-282e9d377727a23bb0ea9a649559ff3c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Herzi_Pinki/Sparql/Coordinate_Me>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Herzi_Pinki/Sparql/Coordinate_Me>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: items in Austria without coordinates and missing municipality
+  SELECT DISTINCT ?item ?itemLabel ?itemDescription WHERE {
+    ?item wdt:P17 wd:Q40 .
+    #?item wdt:P131* wd:Q37985 . # Kärnten
+    #?item wdt:P131*/wdt:P279* wd:Q980 . # by
+    ?item wdt:P31 [] .
+    FILTER NOT EXISTS { ?item wdt:P625 [] . }
+    ?item wdt:P131 ?wo .
+    minus {?item wdt:P31*/wdt:P279* wd:Q667509 .} # not is a gemeinde at
+    minus {?item wdt:P31 wd:Q35779580.} # möglicherweise ungültiger Eintrag
+    # minus {?item wdt:P31 wd:Q355304 .}  # not a fließgewässer
+    minus {?wo wdt:P31 wd:Q667509 .} # not a municipality (e.g. statutarstadt) at
+  SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE,de,en]' }
+} GROUP BY ?item ?itemLabel ?itemDescription"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

@@ -4,11 +4,35 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-6c8dd8b3b96323cf37a447f375c01550> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-6c8dd8b3b96323cf37a447f375c01550> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ivanhercaz/queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Ivanhercaz/queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Deportistas españolas con artículos en español pero no en francés
+# Spanish sportswomen with pages in Spanish but not in French
+
+PREFIX schema: <http://schema.org/>
+
+SELECT ?item ?itemLabel ?linkcount WHERE {
+    ?item wdt:P31 wd:Q5 .
+    ?item wdt:P21 wd:Q6581072 .
+    ?item wdt:P27 wd:Q29 .
+    ?item wdt:P106 wd:Q2066131 .
+    ?item wikibase:sitelinks ?linkcount .
+    ?article_ schema:about ?item .
+    ?article_ schema:inLanguage \"es\" .
+    ?article_ schema:isPartOf <https://es.wikipedia.org/> .
+    
+  FILTER (?linkcount >= 1) .
+  FILTER NOT EXISTS {
+    ?article schema:about ?item .
+    ?article schema:inLanguage \"fr\" .
+    ?article schema:isPartOf <https://fr.wikipedia.org/> 
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es, fr\" }
+}
+GROUP BY ?item ?itemLabel ?linkcount
+ORDER BY ASC(?linkcount)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

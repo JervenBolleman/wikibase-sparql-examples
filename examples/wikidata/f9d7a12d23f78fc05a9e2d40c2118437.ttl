@@ -4,11 +4,40 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-f9d7a12d23f78fc05a9e2d40c2118437> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-f9d7a12d23f78fc05a9e2d40c2118437> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Daniel_Mietchen>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Daniel_Mietchen>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: Words and phrases frequently occurring after \"using\" in titles of articles with P4510 statement
+SELECT 
+  DISTINCT
+    ?using ?N (COUNT(?item) AS ?count)
+WHERE {
+  hint:Query hint:optimizer \"None\".
+  
+{  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"\\\"using\\\" and haswbstatement:P31=Q13442814 haswbstatement:P4510\".
+      ?page_title wikibase:apiOutput mwapi:title.
+  }
+ }
+UNION
+{  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"\\\"using\\\" -and haswbstatement:P31=Q13442814 haswbstatement:P4510\".
+      ?page_title wikibase:apiOutput mwapi:title.
+  }
+ }
+  BIND(IRI(CONCAT(STR(wd:), ?page_title)) AS ?item)
+  
+  ?item wdt:P1476 ?title.
+  BIND(STRAFTER(LCASE(?title), \"using \") AS ?using) 
+  BIND(STRLEN(REPLACE(?using, \"\\\\b\", \"\")) + 1 as ?N)
+}
+GROUP BY ?using ?N ?count
+ORDER BY DESC(?count)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

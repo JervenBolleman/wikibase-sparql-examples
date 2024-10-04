@@ -4,11 +4,26 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-625426dfacb135b436cf99fb056968ce> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-625426dfacb135b436cf99fb056968ce> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Mineralogy/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_Mineralogy/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Find all mineral type localities that are meteorites and sort them by defined minerals
+SELECT ?locality ?name (COUNT(DISTINCT ?mineral) AS ?count)
+WHERE
+{
+    ?mineral wdt:P579 ?status .
+    ?mineral wdt:P2695 ?locality .    # Where a locality statement exists
+    ?locality wdt:P31 ?thing .        # Where the locality is the instance of a thing (helper)
+    ?thing wdt:279* wd:Q60186 .       # And the thing is in the subclass tree of meteorite (Should also work if p31 = iron meteorite for example)
+  
+    SERVICE wikibase:label {
+        bd:serviceParam wikibase:language \"en\" .
+        ?locality rdfs:label ?name
+    }
+}
+GROUP BY ?locality ?name
+ORDER BY DESC(?count)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

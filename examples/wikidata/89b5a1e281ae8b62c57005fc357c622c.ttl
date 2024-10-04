@@ -4,11 +4,22 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-89b5a1e281ae8b62c57005fc357c622c> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-89b5a1e281ae8b62c57005fc357c622c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Gonnym/sandbox>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Gonnym/sandbox>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """TV series episodes list by production code & series ordinal (not season)
+SELECT ?show ?showLabel ?seriesLabel ?seriesOrdinal ?proCode ?seasonLabel WHERE {
+  values ?series {wd:Q18844732}        #series is Supergirl 
+  ?show wdt:P31 wd:Q21191270.          #show is a television series episode
+  ?show p:P179 ?statement.             #show has a P179 claim
+  OPTIONAL {?statement pq:P1545 ?seriesOrdinal.} #show might have a series ordinal
+  ?statement ps:P179 ?series.          #show is part of the series
+  OPTIONAL {?show wdt:P2364 ?proCode.} #show might have a production code
+  OPTIONAL {?show wdt:P4908 ?season.}  #show might have multiple seasons
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY (!bound(?proCode)) ?proCode (!bound(?seriesOrdinal)) ?seriesOrdinal"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

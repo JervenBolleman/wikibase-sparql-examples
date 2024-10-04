@@ -4,11 +4,123 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-21aa8a6f72339ae61ead9810ef3a37eb> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-21aa8a6f72339ae61ead9810ef3a37eb> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/10>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2021/10>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """City and town info
+
+SELECT 
+  ?item 
+  ?itemLabel
+  ?fips_code
+  ?population 
+  ?population_date 
+  ?population_methodLabel
+  (GROUP_CONCAT(DISTINCT ?countyLabel;separator=\", \") as ?countrysample) 
+  ?stateLabel
+  ?coordinates 
+  ?elevation 
+  (MIN(?area) as ?areamin) 
+  ?area_date 
+  ?website 
+  ?climateLabel 
+  ?nickname
+  ?gmaps_id 
+  ?open_street_map_id
+  ?open_weather_map_id
+  ?facebook_places_id
+  ?youtube_id
+  ?twitter_user_id
+  ?subreddit_id
+  ?quora_topic_id
+  ?image
+  ?flag_image
+WHERE 
+{
+  VALUES ?item {wd:Q79607}
+  { ?item p:P31/ps:P31/wdt:P279* wd:Q1093829 .} # cities
+  UNION { ?item p:P31/ps:P31/wdt:P279* wd:Q15127012 .} # towns
+  UNION { ?item p:P31/ps:P31/wdt:P279* wd:Q4946305 .} # boroughs
+#  ?county wdt:P131 wd:Q1261 . # where the county is in colorado
+
+  ?item wdt:P131 ?county . #  county
+  ?county wdt:P131* ?state . # find a state somewhere in the P131 path
+  ?state wdt:P31 wd:Q35657. # check the state is a US State
+  
+  OPTIONAL {?item wdt:P1449 ?nickname} . # nickname
+  OPTIONAL {?item wdt:P571 ?inception} . # inception
+  OPTIONAL {?item wdt:P625 ?coordinates} . # coordinates
+  OPTIONAL {?item wdt:P2044 ?elevation} . # elevation
+  OPTIONAL {?item wdt:P856 ?website} . # website
+  OPTIONAL {?item wdt:P2564 ?climate} . # climate
+  OPTIONAL {?item wdt:P3749 ?gmaps_id} . # gmaps_id
+  OPTIONAL {?item wdt:P402 ?open_street_map_id} . # open_street_map_id
+  OPTIONAL {?item wdt:P1997 ?facebook_places_id} . # facebook_places_id
+  OPTIONAL {?item wdt:P7197 ?open_weather_map_id} . # open_weather_map_id
+  OPTIONAL {?item wdt:P774 ?fips_code} . # fips_code
+  OPTIONAL {?item wdt:P2397 ?youtube_id} . # youtube_id
+  OPTIONAL {?item wdt:P2002 ?twitter_user_id} . # twitter_user_id
+  OPTIONAL {?item wdt:P3984 ?subreddit_id} . # subreddit_id
+  OPTIONAL {?item wdt:P3417 ?quora_topic_id} . # quora_topic_id
+  OPTIONAL {?item wdt:P18 ?image} . # image
+  OPTIONAL {?item wdt:P163 ?flag_image} . # flag_image
+  
+  OPTIONAL {
+    ?item p:P1082 ?population_statement.
+    ?population_statement ps:P1082 ?population.
+    ?population_statement pq:P585 ?population_date.
+    ?population_statement pq:P459 ?population_method.
+  }
+  
+  FILTER NOT EXISTS {
+    ?item p:P1082/pq:P585 ?population_date_ .
+    FILTER (?population_date_ > ?population_date)
+  }
+  
+  OPTIONAL {
+    ?item p:P2046 ?area_statement.
+    ?area_statement ps:P2046 ?area.
+    ?area_statement pq:P585 ?area_date.
+  }
+  
+  FILTER NOT EXISTS {
+    ?item p:P2046/pq:P585 ?area_date_ .
+    ?item p:P2046/ps:P2046 ?area_ .
+    FILTER (
+      ?area_date_ > ?area_date && ?area_ > ?area
+    )
+  }
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". 
+                          ?item rdfs:label ?itemLabel .
+                          ?population rdfs:label ?population_methodLabel .
+                          ?county rdfs:label ?countyLabel .
+                          ?state rdfs:label  ?stateLabel .
+                          ?climate rdfs:label ?climateLabel . 
+                        } 
+} group by   ?item 
+  ?itemLabel
+  ?stateLabel
+  ?fips_code
+  ?population 
+  ?population_date 
+  ?population_methodLabel
+  ?coordinates 
+  ?elevation 
+  ?area_date 
+  ?website 
+  ?climateLabel 
+  ?nickname
+  ?gmaps_id 
+  ?open_street_map_id
+  ?open_weather_map_id
+  ?facebook_places_id
+  ?youtube_id
+  ?twitter_user_id
+  ?subreddit_id
+  ?quora_topic_id
+  ?image
+  ?flag_image"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

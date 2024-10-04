@@ -4,11 +4,31 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-390171554c49d5e7ccc4f8057bc928bc> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-390171554c49d5e7ccc4f8057bc928bc> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:No39188>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:No39188>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: Åer (Flüsse) in Dänemark
+SELECT ?itemLabel ?page_title ?article ?länge ?item WHERE {
+  ?item wdt:P31 wd:Q3529419;
+    wdt:P17 wd:Q35.
+  OPTIONAL { ?item p:P2043/psn:P2043/wikibase:quantityAmount ?length. }
+  BIND(IF(BOUND(?length), ?length/1000, \"n/a\" ) AS ?länge)
+  OPTIONAL {
+    ?dawiki schema:about ?item;
+      schema:isPartOf <https://da.wikipedia.org/>;
+      schema:name ?da_title.
+  }
+  OPTIONAL {
+    ?dewiki schema:about ?item;
+      schema:isPartOf <https://de.wikipedia.org/>;
+      schema:name ?de_title.
+  }
+  BIND(IF(BOUND(?dewiki), ?dewiki, ?dawiki) AS ?article)
+  BIND(IF(BOUND(?de_title), ?de_title, ?da_title) AS ?page_title)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],da,en\". }
+}
+ORDER BY (?länge)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

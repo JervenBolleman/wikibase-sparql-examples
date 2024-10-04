@@ -4,11 +4,36 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-64ca10dc6ce14da1db1582fffcde8037> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-64ca10dc6ce14da1db1582fffcde8037> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/06>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2021/06>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title:Top 10 & others (occupations)
+SELECT ?group (SUM(?count) as ?occ_count) (IF(?group=\">10\", \" other\", SAMPLE(?itemLabel)) as ?occ)
+WITH  {  
+        SELECT DISTINCT ?item (COUNT(?p) as ?count) WHERE { ?p wdt:P8034 []; wdt:P106 ?item } GROUP BY ?item ORDER BY DESC(?count) 
+      } AS %all 
+WITH  {
+        SELECT (?item as ?item2) (?count AS ?count2) WHERE { INCLUDE %all }
+      } AS %all2 
+WITH  {
+        SELECT ?item (SUM(?x) AS ?rank) ?count WHERE {
+          INCLUDE %all .
+          INCLUDE %all2 .
+          BIND( IF( ?count  <= ?count2 , 1, 0 ) AS ?x ) .
+        } GROUP BY ?item ?count
+      } AS %main 
+WHERE
+{
+  hint:Query hint:optimizer \"None\".    
+  INCLUDE %main .
+  BIND( IF(?rank < 11, str(?rank), 
+        \">10\")
+        as ?group)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". ?item rdfs:label ?itemLabel }
+}
+GROUP BY ?group
+ORDER BY (?group=\">10\") DESC(?occ_count)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

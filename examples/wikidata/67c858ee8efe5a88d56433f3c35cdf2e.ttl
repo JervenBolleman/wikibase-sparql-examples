@@ -4,11 +4,25 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-67c858ee8efe5a88d56433f3c35cdf2e> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-67c858ee8efe5a88d56433f3c35cdf2e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:SPARQL_query_service/queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """  Elasticsearch is being used only during the call to the wikibase:mwapi SERVICE.
+#  Everything happening outside this call is handled by Blazegraph, such as MINUS.
+SELECT ?item ?itemLabel WHERE {
+ SERVICE wikibase:mwapi {
+   bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+   wikibase:api \"EntitySearch\";
+   mwapi:search \"front matter\";  # Search for things named \"front matter\"
+   mwapi:language \"en\".
+   ?item wikibase:apiOutputItem mwapi:item.
+ }
+ MINUS {
+    ?item wdt:P31 wd:Q13442814 . # but MINUS any of those things that are instances of scholarly article
+ }
+ SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\".}
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

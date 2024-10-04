@@ -4,11 +4,35 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-0404861bc0b5daf7f175d1cc54dc7fcd> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-0404861bc0b5daf7f175d1cc54dc7fcd> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Pi_bot/doublecheck>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User_talk:Pi_bot/doublecheck>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ find a string in the description that isn't in the label
+
+SELECT 
+  ?search 
+  ?item ?itemLabel ?itemDescription 
+  ?instanceof ?instanceofLabel
+WHERE
+{
+   VALUES ?text { \"UNIQ\" }
+   BIND ( CONCAT(?text, ' hasdescription:en -inlabel:\"', ?text, '\"') as ?search  ) 
+   SERVICE wikibase:mwapi  # max. 10000
+   {
+     bd:serviceParam wikibase:api \"Search\" .
+     bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+     bd:serviceParam mwapi:srnamespace \"0\" .
+     bd:serviceParam mwapi:srsearch ?search .
+     ?item wikibase:apiOutputItem mwapi:title.
+   }
+   FILTER EXISTS {   ?item schema:description ?desc . 
+                     FILTER( lang(?desc)=\"en\" && CONTAINS( ?desc, ?text) ) 
+                  }
+   OPTIONAL {?item wdt:P31 wd:instanceof }
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" .}
+}
+ORDER BY deSC(?check_text)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

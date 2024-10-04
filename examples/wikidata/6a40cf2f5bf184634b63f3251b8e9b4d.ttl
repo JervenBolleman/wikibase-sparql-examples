@@ -4,13 +4,49 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-6a40cf2f5bf184634b63f3251b8e9b4d> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-6a40cf2f5bf184634b63f3251b8e9b4d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries-test-copy>,
-    <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries-test-transclude>,
-    <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/major_and_minor_tonalities_by_genre>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:TweetsFactsAndQueries/Queries-test-copy>,
+    <https://www.wikidata.org/wiki/User:TweetsFactsAndQueries/Queries-test-transclude>,
+    <https://www.wikidata.org/wiki/User:TweetsFactsAndQueries/Queries/major_and_minor_tonalities_by_genre>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ which genres are more likely to be in major key, which in minor key, which are about equally distributed?
+# note: some tonalities are neither major nor minor, e. g. Q211745 atonality
+SELECT ?genre ?genreLabel ?total ?major ?minor (?major / ?total AS ?majorRatio)
+WITH {
+  SELECT DISTINCT ?tonality WHERE {
+    [] wdt:P826 ?tonality.
+  }
+} AS %tonalities
+WITH {
+  SELECT ?tonality ?isMajor ?isMinor WHERE {
+    INCLUDE %tonalities.
+    ?tonality rdfs:label ?tonalityLabel.
+    FILTER(LANG(?tonalityLabel) = \"en\")
+    # TODO https://www.wikidata.org/wiki/Wikidata_talk:WikiProject_Music#Items_for_major_and_minor_keys
+    BIND(STRENDS(?tonalityLabel, \" major\") AS ?isMajor)
+    BIND(STRENDS(?tonalityLabel, \" minor\") AS ?isMinor)
+  }
+} AS %tonalitiesWithMode
+WITH {
+  SELECT ?genre ?tonality (COUNT(DISTINCT ?composition) AS ?count) WHERE {
+    ?composition wdt:P31/wdt:P279* wd:Q207628;
+                 wdt:P136/wdt:P279* ?genre;
+                 wdt:P826 ?tonality.
+    ?genre wdt:P31 wd:Q188451.
+  }
+  GROUP BY ?genre ?tonality
+} AS %genresAndTonalities WITH {
+  SELECT ?genre (SUM(?count) AS ?total) (SUM(IF(?isMajor, ?count, 0)) AS ?major) (SUM(IF(?isMinor, ?count, 0)) AS ?minor) WHERE {
+    INCLUDE %genresAndTonalities.
+    INCLUDE %tonalitiesWithMode.
+  }
+  GROUP BY ?genre
+} AS %results WHERE {
+  INCLUDE %results.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?total) DESC(?major)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

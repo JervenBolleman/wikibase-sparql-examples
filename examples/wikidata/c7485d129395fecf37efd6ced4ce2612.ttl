@@ -4,11 +4,27 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-c7485d129395fecf37efd6ced4ce2612> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-c7485d129395fecf37efd6ced4ce2612> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Retractions/SPARQL>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_Retractions/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: Researchers at a particular research organization citing retracted articles (ROR)
+SELECT ?researcher ?researcherLabel ?orcid ?count WITH {
+  SELECT ?researcher ?orcid
+       (COUNT(DISTINCT ?article) AS ?count)
+  WHERE {
+    VALUES ?ror { \"02jz4aj89\" } # 02jz4aj89 is Maastricht University
+    ?researcher ( wdt:P108| wdt:P463 | wdt:P1416 ) / wdt:P361* ?organization .
+    OPTIONAL { ?researcher wdt:P496 ?orcid }
+    ?organization wdt:P6782 ?ror .
+    ?article wdt:P50 ?researcher; wdt:P2860 ?retractedArticle .
+    ?retractedArticle wdt:P31 wd:Q45182324 .
+  } GROUP BY ?researcher ?orcid
+    ORDER BY DESC(?count)
+} AS %RESEARCHERS WHERE {
+  INCLUDE %RESEARCHERS
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY DESC(?count)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

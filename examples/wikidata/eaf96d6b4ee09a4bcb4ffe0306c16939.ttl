@@ -4,11 +4,28 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-eaf96d6b4ee09a4bcb4ffe0306c16939> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-eaf96d6b4ee09a4bcb4ffe0306c16939> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service/queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata_talk:SPARQL_query_service/queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Items in the UK with more than one wdt:P131
+
+    SELECT ?item ?itemLabel ?adm1 ?adm1Label ?adm2 ?adm2Label WHERE {
+#       hint:Query hint:optimizer \"None\" .
+       {
+          SELECT ?item WHERE {    
+             ?item wdt:P31/wdt:P279* wd:Q171634 .
+             ?item wdt:P17 wd:Q145 .
+             ?item wdt:P131 ?adm .
+          } GROUP BY ?item
+          HAVING (COUNT(?adm) = 2) 
+       }
+       ?item wdt:P131 ?adm1 .
+       ?item wdt:P131 ?adm2 .
+       ?adm1 wdt:P131+ ?adm2 .
+       SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+    }
+    ORDER BY ?itemLabel"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

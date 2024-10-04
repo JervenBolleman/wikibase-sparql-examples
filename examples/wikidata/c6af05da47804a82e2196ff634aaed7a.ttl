@@ -4,11 +4,33 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-c6af05da47804a82e2196ff634aaed7a> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-c6af05da47804a82e2196ff634aaed7a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Taravyvan_Adijene/SPARQL>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Taravyvan_Adijene/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Беларускія тэнісісткі
+SELECT ?item ?itemLabel ?image (sample(?рэйтынг) as ?рэйтынг)
+WHERE {
+  BIND(wd:Q10833314 AS ?тэнісістка)                                  # замяніць на любую іншую прафэсію
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],be-tarask,uk,pl,en\". }   # фарматаваньне метак вываду
+
+  ?item wdt:P31 wd:Q5.                                               # толькі людзі
+  ?item wdt:P21 wd:Q6581072.                                         # жанчыны
+  { ?item wdt:P19 wd:Q184. }                                         # месца нараджэньня — Беларусь
+  UNION
+  { ?item wdt:P19/wdt:P131* wd:Q184. }                               # альбо месца нараджэньня знаходзіцца ў Беларусі
+  UNION
+  { ?item wdt:P1532 wd:Q184. }                                       # альбо спартовае грамадзянства Беларусі
+  ?item p:P106 ?прафэсія.                                            # маюць прафэсію
+  ?прафэсія ps:P106 ?тэнісістка.                                     # …тэнісісткі
+  FILTER NOT EXISTS { ?прафэсія pq:P582 ?x }                         # …бяз даты сканчэньня
+  OPTIONAL { ?item wdt:P18 ?image. }                                 # выява
+  OPTIONAL { ?item p:P1352 ?адзінкавы.                               # спартовы рэйтынг
+             ?адзінкавы ps:P1352 ?рэйтынг.
+             ?адзінкавы pq:P641 wd:Q18123880. }                      # адзінкавы
+}
+GROUP BY ?item ?itemLabel ?image ?рэйтынг
+ORDER BY ?itemLabel IF(BOUND(?рэйтынг), xsd:integer(?рэйтынг), 9999)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

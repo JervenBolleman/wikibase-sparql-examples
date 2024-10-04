@@ -4,11 +4,45 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-283a3c945ecbaf577f26338b04b1b334> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-283a3c945ecbaf577f26338b04b1b334> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ This returns the total number of days experience in Parliament for each party grouping.
+# MPs are counted with their current group regardless of any historical affiliations.
+# Day counts are only when they are serving as elected MPs - election day to dissolution - 
+# and do not include any periods outside the Commons (eg defeated and later returned)
+# Labour Co-Op is counted as Labour; Change UK as independent.
+
+SELECT distinct ?groupLabel
+  (count(distinct ?mp) as ?current_members)
+  (round(sum(?duration)) as ?cumulative_days_experience)
+  (round(?cumulative_days_experience/?current_members) as ?average_days_experience)
+  ((round(?average_days_experience/36.525)/10) as ?average_in_years) #fiddly count to make it decimal
+   WHERE {
+     { ?mp p:P39 ?ps . ?ps ps:P39 ?term . ?ps pq:P580 ?start . ?ps pq:P582 ?end . 
+       ?term wdt:P279 wd:Q16707842 . BIND((?end-?start) AS ?duration) }
+     # period for all ended terms for all MPs, regardless of party
+     union
+     { ?mp p:P39 ?ps . ?ps ps:P39 ?term . ?ps pq:P580 ?start . ?term wdt:P279 wd:Q16707842 . 
+       filter not exists { ?ps pq:P582 ?end } . BIND(floor((NOW() - ?start)) as ?duration) }
+     # time elapsed in a term which is still ongoing; floor rounds down to whole days
+     # these two clauses count all the days served by MPs, both finished & current terms
+     
+       ?mp p:P39 ?currps . ?currps ps:P39 ?currterm . ?currterm wdt:P279 wd:Q16707842 .
+       ?currps pq:P4100 ?party . filter not exists { ?currps pq:P582 ?currend } .
+     # our MP must hold a current term, ie has no end date, and have a party affiliation
+     
+     BIND(IF(?party = wd:Q6467393, wd:Q9630 ,
+             (IF(?party = wd:Q61751194 , wd:Q327591 , 
+                (IF(?party = wd:Q67153570 , wd:Q327591 , ?party)))
+             )
+            )             
+          AS ?group) .
+     # merge Labour/Co-Op, Independent/Change UK/The Independents
+     
+     SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} group by ?groupLabel order by desc(?current_members)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

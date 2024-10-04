@@ -4,11 +4,33 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-230aabfa40381c969b6d9a2ba7e8df49> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-230aabfa40381c969b6d9a2ba7e8df49> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Requests_for_comment/Gender_neutral_labels_for_occupations_and_positions_in_French>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Requests_for_comment/Gender_neutral_labels_for_occupations_and_positions_in_French>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ See https://m.wikidata.org/wiki/User:PAC2/Gender_neutral_labels
+#title: Items of class occupation with label, male form, female form and aliases
+SELECT ?item ?itemLabel ?maleform ?femaleform 
+(GROUP_CONCAT(?alias; SEPARATOR = \", \") AS ?aliases) WHERE {
+  wd:Q12737077 (^(wdt:P279*)/^wdt:P31) ?item.
+  ?item rdfs:label ?itemLabel.
+  BIND(LANG(?itemLabel) AS ?lang)
+  FILTER((LANG(?itemLabel)) = \"fr\")
+  OPTIONAL {
+    ?item wdt:P2521 ?femaleform.
+    FILTER((LANG(?femaleform)) = ?lang)
+  }
+  OPTIONAL {
+    ?item wdt:P3321 ?maleform.
+    FILTER((LANG(?maleform)) = ?lang)
+  }
+  OPTIONAL {
+    ?item skos:altLabel ?alias.
+    FILTER((LANG(?alias)) = ?lang)
+  }
+}
+GROUP BY ?item ?itemLabel ?maleform ?femaleform
+LIMIT 100"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>

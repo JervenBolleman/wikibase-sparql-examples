@@ -4,11 +4,56 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-9a12e7a5f896033181188ee87d64e75d> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-9a12e7a5f896033181188ee87d64e75d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ash_Crow/SPARQL>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Ash_Crow/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Battles within a certain radius of a certain point without place and/or date
+SELECT DISTINCT ?item 
+(SAMPLE(?itemLabel) AS ?itemLabel)
+(SAMPLE(?place) AS ?place) 
+(SAMPLE(?placeLabel) AS ?placeLabel)
+(SAMPLE(?date) AS ?date)
+(SAMPLE(?coords) AS ?coords) WHERE {
+  ?item wdt:P31 wd:Q178561 .
+
+  # wd:Q1133467 wdt:P625 ?MidPointCoords . # European Midpoint, including the european part of Russia.
+  # wd:Q509320 wdt:P625 ?MidPointCoords . # EU Midpoint
+  wd:Q1524 wdt:P625 ?MidPointCoords . # Athens
+  # wd:Q994 wdt:P625 ?MidPointCoords . # Tbilissi
+  # wd:Q3640 wdt:P625 ?MidPointCoords . # Ankara
+  # Done : Paris, Isle of Man, Oslo, Finland, Madrid, Rome, EU Midpoint, Varsovie, Berlin, Yalta
+
+  
+  SERVICE wikibase:around {
+    ?item wdt:P625 ?coords . 
+    bd:serviceParam wikibase:center ?MidPointCoords .
+    bd:serviceParam wikibase:radius \"600\" . 
+  }
+  
+  OPTIONAL {
+    ?item wdt:P276 ?place . 
+    OPTIONAL { 
+      ?place rdfs:label ?placeLabel .
+      FILTER(LANG(?placeLabel) IN (\"fr\",\"en\")) .
+    }
+  }
+  OPTIONAL { ?item (wdt:P585|wdt:P580|wdt:P582)  ?date . }
+  FILTER(!BOUND(?place) || !BOUND(?date) ) .
+
+  OPTIONAL { ?item rdfs:label ?itemLabelFr . FILTER(LANG(?itemLabelFr) = \"fr\") . }
+  OPTIONAL { ?item rdfs:label ?itemLabelEn . FILTER(LANG(?itemLabelEn) = \"en\") . }
+  OPTIONAL { ?item rdfs:label ?itemLabelEs . FILTER(LANG(?itemLabelEs) = \"es\") . }
+  OPTIONAL { ?item rdfs:label ?itemLabelCa . FILTER(LANG(?itemLabelCa) = \"ca\") . }
+  OPTIONAL { ?item rdfs:label ?itemLabelDe . FILTER(LANG(?itemLabelDe) = \"de\") . }
+  OPTIONAL { ?item rdfs:label ?itemLabelIt . FILTER(LANG(?itemLabelIt) = \"it\") . }
+  BIND(COALESCE(?itemLabelFr,
+                ?itemLabelEn,
+                ?itemLabelEs,
+                ?itemLabelCa,
+                ?itemLabelDe,
+                ?itemLabelIt) AS ?itemLabel) .
+} GROUP BY ?item ORDER BY ?coords"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

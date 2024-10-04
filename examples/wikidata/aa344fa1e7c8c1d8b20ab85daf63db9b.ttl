@@ -4,11 +4,28 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-aa344fa1e7c8c1d8b20ab85daf63db9b> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-aa344fa1e7c8c1d8b20ab85daf63db9b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Daniel_Mietchen>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Daniel_Mietchen>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: DOIs of works that are citing or cited by works published in a given venue
+PREFIX target: <http://www.wikidata.org/entity/Q15758330>
+
+SELECT DISTINCT (ENCODE_FOR_URI(?doi_) AS ?doi)
+WITH {
+  SELECT  ?cite_work 
+  WHERE {
+    ?cite_work wdt:P1433 target: .
+    {?cite_work wdt:P2860 target: .}
+    UNION
+    {?cite_work ^wdt:P2860 target: .}
+  }
+  GROUP BY ?cite_work
+} AS %result
+WHERE {
+  INCLUDE %result
+  ?cite_work wdt:P356 ?doi_ .
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 #title: DOIs of works that are citing or cited by works published in a given venue

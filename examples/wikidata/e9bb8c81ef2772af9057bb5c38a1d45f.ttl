@@ -4,11 +4,42 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-e9bb8c81ef2772af9057bb5c38a1d45f> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-e9bb8c81ef2772af9057bb5c38a1d45f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Memoriav-bdc/GLAM>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Memoriav-bdc/GLAM>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Institution partenaires décrites dans Memobase (avec les informations souhaitées)
+SELECT ?item ?label_fr ?label_it ?label_de (GROUP_CONCAT(DISTINCT(?typeLabel); separator=\", \") AS ?typesA) ?adress ?adress_siege ?locLabel ?loc2Label ?website ?email ?geo ?geoid ?geo_lieu ?site_portal
+WHERE 
+{
+  ?item wdt:P1343 wd:Q96192978.
+  OPTIONAL {?item wdt:P31 ?type}.
+  OPTIONAL {?type rdfs:label ?typeLabel. filter(lang(?typeLabel)=\"fr\") }. 
+  OPTIONAL {?item wdt:P6375 ?adress.}
+  OPTIONAL {?item p:P159 ?decl_siege.
+    ?decl_siege ps:P159 ?siege.
+    ?decl_siege pq:P6375 ?adress_siege.}
+  OPTIONAL {?item wdt:P131 ?loc. ?loc wdt:P31 wd:Q70208}.
+  OPTIONAL {?item wdt:P131 ?loc. ?loc wdt:P31 wd:Q70208; p:P131 ?decl_loc2. ?decl_loc2 ps:P131 ?loc2.?loc2 wdt:P31 wd:Q23058.
+             FILTER NOT EXISTS{?decl_loc2 ps:P131 ?loc2;pq:P582 ?datefin.}
+            }.
+  OPTIONAL {?item wdt:P856 ?website.}
+  OPTIONAL {?item wdt:P968 ?email.}
+  OPTIONAL {?item wdt:P625 ?geo.}
+  OPTIONAL {?item p:P159 ?decl_siege.
+    ?decl_siege ps:P159 ?siege.
+    ?decl_siege pq:P625 ?geoid.}
+  OPTIONAL {?item p:P276 ?decl_lieu.
+    ?decl_lieu ps:P159 ?lieu.
+    ?lieu pq:P625 ?geo_lieu.}
+  OPTIONAL{?item rdfs:label ?label_fr. FILTER (LANG(?label_fr) = \"fr\")}.
+  OPTIONAL{?item rdfs:label ?label_it. FILTER (LANG(?label_it) = \"it\")}. 
+  OPTIONAL{?item rdfs:label ?label_de. FILTER (LANG(?label_de) = \"de\")}.
+  OPTIONAL{?portal wdt:P31 wd:Q186165; wdt:P137 ?item; wdt:P856 ?site_portal}.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,it,en\". }
+}
+GROUP BY ?item ?label_fr ?label_it ?label_de ?typesA ?adress ?adress_siege ?locLabel ?loc2Label ?website ?email ?geo ?geoid ?geo_lieu ?site_portal
+ORDER BY ?item"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

@@ -4,11 +4,32 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-c19deac1a997498d881fc61e99394fc2> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-c19deac1a997498d881fc61e99394fc2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/07>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2024/07>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ list of nouns
+SELECT
+  ?lexeme ?lexemeLabel
+  ?lexical_category ?lexical_categoryLabel
+WITH {
+  SELECT ?lexeme ?lexemeLabel ?lexical_category WHERE {
+    ?lexeme a ontolex:LexicalEntry ;
+            dct:language wd:Q1860 ; 
+            wikibase:lemma ?lexemeLabel .
+    OPTIONAL {
+      ?lexeme wikibase:lexicalCategory ?lexical_category .
+    }
+  }
+  LIMIT 10000
+} AS %results
+WHERE {
+  INCLUDE %results
+  OPTIONAL {        
+    ?lexical_category rdfs:label ?lexical_categoryLabel .
+    FILTER (LANG(?lexical_categoryLabel) = \"en\")
+  }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>

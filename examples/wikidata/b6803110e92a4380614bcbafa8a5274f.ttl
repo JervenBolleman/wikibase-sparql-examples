@@ -4,11 +4,25 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-b6803110e92a4380614bcbafa8a5274f> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-b6803110e92a4380614bcbafa8a5274f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_University_degrees/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_University_degrees/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ List of persons who hold a bachelor's degree in Astronomy
+SELECT DISTINCT ?institution ?institutionLabel ?person ?personLabel ?degree ?degreeLabel ?majorLabel WHERE {
+  ?person wdt:P31 wd:Q5 ; # instances (P31) of humans (Q5)
+            p:P69 ?statement . # check for an \"educated at\" (P69) statement
+  
+  ?statement ps:P69 ?institution . # get value of the \"educated at\" statement, i.e. the institution
+  ?institution wdt:P625 ?geoloc . # get the geolocation of the institution
+
+  ?statement pq:P512 ?degree . # get qualifier \"academic degree\" (P512) 
+  ?statement pq:P812 ?major . # get qualifier \"academic major (P812)
+  ?degree wdt:P31*/wdt:P279* wd:Q163727 . # filter for bachelor degrees (Q163727) 
+  ?major wdt:P31*/wdt:P279* wd:Q333 . # filter major for astronomy (Q333)
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

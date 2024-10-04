@@ -4,11 +4,31 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-67dc8d9ce1f17358ded950f53fbfe0ff> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-67dc8d9ce1f17358ded950f53fbfe0ff> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Mcarondiotte/Prime_Ministers_of_Canada>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Mcarondiotte/Prime_Ministers_of_Canada>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title:Prime Ministers of Canada
+SELECT ?pm ?pmLabel ?genderLabel ?dob ?pobLabel ?dod ?podLabel ?height ?assumedOffice ?endOffice ?ordinal WHERE {
+  # Get all Premiers
+  ?pm p:P39 ?posheld. # with position held
+  
+  # Check on the position as Prime Minister of Canada
+  ?posheld ps:P39 wd:Q839078 ; # Position held is in Prime Minister of Canada
+           pq:P580 ?assumedOffice . # should have a starttime
+  
+  OPTIONAL { ?posheld pq:P1545 ?ordinal . } # but not necessarily an ordinal
+  OPTIONAL { ?posheld pq:P582 ?endOffice . } # but not necessarily an endtime
+  
+  OPTIONAL{ ?pm wdt:P21 ?gender . } # get gender
+  OPTIONAL{ ?pm wdt:P569 ?dob . } # get date of birth
+  OPTIONAL{ ?pm wdt:P19 ?pob . } # get place of birth
+  OPTIONAL{ ?pm wdt:P570 ?dod . } # get date of death
+  OPTIONAL{ ?pm wdt:P20 ?pod . } # get place of death
+  OPTIONAL{ ?pm wdt:P2048 ?height . } # get height
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\". }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

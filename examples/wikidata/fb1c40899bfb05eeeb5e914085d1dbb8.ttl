@@ -4,11 +4,52 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-fb1c40899bfb05eeeb5e914085d1dbb8> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-fb1c40899bfb05eeeb5e914085d1dbb8> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_Italy/2019>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata_talk:WikiProject_Italy/2019>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Comuni da aggiornare
+SELECT  ?provincia ?provinciaLabel ?comune ?comuneLabel 
+WHERE 
+{
+  # Comuni e comuni sparsi italiani 
+  {
+    ?comune wdt:P31 wd:Q747074 .                 # Italian municipality
+  }
+  UNION
+  {
+    ?comune wdt:P31 wd:Q954172 .                 # Italian sparse municipality
+  }
+  
+  MINUS
+  {
+    # Comuni e comuni sparsi correttamente assegnati a province e similari
+    
+    ?regione p:P31/ps:P31/wdt:P279* wd:Q16110 .    # Regions of Italia
+    ?provincia wdt:P131 ?regione .                 # Administrative divisions in the region
+  
+    { ?provincia wdt:P31 wd:Q15089 . }             # List of provinces
+    UNION
+    { ?provincia wdt:P31 wd:Q15110 . }             # metropolitan cities of Italy
+    UNION
+    { ?provincia wdt:P31 wd:Q21190155 . }          # Liberi consorzi comunali of Sicily
+   
+    ?comune wdt:P131 ?provincia .                  # Administrative divisions in the province
+    {
+      ?comune wdt:P31 wd:Q747074 .                 # Italian municipality
+    }
+    UNION
+    {
+      ?comune wdt:P31 wd:Q954172 .                 # Italian sparse municipality
+    }     
+  }
+
+  ?comune wdt:P131 ?provincia .
+  
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+order by ?comuneLabel"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

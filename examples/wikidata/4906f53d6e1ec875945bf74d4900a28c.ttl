@@ -4,11 +4,82 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-4906f53d6e1ec875945bf74d4900a28c> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-4906f53d6e1ec875945bf74d4900a28c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/10>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2017/10>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Script #1
+SELECT
+      #MIN(?dateYear) AS     ?dateYears)
+      (GROUP_CONCAT(DISTINCT     ?dateYear ; separator = \", \") AS     ?dateYears)
+      (GROUP_CONCAT(DISTINCT  ?gameENLabel ; separator = \", \") AS  ?gameENLabels)
+      (GROUP_CONCAT(DISTINCT  ?gameJALabel ; separator = \", \") AS  ?gameJALabels)
+      (GROUP_CONCAT(DISTINCT ?hepburnLabel ; separator = \", \") AS ?hepburnLabels)
+      #(GROUP_CONCAT(DISTINCT  ?gameZHLabel ; separator = \", \") AS  ?gameZHLabels)
+      #(GROUP_CONCAT(DISTINCT  ?pinyinLabel ; separator = \", \") AS  ?pinyinLabels)
+      (GROUP_CONCAT(DISTINCT     ?dataLink ; separator = \", \") AS     ?dataLinks)
+      #(?game AS ?dataPages)
+      (GROUP_CONCAT(DISTINCT     ?wikiLink ; separator = \", \") AS     ?wikiLinks)
+      (GROUP_CONCAT(DISTINCT     ?wikiName ; separator = \", \") AS     ?wikiNames)
+      WHERE {
+        #hint:Query hint:optimizer \"None\".
+
+        # test values
+        #VALUES ?game {
+        # wd:Q4850488    # Baldur's Gate III: The Black Hound (should have \"no value\" due to being cancelled)
+        # wd:Q4931588    # Bob's Game (should have \"no value\" due to not being released yet)
+        # wd:Q5315330    # Dunjonquest (1979)
+        # wd:Q5250229    # Deep Labyrinth (should have multiple dates)
+        # wd:Q1462499    # Starflight (1986, has multiple genres)
+        # wd:Q22124593   # God Wars: Beyond Time (should have blank date since the property does not exist)
+        #}
+
+        # types of item
+              {?game wdt:P136 wd:Q744038}   # regular RPGs
+        UNION {?game wdt:P136 wd:Q1529437}  # tactical RPGs
+        UNION {?game wdt:P136 wd:Q1422746}  # action RPGs
+        UNION {?game wdt:P136 wd:Q1143132}  # roguelikes
+        #?game wdt:P136/wdt:P279* wd:Q744038.	# any class or subclass of role-playing video game, including MMORPGs
+        ?game wdt:P31 wd:Q7889.             # instance of video game
+
+        # English label
+        ?game rdfs:label ?gameENLabel.
+        FILTER(LANG(?gameENLabel) = \"en\"). # we mainly want English labels
+
+        # Japanese and Chinese labels
+        OPTIONAL {?game rdfs:label ?gameJALabel FILTER(LANG(?gameJALabel) = \"ja\")}  # we optionally want Japanese labels (for Japanese games, only, preferably)
+        #OPTIONAL {?game rdfs:label ?gameZHLabel FILTER(LANG(?gameZHLabel) = \"zh\")}  # we optionally want Chinese labels (for Chinese games, only, preferably)
+
+        # release date (simple)
+        OPTIONAL {?game wdt:P577 ?date BIND(YEAR(?date) AS ?dateYear)}    # faster substitute
+
+        # wikidata link
+        BIND(CONCAT(\"=hyperlink(\\\"\",replace(replace(STR(?game), \"entity\", \"wiki\"), \"http\", \"https\"),\"\\\")\") AS ?dataLink).    # changes the target of the URL and creates a MS Excel compatible hyperlink
+        #BIND(STR(?game) AS ?dataLink).    # faster substitute
+
+        # wikipedia link
+        OPTIONAL {
+          ?wikiURL schema:about ?game.
+          ?wikiURL schema:isPartOf <https://en.wikipedia.org/>.
+          ?wikiURL schema:name ?wikiName.
+          BIND(CONCAT(\"=hyperlink(\\\"\",STR(?wikiURL),\"\\\")\") AS ?wikiLink).    # creates a MS Excel compatible hyperlink
+          #BIND(STR(?wikiURL) AS ?wikiLink).    # faster substitute
+        }
+
+        # hepburn romanization and pinyin transliteration
+        OPTIONAL {?game wdt:P2125   ?hepburn}
+        #OPTIONAL {?game wdt:P1721    ?pinyin}
+
+        # labels
+        SERVICE wikibase:label {
+          bd:serviceParam wikibase:language \"en\".
+            ?hepburn rdfs:label ?hepburnLabel.
+             ?pinyin rdfs:label  ?pinyinLabel.
+        }
+      }
+    GROUP BY $game
+    ORDER BY asc (?dateYears) ASC (?gameENLabels)
+    #limit 100"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

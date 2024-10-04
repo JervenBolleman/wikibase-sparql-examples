@@ -4,11 +4,32 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-c9a9104d48c777b442757342843cd984> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-c9a9104d48c777b442757342843cd984> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Hannes_R%C3%B6st/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Hannes_R%C3%B6st/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Alle Nationalrate nach Kanton und Amtszeit
+# SELECT DISTINCT ?item ?itemLabel ?cantonLabel ?start_time
+SELECT DISTINCT ?item (COUNT(?start_time) AS ?nr_times) 
+  (GROUP_CONCAT(year(?start_time); separator=\";\") AS ?start_times) 
+  (GROUP_CONCAT(?cantonLabel; separator=\";\") AS ?cantons)
+  (GROUP_CONCAT(?periodLabel; separator=\";\") AS ?periods)
+WHERE 
+{
+  ?item wdt:P39 wd:Q18510612 .  
+  ?item p:P39 ?statement .
+  FILTER EXISTS {?statement ?v  wd:Q18510612 .  }
+
+  OPTIONAL { ?statement pq:P768 ?canton . }
+  OPTIONAL { ?statement pq:P580 ?start_time . }
+  OPTIONAL { ?statement pq:P2937 ?period . }
+ 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de\". 
+                          ?canton rdfs:label ?cantonLabel  .
+                          ?period rdfs:label ?periodLabel  .
+                         }
+}
+GROUP BY ?item"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

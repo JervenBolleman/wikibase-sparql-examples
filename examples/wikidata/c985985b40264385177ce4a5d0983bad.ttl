@@ -4,11 +4,24 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-c985985b40264385177ce4a5d0983bad> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-c985985b40264385177ce4a5d0983bad> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/Queries>, <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/sandbox>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Ep%C3%ACdosis/Queries>, <https://www.wikidata.org/wiki/User:Ep%C3%ACdosis/sandbox>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title:Birth date referenced, only one having best rank, with precision year or higher and possible precision qualifiers
+SELECT ?id ?person ?date ?prec ?source_condLabel ?refineLabel ?low_limit ?high_limit
+WHERE {
+  ?person wdt:P5739 ?id .
+  ?person p:P569 ?st . ?st prov:wasDerivedFrom ?ref ; a wikibase:BestRank ; psv:P569 [ wikibase:timePrecision ?prec ; wikibase:timeValue ?date ] .
+  OPTIONAL { ?st pq:P1480 ?source_cond } .
+  OPTIONAL { ?st pq:P4241 ?refine } .
+  OPTIONAL { ?st pq:P1319 ?low_limit } .
+  OPTIONAL { ?st pq:P1326 ?high_limit } .
+  FILTER NOT EXISTS { ?person p:P569 ?st2 . ?st2 a wikibase:BestRank . FILTER( ?st2 != ?st ) }
+  FILTER(?prec IN (\"9\"^^xsd:integer, \"10\"^^xsd:integer, \"11\"^^xsd:integer))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY ?date"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

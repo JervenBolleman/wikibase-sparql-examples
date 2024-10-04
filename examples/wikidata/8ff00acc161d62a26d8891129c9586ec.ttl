@@ -4,11 +4,35 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-8ff00acc161d62a26d8891129c9586ec> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-8ff00acc161d62a26d8891129c9586ec> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_Invasion_biology>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: Works that have (a) been published in invasion biology venues but (b) not been tagged as being in scope of WikiProject Invasion Biology
+SELECT 
+  DISTINCT
+  ?item ?title
+  (REPLACE(STR(?item), \".*Q\", \"Q\") AS ?qid) 
+  (\"P6104\" AS ?property)
+  (\"Q56241615\" AS ?ReplaceWithYourTargetID)
+  (\"S887\" AS ?heuristic)
+  (\"Q124004081\" AS ?deduced)
+
+WHERE {
+  hint:Query hint:optimizer \"None\".
+  
+  ?venue wdt:P6104 wd:Q56241615.
+  ?venue wdt:P236 [].
+  ?item wdt:P1433 ?venue.
+  
+  FILTER NOT EXISTS { ?item wdt:P6104 wd:Q56241615. }
+
+  ?item wdt:P1476 ?title_.
+  ?venue wdt:P1476 ?venue_title.
+  ?venue wdt:P6104 wd:Q56241615.
+  BIND(CONCAT(?title_ , \" | \" , ?venue_title)  AS ?title)
+
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>

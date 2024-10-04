@@ -4,11 +4,41 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-42e60f5f5a26bb66ad92fe00118de6f1> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-42e60f5f5a26bb66ad92fe00118de6f1> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Daniel_Mietchen>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Daniel_Mietchen>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: DOIs of works that are citing or cited by works one or both of two given topics
+PREFIX target1: <http://www.wikidata.org/entity/Q21447895>
+PREFIX target2: <http://www.wikidata.org/entity/Q2539>
+
+SELECT ?doi
+WITH {
+  SELECT DISTINCT ?work WHERE {
+    { ?work wdt:P921 / (wdt:P361+ | wdt:P1269+ | (wdt:P31* / wdt:P279*) ) target1: . }
+    UNION
+    { ?work wdt:P921 / (wdt:P361+ | wdt:P1269+ | (wdt:P31* / wdt:P279*) ) target2: . }
+  }
+} AS %works
+WITH {
+  SELECT (MAX(?dates) as ?datetime) ?work 
+  WHERE {
+    INCLUDE %works
+    ?work wdt:P921 ?topic . 
+    ?work wdt:P577 ?dates . 
+  }
+  GROUP BY ?work
+} AS %result
+WHERE {
+  INCLUDE %result
+  # There is a problem with BC dates
+  # BIND(xsd:date(?datetime) AS ?date)
+  BIND(REPLACE(STR(?datetime), 'T.*', '') AS ?date)
+  ?work wdt:P356 ?doi .    
+}
+# GROUP BY ?date ?work ?workLabel ?topicsUrl ?topics
+ORDER BY DESC(?date)
+LIMIT 200"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

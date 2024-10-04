@@ -4,11 +4,38 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-6ae370415eccf5112de1da03682743a2> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-6ae370415eccf5112de1da03682743a2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Herzi_Pinki/Sparql>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Herzi_Pinki/Sparql>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title:find UNESCO stuff for karthographer 
+SELECT ?id ?geo 
+                (concat(?articleLink, '[[File:Wikidata-logo S.svg|16px|link=d:', substr(str(?id),32,13), ']]', (SAMPLE(?idBild))) as ?description)
+                ('small' as ?marker_size) ?marker_color
+         WHERE { ?id wdt:P17 ?country.
+                 VALUES ?country {wd:Q40}. # {wd:}.Q843
+                 ?id wdt:P1435 wd:Q9259.
+                 ?id wdt:P757 [].
+                 ?id wdt:P625 ?geo.
+                 SERVICE wikibase:label { bd:serviceParam wikibase:language 'de,en' .
+                                          ?id rdfs:label ?idLabel . }
+                 OPTIONAL { ?id wdt:P18 ?img .}
+                 BIND(IF(BOUND(?img), concat('\\\\n', '[[File:', substr(str(?img), 52, 400), '|250px]]'), '') AS ?idBild) .
+                 OPTIONAL {
+                    ?id p:P1435 ?statement.
+                    ?statement ps:P1435 wd:Q9259.
+                    ?statement pq:P580 [].
+                    #VALUES ?year {1997}.
+                    }
+                 bind(if(BOUND(?img), if(BOUND(?end), '#80F080', '#008000'), if(BOUND(?end), '#F08080', '#800000')) as ?marker_color).
+                 optional {
+                    ?link schema:about ?id .
+                    ?link schema:isPartOf <https://de.wikipedia.org/> .
+                    ?link schema:name ?lemma .
+                 }
+                    bind (if(Bound(?link), concat('[[:de:', ?lemma, '|',?idLabel,']]\\\\n'), concat(?idLabel,'\\\\n')) as ?articleLink).
+               }
+         GROUP BY ?id ?geo ?articleLink ?marker_color"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

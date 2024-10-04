@@ -4,11 +4,29 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-a3557f40eeb071745625af4d50085255> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-a3557f40eeb071745625af4d50085255> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ijon/Lexeme>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Ijon/Lexeme>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: Ukrainian nouns by gender
+SELECT ?lemma ?gender_label ?lexeme  WITH {
+  SELECT DISTINCT ?lemma WHERE {
+    VALUES ?gender { wd:Q499327 wd:Q1775415 wd:Q1775461 }
+    ?lexeme dct:language wd:Q8798;
+            wikibase:lexicalCategory wd:Q1084;
+            wdt:P5185 ?gender;
+            wikibase:lemma ?lemma.
+  }
+  ORDER BY CONCAT(MD5(?lemma), STR(NOW()))
+} AS %randomLemmas WHERE {
+  INCLUDE %randomLemmas.
+  ?lexeme wikibase:lemma ?lemma;
+          wdt:P5185 ?gender.
+     ?gender rdfs:label ?gender_label .
+     FILTER(LANG(?gender_label) = 'en')
+}
+GROUP BY ?lemma ?lexeme ?gender_label
+HAVING(COUNT(?gender) = 1)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

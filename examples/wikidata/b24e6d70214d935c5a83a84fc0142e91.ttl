@@ -4,11 +4,29 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-b24e6d70214d935c5a83a84fc0142e91> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-b24e6d70214d935c5a83a84fc0142e91> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Will_(Wiki_Ed)/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Will_(Wiki_Ed)/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title:Query for recent revisions to items
+select ?item ?itemLabel ?string ?content ?timestamp ?user {
+  ?item wdt:P31 wd:Q146. # find cats
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  
+  BIND(STRAFTER(wikibase:decodeUri(str(?item)), \"http://www.wikidata.org/entity/\") AS ?string)
+  # need to make the ID something the API can understand
+  
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+       wikibase:api \"Generator\";
+       wikibase:limit \"once\";
+       mwapi:generator \"allpages\";
+       mwapi:gapfrom ?string;
+       mwapi:gapnamespace 0 ; # main namespace
+       mwapi:gaplimit 1; # only one 
+       mwapi:prop \"revisions\";
+       mwapi:rvdir \"newer\"; # FIRST revision
+       mwapi:rvprop \"timestamp"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

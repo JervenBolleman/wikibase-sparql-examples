@@ -4,11 +4,26 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-6e603ab6efe39b6a262969f24472b1eb> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-6e603ab6efe39b6a262969f24472b1eb> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Will_(Wiki_Ed)/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Will_(Wiki_Ed)/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title:Number of statements by property for things (ex. albums)
+SELECT ?property ?propertyLabel ?count ?type WITH {
+  SELECT ?property (count(?property) as ?count)
+WHERE 
+{
+  ?item wdt:P31 wd:Q482994.      # the thing you're interested in. \"albums\" (Q482994) in this example
+  hint:Prior hint:runFirst true.
+  ?item ?predicate [].
+  ?property wikibase:directClaim ?predicate .
+} group by ?property ?propertyLabel } as %i
+WHERE
+{
+  INCLUDE %i.
+  ?property wikibase:propertyType ?type.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY DESC(?count)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

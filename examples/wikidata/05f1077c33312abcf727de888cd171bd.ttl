@@ -4,11 +4,25 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-05f1077c33312abcf727de888cd171bd> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-05f1077c33312abcf727de888cd171bd> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/calendars>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:MartinPoulter/queries/calendars>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title:Calendar of Awareness days 
+SELECT DISTINCT ?month_int ?monthLabel (?day_int as ?d) ?world_dayLabel (?world_day as ?link) (GROUP_CONCAT(DISTINCT ?countryLabel; separator=\", \") as ?countries) WHERE {
+?month wdt:P31 wd:Q47018901; wdt:P1545 ?month_ordinal.
+?day p:P361 [ps:P361 ?month; pq:P1545 ?day_ordinal ].
+ BIND(xsd:integer(?month_ordinal) AS ?month_int)
+ BIND(xsd:integer(?day_ordinal) AS ?day_int)
+  
+VALUES ?type {wd:Q2558684 wd:Q422695} # World ___ day; Awareness day 
+?world_day wdt:P31 ?type; wdt:P837 ?day
+OPTIONAL {?world_day wdt:P17 ?country}
+  
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+      ?month rdfs:label ?monthLabel. ?world_day rdfs:label ?world_dayLabel. ?country rdfs:label ?countryLabel }
+} GROUP BY ?month_int ?monthLabel ?day_int ?world_dayLabel ?world_day
+ORDER BY ?month_int ?d"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

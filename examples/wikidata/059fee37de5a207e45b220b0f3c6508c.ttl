@@ -4,11 +4,29 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-059fee37de5a207e45b220b0f3c6508c> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-059fee37de5a207e45b220b0f3c6508c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Divudi85>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Divudi85>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title:Proprietà mancanti
+SELECT ?type (COUNT(DISTINCT ?tipograf ) AS ?count) WHERE {
+  hint:Query hint:optimizer \"Runtime\".
+  ?tipograf wdt:P5323 wd:Q118466009; wdt:P106 ?attività.
+  values ?attività { wd:Q175151 wd:Q1229025 wd:Q998550 wd:Q2516866 wd:Q40881196 }
+  Optional {?tipograf wdt:P2031 ?din}.
+  Optional {?tipograf wdt:P2032 ?dfi}.
+  Optional {?tipograf wdt:P937  ?llav}.
+  BIND(IF(BOUND(?din) && BOUND(?dfi)&& BOUND(?llav),\"all\",     
+       IF(BOUND(?llav) && BOUND(?dfi),\"senza data di inizio\",
+       IF(BOUND(?din) && BOUND(?llav),\"senza data di fine\",
+       IF(BOUND(?dfi) && BOUND(?din),\"senza luogo di lavoro\",
+       IF(BOUND(?din),\"solo data di inizio\",
+       IF(BOUND(?dfi),\"solo data di fine\",
+       IF(BOUND(?llav),\"solo luogo di lavoro\",
+       \"none\"))))))) AS ?type)
+}
+GROUP BY ?type
+ORDER BY ?type"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>

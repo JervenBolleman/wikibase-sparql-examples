@@ -4,11 +4,23 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-f05fa34ed9b58add1fee914173c489c1> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-f05fa34ed9b58add1fee914173c489c1> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/booker>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:MartinPoulter/queries/booker>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title:English Wikipedia articles about Booker winners and nominees (books)
+SELECT DISTINCT ?item ?itemLabel ?awardLabel ?rel ?enwp WHERE {
+  hint:Query hint:optimizer \"None\" .
+  VALUES ?award{wd:Q160082 wd:Q2052291}
+ { ?item wdt:P166 ?award. BIND(\"won\" AS ?rel) }
+UNION{?item p:P1411 ?s. ?s ps:P1411 ?award. ?s pq:P1552 wd:Q115010579 BIND(\"shortlist\" AS ?rel) }
+UNION{?item p:P1411 ?s. ?s ps:P1411 ?award. ?s pq:P1552 wd:Q115010563 BIND(\"longlist\" AS ?rel) }
+  MINUS{?item wdt:P31 wd:Q5}
+OPTIONAL { ?item wdt:P629 ?work . ?work_enwp schema:about ?work ; schema:isPartOf <https://en.wikipedia.org/> }
+OPTIONAL { ?item_enwp schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/>}
+BIND(COALESCE(?item_enwp, ?work_enwp) AS ?enwp)
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+} ORDER BY ?itemLabel"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

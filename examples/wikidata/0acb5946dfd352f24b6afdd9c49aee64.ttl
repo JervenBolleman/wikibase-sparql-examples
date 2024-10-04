@@ -4,11 +4,39 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-0acb5946dfd352f24b6afdd9c49aee64> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-0acb5946dfd352f24b6afdd9c49aee64> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Simon_Villeneuve/SPARQL>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Simon_Villeneuve/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Les cinq cent éléments les plus récents pour les films
+SELECT ?item ?qid (GROUP_CONCAT( DISTINCT ?sitelink) as ?links)
+(SAMPLE(?ids) as ?ids) (SAMPLE(?sl) as ?sl) (SAMPLE(?st) as ?st)
+WITH
+{
+    SELECT DISTINCT ?item ?qid
+    {
+        { ?item wdt:P31 wd:Q11424 } 
+        UNION
+        { ?item wdt:P31 wd:Q24862 } 
+        UNION
+        { ?item wdt:P31 wd:Q506240 } 
+        UNION
+        { ?item wdt:P31 wd:Q336144 }
+       BIND (xsd:integer(STRAFTER(str(?item), \"Q\")) AS ?qid) 
+       FILTER (?qid > 65200900) .       
+    }
+    ORDER BY DESC(?qid) 
+    LIMIT 500  
+} as %films    
+WHERE
+{ 
+  INCLUDE %films
+  OPTIONAL { [] schema:about ?item ; schema:inLanguage ?l ; schema:name ?w2  BIND( CONCAT(\"[[:\",?l,\":\",str(?w2),\"|\",?l,\"]]\") as ?sitelink) }   
+  ?item wikibase:statements ?st; wikibase:sitelinks ?sl ; wikibase:identifiers ?ids 
+}
+GROUP BY ?item ?qid 
+ORDER BY DESC(?qid) 
+LIMIT 500"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

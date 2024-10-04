@@ -4,11 +4,35 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-60fefa4f9b2d4a64e7c0aea80d379a85> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-60fefa4f9b2d4a64e7c0aea80d379a85> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/01>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2022/01>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title:Chancellors of the Exchequer and time served in office
+SELECT ?item ?itemLabel ?start ?end ?image ?link ?partyLabel ?ps_start ?ps_end WHERE {
+  ?item p:P39 ?s.
+  ?s ps:P39 wd:Q531471.
+  ?s pq:P580 ?start. 
+  OPTIONAL {?s pq:P582 ?end.}
+  OPTIONAL {?item wdt:P18 ?image.}
+  OPTIONAL {?item wdt:P1417 ?id.}
+  OPTIONAL {?item p:P102 ?ps.
+            ?ps ps:P102 ?party.
+            OPTIONAL { ?ps pq:P580 ?ps_start.}
+            OPTIONAL { ?ps pq:P582 ?ps_end.}
+
+            # It is faster not to use ?start and ?end here. The next lines will avoid timeout:
+            OPTIONAL { ?s pq:P582 ?pos_end.} 
+            ?s pq:P580 ?pos_start
+
+            # Check that party membership did not start after end of postion:
+            FILTER (IF(BOUND(?ps_start) && BOUND(?pos_end), ?ps_start < ?pos_end, true))
+            # Check that party membership did not end before start of postion;
+            FILTER (IF(BOUND(?ps_end), ?ps_end > ?pos_start, true))
+  }
+  BIND(IF(BOUND(?id), URI(CONCAT(\"https://www.britannica.com/\",?id)) , ?item) AS ?link)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY ?start"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

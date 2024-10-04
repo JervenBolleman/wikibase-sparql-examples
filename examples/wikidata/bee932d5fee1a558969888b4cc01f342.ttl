@@ -4,11 +4,27 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-bee932d5fee1a558969888b4cc01f342> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-bee932d5fee1a558969888b4cc01f342> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_Invasion_biology>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: Lexemes associated with items about entities studied by invasion biology and/or ecology
+SELECT 
+DISTINCT ?qid
+(GROUP_CONCAT(DISTINCT ?lemma; separator=\" // \") AS ?lexemes)
+(CONCAT(\"https://ordia.toolforge.org/Q\", STR(?qid ) ) AS ?ordia)
+
+WHERE {
+  { ?item wdt:P2579 wd:Q42985020 .}
+  UNION
+  { ?item wdt:P2579 wd:Q7150 .}
+  ?item ^wdt:P5137 ?sense .
+  ?sense ^ontolex:sense ?lexeme .
+  ?lexeme wikibase:lemma ?lemma .
+  BIND(xsd:integer(STRAFTER(STR(?item), 'Q')) as ?qid)
+}
+GROUP BY ?qid ?lexemes ?ordia
+ORDER BY ASC(?qid)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

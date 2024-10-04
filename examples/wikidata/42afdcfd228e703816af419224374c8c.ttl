@@ -4,11 +4,55 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-42afdcfd228e703816af419224374c8c> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-42afdcfd228e703816af419224374c8c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Nortix08/Hannover>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Nortix08/Hannover>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """---
+# https://www.wikidata.org/wiki/User:Stefan_K%C3%BChn/
+#---
+SELECT DISTINCT ?item ?itemLabel ?firstnameLabel ?lastnameLabel ?itemDescription ?reason ?day ?testday ?diffyear ?image 
+WHERE
+{
+    {?item wdt:P19 wd:Q1715} # Person mit Geburtsort = Hannover
+    UNION
+    {?item wdt:P20 wd:Q1715} # Person mit Todesort = Hannover
+    UNION
+    {?item wdt:P937 wd:Q1715} # Person mit Wirkungsort = Hannover
+    UNION
+    {?item wdt:P108 wd:Q678982} # Personen die an der Leibniz-Uni angestellt sind/waren
+     
+  
+    BIND( now() as ?testday) # Testdatum (heute)
+    #BIND(\"2019-03-22T00:00:00Z\"^^xsd:dateTime as ?testday)  # Testdatum (beliebiger Tag)
+  
+    {?item p:P569 [ a wikibase:BestRank ; # Geburtstag
+           psv:P569 [ wikibase:timeValue ?day;
+           wikibase:timePrecision ?precision_day ] ] 
+     FILTER (?precision_day > 8 ) # Geburtstag vollständig (YYYY-MM-DD)
+     BIND( 'Geburtstag' as ?reason)                     
+    }
+    UNION
+     {?item p:P570 [ a wikibase:BestRank ; # Todestag
+           psv:P570 [ wikibase:timeValue ?day;
+           wikibase:timePrecision ?precision_day ] ] 
+     FILTER (?precision_day > 8 ) # Todestag vollständig (YYYY-MM-DD)
+     BIND( 'Todestag' as ?reason)
+     }
+
+    FILTER (MONTH(?day) = MONTH(?testday)) # gleicher Monat
+    FILTER (  DAY(?day) =   DAY(?testday)) # gleicher Tag
+    
+    BIND (YEAR(?testday)-YEAR(?day) AS ?diffyear) # Jahresdifferenz errechnen 
+    BIND (floor(?diffyear - (5 * floor(?diffyear/5))) AS ?mod) # Modula 5  
+    FILTER (?mod = 0) # nur Jahre wo Rest = 0 (5,10,15,20,25,...)
+  
+    OPTIONAL { ?item wdt:P734 ?lastname . } # Nachname
+    OPTIONAL { ?item wdt:P735 ?firstname . } # Vorname
+    OPTIONAL { ?item wdt:P18 ?image . } # optional Bild
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en,[AUTO_LANGUAGE]\"}
+} 
+ORDER BY DESC(?diffyear)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

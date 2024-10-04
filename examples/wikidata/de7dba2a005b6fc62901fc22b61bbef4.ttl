@@ -4,11 +4,31 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-de7dba2a005b6fc62901fc22b61bbef4> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-de7dba2a005b6fc62901fc22b61bbef4> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/doctoral_theses_with_more_than_one_author>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:TweetsFactsAndQueries/Queries/doctoral_theses_with_more_than_one_author>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ doctoral theses with more than one (best-rank) author
+SELECT ?thesis ?thesisLabel (GROUP_CONCAT(?authorLabel; separator = \", \") AS ?authors)
+WITH {
+  SELECT ?thesis WHERE {
+    ?thesis wdt:P31/(wdt:P279|wdt:P460)* wd:Q187685;
+            wdt:P50 ?author.
+  }
+  GROUP BY ?thesis
+  HAVING(COUNT(?author) > 1)
+} AS %theses
+WHERE {
+  INCLUDE %theses.
+  ?thesis wdt:P50 ?author.
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr,de\".
+    ?thesis rdfs:label ?thesisLabel.
+    ?author rdfs:label ?authorLabel.
+  }
+}
+GROUP BY ?thesis ?thesisLabel
+ORDER BY DESC(COUNT(?author))"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

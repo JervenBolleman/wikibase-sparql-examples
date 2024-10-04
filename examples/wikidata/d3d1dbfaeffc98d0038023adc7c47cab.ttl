@@ -4,11 +4,34 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-d3d1dbfaeffc98d0038023adc7c47cab> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-d3d1dbfaeffc98d0038023adc7c47cab> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:T%C3%A1rsalg%C3%B3/Archive_2>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:T%C3%A1rsalg%C3%B3/Archive_2>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ by Jura1 2016-09-16, rev. 2017-07-16, adapted from query by User:Syced
+SELECT DISTINCT
+	?item ?host ?sl ?st ?l ?hostLabel ?opLabel ?coor ?op ?p6 ?p4 ?p1
+	(str(( 10 * ROUND( (?p1 + ?p2 + ?p3 + ?p4 + ?p5 + ?p6 + ?p7 + ?p8 + ?p9 + ?p10 ) / 10 * 10))) as ?c1) ?www
+	(CONCAT(\"data-sort-value='\", ?c1, \"' \\u007C [[File:Progressbar\", ?c1, \".png\\u007Ccenter\\u007C100px\\u007C \", ?c1, \" %]]\") as ?completeness)
+{
+    BIND(wd:Q63638898 AS ?item) .
+	?item wdt:P31 wd:Q3917681 .
+	OPTIONAL {?item wdt:P131*/wdt:P17 ?host }	BIND(xsd:integer(BOUND(?host)) as ?p1)
+	OPTIONAL {?item wdt:P131 ?city }			BIND(xsd:integer(BOUND(?city)) as ?p2)
+	OPTIONAL {?item wdt:6375?addr }			BIND(xsd:integer(BOUND(?addr)) as ?p3)
+	OPTIONAL {?item wdt:P625 ?coor }			BIND(xsd:integer(BOUND(?coor)) as ?p4)
+	OPTIONAL {?item wdt:P137 ?op }				BIND(xsd:integer(BOUND(?op)) as ?p5)
+	OPTIONAL {?item wdt:P1329 ?phn }			BIND(xsd:integer(BOUND(?phn)) as ?p6)
+	OPTIONAL {?item wdt:P856 ?webs }			BIND(xsd:integer(BOUND(?webs)) as ?p7)
+	OPTIONAL {?item wdt:P18 ?image }			BIND(xsd:integer(BOUND(?image)) as ?p8)
+	OPTIONAL {?item wikibase:sitelinks ?sl }	BIND(xsd:integer(BOUND(?sl) && ?sl > 0) as ?p9)
+	OPTIONAL {?item wikibase:statements ?st }
+	OPTIONAL {?item wdt:P856 ?w . BIND( CONCAT(\"[\", str(?w), \" \", substr( REPLACE(str(?w), \"https?://(www.)?\", \"\"), 0, 65) , \"]\") as ?www) }
+	OPTIONAL {?op p:P530 [ ps:P530 ?host ; pq:P531 ?item ] . BIND(\"ok\" as ?l) }
+  												BIND(xsd:integer(BOUND(?l)) as ?p10)
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+ORDER BY DESC(?p1) ?hostLabel ?opLabel ?item"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

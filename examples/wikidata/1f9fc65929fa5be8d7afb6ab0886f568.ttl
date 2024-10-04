@@ -4,11 +4,23 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-1f9fc65929fa5be8d7afb6ab0886f568> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-1f9fc65929fa5be8d7afb6ab0886f568> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/collections>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:MartinPoulter/queries/collections>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title:Paintings by Russian artists from around the time of the Russian Revolution
+SELECT ?work ?workLabel ?artistLabel ?date ?datePrecision ?image WHERE {
+  ?work wdt:P31 wd:Q3305213 # paintings
+        ; wdt:P170 ?artist .
+  ?artist wdt:P27 wd:Q34266. # artist's nationality: Russian Empire
+  ?work p:P571/psv:P571 ?node .
+  ?node wikibase:timeValue ?date ; # date of painting
+   wikibase:timePrecision ?datePrecision # precision of date (e.g. day, month, year)
+        BIND(YEAR(?date) as ?year) FILTER(?year > 1905) FILTER(?year < 1930) #specify date range
+        FILTER (?datePrecision > 8) # known year
+ .?work wdt:P18 ?image # only show art that Commons has an image for
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,ru,et,de,fr\". }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

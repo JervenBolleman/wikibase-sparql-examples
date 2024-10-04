@@ -4,11 +4,27 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-a9a98dcfdd2ea84287012510e93518f2> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-a9a98dcfdd2ea84287012510e93518f2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ MPs who have sat in twelve or more terms
+SELECT distinct ?terms ?mp ?mpLabel ?article
+WHERE
+{
+  {
+    SELECT ?mp (COUNT (distinct ?position) AS ?terms) WHERE {
+      ?position wdt:P279 wd:Q16707842. # every UK MP (currently post-1832)
+      ?mp p:P39 ?positionStatement . ?positionStatement ps:P39 ?position . 
+    }
+    GROUP BY ?mp
+  }
+  optional { ?article schema:about ?mp . ?article schema:inLanguage \"en\" .
+             ?article schema:isPartOf <https://en.wikipedia.org/> . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  filter (?terms >= 12 ) . # twelve or more terms
+}   
+ORDER BY desc(?terms)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

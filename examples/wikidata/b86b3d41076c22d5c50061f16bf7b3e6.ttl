@@ -4,11 +4,37 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-b86b3d41076c22d5c50061f16bf7b3e6> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-b86b3d41076c22d5c50061f16bf7b3e6> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/07>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2021/07>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: The northernmost city in Africa
+SELECT ?x ?xLabel ?latitude ?longitude  WITH {
+
+# select all the cities in a continent
+SELECT ?x WHERE {
+  ?x wdt:P31/wdt:P279* wd:Q515 . # x is a type of city (big city, city state etc)
+  ?x wdt:P17 ?country .
+  ?country wdt:P30 wd:Q15 .  # <== put the continent here
+  MINUS { ?country wdt:P31 wd:Q3024240 } # current countries only
+} } AS %cities
+
+# get each city's latitude/longitude
+# sort depending on east/west or north/south
+# select the first one
+WHERE {
+  INCLUDE %cities
+  ?x p:P625 [
+    psv:P625 [
+    wikibase:geoLatitude ?latitude ; 
+    wikibase:geoLongitude ?longitude ;
+      ]
+    ]          
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}     
+ORDER BY DESC (?latitude)      # ASC for southernmost; DESC for northernmost
+#ORDER BY ASC (?longitude)      # ASC for westernmost; DESC for easternmost
+LIMIT 1"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

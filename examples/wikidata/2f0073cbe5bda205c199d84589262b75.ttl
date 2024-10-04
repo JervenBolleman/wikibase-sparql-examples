@@ -4,11 +4,29 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-2f0073cbe5bda205c199d84589262b75> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-2f0073cbe5bda205c199d84589262b75> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_UConn/Faculty_start_and_end_date>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_UConn/Faculty_start_and_end_date>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Current UConn faculty with start and end date information
+SELECT DISTINCT ?faculty ?fullName ?roleLabel ?employerLabel ?start ?end WHERE {
+  ?faculty wdt:P5008 wd:Q109854824.
+  ?faculty rdfs:label ?fullName.
+  ?faculty wdt:P106 ?role.
+  VALUES (?role) {
+     (wd:Q3400985)
+  }
+  ?faculty p:P108 ?employerStmnt.
+  ?employerStmnt ps:P108 ?employer.
+  OPTIONAL { ?employerStmnt pq:P580 ?start. }
+  OPTIONAL { ?employerStmnt pq:P582 ?end. }
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  FILTER(LANGMATCHES(LANG(?fullName), \"en\"))
+  FILTER(NOT EXISTS { FILTER(LANGMATCHES(LANG(?fullName), \"en-ca\")) })
+  FILTER(NOT EXISTS { FILTER(LANGMATCHES(LANG(?fullName), \"en-gb\")) })
+}
+ORDER BY ?fullName
+LIMIT 10"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

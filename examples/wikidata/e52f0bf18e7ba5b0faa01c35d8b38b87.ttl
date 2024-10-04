@@ -4,11 +4,29 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-e52f0bf18e7ba5b0faa01c35d8b38b87> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-e52f0bf18e7ba5b0faa01c35d8b38b87> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Alexander_Leisser/Musik>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Alexander_Leisser/Musik>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ All events from a special festival
+SELECT ?festival ?festivalLabel 
+      (GROUP_CONCAT(DISTINCT ?musicianLabel; separator=\", \") AS ?musicians)
+      ?nummer ?start ?end  
+WHERE {
+  VALUES ?f { wd:Q3070337 }  # Gnaoua World Music Festival (changy to whatever country you want)
+  VALUES ?b { wdt:P740 wdt:P495 wdt:P27 }
+  ?festival wdt:P31 ?f.
+  OPTIONAL { ?festival p:P179 [ pq:P1545 ?nummer ] . }
+  OPTIONAL { ?festival wdt:P580 ?start . }
+  OPTIONAL { ?festival wdt:P582 ?end . }
+  OPTIONAL { ?festival wdt:P710 ?musician . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr\". 
+    ?festival rdfs:label ?festivalLabel .
+    ?musician rdfs:label ?musicianLabel .
+  }
+}
+GROUP BY ?festival ?festivalLabel ?nummer ?start ?end
+ORDER BY ASC (?festivalLabel)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

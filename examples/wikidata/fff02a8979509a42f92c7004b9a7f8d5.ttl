@@ -4,11 +4,28 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-fff02a8979509a42f92c7004b9a7f8d5> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-fff02a8979509a42f92c7004b9a7f8d5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Kbseah/queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Kbseah/queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ QuickStatements V1 syntax if results downloaded in TSV format
+SELECT DISTINCT ?remove ?statement2 WHERE {
+  ?item wdt:P171* wd:Q25347.
+  ?item p:P2868 ?s.
+  ?s ps:P2868 wd:Q810198;
+     pq:P642 ?basionymof .
+  FILTER NOT EXISTS { ?s prov:wasDerivedFrom ?r }
+  ?item wdt:P12766 ?basionymof . # \"basionym of\" statement already present
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }
+  BIND (ENCODE_FOR_URI(REPLACE(STR(?item), \".*Q\", \"Q\")) AS ?qid)
+  BIND (STR(\"-STATEMENT\") AS ?remove)
+  # the statement identifier returned by the query is in the following format:
+  # http://www.wikidata.org/entity/statement/Q17464368-AFA4527C-4A51-4633-BE6D-07B2AD2B51BC
+  # we need to strip the prefix, and replace the first hyphen with a dollar sign
+  # which is what QuickStatements V1 recognizes
+  BIND (ENCODE_FOR_URI(REPLACE(STR(?s), \".*Q\", \"Q\")) AS ?statement)
+  BIND (REPLACE(?statement, \"(Q\\\\d+)-(.*)\", \"$1\\\\$$2\") AS ?statement2) 
+} LIMIT 10"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

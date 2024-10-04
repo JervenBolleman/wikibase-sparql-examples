@@ -4,11 +4,35 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-4f7a4e7949913c0217f2322a9c3a0417> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-4f7a4e7949913c0217f2322a9c3a0417> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MKar/Query>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:MKar/Query>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ most Gender-imbalanced occupations in odia wikipedia 
+SELECT ?occupation ?occupationLabel ?women ?men WITH {
+  SELECT ?occupation (SUM(?woman) AS ?women) (SUM(?man) AS ?men) WHERE {
+    #BIND(wd:Q668 AS ?country). # substitute country of your choice here (remove the Q668, hit Ctrl+Space and start typing the country name, select the right one from the suggestions with the arrow keys and insert it with Enter)
+    ?person wdt:P31 wd:Q5;.
+    #?person wdt:P27 ?country. # remove this to search world-wide – results in query timeout unless you reduce the dataset in some other fashion
+     ?person p:P106/ps:P106 ?occupation.
+?article schema:about ?person . ?article schema:isPartOf <https://or.wikipedia.org/> .
+    { ?person wdt:P21 wd:Q6581097. BIND(1 AS ?man). } UNION
+    { ?person wdt:P21 wd:Q2449503. BIND(1 AS ?man). } UNION
+    { ?person wdt:P21 wd:Q6581072. BIND(1 AS ?woman). } UNION
+    { ?person wdt:P21 wd:Q1052281. BIND(1 AS ?woman). }
+    # TODO consider how to count P21: Q48270 (genderqueer) and Q1097630 (intersex)
+  }
+  GROUP BY ?occupation
+} AS %results WHERE {
+  INCLUDE %results. # subquery as optimization: don’t make the label service fetch labels for every ?person in the subquery
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY
+# divide ?variable+1 instead of ?variable to avoid division by zero
+  # (unfortunately, we can’t use ABS(LOG(x/y)) instead of the IF() because SPARQL has no LOG function)
+  DESC(IF(?women > ?men, (?women+1)/(?men+1), (?men+1)/(?women+1)))
+  # if the ratio is the same, show results with more people in total first
+  DESC(?women + ?men)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

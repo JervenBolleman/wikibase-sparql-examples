@@ -4,11 +4,24 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-f5fc6823b1c160f0ddf9af4e5edd4711> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-f5fc6823b1c160f0ddf9af4e5edd4711> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Charles_Matthews/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Charles_Matthews/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Presidents with identified mythical ancestors
+
+SELECT distinct ?person ?personLabel ?ancestor ?ancestorLabel ?born ?died ?typeLabel WHERE {
+ 
+  ?person p:P39 ?positionStatement .
+  ?positionStatement ps:P39 wd:Q11696 .  # this person was President of the USA
+  { ?person (wdt:P25|wdt:P22)* ?ancestor . } # their mother or father, or their mother or father, and so on
+  filter not exists { ?ancestor wdt:P31 wd:Q5 } . # the ancestor is not \"a human\"
+  ?ancestor wdt:P31 ?type .
+  ?person wdt:P31 wd:Q5 . # the original person must be a human, ie not fictional
+  OPTIONAL { ?ancestor wdt:P569 ?born } .
+  OPTIONAL { ?ancestor wdt:P570 ?died } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

@@ -4,11 +4,43 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-6d6146e415c2b195b3c3c22cfcc37767> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-6d6146e415c2b195b3c3c22cfcc37767> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Ecology>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_Ecology>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: Habitat-related publications about species with no habitat statements
+SELECT 
+  DISTINCT
+    ?item ?title ?topic ?taxonname
+
+WHERE {
+  hint:Query hint:optimizer \"None\".
+  
+{  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"habitat and haswbstatement:P31=Q13442814 -haswbstatement:P921=Q52105\".
+      ?page_title wikibase:apiOutput mwapi:title.
+  }
+ }
+UNION
+{  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"habitat -and haswbstatement:P31=Q13442814 -haswbstatement:P921=Q52105\".
+      ?page_title wikibase:apiOutput mwapi:title.
+  }
+ }
+  BIND(IRI(CONCAT(STR(wd:), ?page_title)) AS ?item)
+  
+  ?item wdt:P1476 ?title.
+  FILTER REGEX(LCASE(?title), \"habitat\").
+
+  ?item wdt:P921 ?topic.
+  ?topic wdt:P225 ?taxonname .
+  FILTER NOT EXISTS { ?topic wdt:P2974 [] } .
+  
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

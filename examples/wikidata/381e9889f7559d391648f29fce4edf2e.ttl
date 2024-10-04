@@ -4,11 +4,30 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-381e9889f7559d391648f29fce4edf2e> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-381e9889f7559d391648f29fce4edf2e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:ScienceSource_project/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata_talk:ScienceSource_project/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Filtering query to select articles from the focus list not on the ScienceSource wiki
+
+PREFIX ss: <http://sciencesource.wmflabs.org/entity/>
+PREFIX sst: <http://sciencesource.wmflabs.org/prop/direct/>
+  
+SELECT DISTINCT ?item ?itemLabel
+  WHERE 
+        {
+          
+          ?item wdt:P5008 wd:Q55439927 ;
+                wdt:P921 ?mainsubject .
+          ?mainsubject wdt:P1995 wd:Q327657 .
+          
+       MINUS { SERVICE <http://sciencesource-query.wmflabs.org/proxy/wdqs/bigdata/namespace/wdq/sparql>
+       { ?articleitem sst:P3 ss:Q4;
+            sst:P2 ?stritem. }
+
+          BIND(substr(str(?item),32,39) AS ?stritem) .}
+        SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+        }"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

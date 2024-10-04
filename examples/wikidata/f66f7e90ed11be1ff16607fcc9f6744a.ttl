@@ -4,11 +4,42 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-f66f7e90ed11be1ff16607fcc9f6744a> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-f66f7e90ed11be1ff16607fcc9f6744a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infrastruktur/Sandbox2>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Infrastruktur/Sandbox2>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Recently deceased
+SELECT
+  ?item ?itemLabel ?itemDescription ?article_no
+  ?cocLabel ?dob ?pobLabel ?dod ?podLabel ?pobuLabel
+WITH {
+  SELECT ?item ?dod
+  WHERE {
+    ?item wdt:P31 wd:Q5;
+      wdt:P570 ?dod.
+
+    BIND(NOW() - \"1920-01-31\"^^xsd:dateTime AS ?mintime)
+    BIND(?dod - \"1920-01-01\"^^xsd:dateTime AS ?dodtime)
+    FILTER(?dod > \"2022-01-01\"^^xsd:dateTime && ?dod < NOW())
+    FILTER(?dodtime > ?mintime)
+  }
+} AS %i
+WHERE {
+  INCLUDE %i
+
+  OPTIONAL {
+    ?article_no schema:about ?item;
+      schema:isPartOf <https://no.wikipedia.org/>.
+  }
+  OPTIONAL { ?item wdt:P569 ?dob. }
+  OPTIONAL { ?item wdt:P27 ?coc. }
+  OPTIONAL { ?item wdt:P19 ?pob. }
+  OPTIONAL { ?item wdt:P20 ?pod. }
+  OPTIONAL { ?item wdt:P119 ?pobu. }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
+ORDER BY DESC(?dod)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

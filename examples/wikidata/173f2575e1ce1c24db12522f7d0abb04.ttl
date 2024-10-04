@@ -4,11 +4,26 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-173f2575e1ce1c24db12522f7d0abb04> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-173f2575e1ce1c24db12522f7d0abb04> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stefan_K%C3%BChn/Dresden>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Stefan_K%C3%BChn/Dresden>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """----------------------------------------------------------
+# Objekte mit Commons-Kategorie \"Dresden\" ohne \"liegt in Dresden\"
+#----------------------------------------------------------
+SELECT ?item ?itemLabel ?itemDescription ?commons ?image ?coordinates
+WHERE {
+  ?item wdt:P17 wd:Q183.
+  ?item wdt:P373 ?commons
+  MINUS { ?item wdt:P131 _:b1. }
+  MINUS { ?item wdt:P159 _:b2. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en,[AUTO_LANGUAGE]\". }
+  FILTER(REGEX(STR(?commons), \"Dresden\"))               # Filter für Name
+  optional {?item wdt:P31 ?instanceof  }                
+  Filter (?instanceof != wd:Q13406463).                 # keine Wikimedia-Liste
+  OPTIONAL { ?item wdt:P18 ?image. }
+  OPTIONAL { ?item wdt:P625 ?coordinates. }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

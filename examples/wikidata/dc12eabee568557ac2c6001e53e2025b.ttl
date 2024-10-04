@@ -4,11 +4,65 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-dc12eabee568557ac2c6001e53e2025b> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-dc12eabee568557ac2c6001e53e2025b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Herzi_Pinki/Sparql>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Herzi_Pinki/Sparql>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: Objekte mit HERIS-ID, url in Denkmalliste, ev. url auf Artikel, Koordinaten für ganz Österreich
+SELECT DISTINCT ?item ?itemQid 
+                (GROUP_CONCAT(DISTINCT ?HERISId; SEPARATOR=', ') AS ?HERISIds) ?url
+                #?dl (GROUP_CONCAT(DISTINCT ?dlQid; SEPARATOR=', ') AS ?dlQids) ?dlLink ?dlUrl
+                #?articleLink
+                ?articleName ?articleUrl
+                ?lat ?lon
+   WHERE {
+   ?item wdt:P17 wd:Q40 . # Österreich
+    
+   ?item wdt:P9154 ?HERISId. # BDA HERIS-ID
+   ?item wdt:P1435 wd:Q1188447. # Denkmalgeschütztes Objekt in Österreich (to be sure)
+   ?item p:P1435 ?protection .
+     FILTER NOT EXISTS {?protection pq:P582 ?x . } # check if still a protected object (protection is finished setting qualifier P582 to enddate.
+   ?item wdt:P2817 ?dl. ?dl wdt:P17 wd:Q40. # Denkmalliste in Österreich
+
+   optional {
+   ?item p:P625 [
+           psv:P625 [
+             wikibase:geoLatitude ?lat ;
+             wikibase:geoLongitude ?lon ;
+           ] ;
+         ]
+  }
+
+  optional {
+    ?dlLink schema:about ?dl . # wikipedia link to the Denkmalliste in the German speaking Wikipedia
+    ?dlLink schema:inLanguage \"de\" .
+  }
+
+  optional {
+    ?articleLink schema:about ?item . # optional name of an Wikipedia article describing the object in the Denkmalliste in more detail (in the German speaking Wikipedia)
+    ?articleLink schema:inLanguage \"de\" .
+  }
+
+   # get the plain wikidata id in string format for the protected object
+   bind (replace(xsd:string(?item),\"http://www.wikidata.org/entity/\",\"\") as ?itemQid)
+   # get the plain wikidata id in string format for the Denkmalliste, the protected object is listed in
+   bind (replace(xsd:string(?dl),\"http://www.wikidata.org/entity/\",\"\") as ?dlQid)
+   # convert the link to the denkmalliste to url as plain text (with escaped umlauts)
+   bind (xsd:string(?dlLink) as ?dlUrl)
+   
+   # convert the article stuff 
+   # convert the link to an article to url as plain text (with escaped umlauts)
+   bind (xsd:string(?articleLink) as ?articleUrl)
+   # grep the article name (still with escaped umlauts)
+   bind (replace(replace(xsd:string(?articleLink),\"https://de.wikipedia.org/wiki/\",\"\"),\"_\",\" \") as ?articleName)
+   # provide the link to an item as a table entry in a denkmalliste. This is the main entry point from Doris.
+   bind(concat(?dlUrl, \"#\", ?itemQid) AS ?url ) .
+} GROUP BY ?item ?itemQid
+           ?HERISIds ?url
+           #?dl ?dlQids ?dlLink ?dlUrl
+           #?articleLink 
+           ?articleName ?articleUrl
+           ?lat ?lon"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

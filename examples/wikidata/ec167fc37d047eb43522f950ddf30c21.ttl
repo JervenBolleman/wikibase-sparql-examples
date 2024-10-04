@@ -4,12 +4,30 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-ec167fc37d047eb43522f950ddf30c21> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-ec167fc37d047eb43522f950ddf30c21> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/en>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:SPARQL_query_service/queries/examples>,
+    <https://www.wikidata.org/wiki/Wikidata:SPARQL_query_service/queries/examples/en>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: Items about authors with a Wikispecies page
+SELECT ?author ?authorLabel ?count
+WITH {
+  SELECT ?author (COUNT(?paper) AS ?count)
+  WHERE {
+    ?article schema:about ?author ;
+      schema:isPartOf <https://species.wikimedia.org/> .
+    ?author wdt:P31 wd:Q5.
+    ?paper wdt:P50 ?author.
+  }
+  GROUP BY ?author
+  ORDER BY DESC(?count)
+  LIMIT 200
+} AS %i
+WHERE {
+  INCLUDE %i
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\" . }
+}
+ORDER BY DESC(?count)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

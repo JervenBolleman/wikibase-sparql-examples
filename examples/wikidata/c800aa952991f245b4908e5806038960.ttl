@@ -4,11 +4,50 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-c800aa952991f245b4908e5806038960> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-c800aa952991f245b4908e5806038960> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/04>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2020/04>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Mujeres mexicanas
+SELECT ?item ?name ?image ?gender ?year_of_birth ?country_of_birth
+       ?year_of_death ?country_of_death
+       (GROUP_CONCAT(?occupation; SEPARATOR=\", \") AS ?occupations)
+WHERE
+{
+  ?item wdt:P21 wd:Q6581072 .
+  ?item wdt:P27 wd:Q96 .
+  OPTIONAL {
+    ?item wdt:P18 ?image.
+  }
+  OPTIONAL {
+    ?item wdt:P21 ?gender_item.
+  }
+  ?item wdt:P569 ?date_of_birth.
+  BIND (YEAR(?date_of_birth) AS ?year_of_birth)
+  FILTER (?year_of_birth >= 1675 && ?year_of_birth < 1995)
+  OPTIONAL {
+    ?item wdt:P19/wdt:P17 ?country_of_birth_item.
+  }
+  OPTIONAL {
+    ?item wdt:P570 ?date_of_death.
+    BIND (YEAR(?date_of_death) AS ?year_of_death)
+  }
+  OPTIONAL {
+    ?item wdt:P20/wdt:P17 ?country_of_death_item.
+  }
+  OPTIONAL {
+    ?item wdt:P106 ?occupation_item.
+  }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"es,en\".
+    ?item rdfs:label ?name.
+    ?gender_item rdfs:label ?gender.
+    ?country_of_birth_item rdfs:label ?country_of_birth.
+    ?country_of_death_item rdfs:label ?country_of_death.
+    ?occupation_item rdfs:label ?occupation.
+  }
+}
+GROUP BY ?item ?name ?image ?gender ?year_of_birth ?country_of_birth ?year_of_death ?country_of_death"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

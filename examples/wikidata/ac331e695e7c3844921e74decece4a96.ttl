@@ -4,9 +4,9 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-bcfc92170d8cce9023694464bbe235bd> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-ac331e695e7c3844921e74decece4a96> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:grammaticalgender-index>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Synia:language-grammaticalgender-index>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
   rdfs:comment "TODO"@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
@@ -14,37 +14,59 @@
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX dct: <http://purl.org/dc/terms/>
 PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q9035>
+
 SELECT 
   ?lexemes
-  ?gender ?genderLabel ?genderDescription
+
+  ?gender ?genderLabel
+  (CONCAT(\"#grammaticalgender/\", SUBSTR(STR(?gender), 32)) AS ?genderUrl)
+  ?genderDescription
+
+  ?example_lexeme ?example_lexemeLabel
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)
+
 WHERE {
    {
   SELECT 
     (COUNT(?lexeme) AS ?lexemes)
     ?gender
+    (SAMPLE(?lexeme) AS ?example_lexeme)
   WHERE {
-    ?lexeme dct:language [] ; 
+    ?lexeme dct:language target: ; 
             wdt:P5185 ?gender .
   }
   GROUP BY ?gender
-}  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }
+}  ?example_lexeme wikibase:lemma ?example_lexemeLabel
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }
 }
 ORDER BY DESC(?lexemes)""";
-  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """SELECT 
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX target: <http://www.wikidata.org/entity/Q9035>
+
+SELECT 
   ?lexemes
-  ?gender ?genderLabel ?genderDescription
+
+  ?gender ?genderLabel
+  (CONCAT(\"#grammaticalgender/\", SUBSTR(STR(?gender), 32)) AS ?genderUrl)
+  ?genderDescription
+
+  ?example_lexeme ?example_lexemeLabel
+  (CONCAT(\"#lexeme/\", SUBSTR(STR(?example_lexeme), 32)) AS ?example_lexemeUrl)
+
 WITH {
   SELECT 
     (COUNT(?lexeme) AS ?lexemes)
     ?gender
+    (SAMPLE(?lexeme) AS ?example_lexeme)
   WHERE {
-    ?lexeme dct:language [] ; 
+    ?lexeme dct:language target: ; 
             wdt:P5185 ?gender .
   }
   GROUP BY ?gender
 } AS %genders
 WHERE {
   INCLUDE %genders
+  ?example_lexeme wikibase:lemma ?example_lexemeLabel
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }
 }
 ORDER BY DESC(?lexemes)""";

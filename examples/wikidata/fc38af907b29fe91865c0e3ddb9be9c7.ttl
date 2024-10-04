@@ -4,11 +4,29 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-fc38af907b29fe91865c0e3ddb9be9c7> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-fc38af907b29fe91865c0e3ddb9be9c7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Succu/SPARQL>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Succu/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Find title by volume, issue and page
+SELECT ?item (SUBSTR(?published1, 1, 10) as ?published) ?title ?volume ?issue ?pages WHERE {  
+  ?item wdt:P1433 wd:Q2003024 .  # Taxon
+  BIND(\"26\" as ?volume) .
+  #BIND(\"2-3\" as ?issue) .
+  BIND(\"326\" as ?page) .
+  BIND(\"1977\" as ?year) .
+  OPTIONAL {?item wdt:P577 ?published1} .
+  OPTIONAL {?item wdt:P1476 ?title} .  
+  ?item wdt:P478 ?volume .
+  ?item wdt:P433 ?issue .
+  ?item wdt:P304 ?pages0 . 
+  BIND(REPLACE(?pages0, \"-\", \"–\") AS ?pages)
+  BIND(if(contains(?pages,  \"–\"), strbefore(?pages, \"–\"), ?pages) as ?startpage)
+  BIND(if(contains(?pages,  \"–\"), strafter(?pages, \"–\"), ?pages) as ?endpage)
+  FILTER (xsd:integer(?page) >= xsd:integer(?startpage) && xsd:integer(?page) <= xsd:integer(?endpage)) 
+  FILTER (Year(?published1) = xsd:integer(?year)) 
+}
+ORDER BY ASC(?published) ASC(xsd:integer(?issue)) ASC(xsd:integer(?startpage))"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

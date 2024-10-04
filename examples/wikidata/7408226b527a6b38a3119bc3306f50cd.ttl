@@ -4,11 +4,34 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-7408226b527a6b38a3119bc3306f50cd> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-7408226b527a6b38a3119bc3306f50cd> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Bkrabina>, <https://www.wikidata.org//wiki/User_talk:BambooBeast>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Bkrabina>, <https://www.wikidata.org/wiki/User_talk:BambooBeast>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Gemeinden in Österreich
+#zunächst werden alle Properties als individuell bezeichnete Variablennamen definiert. 
+#Wenn \"Label\" dabei steht und es sich um Wikidate items handelt, kann das Service den Namen angeben. 
+SELECT ?Stadt ?StadtLabel ?Enddatum ?Koordinate ?Einwohner ?URL ?Wappen ?Bezirk ?BezirkLabel ?Bgm ?Wikipedia ?BgmLabel ?GKZ
+WHERE 
+{
+#Das Label-Service braucht man immer, damit er nicht nur die Q-Codes anzeigt
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+#In unsere Variable ?Stadt wird das komplette Item eingelesen, weil wir nach  dem Enddatum filtern wollen.
+    ?Stadt p:P31 ?Gemeinde.  
+           ?Gemeinde ps:P31 wd:Q667509.
+#Wir fragen das Enddatum ab
+    OPTIONAL {?Gemeinde pq:P582 ?Enddatum.}
+#und drehen  mit dem Filter das ganze um: nur Gemeinden, ohne Enddatum (also aktuelle)
+    FILTER (!BOUND(?Enddatum)).
+#wir wollen alle Links auf  Wikipedia-Artikel der deutschen  Wikipedia
+    OPTIONAL {?Wikipedia schema:about ?Stadt . ?Wikipedia schema:isPartOf <https://de.wikipedia.org/>  }
+#bei optionalen Einträgen kann es sein, dass das Suchergebnis vergrößert wird, falls es z. B. mehr als eine Quelle für eine Einwohlerzahl gibt.
+    OPTIONAL {?Stadt wdt:P964 ?GKZ.}
+    OPTIONAL {?Stadt wdt:P625 ?Koordinate.} 
+    OPTIONAL {?Stadt wdt:P94 ?Wappen.} 
+    OPTIONAL {?Stadt wdt:P6 ?Bgm.} 
+} ORDER BY ASC(?StadtLabel)
+LIMIT 5000"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

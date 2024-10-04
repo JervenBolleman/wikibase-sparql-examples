@@ -4,11 +4,57 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-a83494fa5792b471e8772a89620994b5> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-a83494fa5792b471e8772a89620994b5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Neo-Jay/Query>, <https://www.wikidata.org/wiki/User:Neo-Jay/Query/1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ general table for the 2019 Hong Kong protests
+# also viewable as graph and map
+### Note: ?edgeLabel has to be placed after object (?y), not between subject (?x) and object (?y).
+### Otherwise it will cause errors in graph.
+SELECT DISTINCT ?x2 ?x2Label ?x2Description ?image ?y ?yLabel ?edgeLabel
+WHERE {
+  # define ?x as \"immediate\" cause of (P828) or effect of (P1542) or \"any\" part of (P361) or facet of (P1269) 2019 Hong Kong protests (Q64509602)
+  ### Note: Cause (P828) and effect (P1542) are limited to \"immediate\", not \"any\", to avoid a too long chain, and
+  ### are limited to the relation with 2019 Hong Kong protests (Q64509602), not its sub-event/topic, to avoid a too general value.
+  ?x (wdt:P828|wdt:P1542 |(wdt:P361 |wdt:P1269)*) wd:Q64509602.
+  # expand ?x to ?x1 (+?x's participant and related creative work)
+  # by defining ?x1 as participant of (P1344) or depicts (P180) or main subject is (P921) ?x
+  ?x1 (wdt:P1344 |wdt:P180 |wdt:P921)? ?x.
+  # expand ?x1 to ?x2 (+?x1's organizer and author)
+  # by defining ?x2 as ?x1's organizer (P664)  
+  # or participant (P710) or depicted by (P1299)
+  # or author (P50) or composer (P86) or lyrics by (P676) or creator (P170)
+  ### Note: 1. Organizer (P664) does not have inverse property and its value cannot be included in ?x1.
+  ### 2. Participant (P710) and depicted by (P1299) have inverse properties (participant of (P1344) and depicts (P180)),
+  ### and their values can be included in ?x1 by inverse properties P1344 and P180,
+  ### but item might have no P1344 or P180 intentionally (to, e.g., avoid trivial value or long list) or accidentally.
+  ### 3. Author (P50), composer (P86), lyrics by (P676), and creator (P170) do not have inverse property and
+  ### their values cannot be included in ?x1. And
+  ### even if they do have inverse properties, they should not be added to \"?x1 f ?x\", because
+  ### that need change (f)? to (f)* and might make a too long chain.
+  ?x1 (wdt:P664 |wdt:P710 |wdt:P1299 |wdt:P50 |wdt:P86 |wdt:P676 |wdt:P170)? ?x2
+  # optional: define ?y as ?x2's cause (P828) or effect (P1542) or part of (P361) or part (P527) or facet of (P1269), i.e., ?x relation/inverse
+  # or participant of (P1344) or participant (P710) or depicts (P180) or depicted by (P1299) or main subject (P921), i.e., ?x1+ relation/inverse
+  # or organizer (P664) or author (P50) or composer (P86) or lyrics by (P676) or creator (P170), i.e., ?x2+ relation
+  # or coordinate location (P625) or follows (P155) or followed by (P156)
+  OPTIONAL {?x2 (wdt:P828 |wdt:P1542 |wdt:P361 |wdt:P527 |wdt:P1269 |wdt:P1344 |wdt:P710 |wdt:P180 |wdt:P1299 |wdt:P921 |wdt:P664 |wdt:P50 |wdt:P86 |wdt:P676 |wdt:P170 |wdt:P625 |wdt:P155 |wdt:P156) ?y
+            # To avoid showing any other relation
+            # define ?relation as only cause (P828) or effect (P1542) or part of (P361) or part (P527) or facet of (P1269), i.e., ?x relation/inverse
+            # or participant of (P1344) or participant (P710) or depicts (P180) or depicted by (P1299) or main subject (P921), i.e., ?x1+ relation/inverse
+            # or organizer (P664) or author (P50) or composer (P86) or lyrics by (P676) or creator (P170), i.e., ?x2+ relation
+            # or coordinate location (P625) or follows (P155) or followed by (P156)
+            VALUES ?relation {wdt:P828 wdt:P1542 wdt:P361 wdt:P527 wdt:P1269 wdt:P1344 wdt:P710 wdt:P180 wdt:P1299 wdt:P921 wdt:P664 wdt:P50 wdt:P86 wdt:P676 wdt:P170 wdt:P625 wdt:P155 wdt:P156}
+            # ?relation is from ?x2 to ?y
+            ?x2 ?relation ?y.
+            # get ?relation's property label and allow it to appear on graph edge
+            ?edge wikibase:directClaim ?relation;
+               a wikibase:Property}
+  # optional: show ?x2's image (P18), which appears directly in graph, and as link in table
+  OPTIONAL {?x2 wdt:P18 ?image}
+  # show label in simplified Chinese (zh-hans) as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"zh-hans,en\". } 
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

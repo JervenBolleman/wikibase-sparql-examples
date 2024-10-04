@@ -4,11 +4,30 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-8d9e2b2c1c201b0a7b9972977bd08798> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-8d9e2b2c1c201b0a7b9972977bd08798> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Anime_and_Manga/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_Anime_and_Manga/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title:Anime/manga characters with anidb character link or prefilled search query
+SELECT ?item ?anidb WHERE {
+  { ?item wdt:P31 wd:Q80447738. }
+  UNION
+  { ?item wdt:P31 wd:Q87576284. }
+  UNION
+  { ?item wdt:P5648 ?__anidb. }
+  
+  OPTIONAL { ?item wdt:P5648 ?_anidb. }
+
+  ?item rdfs:label ?itemLabel.
+  FILTER (lang(?itemLabel) = 'en')
+
+  BIND(
+    IF(!BOUND(?_anidb),
+       CONCAT(\"https://anidb.net/character/?do.search=1&adb.search=\",ENCODE_FOR_URI(?itemLabel)),
+       CONCAT(\"https://anidb.net/character/\",?_anidb)
+    )
+  AS ?anidb)
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>

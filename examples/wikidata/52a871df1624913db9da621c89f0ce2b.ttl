@@ -4,11 +4,28 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-52a871df1624913db9da621c89f0ce2b> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-52a871df1624913db9da621c89f0ce2b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Simon_Villeneuve/SPARQL>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Simon_Villeneuve/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Tous les items qui sont produits en plus d'une langue et dont (un/un de ses) site-s web (est/sont) qualifié-s d'anglais.
+SELECT DISTINCT ?item ?itemLabel ?count
+WHERE
+{
+{
+  SELECT DISTINCT ?item (COUNT(DISTINCT ?lang) AS ?count) WHERE
+{ 
+  ?item wdt:P407 ?lang .
+  ?item p:P856 ?statement .
+  ?statement ps:P856 ?url .
+  ?statement pq:P407 wd:Q1860 . 
+}
+  GROUP BY ?item
+}
+FILTER ( ?count > 1 )
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}
+ORDER BY DESC(?count) ?itemL"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

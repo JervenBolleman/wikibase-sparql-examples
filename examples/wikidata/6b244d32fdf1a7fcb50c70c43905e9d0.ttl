@@ -4,11 +4,32 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-6b244d32fdf1a7fcb50c70c43905e9d0> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-6b244d32fdf1a7fcb50c70c43905e9d0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:FabC>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:FabC>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Astronauti italiani in ordine di tempo di permanenza nello spazio
+SELECT ?item ?itemLabel ?timeinspace ?unitLabel ?wikiarticle 
+WHERE {
+  ?item wdt:P106 wd:Q11631.                  # Astronuati
+  ?item wdt:P31 wd:Q5.                       # umani (i.e. non di fantasia)
+  ?item wdt:P27 wd:Q38.                      # Nazionalità italiana
+  
+  OPTIONAL { ?item wdt:P2873 ?timeinspace }  # Tempo nello spazio
+  OPTIONAL { ?item p:P2873/psv:P2873 [       # Unità di tempo
+            wikibase:quantityUnit ?unit 
+            ]
+  }
+  FILTER (?timeinspace > 0).
+  OPTIONAL {                                 # Articolo su Wikipedia
+      ?wikiarticle schema:about ?item .
+      ?wikiarticle schema:inLanguage \"en\" .
+      FILTER (SUBSTR(str(?wikiarticle), 1, 25) = \"https://en.wikipedia.org/\")
+    }
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC (?timeinspace)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

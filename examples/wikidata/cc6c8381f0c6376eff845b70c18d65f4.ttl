@@ -4,11 +4,38 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-cc6c8381f0c6376eff845b70c18d65f4> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-cc6c8381f0c6376eff845b70c18d65f4> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Will_(Wiki_Ed)/APS_Project_Page/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Will_(Wiki_Ed)/APS_Project_Page/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Prolific authors
+
+PREFIX target: <http://www.wikidata.org/entity/Q3382012>
+
+SELECT ?count ?author ?authorLabel ?orcid ?example_work ?example_workLabel
+WITH {
+  # Count the number of works author by the author publishing in the journal
+  SELECT
+    ?author
+    (COUNT(?work) AS ?count)
+    (SAMPLE(?work) AS ?example_work)
+  WHERE {
+    ?work wdt:P50 ?author ;
+          wdt:P1433 target: .
+  }
+  GROUP BY ?author
+} AS %result
+WHERE {
+  INCLUDE %result 
+          
+  # Include optional ORCID iD
+  OPTIONAL { ?author wdt:P496 ?orcid . }
+  
+  # Label the results
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . } 
+}
+ORDER BY DESC(?count)
+LIMIT 50"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

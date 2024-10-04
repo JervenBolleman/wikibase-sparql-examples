@@ -4,11 +4,27 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-dcd3b090e0f0f99582fe896537459415> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-dcd3b090e0f0f99582fe896537459415> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:2le2im-bdc/Etatcivil>, <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/02>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:2le2im-bdc/Etatcivil>, <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2021/02>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Women dead in Paris before 1900 without reference for the date
+SELECT ?item ?itemLabel ?date 
+WHERE 
+{
+  ?item wdt:P21 wd:Q6581072 . # female
+  ?item wdt:P20 / wdt:P131* wd:Q90 . # dead in Paris or a place located within Paris
+  ?item p:P570 ?date_statement .
+  ?date_statement a wikibase:BestRank . # With a date of death statement of best rank
+  ?date_statement ps:P570 ?date .
+  hint:Prior hint:rangeSafe true .
+  FILTER (?date < \"+1900-00-00T00:00:00Z\"^^xsd:dateTime) # Dead before year 1900
+  MINUS { ?item wdt:P31 wd:Q95074 . }
+  MINUS { ?date_statement prov:wasDerivedFrom [] . } # No reference for the date of death statement
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
+ORDER BY DESC (?date)
+LIMIT 1000"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

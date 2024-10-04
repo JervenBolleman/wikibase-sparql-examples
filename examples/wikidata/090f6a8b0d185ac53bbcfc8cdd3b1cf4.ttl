@@ -4,11 +4,19 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-090f6a8b0d185ac53bbcfc8cdd3b1cf4> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-090f6a8b0d185ac53bbcfc8cdd3b1cf4> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Miraclepine/queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Miraclepine/queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ People with more than one honorary degree but no enwiki page
+# Per enwiki WP:NPROF 1: \"For the purposes of partially satisfying Criterion 1, significant academic awards and honors may include [...] honorary degrees\"
+SELECT DISTINCT ?person ?personLabel ?personDescription ?degrees WHERE {
+  { SELECT DISTINCT ?person (COUNT(DISTINCT ?degree) as ?degrees) WHERE {
+  { ?person wdt:P166 ?degree . ?degree wdt:P279 wd:Q11415564 . } UNION { ?person p:P166 ?degree. ?degree ps:P166 wd:Q11415564. }
+  } GROUP BY ?person } FILTER ( ?degrees > 1 )
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } 
+  FILTER NOT EXISTS { [] schema:about ?person ; schema:isPartOf <https://en.wikipedia.org/> }
+} ORDER BY DESC (?degrees)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

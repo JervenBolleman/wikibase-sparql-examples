@@ -4,11 +4,32 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-f67c34ef521fa3cc9d2ee86f1e364367> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-f67c34ef521fa3cc9d2ee86f1e364367> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Deansfa>, <https://www.wikidata.org//wiki/User:Deansfa/SPARQL>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Deansfa>, <https://www.wikidata.org/wiki/User:Deansfa/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ WSJ journalists ordered by number of articles in Wikidata (including the ones w 0 articles)
+SELECT ?author ?authorLabel (COALESCE((SAMPLE(?count)), 0) AS $totalArticles) WHERE {
+  {
+    SELECT DISTINCT ?author ?count WHERE {
+      ?author wdt:P31 wd:Q5;
+        p:P6872 ?n.
+      ?n ps:P6872 wd:Q164746.
+    }
+  } UNION {
+    SELECT DISTINCT ?author (COUNT(?item) AS ?count) 
+    WHERE {  
+      ?item wdt:P1433 wd:Q164746.
+      hint:Prior hint:runFirst \"true\"^^xsd:boolean.
+      ?item (wdt:P31/(wdt:P279*)) wd:Q191067;
+        wdt:P50 ?author.
+    }
+    GROUP BY ?author
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+GROUP BY ?author ?authorLabel
+ORDER BY DESC ($totalArticles)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

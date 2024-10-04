@@ -4,11 +4,24 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-29521a56c81366c32bc4c0f072cb7f2f> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-29521a56c81366c32bc4c0f072cb7f2f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/ambassadors>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_British_Politicians/ambassadors>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Wikidata entries for British ambassadors and high commissioners
+# items are mostly internal linking infrastructure (is it a class of Ambassador to X, etc)
+
+select distinct ?item ?itemLabel ?otherclass ?otherclassLabel ?startyear ?category ?categoryLabel ?list ?listLabel ?embassyLabel where
+{
+  { ?item wdt:P31 wd:Q18115939 . } union { ?item wdt:P31 wd:Q56760832 } . # ambassador or high commissioner
+  optional { ?item wdt:P31 ?otherclass . ?otherclass wdt:P279* wd:Q121998 . minus {?otherclass wdt:P17 wd:Q145 } . }
+  optional { ?item wdt:P2354 ?list } .
+  optional { ?item wdt:P910 ?category } .
+  optional { ?item wdt:P571 ?start . bind(year(?start) as ?startyear) } .
+  optional { ?item wdt:P2389 ?embassy . } 
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

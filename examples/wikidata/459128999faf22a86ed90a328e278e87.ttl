@@ -4,11 +4,47 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-459128999faf22a86ed90a328e278e87> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-459128999faf22a86ed90a328e278e87> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:PAC2/Gender_diversity>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:PAC2/Gender_diversity>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ This query takes a list of article in Wikipedia, analyse the gender of all entities cited in the article and count the share of males, females and non binary.
+# The goal is to measure gender diversity inside wikipedia articles
+# Feedback and comments are welcome on my talk page User:PAC2
+SELECT ?article
+(SUM(?female) AS ?count_females) 
+(SUM(?male) AS ?count_males)
+(SUM(?nonbinary) AS ?count_nonbinary) 
+(SUM(?intersexual) AS ?count_intersexual) 
+(COUNT(*) AS ?count) 
+(ROUND(100 * ?count_females / ?count) AS  ?share_females) 
+(ROUND(100 * ?count_males / ?count) AS  ?share_males) 
+(ROUND(100 * ?count_nonbinary / ?count) AS  ?share_nonbinary)
+(ROUND(100 * ?count_intersexual / ?count) AS ?share_intersexual)
+{
+  VALUES ?article {
+  \"Anthropology\"
+  \"Philosophy\"
+  \"Economics\"
+  \"Sociology\"
+  \"Demography\"
+  }
+  SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:endpoint \"en.wikipedia.org\";
+                     wikibase:api \"Generator\";
+                     mwapi:generator \"links\";
+                     mwapi:titles ?article;.
+     ?item wikibase:apiOutputItem mwapi:item.
+  } 
+  FILTER BOUND (?item)
+  ?item wdt:P31 wd:Q5 . 
+  ?item wdt:P21 ?gender . 
+  BIND(IF(?gender IN(wd:Q6581097, wd:Q2449503), 1, 0) AS ?male ) 
+  BIND(IF(?gender IN(wd:Q6581072, wd:Q1052281), 1, 0 ) AS ?female)
+  BIND(IF(?gender = wd:Q48270, 1, 0) AS ?nonbinary) 
+  BIND(IF(?gender = wd:Q1097630, 1,0) AS ?intersexual)
+}
+GROUP BY ?article"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

@@ -4,11 +4,27 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-c7609a7669aeff10914db3da4ab676c2> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-c7609a7669aeff10914db3da4ab676c2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Gruppo_Wikidata_per_Musei,_Archivi_e_Biblioteche/Query>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Gruppo_Wikidata_per_Musei,_Archivi_e_Biblioteche/Query>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Associo agli Elementi Wikidata (Musei) la corrispondente descrizione estesa presente nel db unico Mibact (beniculturali.it)
+# Tramite id ICCD in Wikidata
+# Query ottimizzata e più funzionale rispetto alla query federata inversa 'id Wikidata in ICCD'
+PREFIX lO: <https://w3id.org/italia/onto/l0/>    # Creo il prefisso per referenziare l'IRI della proprietà 'Descrizione' del sito dati.beniculturali.it
+
+SELECT ?item ?itemLabel ?desc ?url WHERE {
+    ?item wdt:P31 wd:Q33506 .  # Recupera tutte le istanze di Musei
+    ?item wdt:P131 wd:Q13369 . # Che appartengono all'area amministrativa di Rimini
+    ?item wdt:P5782 ?id .      # Recupera per ogni elemento l'Identificativo sul db unico Mibact
+    BIND(URI(CONCAT(\"http://dati.beniculturali.it/mibact/luoghi/resource/CulturalInstituteOrSite/\",?id)) AS ?url)  # Crea l'URI relativo del service Beniculturali.it
+                                                                                                        
+    SERVICE <http://dati.beniculturali.it/sparql> {
+      ?url lO:description ?desc . # Recupera la descrizione degli Elementi tramite l'URI generato
+    } 
+
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"it\". }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

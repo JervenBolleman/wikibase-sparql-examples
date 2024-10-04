@@ -4,11 +4,46 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-64e23723cf7afd230b655caa8f61f995> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-64e23723cf7afd230b655caa8f61f995> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Charles_Matthews/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Charles_Matthews/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ this query
+# - checks every President of France
+# - finds out who was President on the day they were born
+# - finds out if that person was still alive on the day the new one became President
+#
+# this is a deeply trivial query
+# but as it turns out to be true for Macron, it's an interesting footnote
+# and we should see if it's true for anyone else
+
+SELECT ?newperson ?newpersonLabel ?newstart ?oldperson ?oldpersonLabel ?died # ?newbirth ?start ?end 
+WHERE {
+
+  # first, find all presidents (as ?newperson) with their accession dates and birthdates
+  
+  ?newperson wdt:P31 wd:Q5 ; wdt:P39 wd:Q191954 .  # this is hardcoded as President of France
+  ?newperson wdt:P569 ?newbirth .
+  ?newperson p:P39 [ ps:P39 wd:Q191954; pq:P580 ?newstart ]. 
+
+  # then, find all presidents again (as ?oldperson) with their start/finish dates and deathdates
+  
+  ?oldperson wdt:P31 wd:Q5 ; wdt:P39 wd:Q191954 .
+  OPTIONAL { ?oldperson wdt:P570 ?died . }
+  ?oldperson p:P39 [ ps:P39 wd:Q191954; pq:P580 ?start ] .
+  ?oldperson p:P39 [ ps:P39 wd:Q191954; pq:P582 ?end ] .
+  FILTER ( ?start < ?newbirth ) .  # when the new person was born, the old person had begun their term
+  FILTER ( ?end > ?newbirth ) .    # when the new person was born, the old person had not finished their term
+                                   # therefore combined, this was presumably the person on the day they were born
+                                   # can uncomment ?newbirth ?start ?end to check
+  { FILTER ( ?newstart < ?died ) } UNION { FILTER NOT EXISTS{ ?oldperson wdt:P570 ?died } } .
+                                   # this complete mess of a query finds the cases
+                                   # a) where the new person's start date is before the old person's death
+                                   # b) where the old person has not yet died
+                                   
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }  # get their names
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

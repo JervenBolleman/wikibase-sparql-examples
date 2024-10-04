@@ -4,17 +4,34 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-96662f12068fbee0007aaf04d82bfaaf> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-96662f12068fbee0007aaf04d82bfaaf> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products>,
-    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/de>,
-    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/en>,
-    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/fr>,
-    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/it>,
-    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/nl>,
-    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Chemistry_Natural_products/ru>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_Chemistry_Natural_products>,
+    <https://www.wikidata.org/wiki/Wikidata:WikiProject_Chemistry_Natural_products/de>,
+    <https://www.wikidata.org/wiki/Wikidata:WikiProject_Chemistry_Natural_products/en>,
+    <https://www.wikidata.org/wiki/Wikidata:WikiProject_Chemistry_Natural_products/fr>,
+    <https://www.wikidata.org/wiki/Wikidata:WikiProject_Chemistry_Natural_products/it>,
+    <https://www.wikidata.org/wiki/Wikidata:WikiProject_Chemistry_Natural_products/nl>,
+    <https://www.wikidata.org/wiki/Wikidata:WikiProject_Chemistry_Natural_products/ru>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: Which are the available structure found in taxon on Wikidata, for which a CAS Registry Number is available? (limited to 1mio)
+SELECT DISTINCT ?structure ?cas ?date WHERE {
+  {
+    ?structure p:P703 [];                        # Found in taxon
+               p:P231 ?casStatement .            # Get the CAS Registry Number
+  }
+  {
+    ?casStatement ps:P231 ?cas .
+    OPTIONAL {
+      ?casStatement prov:wasDerivedFrom ?casReference .
+      { ?casReference pr:P248 wd:Q18907859 . }
+      UNION
+      { ?casReference pr:P248 wd:Q911173 . }
+      OPTIONAL { ?casReference pr:P813 ?date . }
+    }
+  }
+}
+LIMIT 1000000"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>

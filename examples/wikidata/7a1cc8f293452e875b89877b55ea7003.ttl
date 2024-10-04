@@ -4,11 +4,46 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-7a1cc8f293452e875b89877b55ea7003> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-7a1cc8f293452e875b89877b55ea7003> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Invasion_biology>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_Invasion_biology>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: Candidate methods for tagging via P4510
+SELECT 
+  DISTINCT
+    ?method ?N (COUNT(?item) AS ?count)
+
+WHERE {
+  hint:Query hint:optimizer \"None\".
+
+  {  SERVICE wikibase:mwapi {
+  bd:serviceParam wikibase:api \"Search\";
+    wikibase:endpoint \"www.wikidata.org\";
+    mwapi:srsearch \"ecology and haswbstatement:P31=Q13442814 -haswbstatement:P4510=Q4115189\".
+    ?page_title wikibase:apiOutput mwapi:title.
+  }
+  }
+UNION
+
+  {  SERVICE wikibase:mwapi {
+  bd:serviceParam wikibase:api \"Search\";
+    wikibase:endpoint \"www.wikidata.org\";
+    mwapi:srsearch \"ecology -and haswbstatement:P31=Q13442814 -haswbstatement:P4510=Q4115189\". 
+    ?page_title wikibase:apiOutput mwapi:title.
+  }
+  }  BIND(IRI(CONCAT(STR(wd:), ?page_title)) AS ?item)
+
+  ?item wdt:P1476 ?title.
+  BIND(CONCAT(?title_ , \" | \" , ?venue_title)  AS ?title)
+  FILTER REGEX(LCASE(?title), \"\\\\b(using|utilizing|with|through|via|by|(us((ag)?)e|application(s?)) of\\\\b)(.)\").
+
+  BIND(STRAFTER(LCASE(?title), \"using \") AS ?method) 
+  FILTER (STRLEN(?method) > 0 )
+  BIND(STRLEN(REPLACE(?method, \"\\\\S\", \"\")) + 1 as ?N)
+
+}
+GROUP BY ?method ?N ?count
+ORDER BY DESC(?count)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

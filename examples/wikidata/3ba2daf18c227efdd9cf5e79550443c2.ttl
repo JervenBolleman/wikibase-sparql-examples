@@ -4,11 +4,25 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-3ba2daf18c227efdd9cf5e79550443c2> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-3ba2daf18c227efdd9cf5e79550443c2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """All UK and pre-Union MPs - England to 1707, GB 1707-1801, and UK 1801-date
+
+SELECT DISTINCT ?person ?personLabel (sample(?born) AS ?born_sample) (sample(?died) AS ?died_sample) (sample(?fl) AS ?fl_sample)
+WHERE {
+  ?person wdt:P31 wd:Q5 .                    # this person is a real person (not fictional)
+  ?person p:P39 ?ps .                        # this person has a position statement ?ps ...
+  ?ps ps:P39 ?position .                     # and the statement is for a ?position which is...
+        { ?position wdt:P279* wd:Q16707842 }      # a UK MP or a subclass (specific period)
+  UNION { ?position wdt:P279* wd:Q18015642 }      # OR a GB MP or a subclass (specific period)
+  UNION { ?position wdt:P279* wd:Q18018860 }      # OR an English MP or a subclass (specific period)
+  optional { ?person wdt:P569 ?b . BIND(YEAR(?b) AS ?born ) }      # identify the year of birth
+  optional { ?person wdt:P570 ?d . BIND(YEAR(?d) AS ?died ) }      # identify the year of death
+  optional { ?person (wdt:P1317|wdt:P2031|wdt:P2032) ?f . BIND(YEAR(?f) AS ?fl ) } # three different kinds of fl. date
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } # name
+} GROUP BY ?person ?personLabel # needed for grouping"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

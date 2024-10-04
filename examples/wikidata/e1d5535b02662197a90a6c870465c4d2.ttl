@@ -4,11 +4,70 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-e1d5535b02662197a90a6c870465c4d2> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-e1d5535b02662197a90a6c870465c4d2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Glrx>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Glrx>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Find a bad occupation
+SELECT ?person ?personLabel ?givenLabel ?familyLabel ?timeCaptain ?timeDeath ?threeID WHERE {
+
+  # Human
+  ?person wdt:P31 wd:Q5 .
+
+  # branch of service is Royal Navy
+  ?person wdt:P241 wd:Q172771 .
+  
+  # for officers (not sailors) want to see occupation is a naval officer
+  # occupation naval officer
+  # FILTER not exists { ?person wdt:P106 wd:Q10669499 .}
+  
+  # occupation Q47064 military personnel is not an occupation
+  # ?person wdt:P106 wd:Q47064 .
+
+  # occupation Q189290 military officer is too generic
+  # ?person wdt:P106 wd:Q189290 .
+
+  # admiral of the fleet (not RN)
+  # ?person wdt:P410 wd:Q842486 .
+  # admiral (not RN)
+  ?person wdt:P410 wd:Q132851 .
+  # vice admiral (not RN)
+  # ?person wdt:P410 wd:Q214443 .
+  # rear admiral (not RN)
+  # ?person wdt:P410 wd:Q156945 .
+  # captain (not RN)
+  # ?person wdt:P410 wd:Q163500 .
+
+  optional {
+    # given name
+    ?person wdt:P735 ?given .
+  }
+
+  optional {
+    # family name
+    ?person wdt:P734 ?family .
+  }
+  
+  optional {
+    # Three Decks person ID
+    ?person wdt:P7389 ?threeID .
+  }
+
+  optional {
+    ?person p:P410 ?stmtCaptain .
+    ?stmtCaptain ps:P410 wd:Q5036514 .
+    ?stmtCaptain pq:P580 ?timeCaptain .
+  }
+  
+  optional {
+    ?person wdt:P570 ?timeDeath .
+  }
+  
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+  }
+}
+ORDER BY ?timeDeath"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

@@ -4,11 +4,29 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-78b9950d84b753af6134ba4e86be0602> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-78b9950d84b753af6134ba4e86be0602> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/03>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2020/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ members of Massachusetts House of Representatives
+
+SELECT ?item ?itemLabel 
+?date_of_birth ?image ?electoral_district ?electoral_districtLabel ?start ?end
+WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?item p:P39 ?position_statement.
+  ?position_statement ps:P39 wd:Q17342542.
+  ?position_statement wikibase:rank ?rank.
+  FILTER (?rank = wikibase:PreferredRank ||
+          ?rank = wikibase:NormalRank && NOT EXISTS { ?item p:P39/wikibase:rank wikibase:PreferredRank. })
+  OPTIONAL { ?item wdt:P569 ?date_of_birth. }
+  OPTIONAL { ?item wdt:P18 ?image. }
+  OPTIONAL { ?position_statement pq:P768 ?electoral_district. }
+  OPTIONAL { ?position_statement pq:P580 ?start. }
+  OPTIONAL { ?position_statement pq:P582 ?end. }
+}
+ORDER BY DESC(?date_of_birth)
+LIMIT 5000"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

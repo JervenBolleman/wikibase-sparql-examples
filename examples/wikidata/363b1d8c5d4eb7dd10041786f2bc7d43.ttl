@@ -4,11 +4,26 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-363b1d8c5d4eb7dd10041786f2bc7d43> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-363b1d8c5d4eb7dd10041786f2bc7d43> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/twins_with_different_places_of_birth>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:TweetsFactsAndQueries/Queries/twins_with_different_places_of_birth>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ two items are considered twins if they’re siblings,
+# and either the “sibling” statement carries a “type of kinship: twins” qualifier (optionally with a subclass of “twin”),
+# or both have the same date of birth (with “day” precision)
+SELECT ?twin1 ?birth1 ?twin2 ?birth2 ?twin1Label ?birth1Label ?twin2Label ?birth2Label WHERE {
+  ?twin1 wdt:P31 wd:Q5;
+         wdt:P19 ?birth1;
+         p:P3373 ?siblingStatement.
+  ?siblingStatement ps:P3373 ?twin2.
+  { ?siblingStatement pq:P1039/wdt:P279* wd:Q14756018. } UNION
+  { ?twin1 p:P569/psv:P569 ?dateOfBirth. ?twin2 p:P569/psv:P569 ?dateOfBirth. ?dateOfBirth wikibase:timePrecision \"11\"^^xsd:integer. }
+  ?twin2 wdt:P31 wd:Q5;
+         wdt:P19 ?birth2.
+  FILTER(?birth1 != ?birth2)
+  FILTER(STR(?twin1) < STR(?twin2))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

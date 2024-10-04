@@ -4,11 +4,37 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-b3a59aa2e33f25a76d27c6ca372ccb3a> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-b3a59aa2e33f25a76d27c6ca372ccb3a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/11>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2019/11>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Find all russian lexemes not linking to a meaning in the top 100 most translated lexemes
+
+SELECT distinct ?meaning ?meaningLabel ?count WHERE
+{
+  #extract the meanings found in all russian lexemes
+  ?le a ontolex:LexicalEntry ; 
+        dct:language ?language ;
+        ontolex:sense ?sense. # get the sense
+  ?sense wdt:P5137 ?meaning_ru.  
+  FILTER (?language = wd:Q7737)
+  {
+    # This block finds the 100 most linked concepts
+    SELECT ?meaning (count(?l) as ?count) 
+    WHERE {
+       ?l a ontolex:LexicalEntry ; 
+            ontolex:sense ?sense. # get the sense
+      ?sense wdt:P5137 ?meaning. #extract the meanings for ranking
+    }
+    group by ?meaning 
+    order by desc(?count) # rank by the most translated concepts 
+    limit 100 # only show the 100 most linked meanings
+  }
+  # Show the meanings left after filtering out those already present in russian lexemes
+  # this result should be < 100.
+  FILTER(?meaning NOT IN(?meaning_ru))
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\"}
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

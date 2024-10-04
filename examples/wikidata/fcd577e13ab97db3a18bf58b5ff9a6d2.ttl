@@ -4,11 +4,26 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-fcd577e13ab97db3a18bf58b5ff9a6d2> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-fcd577e13ab97db3a18bf58b5ff9a6d2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infrastruktur/Sandbox2>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Infrastruktur/Sandbox2>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Utvalg av entiteter uten P31 'tilfelle av' og P279 'underklasse av'
+SELECT DISTINCT ?item ?itemLabel ?itemDescription ?articleURI
+WHERE {
+  #Utvalg
+  ?item wdt:P17 wd:Q20.
+  #Resten av spørringen
+  OPTIONAL { ?inst ^wdt:P31 ?item. }
+  OPTIONAL { ?super ^wdt:P279 ?item. }
+  FILTER(!BOUND(?inst) && !BOUND(?super))
+  OPTIONAL {
+    ?articleURI schema:about ?item;
+      schema:isPartOf <https://no.wikipedia.org/>.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"nb,en\". }
+}
+LIMIT 500"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

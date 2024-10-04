@@ -4,11 +4,29 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-f8e90cb4f37edb08d1c1fcf730f407d7> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-f8e90cb4f37edb08d1c1fcf730f407d7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Charles_Matthews/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Charles_Matthews/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Church image duplicates (culled from Magnus Manske, Jheald)
+SELECT ?church ?churchLabel ?img
+WITH {
+  SELECT ?church ?img WHERE {
+    ?church wdt:P31 wd:Q16970 . 
+    ?church wdt:P18 ?img 
+  }
+} AS %church_images
+WHERE {
+  {     
+     SELECT ?img (count(?church) AS ?cnt)  {
+       INCLUDE %church_images
+     } GROUP BY ?img 
+     HAVING (?cnt>1)
+  }
+  INCLUDE %church_images .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY desc(?cnt) ?img ?churchLabel"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

@@ -4,11 +4,27 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-c100af78374e2ccb24194b4b0de408c3> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-c100af78374e2ccb24194b4b0de408c3> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service/queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata_talk:SPARQL_query_service/queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Same results as before, but with museums ordered before objects.
+SELECT DISTINCT ?result ?resultLabel WHERE
+  {
+    {
+      ?museum wdt:P31/wdt:P279* wd:Q33506;
+        wdt:P17 wd:Q40.
+    }
+    UNION
+    {
+      ?museum wdt:P31/wdt:P279* wd:Q33506;
+        wdt:P17 wd:Q40.
+      ?object wdt:P276 ?museum.
+    }
+    BIND (COALESCE(?object, ?museum) AS ?result)
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,en\". }
+  }
+ORDER BY ?object"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

@@ -4,11 +4,32 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-35149ad050abf7a1b19702147dd5d084> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-35149ad050abf7a1b19702147dd5d084> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:ExLibris-Primo>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:ExLibris-Primo>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: Staff of a university and their IDs
+SELECT ?academic ?scholia ?academicLabel ?academicDescription ?academicAltLabel ?gender ?lccn ?lccnurl  ?viaf ?viafurl ?orcid ?orcidurl ?gscholar ?gscholarurl  WHERE {
+   ?academic wdt:P31 wd:Q5 . # academic has a person
+  
+   ?academic wdt:P108 wd:Q1150437 . # employed by Victoria University of Wellington
+
+   BIND( URI(CONCAT('https://scholia.toolforge.org/author/', STRAFTER(STR(?academic), \"/entity/\")))  AS ?scholia ) .
+
+   #uncomment out these two lines to just show non-men
+   #?item wdt:P21 ?gender. # get their gender (because this is not wrapped in OPTIONAL{}, items with a null gender are excluded from the results)
+   #FILTER (?gender != wd:Q6581097) # not male
+ 
+   OPTIONAL { ?academic wdt:P21 ?gender . } .   
+   OPTIONAL { ?academic wdt:P244 ?lccn .  BIND( IRI(CONCAT('https://lccn.loc.gov/', STR(?lccn)))  AS ?lccnurl ) .   } . 
+   OPTIONAL { ?academic wdt:P214 ?viaf .  BIND( IRI(CONCAT('https://viaf.org/viaf/', STR(?viaf)))  AS ?viafurl ) . } . 
+   OPTIONAL { ?academic wdt:P496 ?orcid .  BIND( IRI(CONCAT('https://orcid.org/', STR(?orcid)))  AS ?orcidurl ) . } . 
+   OPTIONAL { ?academic wdt:P1960 ?gscholar .  BIND( IRI(CONCAT('https://scholar.google.com/citations?user=', STR(?gscholar)))  AS ?gscholarurl ) . } . 
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+
+}
+LIMIT 50"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

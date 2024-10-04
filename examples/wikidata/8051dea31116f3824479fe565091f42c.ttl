@@ -4,11 +4,47 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-8051dea31116f3824479fe565091f42c> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-8051dea31116f3824479fe565091f42c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Pere_prlpz>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Pere_prlpz>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """# autores en català (combinant diferents criteris) i articles en ca, es, eu i gl
+SELECT DISTINCT ?escriptora ?escriptoraLabel ?desc ?llocnaixLabel ?articleca ?articlees ?articleeu ?articlegl WHERE {
+  {?escriptora wdt:P31 wd:Q5.
+  ?escriptora wdt:P21 wd:Q6581072.
+  ?obra wdt:P50 ?escriptora.
+  ?obra wdt:P407 wd:Q7026.
+   MINUS {?obra wdt:P655 [].}
+   MINUS {?obra wdt:P629 [].}
+  }
+  UNION
+  {?escriptora wdt:P31 wd:Q5.
+  ?escriptora wdt:P21 wd:Q6581072.
+    {?escriptora wdt:P1343 wd:Q130266498.} 
+    UNION 
+    {?escriptora wdt:P7357 [].}
+  }
+  OPTIONAL {?escriptora wdt:P19 ?llocnaix}
+  OPTIONAL {
+    ?articleca schema:about ?escriptora.
+    ?articleca schema:isPartOf <https://ca.wikipedia.org/>.
+  }
+  OPTIONAL {
+    ?articlees schema:about ?escriptora.
+    ?articlees schema:isPartOf <https://es.wikipedia.org/>.
+  }
+  OPTIONAL {
+    ?articlegl schema:about ?escriptora.
+    ?articlegl schema:isPartOf <https://gl.wikipedia.org/>.
+  }
+  OPTIONAL {
+    ?articleeu schema:about ?escriptora.
+    ?articleeu schema:isPartOf <https://eu.wikipedia.org/>.
+  }
+  OPTIONAL{  ?escriptora schema:description ?desc.
+    FILTER(LANG(?desc) = \"ca\")}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"ca, oc, en, fr, ceb\" }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

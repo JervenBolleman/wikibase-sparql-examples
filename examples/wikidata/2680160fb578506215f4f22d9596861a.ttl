@@ -4,11 +4,32 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-2680160fb578506215f4f22d9596861a> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-2680160fb578506215f4f22d9596861a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/03>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2022/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Find AFD ids having a plant as a parent  
+SELECT ?item ?itemLabel
+WITH
+{
+  SELECT ?item
+  WHERE
+  {
+    SERVICE bd:slice
+    {
+      ?item wdt:P6039 _:afd_id .
+      bd:serviceParam bd:slice.offset 0 .
+      bd:serviceParam bd:slice.limit 25000 .
+    }
+    ?item wdt:P171* wd:Q756 .
+    hint:Prior hint:gearing \"forward\" .
+  }
+} AS %sub
+WHERE
+{
+  INCLUDE %sub 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } 
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

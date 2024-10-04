@@ -4,11 +4,100 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-adfd868dded94e1d0d87448018aebba2> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-adfd868dded94e1d0d87448018aebba2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_Ukraine>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata_talk:WikiProject_Ukraine>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Dataset of localities in Ukraine, and \"main administratives\", suitable for import in some GIS software.
+# You will get localities, and their administratives, where the administratives are sorted by a priority factor.
+# In your import, you may want to skip any duplicate locality, so to import just the first one in order of appearance,
+# so to import just each locality and its \"main administrative\" and skip other \"minor\" administratives.
+# Author: [[User:Valerio Bozzolan]], Landscapefor.eu Foundation, contributors
+# Date: 2023-11-10
+# License: CC0
+#
+# NOTES:
+# Please read the footer about these elements:
+## https://www.wikidata.org/wiki/Q756294   - Republic of Crimea
+## https://www.wikidata.org/wiki/Q15966495 - Autonomous Republic of Crimea
+SELECT
+?comune
+?comuneLabel
+(SAMPLE(?location) AS ?location)
+?administrative
+?administrativeLabel
+?index
+WHERE {
+
+  # Force to Ukraine     
+  ?comune wdt:P17 wd:Q212.
+
+  wd:Q1048835 ^wdt:P279*/^wdt:P31 ?comune.
+
+  ?comune wdt:P131 ?administrative.
+
+  # Exclude former cities.
+  MINUS {
+    wd:Q22674925 ^wdt:P279*/^wdt:P31 ?comune.
+  }
+
+  # Exclude countries.
+  MINUS {
+    ?comune wdt:P31 wd:Q6256.
+  }
+  
+  # Exclude electoral districts.
+  MINUS {
+    ?comune wdt:P31 wd:Q63084210. 
+  }
+
+  # Exclude neighborhood
+  MINUS {
+      wd:Q123705 ^wdt:P279*/^wdt:P31 ?comune.
+  }
+
+  # Exclude administratives that are abolished.
+  MINUS {
+    ?administrative wdt:P576 []. 
+  }
+
+  # Exclude administratives with end time
+  MINUS {
+    ?comune p:P131 [ pq:P582 [] ].
+  }
+
+  ?comune wdt:P625 ?location.
+
+  # Raise priority to administrative that is a \"Raion\" (\"Region\").
+  BIND (EXISTS{?administrative wdt:P31 wd:Q1267632} AS ?isUkrainianRaionRaw)
+  BIND (IF(?isUkrainianRaionRaw, 1, 0) AS ?isUkrainianRaion)
+  
+  # We have to give priority to Q756294 \"Republic of Crimea\" or to Q15966495 \"Autonomous Republic of Crimea\"
+  # so to be consistent and pick one of these and not the other one.
+  # It's really not important what we pick, but that should be consistent so to simplify future changes
+  # in your local dataset.
+  # So, I have thrown a dice to decide this and I've picked \"Autonomous Republic of Crimea\".
+  # I hope this choice will not cause any political nightmare against me, that I'm not opinionated in this
+  # and I'm just trying to import some localities in an Italian geographical atlas.
+  # Feel free to invert if you are opinionated but please share any explaination so we can understand. Thanks :)
+  BIND(IF(STRENDS(STR(?administrative), 'Q15966495'), 1, 0) AS ?isTheChoosenRepublicCrimea)
+
+  # Create the final priority factor, so we give priority to meaningful administratives.
+  # So we can import the first row (locality + most important administrative),
+  # and we can skip others lines - (locality + less important administrative).
+  BIND((?isUkrainianRaion + ?isTheChoosenRepublicCrimea) AS ?index)
+  
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en,uk,ru\" .
+  }
+}
+
+# We want localities, their administrative, and just a sample locality's location.
+# So, \"?location\" is aggregated by SAMPLE().
+GROUP BY ?comune ?comuneLabel ?administrative ?administrativeLabel ?index
+
+# We want localities, ordered by most appropriate administrative.
+ORDER BY ASC(?comuneLabel) DESC(?index) ASC(?administrativeLabel)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

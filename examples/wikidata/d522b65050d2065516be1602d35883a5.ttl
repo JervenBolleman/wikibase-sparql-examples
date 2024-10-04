@@ -4,11 +4,40 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-d522b65050d2065516be1602d35883a5> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-d522b65050d2065516be1602d35883a5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/%E2%80%9Ccontroversies%E2%80%9D_articles_with_the_most_sitelinks>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:TweetsFactsAndQueries/Queries/%E2%80%9Ccontroversies%E2%80%9D_articles_with_the_most_sitelinks>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ “controversies” articles with the most sitelinks (language versions)
+# note: technically, this counts all sitelinks, not only Wikipedia ones (e.g. also Wikimedia Commons categories) –
+# the top results are correct, though, so I don’t think it’s worth complicating the query further to fix this
+SELECT ?controversies ?controversiesLabel ?sitelinks WHERE {
+  # find all “controversies” items using CirrusSearch (SPARQL isn’t the right tool for this job)
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+                    wikibase:api \"Search\";
+                    # note: the “inlabel” keyword also searches aliases
+                    # exclude scholarly articles (Q13442814), there’s plenty of them and we don’t care about them here
+                    # also exclude categories (Q4167836, P4224); we’ll filter them out again below, but excluding some here speeds things up
+                    mwapi:srsearch \"inlabel:controversies@en -haswbstatement:P31=Q13442814 -haswbstatement:P31=Q4167836 -haswbstatement:P4224\";
+                    # get as many search results at once as possible
+                    mwapi:srlimit \"max\".
+    ?controversies wikibase:apiOutputItem mwapi:title.
+  }
+  # get the number of sitelinks and the English label
+  ?controversies wikibase:sitelinks ?sitelinks;
+                 rdfs:label ?controversiesLabel.
+  FILTER(LANG(?controversiesLabel) = \"en\")
+  # filter out categories (-haswbstatement:P31=Q4167836 doesn’t exclude categories that are instance of a subclass of Q4167836)
+  FILTER(!STRSTARTS(?controversiesLabel, \"Category:\"@en))
+  # also filter out templates (only one match at the moment, not worth adding this to the search string)
+  FILTER(!STRSTARTS(?controversiesLabel, \"Template:\"@en))
+  # filter out the item about the “controversy” concept
+  FILTER(?controversies != wd:Q1255828)
+  # require at least one sitelink (article)
+  FILTER(?sitelinks > 0)
+}
+ORDER BY DESC(?sitelinks)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

@@ -4,11 +4,22 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-855a16792b947dc39769c776ff7d808d> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-855a16792b947dc39769c776ff7d808d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Manuscripts/Data_Model>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_Manuscripts/Data_Model>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title:Identifiers and count of manuscripts
+SELECT ?id ?idlabel (COUNT(?item) AS ?count) WITH {
+  SELECT DISTINCT ?item WHERE {
+    ?item wdt:P31/wdt:P279* wd:Q87167.
+  }
+} AS %subquery WHERE {
+  INCLUDE %subquery .
+  ?id wikibase:propertyType wikibase:ExternalId; wikibase:claim ?p; wikibase:statementProperty ?ps.
+  ?item ?p [ ?ps ?value ] .
+  ?id rdfs:label ?idlabel FILTER (lang(?idlabel) = \"en\").
+} GROUP BY ?id ?idlabel
+ORDER BY DESC(?count)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

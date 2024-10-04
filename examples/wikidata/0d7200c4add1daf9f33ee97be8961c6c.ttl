@@ -4,11 +4,29 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-0d7200c4add1daf9f33ee97be8961c6c> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-0d7200c4add1daf9f33ee97be8961c6c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MKar/Query>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:MKar/Query>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Authors/ Writers with links to Odia Wikipedia or Wikisource, but missing VIAF id
+SELECT ?item ?statements ?itemLabel 
+WHERE {
+  ?item wdt:P31 wd:Q5 .
+  ?item wdt:P106 wd:Q36180 .
+  #?item wdt:P1412 wd:Q33810 . 
+  # Here we ask people with no VIAF id
+  FILTER NOT EXISTS { ?item wdt:P214 ?viaf . }
+  # But the ones we already know they don't have one show up anyway
+  # so we filter out people with \"No value\" for VIAF id
+  FILTER NOT EXISTS { ?item rdf:type wdno:P214 . }
+  
+  ?wikilink schema:about ?item .
+  { ?wikilink schema:isPartOf <https://or.wikisource.org/> . } 
+  UNION {?wikilink schema:isPartOf <https://or.wikipedia.org/> . }
+ ?item wikibase:statements ?statements .  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
+ORDER BY DESC(?statements)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

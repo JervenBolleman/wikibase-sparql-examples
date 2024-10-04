@@ -4,11 +4,37 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-434bab8683ab6aa841e23e19d7fac40b> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-434bab8683ab6aa841e23e19d7fac40b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Kosovo/Maintenance_Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_Kosovo/Maintenance_Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Kosovo citiziens that have an article in EN or DE wiki but not in SQ
+SELECT ?item ?itemLabel (COUNT(distinct ?article) as ?count)
+{
+    {
+        SELECT ?item
+        {
+            {
+                hint:Query hint:optimizer \"None\" .   
+                ?item wdt:P31 wd:Q5  .
+                ?item wdt:P27 wd:Q1246 .
+                MINUS {?sitelinksq schema:about ?item . ?sitelinksq schema:isPartOf <https://sq.wikipedia.org/>}
+            }
+          ?article schema:about ?item .
+              {
+            ?article schema:isPartOf <https://de.wikipedia.org/>
+              }
+             UNION 
+              {
+            ?article schema:isPartOf <https://en.wikipedia.org/>
+              }
+        }
+    }
+    ?article schema:about ?item .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,de\" }
+}
+GROUP BY ?item ?itemLabel
+ORDER BY DESC(?count)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

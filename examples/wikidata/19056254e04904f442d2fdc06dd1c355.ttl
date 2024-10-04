@@ -4,11 +4,33 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-19056254e04904f442d2fdc06dd1c355> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-19056254e04904f442d2fdc06dd1c355> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Sweden/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_Sweden/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: Justice that cites reports by commissions they self took part in
+SELECT ?Justice ?Case ?Rapporteur ?SOU ?Report ?Commission ?Role WHERE {
+  ?justice wdt:P39 wd:Q96336792.
+  ?commission p:P710 [ ps:P710 ?justice; pq:P3831 ?role ];
+             wdt:P800 ?report.
+  ?report wdt:P1031 ?SOU.
+  ?case wdt:P1594 ?justice;
+       wdt:P2860 ?report.
+  OPTIONAL {
+    ?case p:P1594 ?statement.
+    ?statement ps:P1594 ?justice; pq:P3831 wd:Q96971913.
+  }
+  BIND ( IF ( BOUND (?statement) , 'yes', 'no' ) AS ?Rapporteur )
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en,sv\".
+    ?justice rdfs:label ?Justice.
+    ?case rdfs:label ?Case.
+    ?role rdfs:label ?Role.
+    ?commission rdfs:label ?Commission.
+    ?report rdfs:label ?Report.
+  }
+}
+ORDER BY ?justice ?report"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

@@ -4,11 +4,25 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-e9d3c3281e1fa2b0d573f18f6fb0b5db> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-e9d3c3281e1fa2b0d573f18f6fb0b5db> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ren%C3%A9LC>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Ren%C3%A9LC>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Item qui n'a pas d'article sur la Wikipédia francophone mais qui en a ailleurs
+
+SELECT ?item ?itemLabel ?nombre WHERE {
+{
+  SELECT ?item (COUNT(?sitelink) AS ?nombre) WHERE { 
+  ?item wdt:P485 wd:Q856640. #archivépar la contemporaine. 
+  ?sitelink schema:about ?item .
+  FILTER NOT EXISTS {
+    ?article schema:about ?item .
+    ?article schema:isPartOf <https://fr.wikipedia.org/> . #Targeting Wikipedia language where subjects has no article.
+  }
+  } GROUP BY ?item ORDER BY DESC (?nombre) 
+}
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr\" }  
+} ORDER BY DESC (?nombre)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

@@ -4,11 +4,37 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-be84e661f7d0eee79909cab221610624> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-be84e661f7d0eee79909cab221610624> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Video_games/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_Video_games/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Video game series with the longest time time gap between a game and its direct sequel
+# (as games can have more than one publication date [because re-releases], we only take the earliest one [using MIN])
+SELECT ?series ?seriesLabel ?years ?interval ?game ?gameLabel ?original_date_game ?sequel ?sequelLabel ?original_date_sequel WHERE {
+  {
+    SELECT ?game ?gameLabel (MIN(?game_date) AS ?original_date_game) ?sequel ?sequelLabel (MIN(?sequel_date) AS ?original_date_sequel) ?series ?seriesLabel WHERE {
+      ?game (wdt:P31/(wdt:P279*)) wd:Q7889; # All video games...
+        wdt:P577 ?game_date.                # with their publication date(s)...
+      {
+        ?game p:P179 ?series_statement.     # (Unpacking the series statement)
+        ?series_statement ps:P179 ?series;  #   ...in a series...
+          pq:P156 ?sequel.                  #   ...with a sequel...
+      } UNION {                             # ...or...
+        ?game wdt:P156 ?sequel.             #   ...with a sequel...
+        OPTIONAL {
+          ?game wdt:P179 ?series            # ...maybe with a series
+        }
+      }
+      ?sequel wdt:P577 ?sequel_date.        # with its own publication date(s)
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+    }
+    GROUP BY ?game ?gameLabel ?sequel ?sequelLabel ?series ?seriesLabel
+  }
+  BIND(?original_date_sequel - ?original_date_game AS ?interval)  # Calculating the time gap between the original releases, in days...
+  BIND(ROUND(?interval / 365 ) AS ?years)                         # ...and converting to years, for convenience...
+  FILTER(?interval > 0 )                                          # Only keeping sequels published after (filtering out some bad data)
+}
+ORDER BY DESC (?interval)                                         # Longest time gaps first"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

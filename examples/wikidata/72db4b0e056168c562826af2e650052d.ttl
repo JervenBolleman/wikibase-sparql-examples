@@ -4,11 +4,32 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-72db4b0e056168c562826af2e650052d> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-72db4b0e056168c562826af2e650052d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Charles_Matthews/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Charles_Matthews/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Hints (JHeald)
+SELECT ?prop ?propLabel ?count WHERE {
+    {
+        SELECT ?prop (COUNT(DISTINCT ?item) AS ?count) WHERE {
+           
+           hint:Query hint:optimizer \"None\" .
+           ?item wdt:P4200 [] .
+           ?item ?p ?id .
+           ?prop wikibase:directClaim ?p .
+           {?prop wdt:P31/wdt:P279* wd:Q19847637}  # Wikidata property representing a unique identifier 
+             UNION
+           {?prop wdt:P31/wdt:P279* wd:Q18614948}  # Wikidata property for authority control
+           
+          
+        }  GROUP BY ?prop
+    }
+           
+    SERVICE wikibase:label {
+        bd:serviceParam wikibase:language \"en\" .
+    }
+
+} ORDER BY DESC (?count)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

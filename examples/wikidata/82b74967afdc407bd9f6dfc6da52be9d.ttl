@@ -4,11 +4,32 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-82b74967afdc407bd9f6dfc6da52be9d> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-82b74967afdc407bd9f6dfc6da52be9d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infovarius/Queries>, <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/03>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Infovarius/Queries>, <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2020/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Stars up to 18 light years away sorted by the nearest
+SELECT ?star ?starLabel ?distance ?unitLabel ?lightyears
+WHERE
+{
+  {
+    SELECT ?star ?distance ?unit ?lightyears
+    WHERE
+    {
+      ?star wdt:P31 wd:Q523.
+	  ?star p:P2583/psv:P2583 ?statement.
+      ?statement wikibase:quantityUnit ?unit.
+      ?statement wikibase:quantityAmount ?distance.
+      ?statement wikibase:quantityNormalized/wikibase:quantityAmount ?distanceNormalized. # convert to normalized unit (meter)
+      BIND (?distanceNormalized / 9460800000000000  AS ?lightyears)
+      FILTER( ?lightyears < 19)
+    }
+    LIMIT 100
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ORDER BY ?lightyears
+LIMIT 100"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

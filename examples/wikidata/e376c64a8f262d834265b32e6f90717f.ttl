@@ -4,11 +4,37 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-e376c64a8f262d834265b32e6f90717f> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-e376c64a8f262d834265b32e6f90717f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Informatics/Hardware/Supercomputers>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_Informatics/Hardware/Supercomputers>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title:current ranking in Top500
+SELECT distinct ?rank ?item ?itemLabel ?countryLabel ?perf ?procs ?heat ?top500 ?osLabel ?time ?busLabel
+WHERE 
+{
+  ?item wdt:P31/wdt:P279* wd:Q121117.
+  OPTIONAL {?item wdt:P17|wdt:P495 ?country.}
+  OPTIONAL {?item wdt:P176 ?creator.}
+  OPTIONAL {?item p:P7256 [ps:P7256 ?perf; pq:P585 []].}
+#  OPTIONAL {?item wdt:P7256 ?perf.}
+  OPTIONAL {?item wdt:P2791 ?heat.}
+  OPTIONAL {?item wdt:P7307 ?top500.}
+  OPTIONAL {?item wdt:P306 ?os.}
+  OPTIONAL {?item wdt:P1141 ?procs.}
+  OPTIONAL {?item wdt:P571|wdt:P729 ?creat.}
+  OPTIONAL {?item wdt:P8107 ?bus.}
+#  ?item wdt:P1352 ?rank.  # use only for the recent ranking
+  ?item p:P1352 [ps:P1352 ?rank; pq:P447 wd:Q633765].
+  OPTIONAL { {?item p:P1352 [ps:P1352 ?rank; pq:P585 ?time].} 
+      UNION {?item p:P1352 [ps:P1352 ?rank; pq:P580 ?time].} 
+      UNION {?item p:P1352 [ps:P1352 ?rank; pq:P582 ?time].} }
+  BIND (YEAR(?time) as ?year).
+  BIND (MONTH(?time) as ?month).
+  FILTER (?year = 2023).
+  FILTER (?month = 6). 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?rank"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

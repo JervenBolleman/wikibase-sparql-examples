@@ -4,11 +4,23 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-120319bc1e8bea158dc7768b94f57c76> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-120319bc1e8bea158dc7768b94f57c76> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Kbseah/queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Kbseah/queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """SELECT DISTINCT ?item ?itemLabel ?basionymof ?basionymofLabel WHERE {
+SELECT DISTINCT ?qid ?P12766 WHERE {
+  ?item wdt:P171* wd:Q25347.
+  ?item p:P2868 ?s.
+  ?s ps:P2868 wd:Q810198;
+     pq:P642 ?basionymof .
+  FILTER NOT EXISTS { ?s prov:wasDerivedFrom ?r }
+  FILTER NOT EXISTS { ?item wdt:P12766 ?basionymof }
+  ?basionymof wdt:P566 ?item. # only those matched with a reciprocal statement
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }
+  BIND (ENCODE_FOR_URI(REPLACE(STR(?item), \".*Q\", \"Q\")) AS ?qid)
+  BIND (ENCODE_FOR_URI(REPLACE(STR(?basionymof ), \".*Q\", \"Q\")) AS ?P12766)
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

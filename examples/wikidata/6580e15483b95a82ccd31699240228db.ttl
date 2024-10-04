@@ -4,11 +4,38 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-6580e15483b95a82ccd31699240228db> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-6580e15483b95a82ccd31699240228db> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/07>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2023/07>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ find items that have:
+# 1 - only one alias in fralias 
+# AND
+# 2 - labels in en AND fr AND de
+SELECT
+?item
+(COUNT(?aliases) AS ?aliases_count)
+WHERE {
+  ?item wdt:P31 wd:Q55488 .
+  ?item skos:altLabel ?aliases .   # this gets the *aliases*
+  BIND(LANG(?aliases) AS ?aliases_lg)
+  { 
+ SELECT  ?item  (COUNT(?labels_lg) AS ?labels_lg_count)
+  WHERE {
+    VALUES ?lg {\"fr\" \"en\" \"de\"}
+    ?item wdt:P31 wd:Q55488 .
+    ?item rdfs:label ?labels .  # this gets the *labels*
+    BIND(LANG(?labels) AS ?labels_lg)
+#     SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+    FILTER(?labels_lg IN (?lg)) }
+  GROUP BY ?item
+  HAVING(?labels_lg_count = 3)
+}
+#   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  FILTER(?aliases_lg = \"fr\")
+ }
+GROUP BY (?item)
+HAVING(?aliases_count = 1)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

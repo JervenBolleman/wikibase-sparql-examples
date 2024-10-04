@@ -4,11 +4,39 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-f86d3533beaeb4f590fc53ce4e3e3ff6> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-f86d3533beaeb4f590fc53ce4e3e3ff6> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Arpyia/brouillon>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Arpyia/brouillon>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Liste des installations comprenant un équipement de cyclisme en France 
+SELECT ?installation ?installationLabel ?numéro ?nomRESinstallation
+(GROUP_CONCAT(?typeéquipementLabel; separator=\", \") AS ?typeéquipements) # liste des types d'équipements de l'installation, séparés par des virgules
+(GROUP_CONCAT(?noméquipement; separator=\" ; \") AS ?nomséquipements) # liste des noms des équipements, séparés par des points-virgules
+WHERE {                     
+  VALUES ?codefamille { \"6\" }. # choix de la famille
+  ?typeéquipement p:P528 [ps:P528 ?codetype; # code du type d'équipement
+                        pq:P2868 wd:Q121252873; # type d'équipement sportif  
+                        prov:wasDerivedFrom [ pr:P248 wd:Q115755558 ] # enregistrement au Recensement des équipements sportifs
+                          ];
+                  p:P279 [ps:P279 ?familleéquipement; # famille du type d'équipement sportif 
+                        prov:wasDerivedFrom [ pr:P248 wd:Q115755558 ]
+                          ].
+  ?familleéquipement p:P528 [ps:P528 ?codefamille; # code de la famille d'équipement
+                        pq:P2868 wd:Q121288524; # famille d'équipement sportif  
+                        prov:wasDerivedFrom [ pr:P248 wd:Q115755558 ] # enregistrement au Recensement des équipements sportifs
+                          ].
+  ?installation p:P912 [ps:P912 ?typeéquipement; # présence d'un équipement de ce type
+                                pq:P2561 ?noméquipement; # nom de l'équipement
+                ]; p:P11840 [ps:P11840 ?numéro; # numéro de l'installation dans le Recensement des équipements sportifs
+                        pq:P1810 ?nomRESinstallation; # nom de l'installation dans le Recensement des équipements sportifs
+                        prov:wasDerivedFrom [ pr:P248 wd:Q115755558; pr:P5017 ?miseàjour ] # date de mise à jour dans le Recensement des équipements sportifs
+                ].  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\".
+                          ?installation rdfs:label ?installationLabel . # libellé de l'installation
+                          ?typeéquipement rdfs:label ?typeéquipementLabel . # libellé du type d'équipement
+                          }                        
+}GROUP BY ?installation ?installationLabel ?numéro ?nomRESinstallation
+ORDER BY ?installationLabel"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>

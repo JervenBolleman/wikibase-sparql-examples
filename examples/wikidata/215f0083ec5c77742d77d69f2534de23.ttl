@@ -4,11 +4,24 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-215f0083ec5c77742d77d69f2534de23> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-215f0083ec5c77742d77d69f2534de23> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Retractions/SPARQL>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_Retractions/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: publishers and their retracted paper count
+SELECT ?publisher ?publisherLabel ?count WITH {
+  SELECT ?publisher (COUNT(DISTINCT ?work) AS ?count) WHERE {
+    { ?work wdt:P31 wd:Q45182324 . } UNION
+    { ?work wdt:P793 wd:Q7316896 . } UNION
+    { ?work wdt:P5824 [] . }
+    ?work wdt:P1433 / wdt:P123 ?publisher .
+} GROUP BY ?publisher
+  ORDER BY DESC(?count)
+  LIMIT 100
+} AS %WORKS WHERE {
+  INCLUDE %WORKS
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY DESC(?count)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

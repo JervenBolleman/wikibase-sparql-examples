@@ -4,11 +4,26 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-eec8fe4b2bea099f248cf65be4524617> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-eec8fe4b2bea099f248cf65be4524617> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_India/Queries/MKar>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_India/Queries/MKar>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title:Indian participants at the 2020 Summer Olympics
+SELECT ?item ?linkcount ?itemLabel ?genderLabel ?sportsLabel ?eventLabel ?olympedia_people_id
+WHERE {
+?item wdt:P31 wd:Q5.                   # <<<<<< Item = Human
+ ?item wdt:P1532 wd:Q668.                   # <<<<<< Country for sports  = India
+  ?item wdt:P1344 ?event.
+ ?event ((wdt:P31/wdt:P279*)?/wdt:P361*) wd:Q181278.
+   OPTIONAL { ?item wdt:P21 ?gender }
+   OPTIONAL { ?item wdt:P641 ?sports }
+  OPTIONAL {?item wdt:P8286 ?olympedia_people_id .}
+  OPTIONAL { ?item wikibase:sitelinks ?linkcount.}  #count sitelinks
+#  MINUS{?item wdt:P18 [] .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }    # for generating label
+}
+GROUP BY ?item ?statements ?linkcount ?itemLabel ?genderLabel ?sportsLabel ?eventLabel ?olympedia_people_id
+ORDER BY DESC(?linkcount)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

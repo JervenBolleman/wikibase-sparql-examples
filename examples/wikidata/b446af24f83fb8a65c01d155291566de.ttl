@@ -4,11 +4,27 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-b446af24f83fb8a65c01d155291566de> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-b446af24f83fb8a65c01d155291566de> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_India/Queries/MKar>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_India/Queries/MKar>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title:Indians deceased in 2021 ordered by the number of sitelinks
+SELECT ?person ?sitelinks ?personLabel ?personDescription ?born ?died ?age 
+WHERE{
+  ?person wdt:P31 wd:Q5;
+          wdt:P27 wd:Q668;
+          wdt:P569 ?born;
+          wdt:P570 ?died.
+  FILTER ( ?died >= \"2021-01-01T00:00:00Z\"^^xsd:dateTime && ?died <= \"2021-12-31T00:00:00Z\"^^xsd:dateTime )
+  BIND(?died - ?born AS ?ageInDays).
+  BIND(?ageInDays/365.2425 AS ?ageInYears).
+  BIND(FLOOR(?ageInYears) AS ?age).
+  # or, as one expression:
+  #BIND(FLOOR((?died - ?born)/365.2425) AS ?age).  # (https://en.wikibooks.org/wiki/SPARQL/Expressions_and_Functions#COUNT,_MIN,_MAX,_AVG_and_SUM)
+  ?person wikibase:sitelinks ?sitelinks.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE], en\". }
+}
+ORDER BY DESC(?sitelinks)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

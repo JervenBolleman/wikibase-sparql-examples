@@ -4,11 +4,34 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-1b38a47acb4853ab2132f14b5e1fd93c> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-1b38a47acb4853ab2132f14b5e1fd93c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infrastruktur/Sandbox1>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Infrastruktur/Sandbox1>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """List of inverse properties.
+SELECT ?a ?aLabel ?b ?bLabel ?type
+WHERE {
+  {
+    # non-complementry properties
+    ?a wdt:P1696 ?b .
+    MINUS { ?b wdt:P1696 ?a . }
+    BIND(\"non-complementary\" AS ?type)
+  } UNION {
+    # complementary properties (halved set)
+    ?a wdt:P1696 ?b .
+    ?b wdt:P1696 ?a .
+    MINUS { ?a wdt:P1696 ?a . }
+    FILTER (STR(?a) < STR(?b))
+    BIND(\"complementary\" AS ?type)
+  } UNION {
+    # complementary - inverse is same
+    ?a wdt:P1696 ?a .
+    ?a wdt:P1696 ?b .
+    BIND(\"inverse is same\" AS ?type)
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY ?type ?aLabel ?bLabel"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

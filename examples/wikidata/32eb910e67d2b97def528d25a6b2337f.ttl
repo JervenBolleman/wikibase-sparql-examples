@@ -4,11 +4,48 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-32eb910e67d2b97def528d25a6b2337f> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-32eb910e67d2b97def528d25a6b2337f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:No39188>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:No39188>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: München: Stadtbezirke, Stadtteile und Stadtviertel
+SELECT DISTINCT ?name (GROUP_CONCAT(DISTINCT ?klasse; SEPARATOR = \", \") AS ?istEin) ?orgEinheit ?article (GROUP_CONCAT(DISTINCT ?teil; SEPARATOR=\", \") as ?teile) (GROUP_CONCAT(DISTINCT ?partOfLabel; SEPARATOR=\", \") as ?teilVon) ?item (GROUP_CONCAT(DISTINCT ?lang; SEPARATOR = \", \") AS ?sprachen) WHERE {
+  VALUES ?klassen {
+    wd:Q253019
+    wd:Q123705
+    wd:Q253270
+  }
+  ?item (wdt:P131*) wd:Q1726;
+    wdt:P31 ?klassen.
+  OPTIONAL { ?item wdt:P131 ?territoryEntity. }
+  OPTIONAL {
+    ?item p:P131 _:b15.
+    _:b15 pq:P582 ?end.
+  }
+  OPTIONAL { ?item wdt:P361 ?partOf. }
+  OPTIONAL { ?item wdt:P31 ?instanceOf. }
+  OPTIONAL {
+    ?article schema:about ?item;
+      schema:isPartOf <https://de.wikipedia.org/>;
+      schema:name ?page_title.
+  }
+  OPTIONAL {
+    ?page schema:about ?item;
+      schema:inLanguage ?lang.
+  }
+  FILTER((?lang IN(\"fr\", \"de\", \"tr\", \"it\", \"pl\", \"es\", \"fi\", \"en\", \"pt\", \"hr\", \"nl\", \"ro\", \"bg\", \"sv\", \"da\", \"lb\", \"cs\", \"sk\", \"sl\", \"hu\", \"et\", \"lv\", \"lt\", \"el\", \"fo\", \"sr\"))|| (!(BOUND(?article))))
+  FILTER(!(BOUND(?end)))
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?territoryEntity rdfs:label ?orgEinheit.
+    ?instanceOf rdfs:label ?klasse.
+    ?item rdfs:label ?name.
+    ?bezirksteil rdfs:label ?teil.
+    ?partOf rdfs:label ?partOfLabel.
+  }
+}
+GROUP BY ?item ?name ?orgEinheit ?article ?end
+ORDER BY (?orgEinheit) (?name)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

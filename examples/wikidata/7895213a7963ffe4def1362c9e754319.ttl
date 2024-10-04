@@ -4,11 +4,29 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-7895213a7963ffe4def1362c9e754319> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-7895213a7963ffe4def1362c9e754319> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/06>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2021/06>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title:articles on English Wikipedia with \"Korea\" or \"Korean\" in title not on Korean Wikipedia 
+SELECT DISTINCT ?item ?itemLabel ?sitelink
+WHERE {
+  hint:Query hint:optimizer \"None\".
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"Korea\".
+    ?item wikibase:apiOutputItem mwapi:title .
+  }
+  FILTER(BOUND(?item))
+  ?article schema:about ?item ;
+             schema:isPartOf <https://en.wikipedia.org/>  ;
+             schema:name ?sitelink .
+  FILTER(CONTAINS(STR(?sitelink),\"Korea\"))
+  FILTER NOT EXISTS { [] schema:about ?item ;
+                         schema:isPartOf <https://ko.wikipedia.org/> .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY ?sitelink"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

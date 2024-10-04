@@ -4,11 +4,93 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-0397dc9b3623b8919e31589de5029d5c> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-0397dc9b3623b8919e31589de5029d5c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_British_Politicians/Sample_Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Number of veteran MPs and completely new MPs returned at each general election
+# Note that \"veteran\" includes any previous UK Parliament experience, which may not have been in the previous term
+# Thus an MP who leaves, spends some time out of Parliament, and returns, will count as \"veteran\" not \"new\"
+# Also includes the number who held office at the dissolution immediately preceding the election
+# ie those who had recent experience and no break in service
+# and those who have any experience in a devolved assembly
+# new MPs are defined as having neither UK nor devolved experience
+
+SELECT distinct ?election ?electionLabel ?members ?westminster_experience ?has_devolved_experience ?devolved_experience_only ?held_at_dissolution ?new
+
+WITH {
+   SELECT DISTINCT ?item ?membership ?election ?electiondate ?membership2 ?positionStatement2 ?devolvedmembership ?positionStatement3 ?reason WHERE {
+     
+     # find all general elections and their date
+     ?election wdt:P31 wd:Q15283424 . ?election wdt:P585 ?electiondate . 
+     filter (?electiondate >= \"1832-01-01T00:00:00Z\"^^xsd:dateTime) . 
+  
+     # item holds a term which began with the election
+     ?item p:P39 ?positionStatement . ?positionStatement ps:P39 ?membership . 
+     ?membership wdt:P2715 ?election . ?positionStatement pq:P2715 ?election . 
+ 
+     OPTIONAL {
+         # find other positions held
+         ?item p:P39 ?positionStatement2 .
+         ?positionStatement2 ps:P39 ?membership2 .
+         ?positionStatement2 pq:P580 ?start . filter ( ?start < ?electiondate ) .
+         ?membership2 wdt:P279 wd:Q16707842 .
+         optional {?positionStatement2 pq:P1534 ?reason .}
+         # optionally find whether they held office during a previous term, and if so why they left
+     }
+     OPTIONAL {
+         # find other positions held
+         ?item p:P39 ?positionStatement3 .
+         ?positionStatement3 ps:P39 ?devolvedmembership .
+         ?positionStatement3 pq:P580 ?start3 . filter ( ?start3 < ?electiondate ) .
+         { ?devolvedmembership wdt:P279 wd:Q1711695 . } union
+         { ?devolvedmembership wdt:P279 wd:Q3406079 . } union
+         { ?devolvedmembership wdt:P279 wd:Q3272410. } 
+         # ... where they previously were an MSP, MLA, or AM; only the \"modern\" NI assembly 
+         # is counted (1998-date), as previous incarnations do yet not have term dates available
+     }
+   }
+} AS %members
+
+WHERE {
+  
+  { SELECT ?election ?electiondate (count(distinct ?item) as ?members) where 
+    { INCLUDE %members .
+    } group by ?election ?electiondate 
+  } # count all members for each election
+
+  { SELECT ?election ?electiondate (count(distinct ?item) as ?westminster_experience) where 
+    { INCLUDE %members .
+      FILTER (BOUND (?membership2)) .
+    } group by ?election ?electiondate
+  } # count all peoiple with any earlier term, for each election
+  
+  { SELECT ?election ?electiondate (count(distinct ?item) as ?held_at_dissolution) where 
+    { INCLUDE %members .
+      FILTER (BOUND (?positionStatement2)) .
+      FILTER EXISTS {?membership wdt:P155 ?membership2} .
+      filter(?reason=wd:Q741182)
+    } group by ?election ?electiondate
+  } # count all people who served in the immediately previous term, and left at dissolution
+   
+  # people with devolved experience
+  optional { SELECT ?election ?electiondate (count(distinct ?item) as ?has_devolved_experience) where 
+    { INCLUDE %members .
+      FILTER (BOUND (?positionStatement3)) .
+    } group by ?election ?electiondate
+  } 
+  
+  # people with devolved experience but not Westminster experience
+  optional { SELECT ?election ?electiondate (count(distinct ?item) as ?devolved_experience_only) where 
+    { INCLUDE %members .
+      FILTER (BOUND (?positionStatement3)) .
+      FILTER (!BOUND (?positionStatement2)) .
+    } group by ?election ?electiondate
+  } 
+  bind(if(bound(?devolved_experience_only),?devolved_experience_only,0) as ?deo)
+  bind((?members-?westminster_experience-?deo) as ?new)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+} order by desc(?electiondate)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

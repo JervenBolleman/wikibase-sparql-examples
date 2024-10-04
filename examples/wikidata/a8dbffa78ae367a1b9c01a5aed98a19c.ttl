@@ -4,11 +4,35 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-a8dbffa78ae367a1b9c01a5aed98a19c> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-a8dbffa78ae367a1b9c01a5aed98a19c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:PAC2/Tour_de_France>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:PAC2/Tour_de_France>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: List of all stage winners by number of wins
+SELECT ?winner ?winnerLabel (COUNT(*) AS ?count) ?wins WHERE {
+  ?tour wdt:P31 wd:Q33881;
+        rdfs:label ?tourLabel.
+  FILTER(LANG(?tourLabel) = \"[AUTO_LANGUAGE]\" )
+ ?item wdt:P361 ?tour;
+    rdfs:label ?itemLabel.
+  FILTER(LANG(?itemLabel) = \"[AUTO_LANGUAGE]\" )
+  ?item wdt:P585 ?date. 
+  ?item p:P1346 ?statement.
+  ?statement ps:P1346 ?winner.
+  ?statement pq:P642 wd:Q20882747 .
+  ?winner rdfs:label ?winnerLabel.
+  FILTER((LANG(?winnerLabel)) = \"[AUTO_LANGUAGE]\" )
+  BIND(
+    URI(
+      CONCAT(
+        \"https://query.wikidata.org/embed.html#%23title%3A%20List%20of%20satge%20winners%2C%20ordered%20by%20number%20of%20wins%0ASELECT%20%3Ftour%20%3FtourLabel%20%3Fitem%20%3FitemLabel%20%3Fdate%20WHERE%20%7B%0A%20%20%3Ftour%20wdt%3AP31%20wd%3AQ33881%3B%0A%20%20%20%20rdfs%3Alabel%20%3FtourLabel.%0A%20%20FILTER%28%28LANG%28%3FtourLabel%29%29%20%3D%20%22%5BAUTO_LANGUAGE%5D%22%29%0A%20%20%3Fitem%20wdt%3AP361%20%3Ftour%3B%0A%20%20%20%20rdfs%3Alabel%20%3FitemLabel.%0A%20%20FILTER%28%28LANG%28%3FitemLabel%29%29%20%3D%20%22%5BAUTO_LANGUAGE%5D%22%29%0A%20%20%3Fitem%20wdt%3AP585%20%3Fdate%3B%0A%20%20%20%20p%3AP1346%20%3Fstatement.%0A%20%20%3Fstatement%20ps%3AP1346%20wd%3A\",
+        SUBSTR(STR(?winner),32), 
+        \"%3B%0A%20%20%20%20pq%3AP642%20wd%3AQ20882747.%0A%7D%0AORDER%20BY%20%3Fdate\"
+        )
+    ) AS ?wins)
+}
+GROUP BY ?winner ?winnerLabel ?wins
+ORDER BY DESC(?count)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>

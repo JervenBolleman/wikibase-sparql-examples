@@ -4,11 +4,24 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-85251d05005ef24806b98c8a4e512a2c> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-85251d05005ef24806b98c8a4e512a2c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/07>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2022/07>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Nombre d'unités légales par catégorie juridique de niveau 3 (500+)
+SELECT ?catégorie ?nomfr (COUNT(?item) AS ?count) WHERE {
+  ?catégorie wdt:P31 wd:Q56427813; # catégorie juridique en France
+        wdt:P361 wd:Q112176282; # catégorie de niveau 3
+        wdt:P2561 ?nomfr. # nom de la catégorie
+  FILTER(LANG(?nomfr) = \"fr\"). # nom en français
+  ?item wdt:P1616 ?siren. # unité légale
+  {  ?item p:P1454 [ps:P1454 ?catégorie; pq:P1013 wd:Q87711223; prov:wasDerivedFrom [ pr:P248 wd:Q3509449]; prov:wasDerivedFrom [ pr:P5017 ?date] ]. } # catégorie
+    UNION
+  { ?item p:P1454 [ps:P1454 ?catégorie; pq:P1013 wd:Q87711223; prov:wasDerivedFrom [ pr:P248 wd:Q3509449]; prov:wasDerivedFrom [a wdno:P5017] ]. } # catégorie
+}
+GROUP BY ?catégorie ?nomfr
+HAVING(?count > 499) # minimum unités légales
+ORDER BY DESC(?count)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wdno: <http://www.wikidata.org/prop/novalue/>

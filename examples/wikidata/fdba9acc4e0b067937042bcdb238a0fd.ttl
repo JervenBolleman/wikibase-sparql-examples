@@ -4,11 +4,27 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-fdba9acc4e0b067937042bcdb238a0fd> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-fdba9acc4e0b067937042bcdb238a0fd> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Amadalvarez/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Amadalvarez/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: Items sense etiqueta en català
+SELECT distinct ?item ?itemLabel_en ?itemDescription_en ?itemLabel_ca ?itemDescription_ca 
+WHERE {
+  ?item (wdt:P31/wdt:P279*) wd:Q15328; rdfs:label ?itemLabel_en.        #FILTRA PER items subclasse de càmera
+  FILTER((LANG(?itemLabel_en)) = \"en\")                        #recupera etiqueta \"en\"
+  FILTER(NOT EXISTS {?item rdfs:label ?itemLabel_ca.          #elimina si té etiqueta \"ca\"
+    FILTER((LANG(?itemLabel_ca)) = \"ca\")                          
+  })
+  OPTIONAL { ?item wdt:P31 ?instancia_de. ?instancia_de rdfs:label ?instancia_deLabel.
+  FILTER((LANG(?instancia_deLabel)) = \"en\")}                         #mostra P31 en \"en\"
+    OPTIONAL {
+    ?item schema:description ?itemDescription_en.
+    FILTER((LANG(?itemDescription_en)) = \"en\")
+  }
+  OPTIONAL {
+    ?item schema:description ?itemDescription_ca.
+    FILTER((LANG(?itemDescription_ca)) = \"ca\")"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>

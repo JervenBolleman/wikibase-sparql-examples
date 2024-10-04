@@ -4,11 +4,48 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-0f80357d3ad1b8c4360b07c36c6ae0fc> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-0f80357d3ad1b8c4360b07c36c6ae0fc> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ash_Crow/SPARQL>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Ash_Crow/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Auteurs morts en 1946
+SELECT 
+?person
+(SAMPLE(?person_label) AS ?person_label) #SAMPLE prend une valeur au hasard s'il y en a plusieurs noms ou plusieurs dates de décès
+(GROUP_CONCAT(DISTINCT ?occupation_label ; separator = \", \") AS ?occupations) # GROUP_CONCAT va concaténer toutes les professions
+(SAMPLE(?dateofDeath) AS ?dateofDeath)
+(SAMPLE(?sitelinks) AS ?sitelinks)
+WHERE {
+  ?person wdt:P31 wd:Q5 . # On cherche un être humain
+
+  # On affiche le libellé de la personne si on l'a en français ou en anglais
+  # En option comme ça la personne ressort quand même dans les résultats
+  OPTIONAL {
+  	?person rdfs:label ?person_label .
+  	FILTER(LANG(?person_label) IN (\"fr\", \"en\")) .
+  }
+  
+  ?person wdt:P106 ?occupation . # Cette personne a une occupation...
+  ?occupation wdt:P31*/wdt:P279* wd:Q2500638 . # ...qui est est une sous-classe de créateur
+
+  # On récupère le libellé de la profession en français et en anglais
+  OPTIONAL { ?occupation rdfs:label ?occupation_label_fr . FILTER(LANG(?occupation_label_fr) = \"fr\") . }
+  OPTIONAL { ?occupation rdfs:label ?occupation_label_en . FILTER(LANG(?occupation_label_fr) = \"en\") . }
+  BIND(\"Profession sans label\" AS ?unidentifed_occupation) .
+  
+  # On prend le libellé de la profession en français en priorité, en anglais sinon.
+  BIND(COALESCE(?occupation_label_fr, ?occupation_label_en, ?unidentifed_occupation) AS ?occupation_label) .
+  
+  ?person wdt:P570 ?dateofDeath . # Cet être humain a une date de mort...
+  FILTER(YEAR(?dateofDeath) = 1946) . # dont l'année est 1946.
+  
+  # Nombre de liens 
+  ?person wikibase:sitelinks ?sitelinks .
+  
+  # Le service ci-dessous permet d'afficher les libellés des éléments en français si possible,
+  # sinon en anglais.
+  # SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\" }
+} GROUP BY ?person ORDER BY DESC(?sitelinks) #on regroupe par personne et on trie par date de décès"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

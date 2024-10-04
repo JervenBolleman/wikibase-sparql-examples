@@ -4,11 +4,23 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-ad5bac4cc0efb01bd87d42589ab19282> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-ad5bac4cc0efb01bd87d42589ab19282> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/booker>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:MartinPoulter/queries/booker>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title:Booker winners and nominees (people) not in English Wikipedia but in other Wikipedias
+SELECT DISTINCT ?item ?itemLabel ?awardLabel ?rel ?langname ?wp WHERE {
+  hint:Query hint:optimizer \"None\" .
+  VALUES ?award{wd:Q160082 wd:Q2052291}
+ { ?item wdt:P166 ?award. BIND(\"won\" AS ?rel) }
+UNION{ ?item wdt:P1411 ?award. BIND(\"nominated\" AS ?rel) }
+  ?item wdt:P31 wd:Q5
+  MINUS{?enwp schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/>}
+    ?wp schema:about ?item; schema:inLanguage ?langcode .
+OPTIONAL { ?language wdt:P218 ?langcode; rdfs:label ?langlabel FILTER(lang(?langlabel) = \"en\") } # Convert short code to full language name
+  BIND(COALESCE(?langlabel, ?langcode) AS ?langname)
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+} ORDER BY ?itemLabel"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

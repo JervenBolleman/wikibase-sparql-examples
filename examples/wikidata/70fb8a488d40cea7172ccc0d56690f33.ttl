@@ -4,11 +4,49 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-70fb8a488d40cea7172ccc0d56690f33> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-70fb8a488d40cea7172ccc0d56690f33> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/03>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2021/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Records of the Auckland Museum
+
+SELECT DISTINCT ?article ?titleLabel
+(GROUP_CONCAT (DISTINCT ?authorLabel; separator=\"; \") AS ?authors)
+?metadata ?JSTOR ?DOI
+WHERE {
+  # Get JSTOR URL format
+  wd:P888 wdt:P1630 ?JSTORformat .
+  
+  #Get DOI URL format
+  wd:P356 wdt:P1630 ?DOIformat .
+  
+  # Get articles \"P14333\" (published in) \"Q15756170\" (Records of the Auckland Museum)
+  ?article wdt:P1433 wd:Q15756170.
+           
+  OPTIONAL { ?article wdt:P1476 ?title. }
+  OPTIONAL { ?article wdt:P50   ?author. }
+  OPTIONAL { ?article wdt:P577  ?date. }
+  OPTIONAL { ?article wdt:P478  ?vol. }
+  OPTIONAL { ?article wdt:P304  ?pp. }  
+  OPTIONAL { ?article wdt:P888  ?JSTOR_ID. }
+  OPTIONAL { ?article wdt:P356  ?rawDOI. }
+  
+  # Combine vol & page numbers with pub. date
+  BIND(CONCAT(\"Vol. \", ?vol, \"; pp. \", ?pp, \". Published \", STR(DAY(?date)), \"/\",  STR(MONTH(?date)), \"/\", STR(YEAR(?date)), \".\")
+             AS ?metadata )
+  
+  # Create JSTOR links
+  BIND(IRI(REPLACE(?JSTOR_ID, \"^(.+)$\", ?JSTORformat)) AS ?JSTOR)
+  
+  # Create DOI links
+  BIND(IRI(REPLACE(?rawDOI, \"^(.+)$\", ?DOIformat)) AS ?DOI)
+
+  # Get English labels
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+
+GROUP BY ?article ?titleLabel ?metadata ?JSTOR ?DOI
+ORDER BY ?date"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

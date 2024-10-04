@@ -4,11 +4,28 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-76f403a81497aab0308e9a7b276eaf9a> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-76f403a81497aab0308e9a7b276eaf9a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:XXN/q>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:XXN/q>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Articles about Moldovans on ru.wiki and not on ro.wiki, listing also all sitelinks
+SELECT 
+	?item ?itemLabel 
+	(COUNT(distinct ?sitelink) as ?count) 
+	(GROUP_CONCAT(distinct(?sitelink); separator=\", \") as ?sitelinks)
+WHERE
+{
+	?item wdt:P31 wd:Q5 .
+	?item wdt:P27 wd:Q217 .
+	?sitelink schema:about ?item .
+	FILTER EXISTS { ?wen schema:about ?item . ?wen schema:inLanguage \"ru\" }
+	FILTER NOT EXISTS { ?wfr schema:about ?item . ?wfr schema:inLanguage \"ro\" }
+	SERVICE wikibase:label {
+		bd:serviceParam wikibase:language \"ru,en,ro\" .
+	}
+}
+GROUP BY ?item ?itemLabel 
+ORDER BY DESC(?count)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

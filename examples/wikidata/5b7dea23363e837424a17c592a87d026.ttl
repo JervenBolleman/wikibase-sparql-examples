@@ -4,11 +4,27 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-5b7dea23363e837424a17c592a87d026> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-5b7dea23363e837424a17c592a87d026> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_France/Communes>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata_talk:WikiProject_France/Communes>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Jura1 2017-07-28
+SELECT ?instance ?instanceLabel ?que_faire (COUNT(?item) AS ?count)
+WHERE
+{
+	?item wdt:P31 wd:Q484170 ; wdt:P131/wdt:P31 ?instance.
+	MINUS { ?item wdt:P576 [] }  MINUS { ?item p:P31 [ ps:P31 wd:Q484170 ; pq:P582 [] ] . }  # sans les communes historiques
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+    BIND( 
+      IF (?instance in ( wd:Q6465, wd:Q719487, wd:Q719487,wd:Q202216,wd:Q22923920,wd:Q10864048 ),\"OK si actuel; sinon mettre les autres valeurs en rang privilégié \",
+      IF (?instance in ( wd:Q184188,wd:Q3573632,wd:Q28538876 ), 'pas en \"best rank\" (wdt)', 
+      IF (?instance in ( wd:Q18524218 ), 'uniquement si la commune <= le canton',    
+      IF (?instance in ( wd:Q23442, wd:Q618123 ), \"utiliser P706 à moins que ça corresponde aussi à une 'administrative entity' \", 
+      IF (?instance in ( wd:Q82794, wd:Q572995 ), \"utiliser P361 à moins que ça corresponde aussi à une 'administrative entity' \", 
+         \"?\"))))) as ?que_faire )         
+}
+GROUP BY ?instance ?instanceLabel ?que_faire
+ORDER BY DESC (?count)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

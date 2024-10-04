@@ -4,11 +4,33 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-d3572d5520b3566f808e68f4c71de80f> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-d3572d5520b3566f808e68f4c71de80f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/12>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2022/12>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Biographies by death date with article on cawiki
+SELECT ?item ?articlename ?itemLabel ?itemDescription ?sl ?ca
+WHERE {
+#   VALUES ?dod {\"+2022-11-20\"^^xsd:dateTime}
+    ?item p:P570 ?statement.
+    ?statement a wikibase:BestRank .
+    ?statement psv:P570 ?statement2 . 
+    ?statement2 wikibase:timeValue ?dod . hint:Prior hint:rangeSafe true.
+    ?statement2 wikibase:timePrecision \"11\"^^xsd:integer .
+    ?item wikibase:sitelinks ?sl .
+    ?item ^schema:about ?article .
+    ?article schema:isPartOf <https://ca.wikipedia.org/>;
+    schema:name ?articlename .
+    FILTER(\"2022-11-01\"^^xsd:dateTime <= ?dod &&
+           ?dod < \"2022-11-12\"^^xsd:dateTime)  
+  SERVICE wikibase:label
+    {
+      bd:serviceParam wikibase:language \"ca\" .
+      ?item rdfs:label ?itemLabel .
+      ?item schema:description ?itemDescription .
+    }
+  BIND(REPLACE(?itemLabel, \"^.*(?<! [Vv][ao]n| [Dd][aeiu]| [Dd][e][lns]| [Ll][ae]) (?!([SJ]r\\\\.?|[XVI]+)$)\", \"\") AS ?sortname)  
+} ORDER BY ASC(UCASE(?sortname)) ASC(UCASE(?itemLabel))"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

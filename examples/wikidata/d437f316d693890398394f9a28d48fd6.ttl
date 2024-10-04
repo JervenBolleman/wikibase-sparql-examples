@@ -4,11 +4,35 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-d437f316d693890398394f9a28d48fd6> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-d437f316d693890398394f9a28d48fd6> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:Events/AAFSaint%C3%8919>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata_talk:Events/AAFSaint%C3%8919>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """afficher le nombre d'éléments disposant de la propriété \"archivé par\" (P485) par institution
+#remettre les nombres à zéro à la date du 11.03.2019.
+#Le pays de rattachement de l'institution doit être la France.
+#Regrouper les différents lieux
+#Les éléments doivent être de genre ou de sexe féminin.
+#classer les institution par ordre de nombre d'éléments décroissant.
+SELECT ?institution ?institutionLabel (GROUP_CONCAT(DISTINCT(?LieuLabel); separator=\", \") as ?Lieux) (COUNT(?item) - COALESCE(?subtrahend, 0) AS ?total) 
+WHERE 
+{
+  ?item wdt:P485 ?institution;
+        wdt:P21 wd:Q6581072.
+  ?institution wdt:P17 wd:Q142.
+  OPTIONAL {
+    ?institution wdt:P131 ?Lieu.
+     OPTIONAL {?Lieu rdfs:label ?LieuLabel. filter(lang(?LieuLabel)=\"fr\")}
+  }
+  OPTIONAL {
+    VALUES (?institution ?subtrahend) {
+      (wd:Q182542 23)(wd:Q2860505 16)(wd:Q838691 2)(wd:Q2901309 1)(wd:Q16010742 1)
+    }
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?institution ?institutionLabel ?Lieux ?subtrahend
+ORDER BY DESC (?total)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

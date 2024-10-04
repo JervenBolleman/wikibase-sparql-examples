@@ -4,11 +4,27 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-78518aa63bbe562e5b4fb7d89f65facd> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-78518aa63bbe562e5b4fb7d89f65facd> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Pepe_piton/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Pepe_piton/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Women without image, from a particular country, ordered by the number of Wikimedia projects in which they appear
+SELECT ?woman ?womanLabel ?linkcount
+WHERE
+{
+  ?woman wdt:P31 wd:Q5 ;   # Instance of human being...
+         wdt:P21 wd:Q6581072 .  # ...whose sex or gender is female.
+  ?woman wikibase:sitelinks ?linkcount .  # Count the number of sitelinks to different Wikipedias and other projects.
+  { ?woman wdt:P19/wdt:P131* wd:Q77 . }  # The woman was born in Uruguay or in a place located in the administrative territorial entity of Uruguay...
+  UNION  # ...or...
+  { ?woman wdt:P27 wd:Q77 . }  # ...her country of citizenship is Uruguay.
+  MINUS {
+  ?woman wdt:P18 ?image  # Exclude if she has an image in her Wikidata item.
+  } 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?woman ?womanLabel ?linkcount  # Group to avoid duplicate results.
+ORDER BY DESC(?linkcount)  # Order by descending number of sitelinks. More sitelinks suggest more relevance."""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

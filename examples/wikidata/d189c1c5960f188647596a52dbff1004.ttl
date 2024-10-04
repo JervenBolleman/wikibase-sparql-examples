@@ -4,11 +4,37 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-d189c1c5960f188647596a52dbff1004> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-d189c1c5960f188647596a52dbff1004> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Herzi_Pinki/Sparql>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Herzi_Pinki/Sparql>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title: Mountains by height
+SELECT ?item ?itemLabel  ?height_in_m ?globeLabel ?height ?unitLabel ?lowerbound ?upperbound ?precision ?height2 ?conversion
+WHERE
+{
+  ?item          wdt:P31/wdt:P279*           wd:Q8502.    # berg
+  ?item          wdt:P17                     wd:Q142.
+  ?item          p:P2044                     ?stmnode.    # elevation
+  optional {?item          wdt:P376                     ?globe.}
+  ?stmnode       psv:P2044                   ?valuenode.
+  ?valuenode     wikibase:quantityAmount     ?height.
+  ?valuenode     wikibase:quantityUnit       ?unit.
+  #optional {?valuenode     wikibase:quantityLowerBound ?lowerbound.
+  #?valuenode     wikibase:quantityUpperBound ?upperbound.
+  #BIND((?upperbound-?lowerbound)/2 AS ?precision).
+  #BIND(IF(?precision=0, ?height, (CONCAT(str(?height), \"±\", str(?precision)))) AS ?height2). }
+
+  # conversion to SI unit
+  ?unit          p:P2370                 ?unitstmnode.   # conversion to SI unit
+  ?unitstmnode   psv:P2370               ?unitvaluenode. 
+  ?unitvaluenode wikibase:quantityAmount ?conversion.
+  ?unitvaluenode wikibase:quantityUnit   wd:Q11573.      # meter
+  BIND(?height* ?conversion AS ?height_in_m).
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\". }
+} 
+ORDER BY DESC(?height_in_m)
+LIMIT 10000"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

@@ -4,11 +4,61 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-a46729fc33e0ab476bb8042897f785bd> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-a46729fc33e0ab476bb8042897f785bd> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_Historical_Place>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata_talk:WikiProject_Historical_Place>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """  Query to show England administrative hierarchy
+ #   -- regions, ceremonial counties, administrative counties, and districts
+ #  Compare [[:en:Subdivisions of England]]
+
+    SELECT ?region ?regionLabel ?cerem ?ceremLabel ?adm_county ?adm_countyLabel 
+            (GROUP_CONCAT(DISTINCT(?dist_label); separator=\"; \") AS ?dists)
+    WHERE {
+          ?region p:P31/ps:P31  wd:Q48091 .   # region
+ #        ?region p:P131/ps:P131 wd:Q21 .      # England
+        
+          {?cerem  p:P131/ps:P131 ?region . ?cerem p:P31/ps:P31 wd:Q180673 } 
+          UNION    
+          {?region p:P31/ps:P31 wd:Q180673 . BIND(?region AS ?cerem)} .
+                   
+          FILTER NOT EXISTS {?cerem p:P31/ps:P31 wd:Q19953632} .
+
+          ?adm_county (p:P131/ps:P131)? ?cerem . 
+           
+          { VALUES ?allowed_adm_county_type { wd:Q769628  wd:Q769603 wd:Q1136601 } .
+                 # metropolitan county, non-metropolitan county, unitary authority
+          ?adm_county p:P31/ps:P31  ?allowed_adm_county_type }
+             UNION
+          {VALUES ?adm_county { wd:Q23306 wd:Q23311 } } .  # City of London & Greater London
+       
+          VALUES ?allowed_district_type { wd:Q1187580  wd:Q1002812 wd:Q211690 }
+
+          OPTIONAL {
+            ?adm_county p:P31/ps:P31  wd:Q1136601 .
+            BIND ('' AS ?dist)
+            BIND (' (unitary) ' AS ?dist_label) 
+          }
+          OPTIONAL {
+            ?dist p:P131/ps:P131 ?adm_county .
+            ?dist p:P31/ps:P31  ?allowed_district_type .
+            ?dist rdfs:label ?dist_label filter (lang(?dist_label) = \"en\") .
+          }
+
+          FILTER (!(sameTerm(?adm_county, wd:Q1342914) && sameTerm(?region, wd:Q47994))) .   # North East Lincs
+          FILTER (!(sameTerm(?adm_county, wd:Q175945) && sameTerm(?region, wd:Q47994))) .    # North Lincs
+          FILTER (!(sameTerm(?adm_county, wd:Q21269047) && sameTerm(?region, wd:Q48063))) .  # Lincs council area
+          FILTER (!(sameTerm(?adm_county, wd:Q171866) && sameTerm(?region, wd:Q48063))) .    # Middlesbrough
+          FILTER (!(sameTerm(?adm_county, wd:Q1434448) && sameTerm(?region, wd:Q48063))) .   # Redcar & Cleveland
+          FILTER (!(sameTerm(?adm_county, wd:Q894094) && sameTerm(?region, wd:Q48063))) .    # Stockton
+          FILTER (!(sameTerm(?adm_county, wd:Q21241814) && sameTerm(?region, wd:Q47983))) .  # North Yorkshire
+          FILTER (!(sameTerm(?adm_county, wd:Q42462) && sameTerm(?region, wd:Q47983))) .     # York
+        
+          SERVICE wikibase:label {
+               bd:serviceParam wikibase:language \"en\" .
+          }
+    } GROUP BY ?region ?regionLabel ?cerem ?ceremLabel ?adm_county ?adm_countyLabel
+    ORDER BY ?regionLabel ?ceremLabel ?adm_countyLabel"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>

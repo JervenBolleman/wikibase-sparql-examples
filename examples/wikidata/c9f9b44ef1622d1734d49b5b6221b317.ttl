@@ -4,11 +4,24 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-c9f9b44ef1622d1734d49b5b6221b317> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-c9f9b44ef1622d1734d49b5b6221b317> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:ProteinBoxBot/SPARQL_Examples>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:ProteinBoxBot/SPARQL_Examples>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """... and whose gene product is localized to membrane
+SELECT DISTINCT ?gene ?geneLabel where {
+  ?gene wdt:P2293 wd:Q35869 .  # gene has genetic association to \"asthma\"
+  
+  ?gene wdt:P31 wd:Q7187 .     # gene is subclass of \"gene\"
+
+  ?gene wdt:P688 ?protein .                        # gene encodes a protein
+  ?protein p:P681 ?s .                             # protein's cell component statement
+    ?s ps:P681 ?cp .                               # get statement value
+    FILTER NOT EXISTS {?s pq:P459 wd:Q23190881 .}  # determination method is not IEA
+    ?cp wdt:P279*|wdt:P361* wd:Q14349455 .         # statement value is 'part of' or 'subclass of' membrane
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

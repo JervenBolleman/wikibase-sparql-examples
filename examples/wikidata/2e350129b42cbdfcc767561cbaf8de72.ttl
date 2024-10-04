@@ -4,11 +4,24 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-2e350129b42cbdfcc767561cbaf8de72> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-2e350129b42cbdfcc767561cbaf8de72> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/10>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2018/10>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Recherche dans Wikidata les éléments qui sont des GALM (ou l'une de ses sous-classes) et qui ont pour pays la Suisse.
+  SELECT distinct ?item ?itemLabel (group_concat(distinct ?locLabel) as ?locLabel1) ?cantonLabel ?ISIL ?GLAM ?Commons
+  WHERE 
+  {
+     ?item wdt:P31/wdt:P279* wd:Q1030034 .
+     ?item wdt:P17 wd:Q39 .
+    OPTIONAL  { ?item wdt:P791 ?ISIL }
+    OPTIONAL {  ?item wdt:P3066 ?GLAM }
+    OPTIONAL {  ?item wdt:P373 ?Commons }
+    OPTIONAL {  ?item wdt:P131 ?loc . FILTER NOT EXISTS { ?loc wdt:P31 wd:Q23058 } }
+    OPTIONAL {  ?item wdt:P131* ?canton . ?canton wdt:P31 wd:Q23058  }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,de,it,en,rm,es\". }
+  } group by ?item ?itemLabel ?cantonLabel ?ISIL ?GLAM ?Commons
+  ORDER BY (!bound(?Commons)) ?Commons"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

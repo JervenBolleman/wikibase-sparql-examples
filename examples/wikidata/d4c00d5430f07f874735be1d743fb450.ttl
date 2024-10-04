@@ -4,11 +4,48 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-d4c00d5430f07f874735be1d743fb450> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-d4c00d5430f07f874735be1d743fb450> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Contact_the_development_team/Query_Service_and_search/Archive/2021/02>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Contact_the_development_team/Query_Service_and_search/Archive/2021/02>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Show the first 25 items from the delete log from before 7 Jan 2021 19:03:00
+SELECT ?num ?item ?itemLabel ?statements ?sitelinks ?delete_user ?delete_timestamp ?delete_comment
+WHERE
+{
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+
+    # There is no \"list\" option for wikibase:api, but it is possible to combine
+    # a list and a generator in the same API call of type \"action=query\"
+    bd:serviceParam wikibase:api \"Generator\" . 
+    bd:serviceParam mwapi:generator \"allpages\" .
+    bd:serviceParam mwapi:gaplimit \"1\" .
+
+    # Get items from the delete log
+    bd:serviceParam mwapi:list \"logevents\" .
+    bd:serviceParam mwapi:letype \"delete\" .
+    bd:serviceParam mwapi:lenamespace \"0\" .
+    bd:serviceParam mwapi:lestart \"07 Jan 2021 19:03:00\" .
+    bd:serviceParam mwapi:lelimit \"1\" .
+    # It is not efficient, but as MWAPI consider this an \"allpages\" generator call, we can only get one item per call 
+    bd:serviceParam wikibase:limitContinuations \"24\". # Get 24 continuations for a total of 25 deleted items
+
+    # Output variables for the logevents list
+    ?item wikibase:apiOutputItem \"//api/query/logevents/item/@title\" .
+    ?delete_timestamp wikibase:apiOutput \"//api/query/logevents/item/@timestamp\" .
+    ?delete_comment wikibase:apiOutput \"//api/query/logevents/item/@comment\" .
+    ?delete_user wikibase:apiOutput \"//api/query/logevents/item/@user\" .
+    ?num wikibase:apiOrdinal true .
+  }
+  OPTIONAL
+  {
+    ?item wikibase:statements ?statements .
+    ?item wikibase:sitelinks ?sitelinks .    
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
+ORDER BY ?num"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

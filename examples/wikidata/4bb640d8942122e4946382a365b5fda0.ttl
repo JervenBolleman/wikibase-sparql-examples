@@ -4,11 +4,37 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-4bb640d8942122e4946382a365b5fda0> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-4bb640d8942122e4946382a365b5fda0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Arjunaraoc/human_settlements_in_a_district_and_their_te_and_en_descriptions,_teluguwiki_name>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Arjunaraoc/human_settlements_in_a_district_and_their_te_and_en_descriptions,_teluguwiki_name>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """All human settlements  in Prakasam district by admin location
+SELECT DISTINCT ?item ?itemLabel ?itemDescTE ?itemDescEN ?page_titleTE WHERE {
+  ?item (wdt:P31/(wdt:P279*)) wd:Q532;
+    wdt:P131 ?mandal.
+  ?mandal p:P131 ?districtnode.
+  ?districtnode ps:P131 wd:Q15390.
+  OPTIONAL {
+    ?article schema:about ?item;
+      schema:isPartOf <https://te.wikipedia.org/>;
+      schema:name ?page_titleTE.
+  }
+  OPTIONAL {
+    ?item schema:description ?itemDescTE.
+    FILTER((LANG(?itemDescTE)) = \"te\")
+  }
+  OPTIONAL {
+    ?item schema:description ?itemDescEN.
+    FILTER((LANG(?itemDescEN)) = \"en\")
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"te,en\". }
+  OPTIONAL { ?districtnode pq:P580 ?startdate. }
+  OPTIONAL { ?districtnode pq:P582 ?enddate. }
+  BIND(IF(BOUND(?startdate), \"yes\", \"no\") AS ?startflag_)
+  BIND(IF(BOUND(?enddate), \"yes\", \"no\") AS ?endflag_)
+  BIND(IF(BOUND(?startdate), YEAR(?startdate), 0 ) AS ?startyear)
+  BIND(IF(BOUND(?enddate), YEAR(?enddate), 0 ) AS ?endyear)
+  FILTER((((?startflag_ = \"yes\") && (?endflag_ = \"no\")) && (?startyear = 2022 ))|"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

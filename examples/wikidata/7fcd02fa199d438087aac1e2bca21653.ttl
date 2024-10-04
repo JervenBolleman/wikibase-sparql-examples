@@ -4,11 +4,44 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-7fcd02fa199d438087aac1e2bca21653> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-7fcd02fa199d438087aac1e2bca21653> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:No39188>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:No39188>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """title:S-Bahnhöfe in Oberbayern
+SELECT ?page_title ?article ?item (GROUP_CONCAT(?klasse; SEPARATOR = \", \") AS ?ist_ein) ?pq_obj ?verbund (GROUP_CONCAT(DISTINCT ?velabel; SEPARATOR = \", \") AS ?verwaltungseinheiten) ?location WHERE {
+  ?item wdt:P31 wd:Q1793804;
+    (wdt:P131*) wd:Q10562;
+    wdt:P31 ?instance.
+  OPTIONAL { ?item wdt:P625 ?location. }
+  OPTIONAL { ?item wdt:P131 ?ve. }
+  OPTIONAL {
+    ?item p:P31 ?statement.
+    ?statement ps:P31 wd:Q1793804;
+      pq:P642 ?pq_obj.
+    ?pq_qual wikibase:qualifier pq:P642.
+  }
+  OPTIONAL {
+    ?dewiki schema:about ?item;
+      schema:isPartOf <https://de.wikipedia.org/>;
+      schema:name ?de_title.
+  }
+  OPTIONAL {
+    ?enwiki schema:about ?item;
+      schema:isPartOf <https://en.wikipedia.org/>;
+      schema:name ?en_title.
+  }
+  BIND(IF(BOUND(?dewiki), ?dewiki, ?enwiki) AS ?article)
+  BIND(IF(BOUND(?de_title), ?de_title, IF(BOUND(?en_title), ?en_title, ?itemName)) AS ?page_title)
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE], en\".
+    ?item rdfs:label ?itemName.
+    ?pq_obj rdfs:label ?verbund.
+    ?instance rdfs:label ?klasse.
+    ?ve rdfs:label ?velabel.
+  }
+}
+GROUP BY ?page_title ?article ?item ?pq_obj ?verbund ?location"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

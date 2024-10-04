@@ -4,11 +4,26 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-00889d1f2300d46874c08c2ace53a38f> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-00889d1f2300d46874c08c2ace53a38f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Video_games/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_Video_games/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """TEMPLATE={ \"template\":\"Video games with the most nominations at the ?ceremony award ceremony\",\"variables\":{\"?ceremony\":{\"query\":\" SELECT ?id WHERE { ?id wdt:P31 wd:Q4504495; wdt:P1269 ?award. ?award wdt:P279 wd:Q18328126. }\"} } }
+SELECT ?item ?itemLabel ?developer (GROUP_CONCAT(?awardLabel; SEPARATOR = \", \") AS ?awards) (COUNT(?award) AS ?award_received) WHERE {
+  BIND(wd:Q102300180 AS ?ceremony)
+  ?item p:P166 ?statement.
+  ?statement ps:P166 ?award;
+    pq:P805 ?ceremony.
+  OPTIONAL { ?item wdt:P178 ?developer. }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?award rdfs:label ?awardLabel.
+    ?item rdfs:label ?itemLabel.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?item ?itemLabel ?developer
+ORDER BY DESC (?award_received)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

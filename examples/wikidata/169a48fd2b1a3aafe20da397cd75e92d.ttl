@@ -4,11 +4,25 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-169a48fd2b1a3aafe20da397cd75e92d> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-169a48fd2b1a3aafe20da397cd75e92d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Digital_projects_of_museums/Digital_projects_of_museums>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_Digital_projects_of_museums/Digital_projects_of_museums>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ 2023-02-13 #151 projects
+SELECT 
+  ?property 
+  ?propertyLabel 
+  (COUNT(DISTINCT ?project) AS ?countedProjects) 
+WHERE {
+  # VALUES ?project {wd:Q107168936 wd:Q108902285 wd:Q107168829} # examples for testing
+  ?project ((wdt:P1344|wdt:P166|wdt:P1411)/wdt:P361) wd:Q106748908; # part of DigAMus Awards
+    wdt:P31 wd:Q106778540. # instance of digital museum project
+  ?property wikibase:claim ?claim.
+  ?project ?claim ?statement.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,de\". }
+}
+GROUP BY ?property ?propertyLabel
+ORDER BY DESC (?countedProjects)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

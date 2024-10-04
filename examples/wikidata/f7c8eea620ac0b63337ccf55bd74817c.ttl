@@ -4,11 +4,26 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-f7c8eea620ac0b63337ccf55bd74817c> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-f7c8eea620ac0b63337ccf55bd74817c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/languages_where_some_lexemes_have_more_than_one_grammatical_gender>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:TweetsFactsAndQueries/Queries/languages_where_some_lexemes_have_more_than_one_grammatical_gender>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ languages where some lexemes have more than one grammatical gender
+SELECT ?language ?languageLabel (COUNT(?lexeme) AS ?count)
+WITH {
+  SELECT ?lexeme WHERE {
+    ?lexeme p:P5185 ?genderStatement.
+  }
+  GROUP BY ?lexeme
+  HAVING(COUNT(?genderStatement) > 1)
+} AS %lexemesWithMultipleGenders
+WHERE {
+  INCLUDE %lexemesWithMultipleGenders.
+  ?lexeme dct:language ?language.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?language ?languageLabel
+ORDER BY DESC(?count)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX p: <http://www.wikidata.org/prop/>

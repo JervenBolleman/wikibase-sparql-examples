@@ -4,11 +4,25 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-6766310e4b06115090c2db06c27cf619> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-6766310e4b06115090c2db06c27cf619> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_British_Politicians/ambassadors>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_British_Politicians/ambassadors>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Wikidata entries for FO & FCO employees who are not British ambassadors and high commissioners
+select distinct ?person ?personLabel ?birthyear ?deathyear where
+{
+  values ?employer {wd:Q358834 wd:Q58211956}              # Foreign Office or Foreign & Commonwealth Office
+  ?person wdt:P108 ?employer .                            # FO or FCO employs the person
+  filter not exists {?person p:P39 ?positionStatement . 
+                     ?positionStatement ps:P39 ?position . 
+                     ?position wdt:P31 wd:Q56760832 .}    # Person not a High Commissioner
+  filter not exists {?person p:P39 ?positionStatement . 
+                     ?positionStatement ps:P39 ?position . 
+                     ?position wdt:P31 wd:Q18115939 .}    # Person not an ambassador 
+  optional { ?person wdt:P569 ?born . bind(year(?born) as ?birthyear) } # birthyear
+  optional { ?person wdt:P570 ?died . bind(year(?died) as ?deathyear) } # deathyear  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} order by ?personLabel"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

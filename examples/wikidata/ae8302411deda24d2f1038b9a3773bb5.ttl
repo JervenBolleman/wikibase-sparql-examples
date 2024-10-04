@@ -4,11 +4,35 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-ae8302411deda24d2f1038b9a3773bb5> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-ae8302411deda24d2f1038b9a3773bb5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Hannes_R%C3%B6st/Queries/Swiss_Municipalities>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Hannes_R%C3%B6st/Queries/Swiss_Municipalities>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ All municipalities in Switzerland that have both statements Q685309 AND Q70208
+# -> MINUS those that do NOT have a qualifier \"end time\" on the Q70208 statement 
+# -> SHOULD be empty
+SELECT * 
+WITH 
+{
+    # select all Q685309 that have a qualifier
+    SELECT ?item WHERE {
+         hint:Query hint:optimizer \"None\" .
+         ?item wdt:P31 wd:Q70208 .
+         ?item p:P31 ?statement .
+         ## I need to filter this only to statements that apply to \"current municipality\" 
+         ?statement ps:P31 wd:Q70208 .
+         ?statement pq:P582 ?end_time  .
+         ?statement ?pq_qual ?pq_obj . 
+         ?qual wikibase:qualifier ?pq_qual . 
+    } 
+} as %muni
+WHERE
+{
+   ?item wdt:P31 wd:Q685309 .
+   ?item wdt:P31 wd:Q70208 .
+   MINUS { include %muni } # subtract those with qualifier from all Q685309
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de\"  }  
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

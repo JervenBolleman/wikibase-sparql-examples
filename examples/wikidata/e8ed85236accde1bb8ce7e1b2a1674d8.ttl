@@ -4,11 +4,25 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-e8ed85236accde1bb8ce7e1b2a1674d8> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-e8ed85236accde1bb8ce7e1b2a1674d8> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MKar/Query>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:MKar/Query>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ All pages in Odia Wiki with less than 11 statements
+SELECT ?item ?statementCount ?itemLabel ?article  WHERE {
+  VALUES (?project ?maxStatementCount ?labelLanguage) {
+    (<https://or.wikipedia.org/> 11 \"or\") # adjust language and count here
+    # URL above must be https:// and include the trailing / !
+  }
+  ?article a schema:Article;
+           schema:about ?item;
+           schema:isPartOf ?project.
+  ?item wikibase:statements ?statementCount.
+  OPTIONAL { ?item rdfs:label ?itemLabel. 
+    FILTER(LANG(?itemLabel) = ?labelLanguage). }
+  	FILTER(?statementCount < ?maxStatementCount).
+}
+LIMIT 1000"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX schema: <http://schema.org/>

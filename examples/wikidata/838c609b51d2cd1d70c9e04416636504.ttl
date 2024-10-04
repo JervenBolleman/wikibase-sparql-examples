@@ -4,11 +4,30 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-838c609b51d2cd1d70c9e04416636504> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-838c609b51d2cd1d70c9e04416636504> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Alina_data>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Alina_data>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Selects all human who died in 1948 and shows 
+#their paintings that are part of a collection (with possible coordinates) as well as the possible placement with country and possible image 
+SELECT ?deathdate ?person ?personLabel ?work ?workLabel ?objectname ?objectnameLabel ?image ?coll ?collLabel ?collcoord ?collcountryLabel ?placeLabel ?placecountryLabel WHERE {
+  VALUES ?year { 1948 }  # add more years like VALUES ?year { 1948 1949 }
+  ?person wdt:P31 wd:Q5.
+  ?person p:P570/psv:P570 [wikibase:timeValue ?tv; wikibase:timePrecision ?tp] .
+  FILTER(year(?tv)=?year)
+#truncate the display of dates given with year och month precision
+  BIND(IF(?tp=9,substr(?tv,1,4),IF(?tp=10,substr(str(?tv),1,7),substr(str(?tv),1,10))) AS ?deathdate)
+  ?work wdt:P170 ?person .
+  ?work wdt:P195 ?coll .
+  OPTIONAL { ?work wdt:P18 ?image }
+  OPTIONAL { ?work wdt:P31 ?objectname }
+#  FILTER(!BOUND(?image))  # uncommment this if only paintings without image are wanted
+  OPTIONAL { ?coll wdt:P625 ?collcoord }
+  OPTIONAL { ?coll wdt:P17 ?collcountry }
+  OPTIONAL { ?coll wdt:P276 ?place . OPTIONAL { ?place wdt:P17 ?placecountry } }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,nl,pl,ca\". }
+}
+ORDER BY ?tv ?personLabel ?workLabel"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

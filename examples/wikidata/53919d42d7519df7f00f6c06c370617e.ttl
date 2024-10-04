@@ -4,11 +4,26 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-53919d42d7519df7f00f6c06c370617e> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-53919d42d7519df7f00f6c06c370617e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Project_chat/Archive/2017/09>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Project_chat/Archive/2017/09>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """List of countries with share common human settlement with other countries
+SELECT ?country ?countryLabel ?country2 ?country2Label (COUNT(DISTINCT ?object) AS ?count)
+WHERE {
+  ?object wdt:P17 ?country. #Belonging to a county
+  ?object wdt:P17 ?country2.
+  ?object wdt:P31/wdt:P279* wd:Q486972. #Human settlements
+  FILTER(STR(?country2) < STR(?country)) # use < instead of != to have each result only once
+  MINUS{?object wdt:P31/wdt:P279* wd:Q15239622.} #Filtering out all disputed territorry
+  MINUS { ?country wdt:P582|wdt:P576 ?ended. } #Countries have not ended or dissolved
+  MINUS { ?country2 wdt:P582|wdt:P576 ?ended.}
+  MINUS {?country wdt:P31/wdt:P279* wd:Q3024240} #Former countries
+  MINUS {?country2 wdt:P31/wdt:P279* wd:Q3024240}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+GROUP BY ?country ?countryLabel ?country2 ?country2Label
+ORDER BY DESC(?count)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

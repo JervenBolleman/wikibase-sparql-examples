@@ -4,11 +4,27 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-6d4edd79729b606304b4eeb8c56e3a14> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-6d4edd79729b606304b4eeb8c56e3a14> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Template_talk:SPARQL>, <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/02>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Template_talk:SPARQL>, <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2019/02>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Population des pays voisins de l'Allemagne
+SELECT ?year ?population ?countryLabel WHERE {
+  {
+    SELECT ?country ?year (AVG(?population) AS ?population) WHERE {
+      {        SELECT ?country (YEAR(?date) AS ?year) ?population WHERE {
+          ?country wdt:P47 wd:Q183.
+          ?country p:P1082 ?populationStatement.
+          ?populationStatement ps:P1082 ?population.
+          ?populationStatement pq:P585 ?date.
+          FILTER(year(?date)>=1900) .
+          #FILTER( ?country not in (wd:Q1201)).
+        }      }
+    }
+    GROUP BY ?country ?year
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

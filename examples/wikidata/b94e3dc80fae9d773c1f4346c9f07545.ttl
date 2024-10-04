@@ -4,11 +4,31 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-b94e3dc80fae9d773c1f4346c9f07545> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-b94e3dc80fae9d773c1f4346c9f07545> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:YanikB>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:YanikB>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Rivières du bassin versant de la baie d'Hudson
+SELECT Distinct ?id ?idLabel ?Longueur ?ConfluenceLabel ?BassinLabel ?OSM WHERE { 
+  ?id wdt:P31 wd:Q4022 .
+  { ?id (wdt:P403|wdt:P201)* wd:Q3040 } # Pour une double vérification déplacez le # sur la ligne suivante.
+#  {?id wdt:P4614* wd:Q14874626} 
+  OPTIONAL { ?id wdt:P403 ?Confluence }
+  OPTIONAL {?id wdt:P2043 ?Longueur }
+#  filter  (?Longueur >10) .
+  OPTIONAL {
+            ?Lien schema:about ?id .
+            ?Lien schema:isPartOf <https://fr.wikipedia.org/> .
+  }
+  filter not exists { ?Lien schema:about ?id .
+            ?Lien schema:isPartOf <https://fr.wikipedia.org/> . }
+  OPTIONAL {?id wdt:P4614 ?Bassin }
+  OPTIONAL {?id wdt:P402 ?OSM }
+#  filter not exists { ?id wdt:P402 ?OSM }
+#  OPTIONAL {?id wdt:P31 ?nature }
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"fr,en\" . }
+}
+order by  DESC(?Longueur)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

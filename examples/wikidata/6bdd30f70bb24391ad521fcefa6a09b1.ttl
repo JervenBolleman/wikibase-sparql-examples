@@ -4,11 +4,30 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-6bdd30f70bb24391ad521fcefa6a09b1> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-6bdd30f70bb24391ad521fcefa6a09b1> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:YanikB>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:YanikB>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Canton du Québec
+SELECT ?item ?itemLabel ?itemDescription ?alias ?dtFondation ?km2 ?locLabel ?coord
+WHERE {
+    { ?item wdt:P31/wdt:P279* wd:Q23019040 }  
+    OPTIONAL {?item skos:altLabel ?alias filter (lang(?alias) = \"fr,en\")} .
+    OPTIONAL {?item wdt:P571 ?dtFondation} .
+    OPTIONAL {?item p:P2046 ?area_statement .
+              ?area_statement psv:P2046 ?area_node .
+              ?area_node wikibase:quantityAmount ?area .  
+              ?area_node wikibase:quantityUnit ?unit .
+              ?unit wdt:P2370 ?conversionSI . 
+              BIND(?area*?conversionSI/1000000 AS ?km2)} .
+    OPTIONAL {?item wdt:P131 ?loc} .
+    FILTER NOT EXISTS { ?item wdt:P571 ?dtFondation }
+    SERVICE wikibase:label {
+	    bd:serviceParam wikibase:language \"fr,en\" .
+	}
+} 
+ORDER BY (?regionLabel) 
+LIMIT 1800"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

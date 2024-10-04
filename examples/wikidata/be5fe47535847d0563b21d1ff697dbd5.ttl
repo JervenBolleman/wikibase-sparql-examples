@@ -4,11 +4,37 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-be5fe47535847d0563b21d1ff697dbd5> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-be5fe47535847d0563b21d1ff697dbd5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Arjunaraoc/images_needing_telugu_captions>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Arjunaraoc/images_needing_telugu_captions>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """wikidata items with 2011 village/census town codes and having images but not captions in Telugu
+SELECT DISTINCT ?item ?page_titleTE WHERE {
+  hint:Query hint:optimizer \"None\".
+  Values ?iteminstance {
+    wd:Q56436498
+  }.    
+  ?item (wdt:P131*) wd:Q1159;
+    wdt:P131 ?mandal;
+    (wdt:P31) ?item_instance;
+    wdt:P5578 ?2011censuscode.
+  OPTIONAL { ?item wdt:P625 ?wdloc. }
+  OPTIONAL { ?item wdt:P18 ?prefimgfilename. }
+  OPTIONAL {
+    ?item p:P18 ?imgst.
+    ?imgst ps:P18 ?imgfilename;
+      pq:P2096 ?imglegend.
+    FILTER((LANG(?imglegend)) = \"te\")
+  }
+  ?tewikilink schema:about ?item;
+    schema:isPartOf <https://te.wikipedia.org/>;
+    schema:name ?page_titleTE.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"te\". }
+  FILTER((?2011censuscode > \"579012\") && (?2011censuscode < \"597114\"))
+  FILTER(BOUND(?prefimgfilename))
+  FILTER(!(BOUND(?imglegend)))
+}
+ORDER BY (?page_titleTE)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

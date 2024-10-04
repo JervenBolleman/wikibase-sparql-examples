@@ -4,11 +4,50 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-1325017211915ee6fe52d7e78f4790e7> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-1325017211915ee6fe52d7e78f4790e7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Taravyvan_Adijene/SPARQL>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Taravyvan_Adijene/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Нарадзіліся 100 гадоў таму
+SELECT ?асоба ?асобаLabel ?датаНараджэньня ?месцаНараджэньняLabel (GROUP_CONCAT(DISTINCT ?job; SEPARATOR=\", \") AS ?jobs) 
+WHERE
+{
+    BIND(YEAR(NOW()) AS ?годАдбору)
+
+    ?асоба wdt:P31 wd:Q5.                                                 # толькі людзі
+    ?асоба wdt:P569 ?date.
+    { ?асоба wdt:P19 wd:Q184. }                                           # месца нараджэньня — Беларусь
+    UNION
+    { ?асоба wdt:P19/wdt:P131* wd:Q184. }                                 # альбо месца нараджэньня знаходзіцца ў Беларусі
+    UNION
+    { ?асоба wdt:P27 wd:Q184. }                                           # альбо грамадзянства — Беларусь
+    UNION
+    { ?асоба wdt:P19/wdt:P131* wd:Q2895. }                                # альбо месца нараджэньня знаходзіцца ў БССР
+    UNION
+    { ?асоба wdt:P19/wdt:P131* wd:Q1378225. }                             # альбо месца нараджэньня знаходзіцца ў Паўночна-Заходнім краі
+    UNION
+    { ?асоба wdt:P19/wdt:P131* wd:Q842199. }                              # альбо месца нараджэньня знаходзіцца ў БНР
+    UNION
+    { ?асоба wdt:P19/wdt:P131* wd:Q68678. }                               # альбо месца нараджэньня знаходзіцца ў ССРБ
+    UNION
+    { ?асоба wdt:P19/wdt:P131* wd:Q76236. }                               # альбо месца нараджэньня знаходзіцца ў ЛітБеле
+    UNION
+    { ?асоба wdt:P19/wdt:P131* wd:Q523380. }                              # альбо месца нараджэньня знаходзіцца ў Сярэдняй Літве
+    UNION
+    { ?асоба wdt:P20/wdt:P131* wd:Q184. }                                 # альбо месца сьмерці знаходзіцца ў Беларусі
+
+    OPTIONAL { ?асоба wdt:P19 ?месцаНараджэньня. }
+    OPTIONAL { ?асоба wdt:P106 [rdfs:label ?job]. FILTER(LANG(?job)='be-tarask'). }
+#    OPTIONAL { ?асоба wdt:P106 ?job. }
+    OPTIONAL { ?асоба wdt:P569 ?датаНараджэньня. }
+#    OPTIONAL { ?асоба wdt:P570 ?датаСьмерці. }
+    FILTER ((?годАдбору - YEAR(?date)) = 100)
+#    FILTER (floorMod(?годАдбору - YEAR(?date), 5) = 0)
+    SERVICE wikibase:label {
+        bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],be-tarask,en\".
+    }
+}
+GROUP BY ?асоба ?асобаLabel ?датаНараджэньня ?месцаНараджэньняLabel"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

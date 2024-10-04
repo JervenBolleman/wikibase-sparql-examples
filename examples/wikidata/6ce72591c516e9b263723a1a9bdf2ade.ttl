@@ -4,11 +4,59 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-6ce72591c516e9b263723a1a9bdf2ade> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-6ce72591c516e9b263723a1a9bdf2ade> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Fnielsen/SPARQL>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Fnielsen/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Wikipedia research et al.
+select ?paper ?paper_label ?class_labels ?authors ?venueLabel ?topics ?date ?full_text
+where {
+  {
+    select
+      ?paper ?paper_label 
+      (group_concat(distinct ?classes_label; separator=\", \") as ?class_labels)
+      (group_concat(distinct ?author_label; separator=\", \") as ?authors)
+      (sample(?published_ins) as ?venue)
+      (group_concat(distinct ?topic_label; separator=\", \") as ?topics)
+      (min(?dates_of_publication) as ?date)
+      (sample(?full_texts) as ?full_text)
+    where {
+      { ?paper wdt:P921 wd:Q52 } # Wikipedia
+      union { ?paper wdt:P921 wd:Q195951 } # reliability
+      union { ?paper wdt:P921 wd:Q870337 } # academic studies about Wikipedia
+      union { ?paper wdt:P921 wd:Q23038345 } # Wikipedian
+      union { ?paper wdt:P921 ?wiki . ?wiki wdt:P31 wd:Q10876391 } # Language-version Wikipedia
+      union { ?paper wdt:P921 wd:Q2013 }  # Wikidata
+      union { ?paper wdt:P921 wd:Q17002416 }  # gender bias on Wikipedia
+      
+      optional {
+        ?paper rdfs:label ?paper_label .
+        filter (lang(?paper_label) = \"en\")
+      }
+      
+      optional {
+        ?paper wdt:P31 ?classes .
+        ?classes rdfs:label ?classes_label .
+        filter (lang(?classes_label) = \"en\")
+      }
+      
+      { ?paper wdt:P921 ?topic . }
+      optional { ?topic rdfs:label ?topic_label . filter (lang(?topic_label) = \"en\") } 
+    
+      optional {
+        ?paper wdt:P50 ?author .
+        ?author rdfs:label ?author_label .
+        filter (lang(?author_label) = \"en\")
+      }
+      
+      optional { ?paper wdt:P1433 ?published_ins }
+      optional { ?paper wdt:P577 ?dates_of_publication }
+      optional { ?paper wdt:P953 ?full_texts }
+      
+    } group by ?paper ?paper_label
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }        
+} order by desc(?date)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

@@ -4,11 +4,68 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-e1a939a52e563694586da0a6060733a5> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-e1a939a52e563694586da0a6060733a5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Daniel_Mietchen/Query_shortcuts>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Daniel_Mietchen/Query_shortcuts>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ This query finds all usages of property P887 as a qualifier.
+#
+# Important note: most SPARQL users don't need such level of complication!
+# If you want to get only concrete values with best rank, replace body with something like:
+# ?item ?relation [rdf:type wikibase:BestRank; pq:P887 ?value]
+#
+# Implementation note: it is not possible to distinguish between items where statement looks like:
+# P887: novalue with qualifier P887: novalue, AS both facts are stored in a form of:
+# (p:xxxx rdf:type wdno:P887)
+
+SELECT 
+
+# (CONCAT(\"-STATEMENT|\", STRBEFORE(STR(?statement_qid), \"-\"), \"$\", STRAFTER(STR(?statement_qid), (SUBSTR(STR(?statement_qid), STRLEN(STRBEFORE(STR(?statement_qid), \"-\")) +1, 1)))) AS ?concatminus)
+
+(CONCAT(
+  REPLACE(STR(?item), \".*Q\", \"Q\"), \"|P921|\", REPLACE(STR(?value), \".*Q\", \"Q\") , \"|S887|Q69652283\"
+) AS ?concatplus)
+WITH {
+  SELECT ?item ?relitem ?statement ?qual_snacktype ?qual_value {
+#     VALUES ?item {wd:Q13406268}
+#     VALUES ?qual_dbvalue { wd:Q69652283 }
+    hint:Query hint:optimizer \"None\" .
+    {
+      ?statement pq:P887 ?qual_dbvalue .
+      ?item ?relation ?statement .
+      ?relation rdf:type owl:ObjectProperty .
+      ?relitem wikibase:claim ?relation .
+    } UNION {
+      ?statement rdf:type wdno:P887 .
+      ?item ?relation ?statement .
+      ?relation rdf:type owl:ObjectProperty .
+      ?relitem wikibase:claim ?relation .
+      FILTER(?relation != p:P887)
+    } UNION {
+      ?statement rdf:type wdno:P887 .
+      ?item p:P887 ?statement .
+      ?statement ps:P887 [] .
+      BIND(wd:P887 AS ?relitem)
+    }
+
+    BIND(COALESCE(IF(wikibase:isSomeValue(?qual_dbvalue), \"\", ?qual_dbvalue), \"\") AS ?qual_value)
+    BIND(COALESCE(IF(wikibase:isSomeValue(?qual_dbvalue), \"unknown\", \"concrete\"), \"novalue\") AS ?qual_snacktype)
+  } 
+} AS %statements
+{
+  INCLUDE %statements
+
+  ?statement wikibase:rank ?rank .
+  ?relitem wikibase:statementProperty ?ps .
+
+  OPTIONAL { ?statement ?ps ?dbvalue }
+
+  BIND(COALESCE(IF(wikibase:isSomeValue(?dbvalue), \"unknown\", \"concrete\"), \"novalue\") AS ?snacktype)
+  BIND(IF(wikibase:isSomeValue(?dbvalue), \"\", ?dbvalue) AS ?value)
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+  BIND(REPLACE(STR(?statement), \".*Q\", \"Q\") AS ?statement_qid) 
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdno: <http://www.wikidata.org/prop/novalue/>

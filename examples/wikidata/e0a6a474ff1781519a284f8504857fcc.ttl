@@ -4,11 +4,40 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-e0a6a474ff1781519a284f8504857fcc> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-e0a6a474ff1781519a284f8504857fcc> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:FabC>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:FabC>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Actual players of the Inter FC
+SELECT ?player ?playerLabel ?age ?startyear
+{
+    ?player wdt:P31 wd:Q5.          # Human
+    ?player wdt:P106 wd:Q937857 .   # Soccer player
+    ?player wdt:P54 wd:Q631.        # Member of Inter F.C
+
+    ?player p:P54 [                 # Pointer to statement \"Member of..\"
+      ps:P54 wd:Q631;               # Pointer to the statement object \"Inter\"
+      pq:P580 ?start                # Get the property qualifier \"Start date\" 
+    ].
+
+    # Filter out all the players that are not member anymore
+    MINUS {
+      ?player p:P54 [               # Pointer to statement \"Member of..\"
+            ps:P54 wd:Q631;         # Pointer to the statement object \"Inter\"
+            pq:P582 ?end            # Get the property qualifier \"End date\"
+      ].
+    }
+  
+    # Year of enrollment
+    BIND (YEAR(?start) AS ?startyear)
+  
+    # Age
+    ?player wdt:P569 ?birthdate.
+    BIND(FLOOR((NOW() - ?birthdate)/365.2425) AS ?age). 
+  
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],it\" }  
+}
+ORDER BY ?startyear"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

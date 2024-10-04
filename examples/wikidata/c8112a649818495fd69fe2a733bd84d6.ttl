@@ -4,12 +4,27 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-c8112a649818495fd69fe2a733bd84d6> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-c8112a649818495fd69fe2a733bd84d6> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Civil_Defense/List_of_law_enforcement_agencies>,
-    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Civil_Defense/List_of_law_enforcement_agencies/Brazil>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_Civil_Defense/List_of_law_enforcement_agencies>,
+    <https://www.wikidata.org/wiki/Wikidata:WikiProject_Civil_Defense/List_of_law_enforcement_agencies/Brazil>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ instances_of=law enforcement agency (Q732717); country=Brazil (Q155); NOT police station (Q861951)
+SELECT DISTINCT ?item ?itemLabel ?jurisdictionLabel ?official_website WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+  {
+    SELECT DISTINCT ?item WHERE {
+      ?item p:P31 ?statement0.
+      ?statement0 (ps:P31/(wdt:P279*)) wd:Q732717.
+      ?item p:P17 ?statement1.
+      ?statement1 ps:P17 wd:Q155.  # Change country here
+      MINUS { ?item wdt:P31 wd:Q861951. } # NOT police station
+    }
+  }
+  OPTIONAL { ?item wdt:P1001 ?jurisdiction. }
+  OPTIONAL { ?item wdt:P856 ?official_website. }
+}
+ORDER BY  (?jurisdiction)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

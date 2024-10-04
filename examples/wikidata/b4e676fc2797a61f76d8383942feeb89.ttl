@@ -4,11 +4,22 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-b4e676fc2797a61f76d8383942feeb89> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-b4e676fc2797a61f76d8383942feeb89> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/longest_alphabetically_sorted_words>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:TweetsFactsAndQueries/Queries/longest_alphabetically_sorted_words>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """TEMPLATE={ \"template\": { \"en\": \"Longest lexemes in ?language where all letters are in alphabetical order (A-Z only, no repeated letters).\" }, \"variables\": { \"?language\": { \"query\": \"SELECT ?id WHERE { ?lexeme dct:language ?id. } GROUP BY ?id ORDER BY DESC(COUNT(*)) LIMIT 50\" } } }
+PREFIX dct: <http://purl.org/dc/terms/> # workaround for T233148
+SELECT ?lexeme ?lemma (STRLEN(?lemma) AS ?length) WHERE {
+  BIND(wd:Q1860 AS ?language)
+  ?lexeme dct:language ?language;
+          wikibase:lemma ?lemma.
+  FILTER(STRLEN(?lemma) >= 5)
+  # first version allows repeated letters, second one doesn’t
+  # FILTER(REGEX(?lemma, \"^A*B*C*D*E*F*G*H*I*J*K*L*M*N*O*P*Q*R*S*T*U*V*Q*X*Y*Z*$\", \"i\"))
+  FILTER(REGEX(?lemma, \"^A?B?C?D?E?F?G?H?I?J?K?L?M?N?O?P?Q?R?S?T?U?V?Q?X?Y?Z?$\", \"i\"))
+}
+ORDER BY DESC(?length)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>

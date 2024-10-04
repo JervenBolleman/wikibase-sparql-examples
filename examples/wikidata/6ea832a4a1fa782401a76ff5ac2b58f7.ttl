@@ -4,11 +4,24 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-6ea832a4a1fa782401a76ff5ac2b58f7> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-6ea832a4a1fa782401a76ff5ac2b58f7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infovarius/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Infovarius/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ most common properties on senses
+SELECT ?property ?propertyLabel ?count WITH {
+  SELECT ?property (COUNT(?statement) AS ?count) WHERE {
+    hint:SubQuery hint:optimizer \"None\".
+    ?lexeme ontolex:sense ?sense.
+    ?sense ?p ?statement.
+    ?property wikibase:claim ?p.
+  }
+  GROUP BY ?property
+} AS %results WHERE {
+  INCLUDE %results.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?count)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>

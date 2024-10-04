@@ -4,11 +4,35 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-314bb2aeee7208730ec9104b0a882e02> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-314bb2aeee7208730ec9104b0a882e02> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Nemo_bis/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Nemo_bis/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ MEPs on Twitter and Mastodon mirrors
+SELECT ?item ?itemLabel ?handle ?mastodon (GROUP_CONCAT(DISTINCT ?groupLabel; SEPARATOR = \"; \") AS ?groups) (GROUP_CONCAT(DISTINCT ?languageLabel; SEPARATOR = \"; \") AS ?languages) WHERE {
+  SELECT DISTINCT ?item ?itemLabel ?handle ?mastodon ?groupLabel ?languageLabel
+WHERE
+{
+  ?item p:P39 ?officeStatement.
+  ?officeStatement ps:P39 wd:Q27169.
+  OPTIONAL { ?officeStatement pq:P4100 ?group. }
+  OPTIONAL { ?item wdt:P1412 ?language. }
+  ?item p:P27 ?citizenshipStatement.
+  ?citizenshipStatement ps:P27 ?citizenship.
+  MINUS { ?citizenshipStatement pq:P582 ?endtime } .
+  ?item p:P2002 ?handleStatement.
+  ?handleStatement ps:P2002 ?handle.
+  # But not those which ended already
+  MINUS { ?handleStatement pq:P582 ?endtime } .
+  OPTIONAL { ?item p:P4033 ?mastodonStatement.
+           ?mastodonStatement ps:P4033 ?mastodon.
+           ?mastodonStatement pq:P3831 wd:Q654822.
+           ?mastodonStatement wikibase:rank ?rank }.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+LIMIT 2000
+}
+GROUP BY ?item ?itemLabel ?handle ?mastodon"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

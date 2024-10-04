@@ -4,11 +4,27 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-a21135731cdb58656ef7c2d9888ea4b0> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-a21135731cdb58656ef7c2d9888ea4b0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2016/11>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2016/11>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Rank of people born in the Basque Country
+#LIMIT to 2000 as Listeria can only handle up to 5000
+SELECT ?item ?itemLabel ?yob ?yod (?stct + (?slct * 2) AS ?rank) WHERE {
+  {
+    SELECT ?item ?stct ?slct (YEAR(SAMPLE(?dob)) AS ?yob) (YEAR(SAMPLE(?dod)) AS ?yod) WHERE {
+      ?item wdt:P31 wd:Q5;
+            wdt:P19/wdt:P131*/^wdt:P527 wd:Q47588;
+            wikibase:statements ?stct;
+            wikibase:sitelinks ?slct .
+      OPTIONAL { ?item wdt:P569 ?dob } .
+      OPTIONAL { ?item wdt:P570 ?dod } .
+    } GROUP BY ?item ?stct ?slct
+  } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"eu\" } .
+}
+ORDER BY DESC(?rank) ?item
+LIMIT 2000"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

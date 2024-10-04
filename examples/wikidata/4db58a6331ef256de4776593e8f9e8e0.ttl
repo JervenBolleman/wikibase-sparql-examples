@@ -4,11 +4,28 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-4db58a6331ef256de4776593e8f9e8e0> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-4db58a6331ef256de4776593e8f9e8e0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Charles_Matthews/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Charles_Matthews/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ This query finds the most prolific photographers in an area around a Wikidata item (Magnus Manske)
+SELECT ?creatorName ?creatorUrl (count(?creatorUrl) AS ?pictures_taken) WHERE {
+  BIND ( wd:Q868642 as ?centerItem ) . # CHANGE THIS ITEM TO SET THE NEW CENTER
+  BIND ( \"5\" as ?km ) . # CHANGE THIS TO SET THE SEARCH RADIUS (IN KM)
+
+  hint:Query hint:optimizer \"None\".
+  SERVICE <https://query.wikidata.org/sparql> { ?centerItem wdt:P625 ?center }
+  SERVICE wikibase:around {
+      ?file wdt:P1259 ?coor.
+      bd:serviceParam wikibase:center ?center .
+      bd:serviceParam wikibase:radius ?km.
+  }  
+  ?file p:P170 ?creatorStatement .
+  ?creatorStatement pq:P2699 ?creatorUrl .
+  ?creatorStatement pq:P2093 ?creatorName .
+}
+GROUP BY ?creatorName ?creatorUrl
+ORDER BY DESC(?pictures_taken)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

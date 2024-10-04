@@ -4,11 +4,33 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-e9cbd59646df5bd21c14ab1e4433621b> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-e9cbd59646df5bd21c14ab1e4433621b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Amadalvarez/Queries>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Amadalvarez/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """diferents valors del qualif P1480 i en quants items/statements es fa servir
+
+SELECT ?P1480value ?P1480valueLabel ?items ?statements
+WHERE
+{
+  {
+    SELECT ?P1480value (COUNT(DISTINCT(?item)) as ?items) (COUNT(?value) as ?statements)
+    WHERE
+    {
+        ?prop pq:P1480 ?P1480value .
+        hint:Query hint:optimizer \"None\" .
+      ?item ?p ?prop .
+      ?property wikibase:claim ?p .
+        ?property wikibase:statementProperty ?ps .
+        ?prop ?ps ?value .
+    }
+    GROUP BY ?P1480value
+    ORDER BY DESC(?items) DESC(?statements)
+    LIMIT 100
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"ca,en\"  }
+}
+ORDER BY DESC(?items) DESC(?statements)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX pq: <http://www.wikidata.org/prop/qualifier/>

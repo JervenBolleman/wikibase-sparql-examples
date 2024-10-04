@@ -4,11 +4,26 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-dcb22df5055fd9fe1eb4aa16f48e825b> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-dcb22df5055fd9fe1eb4aa16f48e825b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:lexicalcategory-index>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Synia:lexicalcategory-index>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ List with counts of lexical categories
+SELECT
+  ?count
+  ?lexical_category ?lexical_categoryLabel 
+  (CONCAT(\"#lexicalcategory/\", SUBSTR(STR(?lexical_category), 32)) AS ?lexical_categoryUrl)
+WITH {
+  SELECT (COUNT(*) AS ?count) ?lexical_category WHERE {
+    [] wikibase:lexicalCategory ?lexical_category .
+  }
+  GROUP BY ?lexical_category
+} AS %results
+WHERE {
+  INCLUDE %results
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?count)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>

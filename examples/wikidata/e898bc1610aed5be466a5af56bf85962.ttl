@@ -4,11 +4,53 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-e898bc1610aed5be466a5af56bf85962> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-e898bc1610aed5be466a5af56bf85962> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rjlabs/WikiData_Company_Data_Project>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Rjlabs/WikiData_Company_Data_Project>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Companies with largest assets in USD (Q4917)
+SELECT ?item ?revenue ?unit ?revenue_USD ?date WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q4830453;
+        p:P2403 ?statement .
+  OPTIONAL { ?item wdt:P159 ?hq } .
+  ?statement wikibase:rank ?rank .
+  FILTER( ?rank != wikibase:DeprecatedRank ) .
+  OPTIONAL {
+    FILTER( ?rank != wikibase:PreferredRank ) .
+    ?item p:P2403 ?statement1 .
+    ?statement1 wikibase:rank wikibase:PreferredRank .
+    FILTER( ?statement1 != ?statement ) .
+  } .
+  FILTER( !BOUND( ?statement1 ) ) .
+  OPTIONAL { ?statement pq:P585 ?date } .
+  {
+    ?statement psv:P2403 [
+      wikibase:quantityAmount ?revenue; wikibase:quantityUnit wd:Q4917
+    ] .
+    BIND( wd:Q4917 AS ?unit ) .
+    BIND( ?revenue AS ?revenue_USD ) .
+  } UNION {
+    ?statement psv:P2403 [
+      wikibase:quantityAmount ?revenue; wikibase:quantityUnit ?unit
+    ] .
+    FILTER( ?unit != wd:Q4917 ) .
+    ?unit p:P2284 ?unit_statement .
+    ?unit_statement wikibase:rank ?unit_rank;
+                    psv:P2284 [ wikibase:quantityUnit wd:Q4917; wikibase:quantityAmount ?usd ] .
+    FILTER( ?unit_rank != wikibase:DeprecatedRank ) .
+    OPTIONAL {
+      FILTER( ?unit_rank != wikibase:PreferredRank ) .
+      ?unit p:P2284 ?unit_statement1 .
+      ?unit_statement1 psv:P2284/wikibase:quantityUnit wd:Q4917;
+                       wikibase:rank wikibase:PreferredRank .
+      FILTER( ?unit_statement1 != ?unit_statement ) .
+    } .
+    FILTER( !BOUND( ?unit_statement1 ) ) .
+    BIND( ?revenue * ?usd AS ?revenue_USD ) .
+  } .
+}
+ORDER BY DESC(?revenue_USD)
+LIMIT 10"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

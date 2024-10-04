@@ -4,11 +4,31 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-7f267431598cc21d1ba47ef0702fccf5> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-7f267431598cc21d1ba47ef0702fccf5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:VIAF/partner>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:VIAF/partner>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Wikidata authority control properties related to libraries which are not VIAF source IDs, with number of items using them and number of values of them (only main values with best rank), total number of IDs and Mix'n'match catalog - may sometimes timeout
+SELECT ?p ?pLabel ?items_with_property ?uses_of_property ?number_of_ids (URI(CONCAT(\"https://mix-n-match.toolforge.org/#/catalog/\",?MnMid)) AS ?MnM)
+WHERE
+{
+  {
+    SELECT ?p ?number_of_ids ?MnMid
+      (COUNT(DISTINCT(?item)) as ?items_with_property)
+      (COUNT(?value) as ?uses_of_property)
+    WHERE
+    {
+      ?p wdt:P31 wd:Q96776953 .
+      MINUS { ?p wdt:P31/wdt:P279* wd:Q55586529 . }
+      ?p wikibase:claim ?claim.
+      ?item ?claim ?value.
+      OPTIONAL { ?p wdt:P4876 ?number_of_ids . }
+      OPTIONAL { ?p wdt:P2264 ?MnMid . }
+    }
+    GROUP BY ?p ?number_of_ids ?MnMid
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

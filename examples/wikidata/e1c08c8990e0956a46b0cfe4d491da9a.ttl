@@ -4,11 +4,27 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-e1c08c8990e0956a46b0cfe4d491da9a> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-e1c08c8990e0956a46b0cfe4d491da9a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:ProteinBoxBot/SPARQL_Examples>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:ProteinBoxBot/SPARQL_Examples>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """... with GWAS association with any respiratory disease
+SELECT ?diseaseGALabel (count (DISTINCT ?gene) as ?gene_counts) 
+(group_concat(DISTINCT ?geneLabel; separator=\", \") as ?geneList) WHERE {
+  ?gene wdt:P2293 ?diseaseGA .        # gene has genetic association
+  ?diseaseGA wdt:P279* wd:Q3286546 .  # to a type of respiratory system disease
+  
+  ?gene wdt:P31 wd:Q7187 ; wdt:P688 ?protein ;    # gene is subclass of \"gene\" and encodes protein
+        rdfs:label ?geneLabel . 
+  FILTER (lang(?geneLabel) = \"en\")
+  ?protein p:P681 ?s .                             # protein's cell component statement
+    ?s ps:P681 ?cp .                               # get statement value
+    FILTER NOT EXISTS {?s pq:P459 wd:Q23190881 .}  # determination method is not IEA
+    ?cp wdt:P279*|wdt:P361* wd:Q14349455 .         # statement value is 'part of' or 'subclass of' membrane
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} 
+GROUP BY ?diseaseGALabel ?geneList ORDER BY DESC(?gene_counts)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

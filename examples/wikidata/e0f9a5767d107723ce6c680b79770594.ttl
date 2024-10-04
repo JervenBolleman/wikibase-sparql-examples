@@ -4,11 +4,27 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-e0f9a5767d107723ce6c680b79770594> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-e0f9a5767d107723ce6c680b79770594> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Hsarrazin/SPARQL>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Hsarrazin/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Historians with links to French Wikipedia or Wikisource, but missing VIAF id
+SELECT ?item ?itemLabel WHERE {
+  ?item wdt:P31 wd:Q5 .
+  ?item wdt:P106 wd:Q201788 .
+  
+  # Here we ask people with no VIAF id
+  FILTER NOT EXISTS { ?item wdt:P214 ?viaf . }
+  # But the ones we already know they don't have one show up anyway
+  # so we filter out people with \"No value\" for VIAF id
+  FILTER NOT EXISTS { ?item rdf:type wdno:P214 . }
+  
+  ?wikilink schema:about ?item .
+  { ?wikilink schema:isPartOf <https://fr.wikisource.org/> . } UNION {
+    ?wikilink schema:isPartOf <https://fr.wikipedia.org/> . }
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\" . }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

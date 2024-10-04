@@ -4,11 +4,31 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-83415893cf4dc62842e87a80c086c731> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-83415893cf4dc62842e87a80c086c731> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/03>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2020/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """German Vereine (Nonprofit Organisations) by Revenue
+SELECT ?OrgaLabel ?Revenue (YEAR(?Renevue_time) AS ?year) ?ValutaLabel ?rank
+WHERE 
+{
+  ?Orga wdt:P1454 wd:Q9299236 . # Select German Nonprofit Organisations
+  ?Orga p:P2139 ?Revenue_statement .
+  ?Revenue_statement psv:P2139 ?Renevue_value .
+  ?Renevue_value wikibase:quantityAmount ?Revenue .
+  ?Renevue_value wikibase:quantityUnit ?Valuta .
+  ?Revenue_statement pq:P585 ?Renevue_time .
+  ?Revenue_statement wikibase:rank ?rank .
+  FILTER NOT EXISTS
+  {
+    ?Orga p:P2139/pq:P585 ?Renevue_time2 .
+    FILTER(?Renevue_time2 > ?Renevue_time)
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\".}
+}
+
+ORDER BY DESC(?Revenue)
+LIMIT 500"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

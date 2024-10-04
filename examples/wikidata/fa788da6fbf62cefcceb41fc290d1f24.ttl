@@ -4,11 +4,36 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-fa788da6fbf62cefcceb41fc290d1f24> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-fa788da6fbf62cefcceb41fc290d1f24> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MKar/TimeQuery>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:MKar/TimeQuery>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ PRASANGA PANJIKA: Odia people whose birth/death anniversary is in a desired month
+SELECT ?item ?sitelinks ?orwiki ?itemDescription ?dob ?dod 
+(GROUP_CONCAT(DISTINCT ?awardLabel; SEPARATOR = \", \") AS ?awards) (COUNT(DISTINCT ?award) AS ?awardn) 
+WHERE {
+   {?item wdt:P19 wd:Q22048 .}
+   UNION  { ?item wdt:P19 ?pob . ?pob wdt:P131* wd:Q22048 } 
+   UNION {?item wdt:P103|wdt:P1412|wdt:P6886 wd:Q33810 } # native/ spoken/ written/ signed = Odia
+ ?item wdt:P166 ?award.  # item must have received an award
+#___BIRTH AND DEATH___
+  OPTIONAL { ?item wdt:P569 ?dob }
+  OPTIONAL { ?item wdt:P570 ?dod }
+  FILTER(MONTH(?dob)= 9 || MONTH(?dod) = 9)
+# ____Odia Wiki link and article name__
+  ?item ^schema:about ?article .
+  ?article schema:isPartOf <https://or.wikipedia.org/> ; # the sitelink points to or.wikipedia
+  schema:name ?orwiki .                   # and has an article name
+# ____Label service__
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"or,[AUTO_LANGUAGE]\".
+    ?item schema:description ?itemDescription .
+    ?award rdfs:label ?awardLabel.
+}
+OPTIONAL { ?item wikibase:sitelinks ?sitelinks. }  #count sitelinks 
+     }
+GROUP BY ?item ?sitelinks ?orwiki ?itemDescription ?dob ?dod 
+ORDER BY DESC(?awardn)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

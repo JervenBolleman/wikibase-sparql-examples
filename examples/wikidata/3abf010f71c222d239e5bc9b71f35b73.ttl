@@ -4,11 +4,33 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-3abf010f71c222d239e5bc9b71f35b73> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-3abf010f71c222d239e5bc9b71f35b73> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Arpyia/brouillon>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Arpyia/brouillon>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Liste des installations comprenant une piste de kart
+SELECT ?installation ?installationLabel ?numéro ?nomRESinstallation
+(GROUP_CONCAT(?noméquipement; separator=\" ; \") AS ?nomséquipements) # liste des noms des équipements, séparés par des points-virgules
+WHERE {
+  VALUES ?code { \"409\" }. # choix du type d'équipement sportif
+  ?typeéquipement p:P528 [ps:P528 ?code; # code du type d'équipement
+                        pq:P2868 wd:Q121252873; # type d'équipement sportif
+                        prov:wasDerivedFrom [ pr:P248 wd:Q115755558 ] # enregistrement au Recensement des équipements sportifs
+                ].
+
+  ?installation p:P912 [ps:P912 ?typeéquipement; # présence d'un équipement de ce type
+                                pq:P2561 ?noméquipement; # nom de l'équipement
+                ].
+  ?installation p:P11840 [ps:P11840 ?numéro; # numéro de l'installation dans le Recensement des équipements sportifs
+                        pq:P1810 ?nomRESinstallation; # nom de l'installation dans le Recensement des équipements sportifs
+                        prov:wasDerivedFrom [ pr:P248 wd:Q115755558; pr:P5017 ?miseàjour ] # date de mise à jour dans le Recensement des équipements sportifs
+                ].  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\".
+                          ?installation rdfs:label ?installationLabel . # libellé de l'installation
+                          ?typeéquipement rdfs:label ?typeéquipementLabel . # libellé du type d'équipement
+                          }                        
+}GROUP BY ?installation ?installationLabel ?numéro ?nomRESinstallation
+ORDER BY ?installationLabel"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>

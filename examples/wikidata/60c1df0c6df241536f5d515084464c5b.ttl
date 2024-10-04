@@ -4,11 +4,26 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-60c1df0c6df241536f5d515084464c5b> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-60c1df0c6df241536f5d515084464c5b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/04>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2018/04>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Sister cities whose Wikidata IDs represent adjacent numbers
+SELECT ?city1 ?city1Label ?id1 ?id2 ?city2 ?city2Label ?diff
+WITH {
+  SELECT ?city1 ?id1 ?id2 ?city2 ?diff WHERE {
+    ?city1 wdt:P190 ?city2.         # sister cities
+    bind(xsd:integer(substr(str(?city1),33)) as ?id1) # get the numeric element of the QID, cast as an integer
+    bind(xsd:integer(substr(str(?city2),33)) as ?id2) # get the numeric element of the QID, cast as an integer
+    bind(abs(?id1 - ?id2) as ?diff )
+    filter(?diff =1)
+  }
+} AS %cities
+WHERE 
+{
+  INCLUDE %cities
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

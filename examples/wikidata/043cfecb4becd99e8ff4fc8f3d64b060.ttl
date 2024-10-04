@@ -4,11 +4,59 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-043cfecb4becd99e8ff4fc8f3d64b060> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-043cfecb4becd99e8ff4fc8f3d64b060> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:CamelCaseNick/Stolpersteine/Hamburg/Template:list_query>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:CamelCaseNick/Stolpersteine/Hamburg/Template:list_query>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """by CamelCaseNick
+prefix osmt: <https://wiki.openstreetmap.org/wiki/Key:>
+
+select
+(?stolperstein as ?item) ?osm (str(strbefore(?fullAddress, \",\")) as ?address) ?inscription ?other ?stpst_hh ?extract
+(str(coalesce(?statedAs, replace(?label, \"^Stolperstein für (?!den|die|das)\", \"\"))) as ?name) 
+where {
+  ?stolperstein wdt:P31 wd:Q26703203;
+                wdt:P131+ wd:!REPLACEME!.
+  optional { ?stolperstein wdt:P6375 ?fullAddress. }
+  optional { ?stolperstein wdt:P1684 ?inscription. }
+  optional { ?stolperstein p:P547/pq:P1932 ?statedAs. }
+  optional { ?stolperstein wdt:P8804 ?stpst_hh. }
+
+  minus { ?stolperstein wdt:P576|wdt:P1366 []. }
+
+  optional {
+    service <https://sophox.org/sparql> {
+      ?osm osmt:wikidata ?stolperstein.
+    }
+  }
+
+  optional {
+    ?stolperstein wdt:P547/^schema:about ?article.
+    ?article schema:name ?title; schema:isPartOf <https://de.wikipedia.org/>.
+    minus { ?article wikibase:badge ?badge. values ?badge { wd:Q70893996 wd:Q70894304 } }
+    service wikibase:mwapi {
+      bd:serviceParam wikibase:endpoint \"de.wikipedia.org\";
+                      wikibase:api \"Generator\"; mwapi:generator \"allpages\"; mwapi:prop \"extracts\";
+                      wikibase:limit \"once\"; mwapi:gaplimit 1;
+                      mwapi:gapfrom ?title;
+                      mwapi:exchars 300; mwapi:exintro true; mwapi:explaintext true.
+      ?extract wikibase:apiOutput \"extract/text()\".  
+    }
+  }
+
+  bind(if(exists {
+    ?stolpersteinB wdt:P31 wd:Q26703203;
+                   wdt:P547/^wdt:P547 ?stolperstein.
+    minus { ?stolpersteinB wdt:P576|wdt:P1366 []. }
+    filter (?stolpersteinB != ?stolperstein)
+  }, \"y\", \"\") as ?other)
+
+  service wikibase:label {
+    bd:serviceParam wikibase:language \"de,en\".
+    ?stolperstein rdfs:label ?label.
+  }
+}
+order by asc(?address) asc(replace(?name, \"^.*?([^ ]+)( geb\\\\..*)?$\", \"$1\")) asc(?name)"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>

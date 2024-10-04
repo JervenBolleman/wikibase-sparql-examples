@@ -4,11 +4,63 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-d23d87eb7225a2e919692dd12c3669d0> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-d23d87eb7225a2e919692dd12c3669d0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stefan_K%C3%BChn/Persondata>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Stefan_K%C3%BChn/Persondata>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """----------------------------------------------------------
+# Daten-Download in 25.000er Schritten (mit offset)
+#----------------------------------------------------------
+
+SELECT DISTINCT
+  ?item
+  ?label_en
+  ?label_de
+  ?desc_en
+  ?desc_de
+  ?dewiki
+  (SAMPLE(?dob) AS ?date_of_birth)
+  (SAMPLE(?pob) AS ?place_of_birth)
+  (SAMPLE(?dod) AS ?date_of_death)
+  (SAMPLE(?pod) AS ?place_of_death)
+  (SAMPLE(?img) AS ?image)
+  (SAMPLE(?coc) AS ?citizenship)
+  (SAMPLE(?occ) AS ?occupation)
+WHERE {
+  SERVICE bd:slice {
+    ?item wdt:P31 wd:Q5 .
+    bd:serviceParam bd:slice.offset 0 .
+    bd:serviceParam bd:slice.limit 25000 .
+  }                 
+
+  OPTIONAL {
+    ?item rdfs:label ?label_en .
+    FILTER(LANG(?label_en) = 'en') .
+  }
+  OPTIONAL {
+    ?item rdfs:label ?label_de .
+    FILTER(LANG(?label_de) = 'de') .
+  }
+  OPTIONAL {
+    ?item schema:description ?desc_en .
+    FILTER(LANG(?desc_en) = 'en') .
+  }
+  OPTIONAL {
+    ?item schema:description ?desc_de .
+    FILTER(LANG(?desc_de) = 'de') .
+  }
+  OPTIONAL {
+    ?dewiki schema:about ?item; schema:isPartOf <https://de.wikipedia.org/>
+  }
+  OPTIONAL { ?item wdt:P569 ?dob }
+  OPTIONAL { ?item wdt:P570 ?dod }
+  OPTIONAL { ?item wdt:P19 ?pob }
+  OPTIONAL { ?item wdt:P20 ?pod }
+
+  OPTIONAL { ?item wdt:P27 ?coc }
+  OPTIONAL { ?item wdt:P106 ?occ }
+  OPTIONAL { ?item wdt:P18 ?img }
+} GROUP BY ?item ?label_en ?label_de ?desc_en ?desc_de ?dewiki"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>

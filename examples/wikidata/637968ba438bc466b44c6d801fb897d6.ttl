@@ -4,11 +4,35 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-637968ba438bc466b44c6d801fb897d6> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-637968ba438bc466b44c6d801fb897d6> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MKar/Query>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:MKar/Query>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """Odia women (birth/ language) without an article in Odia Wikipedia, 160 items@29JAN2021
+SELECT ?item ?statements ?linkcount ?itemLabel ?itemDescription?birth ?pobLabel ?death ?podLabel
+WHERE {
+  ?item wdt:P31 wd:Q5 .         # item is a human
+  ?item wdt:P21 wd:Q6581072 .   # gender is female
+  { ?item wdt:P19 wd:Q22048 }   # place of birth is Odisha (Q22048) 
+     UNION  { ?item wdt:P19 ?pob . 
+              ?pob wdt:P131* wd:Q22048 } # place of birth within Odisha. 
+     UNION {?item wdt:P103|wdt:P1412 wd:Q33810 } # native/ spoken/ written/ signed = Odia language = Odia
+
+OPTIONAL { ?item wdt:P569 ?birth  }
+OPTIONAL { ?item wdt:P19 ?pob  }
+OPTIONAL { ?item wdt:P570 ?death  }
+OPTIONAL { ?item wdt:P20 ?pod  }  
+
+ OPTIONAL { ?sitelink schema:about ?item . 
+          ?sitelink schema:inLanguage \"or\" }    # look for articles (sitelinks) in Odia (\"or\") 
+ FILTER (!BOUND(?sitelink))    # but select items with no such article
+ OPTIONAL  {?item wikibase:sitelinks ?linkcount. }
+ OPTIONAL { ?item wikibase:statements ?statements .} # for counting statements
+ SERVICE wikibase:label 
+  { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } # for generating label
+}
+GROUP BY ?item ?statements ?linkcount?itemLabel ?itemDescription?birth ?pobLabel ?death ?podLabel
+ORDER BY DESC(?linkcount)  #Sorted by amount of articles in other languages."""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

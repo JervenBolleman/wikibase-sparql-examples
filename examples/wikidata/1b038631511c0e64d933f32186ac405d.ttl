@@ -4,11 +4,24 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-1b038631511c0e64d933f32186ac405d> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-1b038631511c0e64d933f32186ac405d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Taravyvan_Adijene/SPARQL>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:Taravyvan_Adijene/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Беларускія жанчыны, пра якіх няма артыкулу ў нашай вікі
+SELECT ?person ?personLabel ?personDescription (COUNT(DISTINCT ?sitelink) as ?linkcount) WHERE {
+  ?person wdt:P31 wd:Q5 . # чалавек
+  ?person wdt:P21 wd:Q6581072 . # жанчына
+  ?person wdt:P27 wd:Q184 . # зь Беларусі
+  ?sitelink schema:about ?person . # старонкі Вікімэдыі пра асобы
+  FILTER NOT EXISTS {
+    ?links schema:about ?person . # старонкі Вікімэдыі пра асобы
+    ?links schema:isPartOf <https://be-tarask.wikipedia.org/> . # акрамя беларускай Вікіпэдыі.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],be-tarask,en,uk,pl,ru\". }
+} GROUP BY ?person ?personLabel ?personDescription
+ORDER BY DESC(?linkcount) 
+LIMIT 1000"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

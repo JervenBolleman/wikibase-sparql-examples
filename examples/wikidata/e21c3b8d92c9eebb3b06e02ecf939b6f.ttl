@@ -4,11 +4,54 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-e21c3b8d92c9eebb3b06e02ecf939b6f> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-e21c3b8d92c9eebb3b06e02ecf939b6f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/UK_Members_of_Parliament_whose_Commons_categories_are_not_yet_in_Category:Politicians_of_the_United_Kingdom>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/User:TweetsFactsAndQueries/Queries/UK_Members_of_Parliament_whose_Commons_categories_are_not_yet_in_Category:Politicians_of_the_United_Kingdom>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ UK Members of Parliament whose Commons categories are not yet in [[Category:Politicians of the United Kingdom]]
+SELECT ?item ?commonsCategory
+WITH {
+  # UK Members of Parliament
+  SELECT DISTINCT ?item WHERE {
+    ?item wdt:P31 wd:Q5;
+          wdt:P39/wdt:P279* wd:Q16707842.
+  }
+} AS %items
+WITH {
+  # their categories (via P373 or commonswiki sitelink, which gets a bit complicated)
+  SELECT ?item ?commonsCategory WHERE {
+    hint:SubQuery hint:optimizer \"None\". # we have to disable the optimizer for this subquery because it gets confused by the ?commonsCategoryStatementEn part
+    INCLUDE %items.
+    OPTIONAL {
+      ?item wdt:P373 ?commonsCategoryStatement.
+      BIND(STRLANG(CONCAT(\"Category:\", ?commonsCategoryStatement), \"en\") AS ?commonsCategoryStatementEn)
+      ?commonsCategoryFromStatement schema:name ?commonsCategoryStatementEn;
+                                    schema:isPartOf <https://commons.wikimedia.org/>.
+    }
+    OPTIONAL {
+      ?commonsCategoryFromSitelink schema:about ?item;
+                                   schema:isPartOf <https://commons.wikimedia.org/>.
+      FILTER(STRSTARTS(STR(?commonsCategoryFromSitelink), \"https://commons.wikimedia.org/wiki/Category:\"))
+    }
+    BIND(COALESCE(?commonsCategoryFromStatement, ?commonsCategoryFromSitelink) AS ?commonsCategory)
+    FILTER(BOUND(?commonsCategory))
+  }
+} AS %itemsWithCommonsCategories
+WHERE {
+  # check if Commons category is in [[Category:Politicians of the United Kingdom]], using https://www.mediawiki.org/wiki/Wikidata_Query_Service/Categories
+  INCLUDE %itemsWithCommonsCategories.
+  MINUS {
+    SERVICE <https://query.wikidata.org/bigdata/namespace/categories/sparql> {
+      SERVICE gas:service {
+        gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\";
+                    gas:linkType mediawiki:isInCategory;
+                    gas:traversalDirection \"Reverse\";
+                    gas:in <https://commons.wikimedia.org/wiki/Category:Politicians_of_the_United_Kingdom>;
+                    gas:out ?commonsCategory.
+      }
+    }
+  }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX gas: <http://www.bigdata.com/rdf/gas#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

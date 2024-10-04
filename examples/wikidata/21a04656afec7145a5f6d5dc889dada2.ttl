@@ -4,11 +4,62 @@
 @prefix schema: <https://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-<https://www.wikidata.org/#query-21a04656afec7145a5f6d5dc889dada2> a sh:SPARQLExecutable,
+<https://www.wikidata.org#query-21a04656afec7145a5f6d5dc889dada2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Project_chat/Archive/2021/09>;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:Project_chat/Archive/2021/09>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  rdfs:comment "TODO"@en;
+  rdfs:comment """ Find item statements with references containing external links to wipo.int using http and https protocols
+SELECT ?item ?itemLabel ?property ?propertyLabel ?value ?valueLabel ?reference_URL
+WITH
+{
+  SELECT DISTINCT ?item
+  WHERE
+  {
+    {
+      # Find items with https URLs
+      SERVICE wikibase:mwapi
+      {
+        bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+        bd:serviceParam wikibase:api \"Generator\" .
+        bd:serviceParam mwapi:generator \"exturlusage\" .
+        bd:serviceParam mwapi:geuprop \"title\" .
+        bd:serviceParam mwapi:geunamespace \"0\" .
+        bd:serviceParam mwapi:geuprotocol \"https\" .
+        bd:serviceParam mwapi:geuquery \"*.wipo.int\" .
+        bd:serviceParam mwapi:geulimit \"max\" .
+        ?item wikibase:apiOutputItem mwapi:title .
+      }
+    }
+    UNION
+    {
+      # Find items with http URLs
+      SERVICE wikibase:mwapi
+      {
+        bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+        bd:serviceParam wikibase:api \"Generator\" .
+        bd:serviceParam mwapi:generator \"exturlusage\" .
+        bd:serviceParam mwapi:geuprop \"title\" .
+        bd:serviceParam mwapi:geunamespace \"0\" .
+        bd:serviceParam mwapi:geuprotocol \"http\" .
+        bd:serviceParam mwapi:geuquery \"*.wipo.int\" .
+        bd:serviceParam mwapi:geulimit \"max\" .
+        ?item wikibase:apiOutputItem mwapi:title .
+      }
+    }
+  }
+} AS %get_items
+WHERE
+{
+  INCLUDE %get_items
+  ?item ?prop ?statement .
+  ?property wikibase:claim ?prop .
+  ?property wikibase:statementProperty ?ps .
+  ?statement ?ps ?value .
+  ?statement prov:wasDerivedFrom ?reference .
+  ?reference ?refprop ?reference_URL .
+  FILTER CONTAINS(STR(?reference_URL), \"wipo.int/\")
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}"""@en;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX mwapi: <http://wikiba.se/ontology#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
