@@ -28,7 +28,26 @@ SELECT ?item ?itemLabel ?pubdate ?parentLabel WHERE {
   # filter to the period of interest
   FILTER((?pubdate > ?fromDate) && (?pubdate < ?toDate))
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}"""@en;
+}"""@en,
+    """ Volumes of a periodical with a publication date set
+SELECT ?item ?itemLabel ?pubdate ?parentLabel WHERE {
+  VALUES (?fromDate ?toDate) {
+    (
+      \"1800-01-01\"^^xsd:dateTime
+      \"1901-01-01\"^^xsd:dateTime
+    )
+  }
+  
+  # anything that's a volume that's part of a periodical
+  ?item (wdt:P31/(wdt:P279*)) wd:Q1238720;
+      wdt:P179 ?parent.
+  ?parent (wdt:P31/(wdt:P279*)) wd:Q1002697.
+ 
+  ?item wdt:P577 ?pubdate. # get the publication date
+  # filter to the period of interest
+  FILTER((?pubdate > ?fromDate) && (?pubdate < ?toDate))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}"""@nl;
   sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
   sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
