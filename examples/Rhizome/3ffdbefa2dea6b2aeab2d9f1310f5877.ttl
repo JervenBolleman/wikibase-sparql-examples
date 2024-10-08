@@ -1,0 +1,54 @@
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+<https://artbase.rhizome.org#query-3ffdbefa2dea6b2aeab2d9f1310f5877> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://artbase.rhizome.org/wiki/Query/Examples>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  sh:select """PREFIX r: <https://artbase.rhizome.org/entity/>
+PREFIX rt: <https://artbase.rhizome.org/prop/direct/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:ImageGrid
+SELECT ?artworkPage ?artworkLabel ?accession_date ?image WHERE {
+  { #This sub-query selects a single image per artworks, so that you can view all artworks in an image grid.
+    SELECT DISTINCT ?artwork (SAMPLE(?image) AS ?image) WHERE { 
+      ?artwork rt:P3 r:Q5;
+        rt:P126 ?image.
+    }
+    GROUP BY ?artwork
+  }
+  ?artworkPage schema:about ?artwork; #This line selects the main artwork page as an access point, rather it's database record .
+  schema:isPartOf <https://artbase.rhizome.org/>.
+  ?artwork rt:P85 ?accession_date. #This line selects the data of accession.
+  FILTER((?accession_date > \"2010-01-01\"^^xsd:dat) && (?accession_date < \"2010-12-31\"^^xsd:dat)) #This is the line you can edit if you want to pick a different year, or date range to query. Use the standard format of YYYY-MM-DD.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }  #This line facilitates the labeling service, which lists database item with their human-readable labels, and not just their Q IDs.
+}
+ORDER BY ?accession_date
+LIMIT 1000""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:ImageGrid
+SELECT ?artworkPage ?artworkLabel ?accession_date ?image WHERE {
+  { #This sub-query selects a single image per artworks, so that you can view all artworks in an image grid.
+    SELECT DISTINCT ?artwork (SAMPLE(?image) AS ?image) WHERE { 
+      ?artwork rt:P3 r:Q5;
+        rt:P126 ?image.
+    }
+    GROUP BY ?artwork
+  }
+  ?artworkPage schema:about ?artwork; #This line selects the main artwork page as an access point, rather it's database record .
+  schema:isPartOf <https://artbase.rhizome.org/>.
+  ?artwork rt:P85 ?accession_date. #This line selects the data of accession.
+  FILTER((?accession_date > \"2010-01-01\"^^xsd:dateTime) && (?accession_date < \"2010-12-31\"^^xsd:dateTime)) #This is the line you can edit if you want to pick a different year, or date range to query. Use the standard format of YYYY-MM-DD.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }  #This line facilitates the labeling service, which lists database item with their human-readable labels, and not just their Q IDs.
+}
+ORDER BY ?accession_date
+LIMIT 1000""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://artbase.rhizome.org/query> .

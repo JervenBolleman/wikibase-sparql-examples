@@ -1,0 +1,65 @@
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+<https://artbase.rhizome.org#query-9454fc9c9583327c8e1686aa80549cb2> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://artbase.rhizome.org/wiki/Query/Examples>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "TODO"@en;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  sh:select """PREFIX r: <https://artbase.rhizome.org/entity/>
+PREFIX rt: <https://artbase.rhizome.org/prop/direct/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+#defaultView:Timeline
+
+SELECT ?artwork_inception ?artwork_title ?artwork_page ?image {
+  
+  # Subquery to receive a single random image for each artwork (via SAMPLE)
+  # that was accessioned in the \"Some Tumblrs\" open call
+  {   
+    SELECT DISTINCT ?artwork ?artwork_inception ?artwork_title (SAMPLE(?artwork_image) AS ?image) {
+     ?artwork rt:P3 r:Q5 ;            # Instance of artwork.
+            rt:P129 r:Q15261 ;        # Type of Accession has to be \"Some Tumblrs Open Call\".
+            rt:P126 ?artwork_image .  # Images associated with the artwork.
+     }
+     GROUP BY ?artwork ?artwork_title ?artwork_inception # Group by everything except the image.
+  }
+  
+  # Add more information to the artworks and images selected above:
+  
+  ?artwork_page schema:about ?artwork ;  # Human-readable URL
+                schema:isPartOf <https://artbase.rhizome.org/> .
+  
+  ?artwork rt:P26 ?artwork_inception ;   # Start date of the tumblr blog (inception)
+           rdfs:label ?artwork_title     # Human readable label of the artwork (the work's title)
+  
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """#defaultView:Timeline
+
+SELECT ?artwork_inception ?artwork_title ?artwork_page ?image {
+  
+  # Subquery to receive a single random image for each artwork (via SAMPLE)
+  # that was accessioned in the \"Some Tumblrs\" open call
+  {   
+    SELECT DISTINCT ?artwork ?artwork_inception ?artwork_title (SAMPLE(?artwork_image) AS ?image) {
+     ?artwork rt:P3 r:Q5 ;            # Instance of artwork.
+            rt:P129 r:Q15261 ;        # Type of Accession has to be \"Some Tumblrs Open Call\".
+            rt:P126 ?artwork_image .  # Images associated with the artwork.
+     }
+     GROUP BY ?artwork ?artwork_title ?artwork_inception # Group by everything except the image.
+  }
+  
+  # Add more information to the artworks and images selected above:
+  
+  ?artwork_page schema:about ?artwork ;  # Human-readable URL
+                schema:isPartOf <https://artbase.rhizome.org/> .
+  
+  ?artwork rt:P26 ?artwork_inception ;   # Start date of the tumblr blog (inception)
+           rdfs:label ?artwork_title     # Human readable label of the artwork (the work's title)
+  
+}""";
+  schema:target <https://artbase.rhizome.org/query> .
