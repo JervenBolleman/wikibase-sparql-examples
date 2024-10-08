@@ -1,0 +1,143 @@
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+<https://www.wikidata.org#query-fc4e9dde926fc9211964ba222a304f8d> a sh:SPARQLConstructExecutable,
+    sh:SPARQLExecutable;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_PCC_Wikidata_Pilot/UNLV/SPARQL_Examples_and_Concepts>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "Query #17: Convert Wikidata triples to SKOS:CONCEPT, USING BIBFRAME AND SCHEMA.ORG ONTOLOGIES"@en;
+  sh:construct """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX bf: <http://id.loc.gov/ontologies/bibframe/>
+PREFIX bflc: <http://id.loc.gov/ontologies/bflc/>
+
+CONSTRUCT
+{
+ ?loc_uri a skos:Concept,bf:Person ;
+          skos:closeMatch ?person ;
+          skos:prefLabel ?person_prefLabel ;
+          schema:description ?personDescription ; 
+          schema:author ?worldCatEntity_uri .
+ ?worldCatEntity_uri a bf:Work ;
+                     skos:closeMatch ?writtenWork ;
+                     skos:prefLabel ?writtenWorkLabel ;
+                     schema:description ?writtenWorkDescription ;
+                     bf:hasInstance ?oclc_ctrlNum_uri .
+ ?oclc_ctrlNum_uri a bf:Instance ;
+                   bf:GenreForm ?format ;
+                   schema:publisher ?publisher .  
+ ?publisher a skos:Concept,schema:Corporation ;
+            rdfs:label ?publisherLabel .
+ ?format a skos:Concept ;
+           skos:prefLabel ?formatLabel .
+ ?placeOfPub a skos:Concept,bf:Place ;
+             skos:prefLabel ?placeOfPubLabel ;
+             schema:description ?placeOfPubDescription .
+} 
+WHERE
+{
+ ?person wdt:P31 wd:Q5 ;
+         wdt:P27 wd:Q30 ; 
+         wdt:P244 ?loc_id ;
+# BIND(URI(CONCAT(\"https://id.loc.gov/authorities/names/\",?loc_id)) AS ?loc_uri)
+BIND(URI(CONCAT(\"http://id.loc.gov/rwo/agents/\",?loc_id)) AS ?loc_uri)
+ ?person wdt:P735 ?givenName .
+ ?givenName rdfs:label ?givenNameLabel .
+ FILTER (LANG(?givenNameLabel) = \"en\" )
+ ?person wdt:P734 ?familyName .
+ ?familyName rdfs:label ?familyNameLabel .
+ FILTER (LANG(?familyNameLabel) = \"en\" )
+ BIND(CONCAT(STR(?familyNameLabel),\", \",?givenNameLabel) AS ?person_prefLabel)
+ ?writtenWork wdt:P31 wd:Q47461344 ;
+              wdt:P50 ?person ;
+              wdt:P10832 ?worldCatEntity_id .
+ BIND(URI(CONCAT(\"https://entities.oclc.org/worldcat/entity/\",?worldCatEntity_id)) AS ?worldCatEntity_uri)
+ ?writtenWork wdt:P747 ?hasEdition .
+ ?hasEdition wdt:P243 ?oclc_ctrlNum .
+  BIND(URI(CONCAT(\"https://search.worldcat.org/title/\",?oclc_ctrlNum)) AS ?oclc_ctrlNum_uri)
+ ?hasEdition wdt:P123 ?publisher .
+ ?publisher rdfs:label ?publisherLabel .
+ FILTER (LANG(?publisherLabel) = \"en\" )
+ ?hasEdition wdt:P437 ?format .
+ ?format rdfs:label ?formatLabel
+ FILTER (LANG(?formatLabel) = \"en\" )
+ ?hasEdition wdt:P291 ?placeOfPub .
+ ?placeOfPub    rdfs:label ?placeOfPubLabel .
+ FILTER (LANG(?placeOfPubLabel) = \"en\" )
+?placeOfPub schema:description ?placeOfPubDescription
+                        FILTER (LANG(?placeOfPubDescription) = \"en\" )
+ # ?writtenWork wdt:P5331 ?oclcWork_id .
+ SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\" . }
+}""";
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """PREFIX bf: <http://id.loc.gov/ontologies/bibframe/>
+PREFIX bflc: <http://id.loc.gov/ontologies/bflc/>
+
+CONSTRUCT
+{
+ ?loc_uri a skos:Concept,bf:Person ;
+          skos:closeMatch ?person ;
+          skos:prefLabel ?person_prefLabel ;
+          schema:description ?personDescription ; 
+          schema:author ?worldCatEntity_uri .
+ ?worldCatEntity_uri a bf:Work ;
+                     skos:closeMatch ?writtenWork ;
+                     skos:prefLabel ?writtenWorkLabel ;
+                     schema:description ?writtenWorkDescription ;
+                     bf:hasInstance ?oclc_ctrlNum_uri .
+ ?oclc_ctrlNum_uri a bf:Instance ;
+                   bf:GenreForm ?format ;
+                   schema:publisher ?publisher .  
+ ?publisher a skos:Concept,schema:Corporation ;
+            rdfs:label ?publisherLabel .
+ ?format a skos:Concept ;
+           skos:prefLabel ?formatLabel .
+ ?placeOfPub a skos:Concept,bf:Place ;
+             skos:prefLabel ?placeOfPubLabel ;
+             schema:description ?placeOfPubDescription .
+} 
+WHERE
+{
+ ?person wdt:P31 wd:Q5 ;
+         wdt:P27 wd:Q30 ; 
+         wdt:P244 ?loc_id ;
+# BIND(URI(CONCAT(\"https://id.loc.gov/authorities/names/\",?loc_id)) AS ?loc_uri)
+BIND(URI(CONCAT(\"http://id.loc.gov/rwo/agents/\",?loc_id)) AS ?loc_uri)
+ ?person wdt:P735 ?givenName .
+ ?givenName rdfs:label ?givenNameLabel .
+ FILTER (LANG(?givenNameLabel) = \"en\" )
+ ?person wdt:P734 ?familyName .
+ ?familyName rdfs:label ?familyNameLabel .
+ FILTER (LANG(?familyNameLabel) = \"en\" )
+ BIND(CONCAT(STR(?familyNameLabel),\", \",?givenNameLabel) AS ?person_prefLabel)
+ ?writtenWork wdt:P31 wd:Q47461344 ;
+              wdt:P50 ?person ;
+              wdt:P10832 ?worldCatEntity_id .
+ BIND(URI(CONCAT(\"https://entities.oclc.org/worldcat/entity/\",?worldCatEntity_id)) AS ?worldCatEntity_uri)
+ ?writtenWork wdt:P747 ?hasEdition .
+ ?hasEdition wdt:P243 ?oclc_ctrlNum .
+  BIND(URI(CONCAT(\"https://search.worldcat.org/title/\",?oclc_ctrlNum)) AS ?oclc_ctrlNum_uri)
+ ?hasEdition wdt:P123 ?publisher .
+ ?publisher rdfs:label ?publisherLabel .
+ FILTER (LANG(?publisherLabel) = \"en\" )
+ ?hasEdition wdt:P437 ?format .
+ ?format rdfs:label ?formatLabel
+ FILTER (LANG(?formatLabel) = \"en\" )
+ ?hasEdition wdt:P291 ?placeOfPub .
+ ?placeOfPub    rdfs:label ?placeOfPubLabel .
+ FILTER (LANG(?placeOfPubLabel) = \"en\" )
+?placeOfPub schema:description ?placeOfPubDescription
+                        FILTER (LANG(?placeOfPubDescription) = \"en\" )
+ # ?writtenWork wdt:P5331 ?oclcWork_id .
+ SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\" . }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,80 @@
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+<https://www.wikidata.org#query-5a961529485f1bd206ecc17e292aa3ca> a sh:SPARQLConstructExecutable,
+    sh:SPARQLExecutable;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_PCC_Wikidata_Pilot/UNLV/SPARQL_Examples_and_Concepts>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "Query #15: CONSTRUCT WIKIDATA:WRITTEN WORK (Q47461344) TO SCHEMA:CREATIVE WORK"@en;
+  sh:construct """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+CONSTRUCT
+{
+ ?oclc_work_uri a schema:CreativeWork ;
+     schema:name ?workLabel ;
+     schema:author ?loc_naf_uri .
+ ?loc_naf_uri a schema:Person ;
+     schema:name ?authorLabel ;
+     schema:description ?authorDescription .
+ ?oclc_work_uri schema:bookEdition ?oclcCtrlNum_uri .
+ ?oclcCtrlNum_uri a schema:Book ;
+     schema:name ?hasEditionLabel ;
+     schema:description ?hasEditionDescription .
+}
+WHERE
+{
+ ?work wdt:P31 wd:Q47461344,?instanceOf .
+ ?work wdt:P5331 ?oclc_work_id .
+ BIND(URI(CONCAT(\"http://experiment.worldcat.org/entity/work/data/\", ?oclc_work_id )) AS ?oclc_work_uri)
+ ?work wdt:P50 ?author .
+ ?author rdfs:label ?authorLabel .
+ FILTER (LANG(?authorLabel) = \"en\")
+ ?author wdt:P244 ?loc_name .
+ BIND(URI(CONCAT(\"https://id.loc.gov/authorities/names/\", ?loc_name )) AS ?loc_naf_uri)
+ ?work wdt:P747 ?hasEdition .
+ ?hasEdition rdfs:label ?hasEditionLabel .
+ FILTER (LANG(?hasEditionLabel) = \"en\")
+ ?hasEdition wdt:P243 ?oclcCtrlNum .
+ BIND(URI(CONCAT(\"https://search.worldcat.org/title/\",?oclcCtrlNum)) AS ?oclcCtrlNum_uri)
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}LIMIT 1""";
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """CONSTRUCT
+{
+ ?oclc_work_uri a schema:CreativeWork ;
+     schema:name ?workLabel ;
+     schema:author ?loc_naf_uri .
+ ?loc_naf_uri a schema:Person ;
+     schema:name ?authorLabel ;
+     schema:description ?authorDescription .
+ ?oclc_work_uri schema:bookEdition ?oclcCtrlNum_uri .
+ ?oclcCtrlNum_uri a schema:Book ;
+     schema:name ?hasEditionLabel ;
+     schema:description ?hasEditionDescription .
+}
+WHERE
+{
+ ?work wdt:P31 wd:Q47461344,?instanceOf .
+ ?work wdt:P5331 ?oclc_work_id .
+ BIND(URI(CONCAT(\"http://experiment.worldcat.org/entity/work/data/\", ?oclc_work_id )) AS ?oclc_work_uri)
+ ?work wdt:P50 ?author .
+ ?author rdfs:label ?authorLabel .
+ FILTER (LANG(?authorLabel) = \"en\")
+ ?author wdt:P244 ?loc_name .
+ BIND(URI(CONCAT(\"https://id.loc.gov/authorities/names/\", ?loc_name )) AS ?loc_naf_uri)
+ ?work wdt:P747 ?hasEdition .
+ ?hasEdition rdfs:label ?hasEditionLabel .
+ FILTER (LANG(?hasEditionLabel) = \"en\")
+ ?hasEdition wdt:P243 ?oclcCtrlNum .
+ BIND(URI(CONCAT(\"https://search.worldcat.org/title/\",?oclcCtrlNum)) AS ?oclcCtrlNum_uri)
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}LIMIT 1""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .

@@ -1,0 +1,93 @@
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+<https://www.wikidata.org#query-d68d6bec44feb0a6f9a072b3640cea6c> a sh:SPARQLConstructExecutable,
+    sh:SPARQLExecutable;
+  dcterms:isPartOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_PCC_Wikidata_Pilot/UNLV/SPARQL_Examples_and_Concepts>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "Query #13: Construct a graph of people on the WikiProject African diaspora project list (Q15304953), including their place of birth and occupation (skos/schema.org example)"@en;
+  sh:construct """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+CONSTRUCT 
+{
+ ?item a skos:Concept,schema:Person . 
+ ?item skos:prefLabel ?itemLabel .
+ ?item skos:definition ?description .
+ ?item schema:birthDate ?dateOfBirth .
+ ?item schema:deathDate ?dateOfDeath .
+ ?item schema:birthPlace ?placeOfBirth .
+ ?occupation a skos:Concept,schema:Occupation .
+ ?occupation skos:prefLabel ?occupationLabel .
+ ?occupation schema:description ?occupation_description .
+ ?placeOfBirth a skos:Concept,schema:Place .
+ ?placeOfBirth skos:prefLabel ?placeOfBirthLabel .
+ ?placeOfBirth schema:description ?placeOfBirth_description .
+}  
+WHERE
+{
+ ?item wdt:P5008 wd:Q15304953 ;
+     wdt:P31 wd:Q5 ; 
+     wdt:P31 ?instanceOf .
+ ?item schema:description ?description .
+ FILTER (LANG(?description) = \"en\")
+ ?item wdt:P106 ?occupation .
+ ?occupation rdfs:label ?occupationLabel .   
+ FILTER (LANG(?occupationLabel) = \"en\")
+ ?occupation schema:description ?occupation_description .
+ FILTER (LANG(?occupation_description) = \"en\")
+ ?item wdt:P569 ?dateOfBirth .  
+ OPTIONAL{?item wdt:P570 ?dateOfDeath} . 
+ ?item wdt:P19 ?placeOfBirth .            
+ ?placeOfBirth rdfs:label ?placeOfBirthLabel .   
+ FILTER (LANG(?placeOfBirthLabel) = \"en\")          
+ ?placeOfBirth schema:description ?placeOfBirth_description .
+ FILTER (LANG(?placeOfBirth_description) = \"en\")           
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} LIMIT 1""";
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  <https://purl.expasy.org/sparql-examples/ontology#bigdata_query> """CONSTRUCT 
+{
+ ?item a skos:Concept,schema:Person . 
+ ?item skos:prefLabel ?itemLabel .
+ ?item skos:definition ?description .
+ ?item schema:birthDate ?dateOfBirth .
+ ?item schema:deathDate ?dateOfDeath .
+ ?item schema:birthPlace ?placeOfBirth .
+ ?occupation a skos:Concept,schema:Occupation .
+ ?occupation skos:prefLabel ?occupationLabel .
+ ?occupation schema:description ?occupation_description .
+ ?placeOfBirth a skos:Concept,schema:Place .
+ ?placeOfBirth skos:prefLabel ?placeOfBirthLabel .
+ ?placeOfBirth schema:description ?placeOfBirth_description .
+}  
+WHERE
+{
+ ?item wdt:P5008 wd:Q15304953 ;
+     wdt:P31 wd:Q5 ; 
+     wdt:P31 ?instanceOf .
+ ?item schema:description ?description .
+ FILTER (LANG(?description) = \"en\")
+ ?item wdt:P106 ?occupation .
+ ?occupation rdfs:label ?occupationLabel .   
+ FILTER (LANG(?occupationLabel) = \"en\")
+ ?occupation schema:description ?occupation_description .
+ FILTER (LANG(?occupation_description) = \"en\")
+ ?item wdt:P569 ?dateOfBirth .  
+ OPTIONAL{?item wdt:P570 ?dateOfDeath} . 
+ ?item wdt:P19 ?placeOfBirth .            
+ ?placeOfBirth rdfs:label ?placeOfBirthLabel .   
+ FILTER (LANG(?placeOfBirthLabel) = \"en\")          
+ ?placeOfBirth schema:description ?placeOfBirth_description .
+ FILTER (LANG(?placeOfBirth_description) = \"en\")           
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} LIMIT 1""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>;
+  schema:target <https://query.wikidata.org/sparql> .
