@@ -7,8 +7,12 @@ However, many still need to be fixed.
 
 Code used to do the crawling and fixing is in [sparql-examples-utils](https://github.com/sib-swiss/sparql-examples-utils/).
 
+The approach to storing and visualizing queries in this way is described in this [preprint](https://arxiv.org/abs/2410.06010).
+
 Contributions are very welcome!
 
 # Queries are identified by their MD5 hash
 
 At this moment you can see them [in turtle](https://github.com/JervenBolleman/wikibase-sparql-examples/tree/main/examples/wikidata).
+
+
