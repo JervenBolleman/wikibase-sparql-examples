@@ -1,0 +1,39 @@
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+<https://database.factgrid.de/#query-2d05b3313a1227a018372c520b343f99> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://database.factgrid.de//wiki/User:Matthias_Erfurth/Boetticher>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  rdfs:comment "Item:Q537641, Malerwerke des neunzehnten Jahrhunderts : Beitrag zur KunstgeschichteQueries#title:Alle Personen im Factgrid, die im Boetticher gelistet sind SELECT ?item ?itemLabel ?pData ?gender WHERE { ?item wdt:P124 wd:Q537641. ?item wdt:P77 ?bDate. ?item wdt:P38 ?sDate. ?item wdt:P154 ?gender SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } BIND(concat(STR(YEAR(?bDate)),\"–\",STR(YEAR(?sDate))) as ?pData) } ORDER BY ?itemLabel"@en;
+  sh:prefixes <https://example.org/to_decide/wikidata_prefixes>;
+  sh:select """#defaultView:Table
+
+# Prefixes
+PREFIX fg: <https://database.factgrid.de/entity/>
+PREFIX fgt: <https://database.factgrid.de/prop/direct/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX schema: <http://schema.org/>
+
+SELECT DISTINCT  ?fg_itemLabel ?wd_item ?fg_item_as_string  where {
+    # labels from Factgrid
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+    # maybe filter to prevent timeout
+    ?fg_item fgt:P165 fg:Q36783.
+    # Convert Factgrid ID from IRI to string
+    BIND(REPLACE(STR(?fg_item), \"https://database.factgrid.de/entity/\", \"\") as ?fg_item_as_string) 
+    # get those Items from Wikidata that have that corresponding Factgrid ID and listed in Boetticher
+    SERVICE <https://query.wikidata.org/sparql> {
+      ?wd_item wdt:P8168 ?fg_item_as_string.
+      ?wd_item wdt:P1343 wd:Q72628185.
+    }
+}""";
+  <https://purl.expasy.org/sparql-examples/ontology#federatesWith> <http://wikiba.se/ontology#label>,
+    <https://query.wikidata.org/sparql>;
+  schema:target <https://database.factgrid.de/sparql> .
